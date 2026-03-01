@@ -1,0 +1,523 @@
+/* public/deck.css */
+/* v2.0.0-ex - 豪華UI + 指定レイアウト（上:タイトル/ニックネーム/設定系、左:カード、右:デッキ、左下:ゲーム参加） */
+
+* { box-sizing: border-box; }
+
+:root{
+  --bg:#0b0b0f;
+  --panel:#14141b;
+  --panel2:#1b1b24;
+  --border:rgba(255,255,255,.10);
+  --border2:rgba(255,255,255,.16);
+
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.78);
+  --muted2:rgba(255,255,255,.60);
+
+  --accent:#ffd700;
+  --accent2:#ffea8a;
+  --ok:#9cff9c;
+  --ng:#ff8080;
+
+  --shadow: 0 18px 60px rgba(0,0,0,.55);
+  --glow: 0 0 0 1px rgba(255,215,0,.18), 0 0 22px rgba(255,215,0,.10);
+}
+
+html, body { height:100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background:
+    radial-gradient(1200px 700px at 10% 0%, rgba(255,215,0,.10), transparent 60%),
+    radial-gradient(900px 600px at 100% 10%, rgba(120,180,255,.10), transparent 55%),
+    radial-gradient(800px 600px at 50% 120%, rgba(255,90,160,.08), transparent 55%),
+    var(--bg);
+  color:var(--text);
+}
+
+/* ===== Helpers ===== */
+.small{ font-size:12px; color:var(--muted); }
+.hint{ opacity:.78; margin-left:6px; }
+.dot{ opacity:.55; margin: 0 8px; }
+
+.badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.06);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.2;
+}
+.subTitle{
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.title{
+  font-size:20px;
+  font-weight:950;
+  letter-spacing:.02em;
+}
+
+/* ===== Buttons / Inputs ===== */
+button{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  color:var(--text);
+  border-radius:14px;
+  padding:9px 12px;
+  cursor:pointer;
+  transition: transform .08s ease, border-color .15s ease, filter .15s ease;
+}
+button:hover{
+  border-color: rgba(255,255,255,.22);
+  filter: brightness(1.06);
+}
+button:active{ transform: translateY(1px); }
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none;
+}
+
+button.primary{
+  border-color: rgba(255,215,0,.35);
+  background:
+    radial-gradient(600px 200px at 30% 0%, rgba(255,215,0,.25), transparent 60%),
+    linear-gradient(180deg, rgba(255,215,0,.16), rgba(255,215,0,.08));
+  box-shadow: var(--glow);
+}
+button.ghost{
+  background: rgba(255,255,255,.04);
+}
+
+select, input{
+  background: rgba(255,255,255,.05);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:8px 10px;
+  outline:none;
+  transition: border-color .15s ease, filter .15s ease;
+}
+select:focus, input:focus{
+  border-color: rgba(255,215,0,.35);
+  filter: brightness(1.05);
+}
+input{ min-width: 220px; }
+
+/* ===== Topbar ===== */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  background: rgba(10,10,14,.82);
+  border-bottom:1px solid var(--border);
+  backdrop-filter: blur(12px);
+}
+.topLeft{ display:flex; flex-direction:column; gap:4px; }
+.titleRow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+.nickPill{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  padding:7px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background: rgba(255,255,255,.04);
+}
+.nickPill b{ letter-spacing:.02em; }
+.metaRow{ opacity:.95; }
+
+.topRight{ display:flex; gap:10px; flex-wrap:wrap; }
+
+/* ===== Layout (required) =====
+   左：上=カード一覧 / 下=ゲーム参加
+   右：上=デッキ（+EX）/ 下=詳細
+*/
+.layout2{
+  display:grid;
+  grid-template-columns: 1.28fr 1fr;
+  gap:12px;
+  padding:12px;
+  height: calc(100% - 64px);
+}
+.leftCol{
+  display:grid;
+  grid-template-rows: 1fr auto;
+  gap:12px;
+  min-height:0;
+}
+@media (max-width: 980px){
+  .layout2{
+    grid-template-columns: 1fr;
+    height:auto;
+  }
+  .leftCol{
+    grid-template-rows: auto auto;
+  }
+}
+
+/* ===== Panel ===== */
+.panel{
+  background:
+    radial-gradient(900px 400px at 20% 0%, rgba(255,255,255,.05), transparent 60%),
+    rgba(20,20,27,.85);
+  border:1px solid var(--border);
+  border-radius:18px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  box-shadow: var(--shadow);
+}
+.panelHead{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+}
+.scroll{
+  padding:12px;
+  overflow:auto;
+  min-height:0;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+/* ===== Filters ===== */
+.filters{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.countBox{
+  margin-left:auto;
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  padding:6px 10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background: rgba(255,255,255,.04);
+}
+
+/* ===== Game panel ===== */
+.gameBody{ padding:12px; }
+.gameGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+@media (max-width: 760px){
+  .gameGrid{ grid-template-columns: 1fr; }
+}
+.modeCard{
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:12px;
+  background:
+    radial-gradient(700px 220px at 10% 0%, rgba(255,215,0,.10), transparent 55%),
+    rgba(255,255,255,.03);
+}
+.modeHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.modeTitle{
+  font-weight:900;
+  letter-spacing:.02em;
+}
+.modeBadge{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+}
+.modeBadge.accent{
+  border-color: rgba(255,215,0,.32);
+  background: rgba(255,215,0,.10);
+  color: rgba(255,240,190,.95);
+}
+.modeDesc{ margin-top:6px; }
+.modeBtns{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* Message area (deck.js uses #msg) */
+.msg{
+  min-height: 18px;
+  margin-top:10px;
+  color:var(--ng);
+  font-size:13px;
+}
+
+/* Fine row (random/save + deck count) */
+.fineRow{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+}
+.fineRight{ display:flex; gap:10px; }
+
+/* ===== Deck panel ===== */
+.deckTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+/* ===== EX ===== */
+.exBox{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+  justify-content:space-between;
+  padding:10px;
+  border:1px solid rgba(255,215,0,.18);
+  border-radius:16px;
+  background:
+    radial-gradient(700px 240px at 30% 0%, rgba(255,215,0,.12), transparent 60%),
+    rgba(255,255,255,.03);
+  box-shadow: 0 0 0 1px rgba(255,215,0,.08) inset;
+}
+.exLeft{ display:flex; flex-direction:column; gap:6px; }
+.exLabel{ line-height:1.35; color:var(--muted); }
+.exRight{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  justify-content:center;
+}
+
+/* ===== Cards list UI ===== */
+details{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background: rgba(255,255,255,.02);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+summary{
+  list-style:none;
+  cursor:pointer;
+  padding:10px;
+  user-select:none;
+  transition: filter .15s ease;
+}
+summary:hover{ filter: brightness(1.07); }
+summary::-webkit-details-marker{ display:none; }
+
+.sumTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.sumTitle{ font-weight:900; }
+.sumDesc{
+  margin-top:4px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.sumRight{
+  opacity:.9;
+  font-weight:800;
+}
+
+.sectionInner{
+  padding:10px;
+  border-top:1px solid var(--border);
+}
+
+/* ===== Card item ===== */
+.card{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  margin:8px 0;
+  overflow:hidden;
+  transition: transform .08s ease, border-color .15s ease, filter .15s ease;
+}
+.card:hover{
+  border-color: rgba(255,255,255,.18);
+  filter: brightness(1.05);
+}
+
+/* ===== Card item (taller) ===== */
+.cardHead{
+  display:flex;
+  align-items:flex-start;     /* ←中央揃えやめると情報が見やすい */
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 12px;          /* ←増やす */
+  min-height: 86px;           /* ←縦を確保 */
+}
+
+.card .btns{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.small{ line-height: 1.35; }  /* 文字の詰まり解消 */
+
+.cnt{
+  min-width: 64px;
+  text-align:center;
+  font-weight:800;
+  color:var(--muted);
+}
+
+/* ===== Detail ===== */
+.detailBox{
+  padding:12px;
+  border-top:1px solid var(--border);
+  background: rgba(255,255,255,.02);
+}
+.detail{
+  margin-top:8px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background: rgba(0,0,0,.18);
+  color:var(--muted);
+}
+
+/* ===== Modal (tutorial placeholder) ===== */
+.modalBackdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.modal{
+  width:min(920px, 92vw);
+  max-height: 88vh;
+  overflow:hidden;
+  background: rgba(20,20,27,.92);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow: var(--shadow);
+  display:flex;
+  flex-direction:column;
+}
+.modalHead{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+}
+.modalBody{
+  padding:12px;
+  overflow:auto;
+}
+
+/* ===== Detail (fixed left-bottom) ===== */
+.detailWrap{
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  width: min(560px, calc(100vw - 28px));
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 14px;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(8px);
+
+  z-index: 9999;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.detailWrap.isHidden{ display:none; }
+
+.detailHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+}
+.detailTitle{
+  font-weight: 900;
+  letter-spacing: .04em;
+  opacity: .92;
+}
+
+.detailClose{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  cursor: pointer;
+}
+.detailClose:hover{ filter: brightness(1.08); }
+
+.detailBody{
+  padding: 12px;
+  overflow:auto;
+  max-height: calc(min(60vh, 520px) - 56px);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.detailTitle{
+  font-weight: 900;
+  letter-spacing: .04em;
+  opacity: .92;
+}
+
+.detailClose{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  cursor: pointer;
+}
+
+.detailBody{
+  padding: 12px;
+  overflow:auto;
+  max-height: calc(min(60vh, 520px) - 56px);
+  font-size: 13px;
+  line-height: 1.55;
+}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>TCG Prototype（HP/SP表示＋ダイス）</title>
+<style>
+body { font-family: sans-serif; background:#222; color:#fff; display:flex; }
+#left { margin-right:20px; }
+#board { display:grid; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(7, 64px); gap:4px; }
+.cell { width:64px; height:64px; background:#444; position:relative; cursor:pointer; font-size:14px; }
+.cell.summon { background:#2a5; }
+.cell.move { background:#296; }
+.cell.attack { background:#a33; }
+.cell.selected { outline:3px solid yellow; }
+.unitA { background:#4af; }
+.unitB { background:#f55; }
+.status { position:absolute; bottom:2px; left:2px; font-size:10px; background:rgba(0,0,0,0.6); padding:1px 2px; }
+#right { width:320px; }
+.card { border:1px solid #aaa; padding:4px; margin-bottom:4px; cursor:pointer; background:#333; }
+.card.selected { outline:2px solid yellow; }
+button { margin:2px; }
+#detail { border:1px solid #666; padding:6px; margin-top:6px; }
+#dice { font-size:22px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div id="left">
+<h3>フィールド</h3>
+<div id="board"></div>
+<div>
+  <div>ターン: <span id="turn"></span></div>
+  <div>マナ: <span id="mana"></span></div>
+  <button onclick="setMode('move')">移動</button>
+  <button onclick="setMode('attack')">攻撃</button>
+  <button onclick="endTurn()">ターンエンド</button>
+</div>
+<pre id="log"></pre>
+</div>
+
+<div id="right">
+<h3>山札</h3>
+<div id="deckCount"></div>
+<h3>手札</h3>
+<div id="hand"></div>
+<button onclick="setMode('summon')">召喚</button>
+<button onclick="showCardDetail()">カード詳細</button>
+<h3>キャラ情報</h3>
+<div id="detail"></div>
+<div id="dice"></div>
+</div>
+
+<script>
+const W=5,H=7;
+let turn='A', mana=5, mode=null;
+let selectedUnit=null, selectedCard=null;
+
+const cardDefs={
+ A:{name:'A',elem:'火',cost:3,hp:50,sp:10,atk:{cost:2,range:'front1',dmg:20,rate:75}},
+ B:{name:'B',elem:'水',cost:2,hp:40,sp:30,atk:{cost:1,range:'side1',dmg:10,rate:40}},
+ C:{name:'C',elem:'風',cost:2,hp:30,sp:20,atk:{cost:2,range:'front3',dmg:10,rate:70}},
+ D:{name:'D',elem:'雷',cost:3,hp:30,sp:20,atk:{cost:3,range:'rf1',dmg:10,rate:50,draw:1}},
+ E:{name:'E',elem:'闇',cost:3,hp:40,sp:20,atk:{cost:3,range:'front1',spDmg:10,rate:50}}
+};
+
+function makeDeck(){ const d=[]; const k=Object.keys(cardDefs); for(let i=0;i<40;i++) d.push(k[i%5]); return shuffle(d); }
+function shuffle(a){ return a.sort(()=>Math.random()-0.5); }
+
+const players={A:{deck:makeDeck(),hand:[]},B:{deck:makeDeck(),hand:[]}};
+function draw(p,n=1){ for(let i=0;i<n;i++) if(players[p].deck.length) players[p].hand.push(players[p].deck.pop()); }
+draw('A',5); draw('B',5);
+
+const units=[];
+function log(t){ document.getElementById('log').textContent+=t+'\n'; }
+
+function setMode(m){
+ if(m==='attack' && !selectedUnit){ alert('攻撃するキャラを選んでください'); return; }
+ mode=m;
+ render();
+}
+
+function endTurn(){
+ selectedUnit=null; selectedCard=null; mode=null;
+ turn=turn==='A'?'B':'A';
+ mana=5; draw(turn,1);
+ log(`--- ${turn}ターン ---`);
+ render();
+}
+
+function frontDir(){ return turn==='A'?-1:1; }
+function summonArea(y){ return turn==='A'?y>=H-2:y<=1; }
+
+function render(){
+ const board=document.getElementById('board');
+ board.innerHTML='';
+
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const d=document.createElement('div');
+  d.className='cell';
+  d.onclick=()=>clickCell(x,y);
+
+  const u=units.find(u=>u.x===x&&u.y===y&&u.hp>0);
+  if(u){
+   d.classList.add(u.owner==='A'?'unitA':'unitB');
+   d.innerHTML=`${u.type}<div class='status'>HP${u.hp} SP${u.sp}</div>`;
+   if(u===selectedUnit) d.classList.add('selected');
+  }
+
+  if(mode==='summon' && selectedCard && mana>=cardDefs[selectedCard].cost && !u && summonArea(y))
+   d.classList.add('summon');
+
+  if(selectedUnit && mode==='move' && mana>0 && !u && Math.abs(selectedUnit.x-x)+Math.abs(selectedUnit.y-y)===1)
+   d.classList.add('move');
+
+  if(selectedUnit && mode==='attack' && u){
+   const atk=cardDefs[selectedUnit.type].atk;
+   if(isInRange(selectedUnit,x,y,atk.range))
+    d.classList.add('attack');
+  }
+
+  board.appendChild(d);
+ }
+
+ document.getElementById('turn').textContent=turn;
+ document.getElementById('mana').textContent=mana;
+ document.getElementById('deckCount').textContent=`残り${players[turn].deck.length}枚`;
+ renderHand();
+}
+
+function renderHand(){
+ const h=document.getElementById('hand');
+ h.innerHTML='';
+ players[turn].hand.forEach(c=>{
+  const d=document.createElement('div');
+  d.className='card';
+  if(c===selectedCard) d.classList.add('selected');
+  d.textContent=`${c}(${cardDefs[c].elem}) コスト${cardDefs[c].cost}`;
+  d.onclick=()=>{ selectedCard=c; render(); };
+  h.appendChild(d);
+ });
+}
+
+function clickCell(x,y){
+ const u=units.find(u=>u.x===x&&u.y===y&&u.hp>0);
+
+ if(u){
+  showUnitDetail(u);
+
+  if(mode==='attack' && selectedUnit){
+   const atk=cardDefs[selectedUnit.type].atk;
+   if(mana<atk.cost) return;
+   if(isInRange(selectedUnit,x,y,atk.range)){
+    mana-=atk.cost;
+    rollDice(atk,u);
+    mode=null;
+   }
+  } else {
+   selectedUnit=u;
+  }
+  render();
+  return;
+ }
+
+ if(mode==='summon' && selectedCard){
+  const d=cardDefs[selectedCard];
+  if(mana<d.cost || !summonArea(y)) return;
+  mana-=d.cost;
+  units.push({owner:turn,type:selectedCard,x,y,hp:d.hp,sp:d.sp});
+  players[turn].hand.splice(players[turn].hand.indexOf(selectedCard),1);
+  selectedCard=null; mode=null;
+ }
+
+ if(selectedUnit && mode==='move' && mana>0 && Math.abs(selectedUnit.x-x)+Math.abs(selectedUnit.y-y)===1){
+  selectedUnit.x=x; selectedUnit.y=y; mana--; mode=null;
+ }
+
+ render();
+}
+
+function rollDice(atk,target){
+ const roll=Math.floor(Math.random()*100)+1;
+ document.getElementById('dice').textContent=`🎲 ${roll} / 成功率 ${atk.rate}%`;
+ if(roll<=atk.rate){
+  if(atk.dmg) target.hp-=atk.dmg;
+  if(atk.spDmg) target.sp-=atk.spDmg;
+  if(atk.draw) draw(turn,atk.draw);
+  log('攻撃成功');
+ } else log('攻撃失敗');
+}
+
+function isInRange(u,x,y,type){
+ const dx=x-u.x, dy=y-u.y, f=frontDir();
+ if(type==='front1') return dx===0 && dy===f;
+ if(type==='front3') return dx===0 && dy*f>0 && Math.abs(dy)<=3;
+ if(type==='side1') return dy===0 && Math.abs(dx)===1;
+ if(type==='rf1') return dy===f && dx===1;
+ return false;
+}
+
+function showUnitDetail(u){
+ document.getElementById('detail').innerHTML=
+ `<b>${u.type}</b><br>HP:${u.hp}<br>SP:${u.sp}<br>所有:${u.owner}`;
+}
+
+function showCardDetail(){
+ if(!selectedCard) return;
+ const d=cardDefs[selectedCard];
+ document.getElementById('detail').innerHTML=
+ `<b>${d.name}</b>(${d.elem})<br>HP:${d.hp} SP:${d.sp}<br>攻撃:${d.atk.range}<br>成功率:${d.atk.rate}%`;
+}
+
+render();
+</script>
+</body>
+</html>

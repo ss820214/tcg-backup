@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>カード工房（キャラカード編集）</title>
+  <style>
+    :root{ --bg:#0b0f14; --panel:#111826; --panel2:#0f1622; --text:#e8eef7; --muted:#93a4b8; --accent:#6ee7ff; --danger:#ff6b6b; }
+    body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; background:var(--bg); color:var(--text); }
+    header{ padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; gap:10px; align-items:center; }
+    header .title{ font-weight:700; letter-spacing:.5px; }
+    header .pill{ font-size:12px; color:var(--muted); padding:4px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(255,255,255,.04); }
+    header button{ margin-left:auto; }
+    .wrap{ display:grid; grid-template-columns: 360px 1fr 420px; gap:14px; padding:14px; }
+    .card{ background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:14px; overflow:hidden; }
+    .card h2{ margin:0; padding:12px 12px; font-size:14px; background:rgba(255,255,255,.03); border-bottom:1px solid rgba(255,255,255,.08); color:#dbe7ff; }
+    .card .body{ padding:12px; }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row + .row{ margin-top:10px; }
+    input, select, textarea{
+      width:100%;
+      background:var(--panel2);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:10px;
+      color:var(--text);
+      padding:10px 10px;
+      outline:none;
+      box-sizing:border-box;
+    }
+    textarea{ min-height:88px; resize:vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:12px; }
+    label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+    .btn{
+      background:rgba(110,231,255,.12);
+      border:1px solid rgba(110,231,255,.35);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn:hover{ filter:brightness(1.05); }
+    .btn.danger{ background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.35); }
+    .btn.ghost{ background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.10); }
+    .list{ display:flex; flex-direction:column; gap:8px; }
+    .item{
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      cursor:pointer;
+    }
+    .item:hover{ background:rgba(255,255,255,.05); }
+    .item.active{ border-color:rgba(110,231,255,.45); background:rgba(110,231,255,.10); }
+    .item .top{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
+    .item .name{ font-weight:700; }
+    .item .meta{ font-size:12px; color:var(--muted); margin-top:6px; }
+    .split{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .actions{ display:flex; flex-direction:column; gap:10px; }
+    .actionBox{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:12px;
+      background:rgba(255,255,255,.03);
+      padding:10px;
+    }
+    .actionBox .head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; }
+    .actionBox .head .ttl{ font-weight:700; }
+    .muted{ color:var(--muted); font-size:12px; }
+    pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:10px;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .imgPreview{
+      width:100%;
+      aspect-ratio: 3 / 4;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+    .imgPreview img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .tiny{ font-size:11px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">カード工房（キャラカード）</div>
+    <div class="pill" id="connState">Firestore: 未接続</div>
+    <button class="btn ghost" id="btnReload">再読み込み</button>
+  </header>
+
+  <div class="wrap">
+
+    <!-- 左：カード一覧 -->
+    <section class="card">
+      <h2>カード一覧</h2>
+      <div class="body">
+        <div class="row">
+          <input id="search" placeholder="検索（名前 / id / 属性）" />
+        </div>
+        <div class="row">
+          <button class="btn" id="btnNew">＋ 新規</button>
+          <button class="btn ghost" id="btnClone">複製</button>
+          <button class="btn danger" id="btnDelete">削除</button>
+        </div>
+        <div class="row">
+          <div class="tiny">保存先: <b>cards</b> コレクション（docId=カードID）</div>
+        </div>
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:12px 0;">
+        <div class="list" id="list"></div>
+      </div>
+    </section>
+
+    <!-- 中：編集 -->
+    <section class="card">
+      <h2>編集</h2>
+      <div class="body">
+        <div class="split">
+          <div>
+            <label>カードID（docId）</label>
+            <input id="cardId" placeholder="例: siwasiwakintama" />
+            <div class="tiny">※ 空のまま保存すると自動生成（ただしゲーム側がdocId参照なら手入力推奨）</div>
+          </div>
+          <div>
+            <label>表示名</label>
+            <input id="name" placeholder="シワシワキン玉" />
+          </div>
+        </div>
+
+        <div class="split" style="margin-top:10px;">
+          <div>
+            <label>属性</label>
+            <select id="attr">
+              <option value="雷">雷</option>
+              <option value="炎">炎</option>
+              <option value="水">水</option>
+              <option value="風">風</option>
+              <option value="土">土</option>
+              <option value="光">光</option>
+              <option value="闇">闇</option>
+              <option value="無">無</option>
+            </select>
+          </div>
+          <div>
+            <label>コスト</label>
+            <input id="cost" type="number" step="1" />
+          </div>
+        </div>
+
+        <div class="split" style="margin-top:10px;">
+          <div>
+            <label>HP</label>
+            <input id="hp" type="number" step="1" />
+          </div>
+          <div>
+            <label>SP</label>
+            <input id="sp" type="number" step="1" />
+          </div>
+        </div>
+
+        <div class="split" style="margin-top:10px;">
+          <div>
+            <label>画像URL（任意）</label>
+            <input id="imageUrl" placeholder="https://..." />
+          </div>
+          <div>
+            <label>説明（任意）</label>
+            <input id="desc" placeholder="フレーバー/説明" />
+          </div>
+        </div>
+
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:14px 0;">
+
+        <div class="row" style="justify-content:space-between;">
+          <div>
+            <div style="font-weight:700;">技（actions）</div>
+            <div class="muted">hpDelta/spDelta は「-がダメージ / +が回復」</div>
+          </div>
+          <div class="row">
+            <button class="btn" id="btnAddAction">＋ 技を追加</button>
+          </div>
+        </div>
+
+        <div class="actions" id="actions"></div>
+
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:14px 0;">
+
+        <div class="row">
+          <button class="btn" id="btnSave">保存（Firestore）</button>
+          <button class="btn ghost" id="btnExport">JSON書き出し</button>
+          <button class="btn ghost" id="btnImport">JSON読み込み</button>
+        </div>
+
+        <div class="row">
+          <textarea id="jsonBox" placeholder="ここにJSONを貼って Import / Export できます"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="tiny" id="saveState">未保存</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右：プレビュー -->
+    <section class="card">
+      <h2>プレビュー</h2>
+      <div class="body">
+        <div class="imgPreview" id="imgPreview"><div class="muted">画像なし</div></div>
+        <div style="margin-top:10px; font-weight:800; font-size:18px;" id="pvName">—</div>
+        <div class="muted" id="pvMeta">—</div>
+        <div style="margin-top:10px;">
+          <div style="font-weight:700; margin-bottom:6px;">技</div>
+          <pre id="pvActions">—</pre>
+        </div>
+        <div style="margin-top:10px;">
+          <div style="font-weight:700; margin-bottom:6px;">このカードのJSON</div>
+          <pre id="pvJson">{}</pre>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script type="module" src="./card_editor.js?v=20260227"></script>
+</body>
+</html>

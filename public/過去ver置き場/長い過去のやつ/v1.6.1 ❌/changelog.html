@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TCG 変更履歴</title>
+  <style>
+    body{ font-family:sans-serif; background:#111; color:#fff; margin:0; }
+    header{ padding:12px 14px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center; }
+    .wrap{ padding:14px; max-width:980px; margin:0 auto; }
+    .card{ border:1px solid #333; background:#0b0b0b; border-radius:10px; padding:12px; margin:12px 0; }
+    .small{ opacity:.85; font-size:13px; line-height:1.55; }
+    button{ padding:8px 12px; cursor:pointer; }
+    code{ background:#222; padding:1px 4px; border-radius:4px; }
+    ul{ margin:6px 0 6px 18px; }
+    .pill{ display:inline-block; padding:2px 8px; border:1px solid #444; border-radius:999px; font-size:12px; opacity:.9; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <b>🧾 変更履歴</b>
+      <div class="small">vごとの修正点を残すページ（手で追記OK）</div>
+    </div>
+    <button onclick="location.href='./index.html'">← 戻る</button>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="pill">v1.5.1</div>
+      <div class="small" style="margin-top:10px;">
+        <ul>
+          <li>部屋番号4桁 / ニックネーム入力</li>
+          <li>ルームTTL 30分（expiresAt）</li>
+          <li>同じ部屋番号の残骸があれば掃除して再利用</li>
+          <li>遷移・デッキ保存の安定化</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pill">v1.5.2（予定）</div>
+      <div class="small" style="margin-top:10px;">
+        <ul>
+          <li>先行がドローできない問題 修正</li>
+          <li>移動：1キャラ2マス/ターン（ターン開始で回復）</li>
+          <li>ダメージ演出（ヒットフラッシュ・浮き文字）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

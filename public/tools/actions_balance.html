@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Actions Balance Checker</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#121826; --text:#e6edf3; --muted:#9fb0c0;
+      --line:#223044; --good:#1f6feb; --warn:#d29922; --bad:#f85149;
+      --ok:#2ea043; --chip:#1b2433;
+      --rowHover:#141c2b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); }
+    header{ padding:14px 16px; border-bottom:1px solid var(--line); background:linear-gradient(180deg,#0e1420,#0b0f14); position:sticky; top:0; z-index:10;}
+    h1{ margin:0 0 10px 0; font-size:16px; font-weight:700; }
+    .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .controls > *{ background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:8px 10px; }
+    input[type="text"]{ min-width:240px; }
+    select{ min-width:140px; }
+    button{ cursor:pointer; }
+    button:hover{ filter:brightness(1.05); }
+    main{ padding:14px 16px; }
+    .meta{ color:var(--muted); font-size:12px; margin:8px 0 12px; }
+    .chips{ display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 12px; }
+    .chip{ background:var(--chip); border:1px solid var(--line); border-radius:999px; padding:6px 10px; font-size:12px; color:var(--muted); }
+    .chip b{ color:var(--text); }
+
+    table{ width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px; border:1px solid var(--line); }
+    thead th{
+      position:sticky; top:92px; /* header高さに合わせ */
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+      font-size:12px; color:var(--muted); text-align:left;
+      padding:10px 10px;
+      cursor:pointer;
+      user-select:none;
+      z-index:5;
+    }
+    tbody td{ padding:10px 10px; border-bottom:1px solid rgba(34,48,68,.65); font-size:13px; vertical-align:top; }
+    tbody tr:hover{ background:var(--rowHover); }
+    .mono{ font-family:var(--mono); font-size:12px; }
+    .muted{ color:var(--muted); }
+    .pill{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.03); font-size:12px; }
+    .diff.bad{ color:var(--bad); font-weight:800; }
+    .diff.warn{ color:var(--warn); font-weight:800; }
+    .diff.ok{ color:var(--ok); font-weight:800; }
+    .diff.good{ color:var(--good); font-weight:800; }
+
+    .rowBad{ background:rgba(248,81,73,.10); }
+    .rowWarn{ background:rgba(210,153,34,.10); }
+    .rowOver{ background:rgba(31,111,235,.10); }
+
+    .right{ text-align:right; }
+    .small{ font-size:12px; }
+
+    /* --- added --- */
+    .rowSel{ outline:2px solid rgba(255,255,255,.25); }
+
+    .histWrap{ margin:14px 0 12px; padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); }
+    .histHead{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .histTitle{ font-weight:700; }
+    .histControls{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .histControls label{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+    .histCanvas{ width:100%; height:180px; display:block; margin-top:10px; border-radius:10px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); }
+
+    .detailPanel{ margin:14px 0 20px; padding:12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); }
+    .detailHead{ font-weight:700; margin-bottom:8px; }
+    .detailBody{ font-size:13px; }
+    .panelTitle{ margin:0 0 10px; font-weight:700; }
+    .panelGrid{ display:grid; grid-template-columns:160px 1fr; gap:6px 10px; }
+    .panelGrid .k{ color:var(--muted); }
+    .panelGrid .v{ font-weight:600; }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Actions Balance Checker</h1>
+  <div class="controls">
+    <input id="search" type="text" placeholder="検索: actionId / name / タグ / 状態 / 属性…" />
+    <select id="filterRole">
+      <option value="">role: 全て</option>
+    </select>
+    <select id="filterAttr">
+      <option value="">属性: 全て</option>
+    </select>
+    <select id="filterDanger">
+      <option value="">危険度: 全て</option>
+      <option value="under2">危険(安すぎ) diff<=-2</option>
+      <option value="under1">注意(安い) diff=-1</option>
+      <option value="ok">適正 diff=0</option>
+      <option value="over1">やや高い diff=+1</option>
+      <option value="over2">高すぎ diff>=+2</option>
+    </select>
+    <button id="reload">CSV再読込</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div class="meta" id="meta"></div>
+</header>
+
+<main>
+  <section class="histWrap">
+    <div class="histHead">
+      <div id="histTitle" class="histTitle">ヒストグラム</div>
+      <div class="histControls">
+        <label>指標
+          <select id="histMetric">
+            <option value="diffInt">diff(int)=cost-rec</option>
+            <option value="diffRaw">diff(raw)=cost-recRaw</option>
+            <option value="recRaw">rec(raw)</option>
+          </select>
+        </label>
+        <label>bins
+          <input id="histBins" type="range" min="6" max="30" value="12" />
+        </label>
+      </div>
+    </div>
+    <canvas id="histCanvas" class="histCanvas"></canvas>
+  </section>
+
+  <table>
+    <thead>
+      <tr id="theadRow"></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+
+  <section class="detailPanel" id="detailPanel">
+    <div class="detailHead">🔍 行クリックで内訳表示</div>
+    <div id="detailBody" class="detailBody">(行をクリックするとここに内訳が出る)</div>
+  </section>
+</main>
+
+<script type="module" src="./actions_balance.js"></script>
+</body>
+</html>

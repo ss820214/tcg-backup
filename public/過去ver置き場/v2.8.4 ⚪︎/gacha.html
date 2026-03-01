@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>0バト - ガチャ</title>
+  <style>
+    :root{
+      --bg:#0b0d12;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.09);
+      --line:rgba(255,255,255,.10);
+      --txt:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#7dd3fc;
+      --gold:#ffd166;
+      --pink:#ff4d8d;
+      --vio:#a78bfa;
+      --good:#7CFFB2;
+      --bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", Arial;
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(167,139,250,.16), transparent 55%),
+        radial-gradient(1200px 800px at 80% 0%, rgba(125,211,252,.12), transparent 50%),
+        radial-gradient(900px 700px at 50% 90%, rgba(255,77,141,.10), transparent 60%),
+        linear-gradient(180deg, #07080c, #0b0d12 55%, #07080c);
+      color:var(--txt);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    a{color:inherit}
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px 16px 40px;
+    }
+    header{
+      display:flex; gap:12px;
+      align-items:center; justify-content:space-between;
+      margin-bottom:16px;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      background:
+        radial-gradient(14px 14px at 30% 30%, rgba(255,255,255,.55), transparent 60%),
+        linear-gradient(135deg, rgba(167,139,250,.75), rgba(125,211,252,.75));
+      box-shadow: 0 14px 50px rgba(0,0,0,.35);
+    }
+    h1{
+      font-size:18px; margin:0;
+      letter-spacing:.06em;
+    }
+    .sub{
+      font-size:12px; color:var(--muted); margin-top:2px;
+    }
+
+    .topbar{
+      display:flex; gap:10px; align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:10px 12px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:999px;
+      backdrop-filter: blur(10px);
+    }
+    .pill b{font-size:13px}
+    .pill .small{font-size:12px;color:var(--muted)}
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.15);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      color:var(--txt);
+      border-radius:14px;
+      padding:11px 14px;
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:.03em;
+      transition: transform .08s ease, filter .15s ease;
+      user-select:none;
+    }
+    .btn:hover{filter:brightness(1.12)}
+    .btn:active{transform:translateY(1px) scale(.99)}
+    .btnPrimary{
+      border-color: rgba(125,211,252,.35);
+      background:linear-gradient(180deg, rgba(125,211,252,.18), rgba(125,211,252,.06));
+    }
+    .btnGold{
+      border-color: rgba(255,209,102,.45);
+      background:linear-gradient(180deg, rgba(255,209,102,.20), rgba(255,209,102,.06));
+    }
+    .btnDanger{
+      border-color: rgba(255,107,107,.40);
+      background:linear-gradient(180deg, rgba(255,107,107,.14), rgba(255,107,107,.04));
+    }
+    .btn:disabled{
+      cursor:not-allowed;
+      opacity:.45;
+      filter:saturate(.7);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+    }
+    @media(max-width:980px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:16px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 240px at 30% 0%, rgba(255,255,255,.10), transparent 60%);
+      pointer-events:none;
+    }
+    .panel h2{
+      margin:0 0 6px;
+      font-size:14px;
+      letter-spacing:.08em;
+      color:rgba(255,255,255,.82);
+    }
+    .note{
+      font-size:12px; color:var(--muted);
+      line-height:1.6;
+      margin-bottom:12px;
+      white-space:pre-line;
+    }
+
+    .banner{
+      display:flex; align-items:stretch; gap:12px;
+    }
+    .bannerArt{
+      flex:1;
+      min-height:190px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(600px 260px at 20% 20%, rgba(167,139,250,.20), transparent 60%),
+        radial-gradient(600px 260px at 80% 0%, rgba(125,211,252,.18), transparent 60%),
+        radial-gradient(600px 260px at 40% 90%, rgba(255,77,141,.14), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      position:relative;
+      overflow:hidden;
+    }
+    .bannerArt .title{
+      position:absolute; left:14px; top:14px;
+      font-weight:900; letter-spacing:.08em;
+      text-shadow: 0 6px 20px rgba(0,0,0,.55);
+    }
+    .bannerArt .title .big{font-size:22px}
+    .bannerArt .title .small{font-size:12px;color:rgba(255,255,255,.72)}
+    .bannerArt .stamp{
+      position:absolute; right:14px; top:14px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(8px);
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+    .rates{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin-top:10px;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+    .rate{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      font-size:12px;
+    }
+    .rate b{margin-left:6px}
+    .rate.ssr{border-color: rgba(255,209,102,.30)}
+    .rate.sr{border-color: rgba(167,139,250,.30)}
+    .rate.r{border-color: rgba(125,211,252,.28)}
+
+    .actions{
+      width:320px;
+      min-width:300px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    @media(max-width:980px){
+      .actions{width:100%; min-width:unset}
+    }
+
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .row .btn{flex:1}
+    .mini{
+      padding:10px 12px;
+      border-radius:16px;
+      background:rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.10);
+      font-size:12px;
+      color:rgba(255,255,255,.78);
+      line-height:1.55;
+      white-space:pre-line;
+    }
+
+    /* results */
+    .resultHead{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .resultHead .left{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .tag{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      font-size:12px;
+    }
+    .tag.good{border-color: rgba(124,255,178,.28)}
+    .tag.bad{border-color: rgba(255,107,107,.25)}
+    .tag.gold{border-color: rgba(255,209,102,.35)}
+    .tag.vio{border-color: rgba(167,139,250,.35)}
+    .tag.cyan{border-color: rgba(125,211,252,.35)}
+
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap:10px;
+    }
+    @media(max-width:980px){ .cards{grid-template-columns: repeat(4, 1fr);} }
+    @media(max-width:640px){ .cards{grid-template-columns: repeat(3, 1fr);} }
+
+    .card{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(180px 110px at 30% 20%, rgba(255,255,255,.09), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      padding:10px;
+      position:relative;
+      overflow:hidden;
+      min-height:110px;
+      transform: translateZ(0);
+    }
+    .card .rar{
+      position:absolute; right:10px; top:10px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(6px);
+    }
+    .card .name{
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.03em;
+      line-height:1.25;
+      margin-top:26px;
+      margin-bottom:6px;
+    }
+    .card .id{
+      font-size:11px; color:var(--muted);
+    }
+    .card .new{
+      position:absolute; left:10px; top:10px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(124,255,178,.35);
+      background: rgba(124,255,178,.10);
+    }
+    .card.ssr{
+      border-color: rgba(255,209,102,.40);
+      box-shadow: 0 0 0 1px rgba(255,209,102,.12), 0 18px 60px rgba(255,209,102,.08);
+    }
+    .card.sr{
+      border-color: rgba(167,139,250,.40);
+      box-shadow: 0 0 0 1px rgba(167,139,250,.10), 0 18px 60px rgba(167,139,250,.08);
+    }
+    .card.r{
+      border-color: rgba(125,211,252,.28);
+    }
+
+    /* overlay (darken + jackpot) */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.0);
+      pointer-events:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      opacity:0;
+      transition: opacity .24s ease, background .24s ease;
+    }
+    .overlay.on{
+      opacity:1;
+      pointer-events:auto;
+      background: rgba(0,0,0,.78);
+    }
+    .reveal{
+      width:min(720px, 92vw);
+      border-radius:24px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(700px 260px at 50% 0%, rgba(255,255,255,.12), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow: 0 24px 90px rgba(0,0,0,.55);
+      padding:18px 16px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .reveal .headline{
+      text-align:center;
+      font-weight:1000;
+      letter-spacing:.12em;
+      margin:6px 0 12px;
+      font-size:22px;
+      text-shadow: 0 10px 35px rgba(0,0,0,.55);
+    }
+    .reveal .headline.ssr{ color: var(--gold); }
+    .reveal .headline.sr{ color: var(--vio); }
+    .reveal .headline.r{ color: var(--accent); }
+
+    .spot{
+      position:absolute; inset:-40%;
+      background:
+        radial-gradient(closest-side at 50% 50%, rgba(255,209,102,.18), transparent 60%),
+        radial-gradient(closest-side at 50% 50%, rgba(167,139,250,.14), transparent 62%),
+        radial-gradient(closest-side at 50% 50%, rgba(125,211,252,.10), transparent 64%);
+      filter: blur(2px);
+      transform: rotate(12deg);
+      animation: spin 3.8s linear infinite;
+      opacity:.0;
+    }
+    .overlay.on .spot{opacity:1}
+    @keyframes spin{
+      from{ transform: rotate(0deg) scale(1.05);}
+      to{ transform: rotate(360deg) scale(1.05);}
+    }
+
+    .reveal .bigmsg{
+      text-align:center;
+      font-size:42px;
+      font-weight:1000;
+      letter-spacing:.10em;
+      margin:6px 0 8px;
+      line-height:1;
+      text-shadow: 0 18px 60px rgba(0,0,0,.60);
+    }
+    .reveal .bigmsg.ssr{ color: var(--gold); }
+    .reveal .bigmsg.sr{ color: var(--vio); }
+    .reveal .bigmsg.r{ color: var(--accent); }
+
+    .reveal .submsg{
+      text-align:center;
+      font-size:12px;
+      color:rgba(255,255,255,.75);
+      white-space:pre-line;
+      margin-bottom:12px;
+    }
+    .reveal .rewards{
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap:10px;
+    }
+    @media(max-width:680px){ .reveal .rewards{grid-template-columns: repeat(3, 1fr);} }
+
+    .reveal .foot{
+      display:flex; justify-content:center; gap:10px; margin-top:14px;
+    }
+
+    .toast{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,.74);
+      white-space:pre-line;
+    }
+    .err{
+      color: var(--bad);
+      font-weight:800;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>ガチャ</h1>
+          <div class="sub">暗転 → 大当たり演出つき（Firestore連携）</div>
+        </div>
+      </div>
+
+      <div class="topbar">
+        <div class="pill">
+          <span>💎</span>
+          <div><b id="gems">-</b> <span class="small">Gems</span></div>
+        </div>
+        <div class="pill">
+          <span>🎯</span>
+          <div><b id="pity">-</b> <span class="small">Pity</span></div>
+        </div>
+        <button class="btn" id="btnBack">← 戻る</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>ピックアップ</h2>
+        <div class="note" id="bannerNote">読み込み中...</div>
+
+        <div class="banner">
+          <div class="bannerArt">
+            <div class="title">
+              <div class="big">闇鍋バナー</div>
+              <div class="small">未所持も出る。所持はコレクションに追加。</div>
+            </div>
+            <div class="stamp" id="bannerStamp">SSR確率UP?</div>
+          </div>
+
+          <div class="actions">
+            <div class="row">
+              <button class="btn btnPrimary" id="btnSingle">1回引く（💎 x <span id="cost1">120</span>）</button>
+              <button class="btn btnGold" id="btnTen">10連（💎 x <span id="cost10">1200</span>）</button>
+            </div>
+            <button class="btn btnDanger" id="btnAddGems">+💎 テスト付与（開発用）</button>
+            <div class="mini" id="miniInfo">…</div>
+          </div>
+        </div>
+
+        <div class="rates" id="rateBox"></div>
+      </section>
+
+      <section class="panel">
+        <div class="resultHead">
+          <div class="left">
+            <span class="tag cyan" id="playerTag">player:-</span>
+            <span class="tag" id="statusTag">状態: -</span>
+          </div>
+          <div class="left">
+            <button class="btn" id="btnClear">表示クリア</button>
+          </div>
+        </div>
+
+        <div class="cards" id="resultGrid"></div>
+        <div class="toast" id="toast"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 暗転＋大当たり演出 -->
+  <div class="overlay" id="overlay">
+    <div class="reveal">
+      <div class="spot"></div>
+      <div class="headline" id="revealHeadline">REVEAL</div>
+      <div class="bigmsg" id="revealBig">…</div>
+      <div class="submsg" id="revealSub">…</div>
+      <div class="rewards" id="revealGrid"></div>
+      <div class="foot">
+        <button class="btn btnPrimary" id="btnRevealClose">OK</button>
+        <button class="btn" id="btnRevealSkip">演出スキップ</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./gacha.js?v=20260213"></script>
+</body>
+</html>

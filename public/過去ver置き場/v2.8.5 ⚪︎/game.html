@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Online - Battle</title>
+
+  <!-- 既存の game.css をそのまま使う（レイアウト/FX/射程/右ペイン/ログ/マナ等） -->
+  <link rel="stylesheet" href="./game.css?v=20260223" />
+</head>
+<body>
+
+  <!-- ===== FX/Overlay (game.js が参照) ===== -->
+  <div id="turnBanner">あなたのターン！</div>
+  <div id="fxFlash"></div>
+  <div id="pinchFx" aria-hidden="true"></div>
+
+  <!-- ===== App Layout (game.css の #app / #leftPane / #centerPane / #rightPane を使う) ===== -->
+  <div id="app">
+
+    <!-- ======================
+         LEFT PANE (情報 + 操作)
+         ====================== -->
+    <aside id="leftPane">
+      <div class="paneTitle">情報</div>
+
+      <div class="kv">
+        <div class="row small"><b>YOU:</b> <span id="you">?</span></div>
+        <div class="row small"><b>TURN:</b> <span id="turn">?</span></div>
+
+        <div class="row small" style="margin-top:6px;">
+          <span id="mana">A ?/? | B ?/?</span>
+        </div>
+
+        <!-- ★ マナゲージ（黄色菱形：CSS側で変更済み想定。未変更なら後でCSSだけ差し替えOK） -->
+        <div id="manaGauge"></div>
+
+        <div class="row small" style="margin-top:8px;">
+          <div id="deckCount">残り A:? / B:?</div>
+        </div>
+        <div id="scoreWrap" class="scoreWrap">
+  <div class="scoreRow">
+    <div class="scoreLabel">🏴 KILL</div>
+
+    <div class="scoreSide">
+      <div class="scoreSideName">A</div>
+      <div id="killMeterA" class="scoreMeter"></div>
+      <div id="killTextA" class="scoreText">0/3</div>
+    </div>
+
+    <div class="scoreSide">
+      <div class="scoreSideName">B</div>
+      <div id="killMeterB" class="scoreMeter"></div>
+      <div id="killTextB" class="scoreText">0/3</div>
+    </div>
+  </div>
+
+  <div class="scoreRow" style="margin-top:6px;">
+    <div class="scoreLabel">🕳️ INFIL</div>
+
+    <div class="scoreSide">
+      <div class="scoreSideName">A</div>
+      <div id="infilMeterA" class="scoreMeter"></div>
+      <div id="infilTextA" class="scoreText">0/3</div>
+    </div>
+
+    <div class="scoreSide">
+      <div class="scoreSideName">B</div>
+      <div id="infilMeterB" class="scoreMeter"></div>
+      <div id="infilTextB" class="scoreText">0/3</div>
+    </div>
+  </div>
+
+  <!-- 既存の span は残したいなら hidden にして保持でもOK -->
+  <span id="kills" style="display:none"></span>
+  <span id="infil" style="display:none"></span>
+</div>
+
+        <div id="dice"></div>
+        <div id="modeHint" class="small" style="margin-top:8px; opacity:.85;"></div>
+      </div>
+
+      <div class="paneTitle">操作</div>
+      <div class="controls">
+        <button id="modeSummon">召喚</button>
+        <button id="modeMove">移動</button>
+        <button id="modeAttack">行動</button>
+        <button id="modeEvolve">進化</button>
+        <button id="modeSupport">サポート</button>
+        <button id="doEvolve" style="display:none;">進化実行</button>
+        <button id="endTurn">ターン終了</button>
+      </div>
+
+      <!-- Quick actions -->
+      <div id="quickActions" class="quickActions" style="display:none;">
+        <button id="quickMove">🏃 移動</button>
+        <button id="quickAttack">⚔️ 行動</button>
+        <span id="quickMsg" class="small"></span>
+      </div>
+
+      <!-- Pinch + EX UI（game.jsが参照するIDを全部用意） -->
+      <div id="exWrap" class="kv" style="margin-top:10px;">
+        <div class="row" style="justify-content:space-between; align-items:center;">
+          <b>EX</b>
+          <button id="exBtn" type="button">EX発動</button>
+        </div>
+        <div id="exInfo" class="small" style="margin-top:6px; opacity:.9;">EXなし</div>
+        <div class="small" style="margin-top:6px; opacity:.75;">
+          ※ピンチ時のみ / 1回きり
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======================
+         CENTER PANE (盤面)
+         ====================== -->
+    <main id="centerPane" aria-label="battle-board">
+      <div id="board"></div>
+    </main>
+
+    <!-- ======================
+         RIGHT PANE (手札→行動→ログ)
+         ====================== -->
+    <aside id="rightPane">
+      <div class="paneTitle">手札</div>
+      <div id="hand"></div>
+
+      <div class="paneTitle" style="margin-top:10px;">行動</div>
+      <div id="actionPicker" class="small">
+        ユニットを選択すると行動が表示されます。
+      </div>
+
+      <div class="paneTitle" style="margin-top:10px;">詳細</div>
+      <div id="detail" class="small">
+        ユニット/カードの詳細がここに表示されます。
+      </div>
+
+      <div class="paneTitle" style="margin-top:10px;">ログ</div>
+      <pre id="log"></pre>
+    </aside>
+
+  </div>
+
+  <!-- ===== Game code ===== -->
+  <script type="module" src="./game.js?v=20260226_2"></script>
+
+  <style>
+  /* 「ゲーム参加！」ボタンだけ非表示（周りのUIは残す） */
+  #joinGameBtn,
+  #btnJoinGame,
+  #gameJoinBtn {
+    display: none !important;
+  }
+
+  /* もし class で付いてる場合の保険 */
+  .join-game-btn {
+    display: none !important;
+  }
+</style>
+
+<script type="module">
+  import { startBattleBgmMp3, stopBattleBgmMp3 } from "./sfx.js";
+
+  // ===== 設定 =====
+  const BGM_KEY = "tcg_bgm_on";
+  const DEFAULT_ON = true;
+  const VOLUME = 0.55;
+  const RATE = 1.00;
+
+  let bgmOn = (() => {
+    const v = localStorage.getItem(BGM_KEY);
+    if (v === null) return DEFAULT_ON;
+    return v === "1";
+  })();
+
+  function isSoloUrl() {
+    const p = new URLSearchParams(location.search);
+    return p.get("solo") === "1" || p.get("mode") === "solo";
+  }
+
+  function mountBgmToggle() {
+    const btn = document.createElement("button");
+    btn.id = "bgmToggleBtn";
+    btn.type = "button";
+    btn.style.marginLeft = "6px";
+    btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
+
+    const solo = isSoloUrl();
+
+    // ★Consoleボタン（soloの時だけ）
+    let cbtn = null;
+    if (solo) {
+      cbtn = document.createElement("button");
+      cbtn.id = "consoleToggleBtn";
+      cbtn.type = "button";
+      cbtn.style.marginLeft = "6px";
+      cbtn.textContent = "🖥 コンソール";
+    }
+
+    // いったん「操作」タイトルの近くに差し込む（あなたの現行ロジック維持）
+    const leftPane = document.querySelector("#leftPane");
+    const controlsTitle = leftPane?.querySelectorAll(".paneTitle")?.[1]; // 2つ目が「操作」
+    if (controlsTitle && controlsTitle.parentElement) {
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.alignItems = "center";
+      wrap.style.justifyContent = "space-between";
+
+      const titleClone = controlsTitle.cloneNode(true);
+      controlsTitle.replaceWith(wrap);
+      wrap.appendChild(titleClone);
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.gap = "6px";
+      right.appendChild(btn);
+      if (cbtn) right.appendChild(cbtn);   // ✅ solo時だけ
+      wrap.appendChild(right);
+    } else {
+      leftPane?.prepend(btn);
+      if (cbtn) leftPane?.prepend(cbtn);   // ✅ solo時だけ
+    }
+
+    btn.addEventListener("click", async () => {
+      bgmOn = !bgmOn;
+      localStorage.setItem(BGM_KEY, bgmOn ? "1" : "0");
+      btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
+
+      if (bgmOn) await startBattleBgmMp3({ volume: VOLUME, playbackRate: RATE });
+      else stopBattleBgmMp3();
+    });
+
+    if (cbtn) {
+      cbtn.addEventListener("click", async () => {
+        if (typeof window.toggleSoloConsole === "function") {
+          await window.toggleSoloConsole();
+        } else {
+          alert("console機能がまだ読み込まれてない（game.jsにtoggle関数を追加して）");
+        }
+      });
+    }
+
+    return btn;
+  }
+
+  function armAutoStartOnce() {
+    const startOnce = async () => {
+      window.removeEventListener("pointerdown", startOnce);
+      if (!bgmOn) return;
+      await startBattleBgmMp3({ volume: VOLUME, playbackRate: RATE });
+    };
+    window.addEventListener("pointerdown", startOnce, { once: true });
+  }
+
+  // UI設置
+  mountBgmToggle();
+
+  if (bgmOn) armAutoStartOnce();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) stopBattleBgmMp3();
+  });
+
+  window.addEventListener("beforeunload", () => stopBattleBgmMp3());
+</script>
+
+</body>
+</html>
+

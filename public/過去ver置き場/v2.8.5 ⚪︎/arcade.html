@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arcade</title>
+
+  <link rel="stylesheet" href="./arcade.css?v=20260212c" />
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Top HUD -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">TCG</div>
+        <div class="brandText">
+          <div class="title">ARCADE</div>
+          <div class="sub" id="subTitle">探索 / マップ</div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hudItem">
+          <div class="k">現在地</div>
+          <div class="v" id="posText">-</div>
+        </div>
+        <div class="hudItem">
+          <div class="k">階層</div>
+          <div class="v" id="floorText">-</div>
+        </div>
+        <div class="hudItem">
+          <div class="k">HP</div>
+          <div class="v" id="hpText">-</div>
+        </div>
+        <div class="hudItem">
+          <div class="k">SP</div>
+          <div class="v" id="spText">-</div>
+        </div>
+        <div class="hudItem">
+          <div class="k">所持</div>
+          <div class="v" id="goldText">-</div>
+        </div>
+      </div>
+
+      <div class="topActions">
+        <button id="btnMap" class="btn ghost">🗺️ MAP</button>
+        <button id="btnInventory" class="btn ghost">🎒</button>
+        <button id="btnSettings" class="btn ghost">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="main">
+      <!-- Left panel -->
+      <aside class="side left">
+        <section class="panel">
+          <div class="panelHead">
+            <div class="panelTitle">アクション</div>
+            <div class="panelHint">WASD / 矢印でも移動</div>
+          </div>
+
+          <div class="btnGrid">
+            <button class="btn primary" id="btnRoll">🎲 サイコロ</button>
+            <button class="btn" id="btnExplore">🔍 探索</button>
+            <button class="btn" id="btnRest">🛌 休憩</button>
+            <button class="btn danger" id="btnResetStage">☠ ステージを戻す</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="smallBlock">
+            <div class="label">現在の目的</div>
+            <div class="big" id="objectiveText">マップを探索してイベントを踏もう</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panelHead">
+            <div class="panelTitle">ログ</div>
+            <div class="panelHint">最新が下</div>
+          </div>
+          <pre id="log" class="log"></pre>
+        </section>
+      </aside>
+
+      <!-- Center map stage -->
+      <section class="stage">
+        <div class="stageFrame">
+          <canvas id="mapCanvas"></canvas>
+
+          <!-- Mini HUD on map -->
+          <div class="mapHud">
+            <div class="chip" id="chipBiome">BIOME</div>
+            <div class="chip" id="chipThreat">THREAT</div>
+            <div class="chip" id="chipTip">TIP</div>
+          </div>
+
+          <!-- Modal map (full overlay) -->
+          <div id="mapOverlay" class="overlay hidden">
+            <div class="overlayInner">
+              <div class="overlayHead">
+                <div class="overlayTitle">マップ</div>
+                <button id="btnCloseMap" class="btn ghost">✖</button>
+              </div>
+              <canvas id="bigMapCanvas"></canvas>
+              <div class="overlayFoot">
+                <div class="hintLine">クリックで注目 / ESCで閉じる</div>
+                <div class="hintLine">WASD/矢印で移動</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event card -->
+          <div id="eventCard" class="eventCard hidden">
+            <div class="eventTitle" id="eventTitle">イベント</div>
+            <div class="eventBody" id="eventBody">---</div>
+            <div class="eventActions" id="eventActions"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right panel -->
+      <aside class="side right">
+        <section class="panel">
+          <div class="panelHead">
+            <div class="panelTitle">パーティ</div>
+            <div class="panelHint">（仮）</div>
+          </div>
+
+          <div class="partyCard">
+            <div class="partyRow">
+              <div class="avatar">🧑‍🚀</div>
+              <div class="partyInfo">
+                <div class="partyName" id="playerName">YOU</div>
+                <div class="partyMeta" id="partyMeta">デッキ: cloud / EX: -</div>
+              </div>
+            </div>
+
+            <div class="bars">
+              <div class="bar">
+                <div class="barLabel">HP</div>
+                <div class="barTrack"><div id="hpBar" class="barFill"></div></div>
+              </div>
+              <div class="bar">
+                <div class="barLabel">SP</div>
+                <div class="barTrack"><div id="spBar" class="barFill"></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panelHead">
+            <div class="panelTitle">ステータス</div>
+            <div class="panelHint">（仮）</div>
+          </div>
+
+          <div class="statGrid" id="statGrid">
+            <!-- JSで埋める -->
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panelHead">
+            <div class="panelTitle">次の戦闘</div>
+            <div class="panelHint">イベントで発生</div>
+          </div>
+
+          <div class="nextBattle">
+            <div class="nbText" id="battleText">まだ戦闘は起きてない</div>
+            <button class="btn primary" id="btnGoBattle" disabled>⚔️ 戦闘へ</button>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footerLeft">© TCG Arcade</div>
+      <div class="footerRight" id="footerHint">MAPが見えない時は: canvasサイズ / overlay / CSS読込をチェック</div>
+    </footer>
+  </div>
+
+  <script type="module" src="./arcade.js?v=20260212c"></script>
+</body>
+</html>

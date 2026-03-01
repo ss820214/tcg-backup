@@ -1,0 +1,598 @@
+/* public/battle.css */
+/* v1.0.0 - deck.css theme compatible (lux) + lobby layout */
+
+* { box-sizing: border-box; }
+
+:root{
+  /* deck.css 側があればそれを使うが、単体でも破綻しないように同系統を定義 */
+  --bg:#0b0b0f;
+  --panel:#14141b;
+  --panel2:#1b1b24;
+
+  --border:rgba(255,255,255,.10);
+  --border2:rgba(255,255,255,.16);
+
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.78);
+  --muted2:rgba(255,255,255,.60);
+
+  --accent:#ffd700;
+  --accent2:#ffea8a;
+  --ok:#9cff9c;
+  --ng:#ff8080;
+
+  --shadow: 0 18px 60px rgba(0,0,0,.55);
+  --glow: 0 0 0 1px rgba(255,215,0,.18), 0 0 22px rgba(255,215,0,.10);
+
+  /* deck_radar.js が読む変数（battle側でも確実に用意） */
+  --line: rgba(255,255,255,.12);
+  --blue: rgba(120,180,255,.85);
+}
+
+html, body { height: 100%; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background:
+    radial-gradient(1200px 700px at 10% 0%, rgba(255,215,0,.10), transparent 60%),
+    radial-gradient(900px 600px at 100% 10%, rgba(120,180,255,.10), transparent 55%),
+    radial-gradient(800px 600px at 50% 120%, rgba(255,90,160,.08), transparent 55%),
+    var(--bg);
+  color: var(--text);
+}
+
+.small{ font-size:12px; color:var(--muted); }
+.muted{ color: var(--muted); }
+
+/* Page */
+.page{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* Panel */
+.panel{
+  background:
+    radial-gradient(900px 400px at 20% 0%, rgba(255,255,255,.05), transparent 60%),
+    rgba(20,20,27,.85);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+.panelHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:10px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+}
+
+.panelTitle{
+  font-weight:950;
+  letter-spacing:.02em;
+}
+
+.panelSub{ font-size:12px; color:var(--muted); }
+
+/* Buttons */
+.btnPrimary{
+  border:1px solid rgba(255,215,0,.35);
+  background:
+    radial-gradient(600px 200px at 30% 0%, rgba(255,215,0,.25), transparent 60%),
+    linear-gradient(180deg, rgba(255,215,0,.16), rgba(255,215,0,.08));
+  box-shadow: var(--glow);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 950;
+  cursor: pointer;
+}
+.btnPrimary:disabled{ opacity:.45; cursor:not-allowed; }
+
+.btnGhost{
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.btnGhost:hover{ filter: brightness(1.06); }
+
+/* Topbar */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display:grid;
+  grid-template-columns: 220px 1fr 240px;
+  gap:12px;
+  align-items:stretch;
+  padding: 12px 0;
+  background: rgba(10,10,14,.55);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.room, .topStatus, .topActions{
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.roomLabel, .statusTitle{
+  font-size:12px;
+  color: var(--muted2);
+  letter-spacing:.12em;
+}
+
+.roomId{
+  font-size:20px;
+  font-weight: 950;
+  margin-top:6px;
+}
+
+.statusText{
+  font-size:14px;
+  margin-top:6px;
+  font-weight: 850;
+}
+
+.topActions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  justify-content:center;
+}
+
+/* VS Banner */
+.vsBanner{
+  display:grid;
+  grid-template-columns: 1fr 180px 1fr;
+  gap:12px;
+  padding: 12px;
+  align-items:center;
+}
+
+.sideCard{
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  min-height: 104px;
+  position: relative;
+}
+
+.sideCard.right{ text-align:right; }
+
+.seatLabel{
+  font-size:12px;
+  color: var(--muted2);
+  letter-spacing:.14em;
+}
+
+.playerName{
+  margin-top:6px;
+  font-size:20px;
+  font-weight: 1000;
+  letter-spacing:.02em;
+}
+
+.readyBadge{
+  margin-top:10px;
+  font-weight: 1000;
+  font-size: 14px;
+  letter-spacing:.14em;
+  min-height: 20px;
+  display:inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+}
+
+.readyBadge.ok{
+  color: rgba(245,255,245,.98);
+  border-color: rgba(156,255,156,.35);
+  background:
+    radial-gradient(500px 120px at 30% 0%, rgba(156,255,156,.22), transparent 60%),
+    rgba(255,255,255,.04);
+  box-shadow: 0 0 0 1px rgba(156,255,156,.08), 0 0 18px rgba(156,255,156,.14);
+}
+
+/* “電気バチバチ”用：class 付けた時だけ動く */
+.readyBadge.ok.spark{
+  position: relative;
+  overflow: hidden;
+}
+.readyBadge.ok.spark::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,.0) 35%,
+      rgba(255,215,0,.55) 50%,
+      rgba(255,255,255,.0) 65%,
+      transparent 100%);
+  transform: translateX(-120%);
+  animation: sparkSweep 1.2s linear infinite;
+  mix-blend-mode: screen;
+}
+@keyframes sparkSweep{
+  0%{ transform: translateX(-120%); opacity:.0; }
+  15%{ opacity: .9; }
+  40%{ opacity: .2; }
+  100%{ transform: translateX(120%); opacity: 0; }
+}
+
+.readyBadge.ng{
+  color: var(--muted);
+  border-color: var(--border);
+  background: rgba(255,255,255,.03);
+}
+
+.youTag{
+  position:absolute;
+  top:12px;
+  right:12px;
+  font-size:11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--muted);
+}
+#p1You{ right:auto; left:12px; }
+
+.vsCenter{ text-align:center; }
+.vsText{
+  font-size:28px;
+  font-weight: 1100;
+  letter-spacing:.18em;
+  color: var(--accent);
+  text-shadow: 0 0 22px rgba(255,215,0,.18);
+}
+
+/* Main grid */
+.mainGrid{
+  display:grid;
+  grid-template-columns: 1.25fr .95fr;
+  gap:14px;
+}
+
+/* Deck */
+.deckWrap{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  padding: 12px 14px 14px;
+}
+
+.subTitle{
+  font-size:12px;
+  color: var(--muted2);
+  letter-spacing:.1em;
+  margin-bottom:8px;
+}
+
+.deckList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height: 460px;
+  overflow:auto;
+  padding-right:6px;
+}
+
+#myDeck button{
+  width:100%;
+  text-align:left;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  padding: 10px 10px;
+  cursor:pointer;
+  font-weight:800;
+}
+#myDeck button:hover{ filter: brightness(1.06); }
+
+.panelInner{
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 10px 12px;
+  min-height: 260px;
+}
+.deckDetailBody{ font-size:13px; color: var(--muted); }
+
+.compatBox{
+  margin: 0 14px 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.compatBox summary{
+  cursor:pointer;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+/* Radar */
+.radarWrap{ padding: 12px 14px 10px; }
+#battleDeckRadar{
+  width:100%;
+  height:auto;
+  border-radius: 16px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+}
+
+.attrWrap{ padding: 0 14px 14px; }
+
+.attrDist{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:8px;
+}
+
+.attrRow{ display:flex; align-items:center; gap:10px; }
+.attrName{
+  width:72px;
+  font-weight: 950;
+  font-size:12px;
+  color: var(--muted);
+}
+.attrBar{
+  flex:1;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  overflow:hidden;
+}
+.attrFill{ height:100%; width:0%; border-radius:999px; }
+.attrPct{
+  width:58px;
+  text-align:right;
+  font-weight: 950;
+  font-size:12px;
+  color: var(--muted);
+}
+
+/* Pong */
+.pongRow{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  padding: 12px 14px 14px;
+  flex-wrap:wrap;
+}
+
+.pong{
+  position:relative;
+  width:340px;
+  height:70px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  background: rgba(255,255,255,.04);
+  border-radius:16px;
+}
+
+.ball{
+  position:absolute;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background: var(--ng);
+  top:27px;
+  left:320px;
+  box-shadow: 0 0 18px rgba(255,128,128,.25);
+}
+.paddle{
+  position:absolute;
+  width:10px;
+  height:44px;
+  background: var(--blue);
+  top:13px;
+  left:8px;
+  border-radius:10px;
+  box-shadow: 0 0 18px rgba(120,180,255,.22);
+}
+.wall{ position:absolute; top:0; width:6px; height:100%; background: rgba(0,0,0,.45); }
+.wallL{ left:0; }
+.wallR{ right:0; }
+
+.pongControls{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width: 220px;
+}
+
+@media (max-width: 980px){
+  .topbar{ grid-template-columns: 1fr; padding: 12px 0; }
+  .mainGrid{ grid-template-columns: 1fr; }
+  .vsBanner{ grid-template-columns: 1fr; gap:10px; }
+  .vsCenter{ display:none; }
+  .deckWrap{ grid-template-columns: 1fr; }
+}
+
+/* READY状態：カード自体が発光 */
+.sideCard.is-ready{
+  border-color: rgba(156,255,156,.30);
+  box-shadow: 0 0 0 1px rgba(156,255,156,.10) inset, 0 0 22px rgba(156,255,156,.12);
+}
+
+/* 入室/ready変化：ビリっとパルス */
+.sideCard.zap{
+  animation: zapPulse .9s ease-out;
+}
+@keyframes zapPulse{
+  0%{ transform: translateY(0); box-shadow: 0 0 0 1px rgba(255,215,0,.20) inset, 0 0 0 rgba(0,0,0,0); }
+  35%{ transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,215,0,.20) inset, 0 0 26px rgba(255,215,0,.18); }
+  100%{ transform: translateY(0); box-shadow: 0 0 0 1px rgba(255,215,0,.10) inset, 0 0 0 rgba(0,0,0,0); }
+}
+
+/* READYバッジの“電気バチバチ” */
+.readyBadge.ok.spark{
+  position: relative;
+  overflow: hidden;
+}
+.readyBadge.ok.spark::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,0) 35%,
+      rgba(255,215,0,.60) 50%,
+      rgba(255,255,255,0) 65%,
+      transparent 100%);
+  transform: translateX(-120%);
+  animation: sparkSweep 1.2s linear infinite;
+  mix-blend-mode: screen;
+}
+@keyframes sparkSweep{
+  0%{ transform: translateX(-120%); opacity:0; }
+  15%{ opacity:.95; }
+  40%{ opacity:.25; }
+  100%{ transform: translateX(120%); opacity:0; }
+}
+
+/* ===== Field Pick (battle) ===== */
+.fieldPickCard{
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+
+.fieldPickHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+}
+
+.fieldPickTitle{
+  font-weight: 900;
+  letter-spacing: .02em;
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+.fieldPickIcon{ opacity:.9; }
+.fieldPickSub{
+  font-size: 12px;
+  opacity: .65;
+  font-weight: 700;
+}
+
+.fieldPickNote{
+  font-size: 12px;
+  opacity: .75;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.12);
+  white-space: nowrap;
+}
+
+.fieldPickBtns{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fieldBtn{
+  appearance:none;
+  cursor:pointer;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+  border-radius: 16px;
+  padding: 12px 12px;
+  text-align:left;
+  color: rgba(255,255,255,0.92);
+  transition: transform .08s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+  position: relative;
+  overflow:hidden;
+}
+
+.fieldBtn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.fieldBtn:active{
+  transform: translateY(0px) scale(0.99);
+}
+
+.fieldEmoji{
+  font-size: 18px;
+  display:inline-block;
+  margin-right: 8px;
+}
+
+.fieldName{
+  font-weight: 1000;
+  letter-spacing: .02em;
+}
+
+.fieldCode{
+  display:block;
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: .65;
+  letter-spacing: .08em;
+}
+
+/* selected */
+.fieldBtn.on{
+  border-color: rgba(255,215,0,0.55);
+  box-shadow: 0 10px 26px rgba(255,215,0,0.08);
+  background: rgba(255,215,0,0.07);
+}
+.fieldBtn.on::after{
+  content:"SELECTED";
+  position:absolute;
+  top:10px;
+  right:10px;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: .12em;
+  opacity: .75;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,215,0,0.35);
+  background: rgba(0,0,0,0.22);
+}
+
+.fieldPickHelp{
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: .65;
+}
+
+/* responsive */
+@media (max-width: 780px){
+  .fieldPickBtns{ grid-template-columns: 1fr; }
+}

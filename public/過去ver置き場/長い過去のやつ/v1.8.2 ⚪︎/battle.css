@@ -1,0 +1,93 @@
+body { font-family: system-ui, sans-serif; margin: 16px; line-height: 1.4; }
+.muted { opacity: 0.85; }
+
+.deckWrap { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start; }
+.deckLeft { min-width:240px; }
+.deckRight { flex:1; min-width:280px; }
+
+.panel{
+  border:1px solid #666;
+  padding:10px;
+  border-radius:10px;
+  background:#fff;
+  color:#111;
+  min-height: 120px;
+}
+
+#myDeck button{
+  display:block;
+  width:100%;
+  text-align:left;
+  margin: 4px 0;
+  padding: 8px 10px;
+  border-radius:10px;
+  border:1px solid #999;
+  background:#fafafa;
+  cursor:pointer;
+}
+#myDeck button:hover{ background:#f0f0f0; }
+
+.pong{
+  position:relative;
+  width:340px;
+  height:70px;
+  border:1px solid #000;
+  overflow:hidden;
+  background:#eee;
+  border-radius:10px;
+}
+.ball{
+  position:absolute;
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  background:red;
+  top:27px;
+  left:320px;
+}
+.paddle{
+  position:absolute;
+  width:10px;
+  height:44px;
+  background:#4af;
+  top:13px;
+  left:8px;
+  border-radius:6px;
+}
+.wall{ position:absolute; top:0; width:6px; height:100%; background:#222; }
+.wallL{ left:0; }
+.wallR{ right:0; }
+
+/* 自ユニット選択後のクイック操作 */
+#unitActions { display:flex; gap:8px; flex-wrap:wrap; }
+#unitActions button{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #888;
+  background:#2b2b2b;
+  color:#fff;
+}
+#unitActions button.primary{ border-color:#ffd700; box-shadow:0 0 0 2px rgba(255,215,0,0.25) inset; }
+#unitActions button:disabled{ opacity:0.45; cursor:not-allowed; }
+
+/* 攻撃できる対象：敵ユニットの“枠だけ”緑 */
+.cell.targetOk { outline:3px solid rgba(80,255,120,0.9); }
+
+/* 左上のコスト表示 */
+.manaTag{
+  position:absolute; top:2px; left:2px;
+  font-size:10px; padding:1px 4px;
+  border-radius:6px;
+  background:rgba(0,0,0,0.75);
+  border:1px solid rgba(255,255,255,0.35);
+}
+
+/* ユニット名を中央寄せっぽく */
+.unitName{
+  position:absolute; left:2px; right:2px;
+  top:26px;
+  text-align:center;
+  font-weight:bold;
+  font-size:12px;
+  text-shadow:0 1px 0 rgba(0,0,0,0.35);
+}

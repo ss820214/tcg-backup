@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Online - Arcade</title>
+  <style>
+    :root{
+      --bg:#0b0b0f;
+      --panel:rgba(20,20,27,.86);
+      --panel2:rgba(255,255,255,.04);
+      --border:rgba(255,255,255,.10);
+      --border2:rgba(255,255,255,.18);
+      --text:#fff;
+      --muted:rgba(255,255,255,.70);
+      --muted2:rgba(255,255,255,.55);
+      --acc:#5aaaff;
+      --ok:#9cff9c;
+      --ng:#ff8080;
+      --gold:#ffd700;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --glow: 0 0 0 1px rgba(255,215,0,.18), 0 0 22px rgba(255,215,0,.10);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 10% 0%, rgba(255,215,0,.10), transparent 60%),
+        radial-gradient(900px 600px at 100% 10%, rgba(120,180,255,.10), transparent 55%),
+        radial-gradient(800px 600px at 50% 120%, rgba(255,90,160,.08), transparent 55%),
+        var(--bg);
+      overflow:hidden;
+    }
+
+    /* Topbar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 14px;
+      background: rgba(10,10,14,.82);
+      border-bottom:1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .titleRow{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .title{
+      font-size:18px;
+      font-weight:950;
+      letter-spacing:.02em;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.2;
+    }
+    .badge.gold{
+      border-color: rgba(255,215,0,.35);
+      background: rgba(255,215,0,.10);
+      box-shadow: var(--glow);
+      color: rgba(255,240,190,.95);
+    }
+    .rightBtns{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    button{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      color:var(--text);
+      border-radius:14px;
+      padding:9px 12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, filter .15s ease;
+      font-weight:900;
+    }
+    button:hover{ border-color: rgba(255,255,255,.22); filter: brightness(1.06); }
+    button:active{ transform: translateY(1px); }
+    button:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+
+    button.primary{
+      border-color: rgba(255,215,0,.35);
+      background:
+        radial-gradient(600px 200px at 30% 0%, rgba(255,215,0,.25), transparent 60%),
+        linear-gradient(180deg, rgba(255,215,0,.16), rgba(255,215,0,.08));
+      box-shadow: var(--glow);
+    }
+    button.ghost{ background: rgba(255,255,255,.04); }
+
+    .app{
+      height: calc(100% - 58px);
+      display:grid;
+      grid-template-columns: 1.1fr 1.4fr 1.1fr;
+      gap:12px;
+      padding:12px;
+    }
+
+    .panel{
+      background: var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .panelHead{
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .panelTitle{ font-weight:950; letter-spacing:.02em; }
+    .panelBody{ padding:12px; overflow:auto; min-height:0; }
+
+    /* Selection Screen */
+    .screen{ height:100%; display:none; }
+    .screen.active{ display:block; }
+
+    .cards{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .cardPick{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background: rgba(255,255,255,.03);
+      padding:12px;
+      cursor:pointer;
+      transition: transform .08s ease, border-color .15s ease, filter .15s ease;
+    }
+    .cardPick:hover{ border-color: rgba(255,255,255,.18); filter: brightness(1.05); }
+    .cardPick.selected{
+      border-color: rgba(90,170,255,.55);
+      background: rgba(90,170,255,.12);
+      box-shadow: 0 0 0 1px rgba(90,170,255,.18) inset;
+    }
+    .cardTop{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .cardName{ font-weight:950; }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.2;
+    }
+    .cardDesc{ margin-top:8px; color:var(--muted); font-size:12px; line-height:1.35; }
+
+    .hint{
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.4;
+      white-space:pre-wrap;
+    }
+
+    /* Battle UI */
+    .battleLayout{
+      height:100%;
+      display:grid;
+      grid-template-rows: auto 1fr auto;
+      gap:10px;
+      padding:12px;
+    }
+
+    .battleTop{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .statRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .gridWrap{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background: rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px;
+      min-height:0;
+    }
+    .grid{
+      width:min(520px, 60vw);
+      aspect-ratio: 1 / 1;
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap:8px;
+    }
+    .cell{
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(140px 80px at 20% 10%, rgba(255,255,255,.05), transparent 60%),
+        rgba(0,0,0,.22);
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+      user-select:none;
+      transition: filter .12s ease, border-color .12s ease, transform .08s ease;
+    }
+    .cell:hover{ filter: brightness(1.07); border-color: rgba(255,255,255,.20); }
+    .cell.sel{ outline:2px solid rgba(90,170,255,.55); }
+    .cell.target{ outline:2px solid rgba(255,120,120,.55); }
+    .cell.move{ outline:2px solid rgba(156,255,156,.45); }
+    .unit{
+      position:absolute;
+      inset:8px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      padding:8px;
+    }
+    .unit.player{
+      border-color: rgba(90,170,255,.35);
+      background: rgba(90,170,255,.10);
+    }
+    .unit.enemy{
+      border-color: rgba(255,120,120,.35);
+      background: rgba(255,120,120,.10);
+    }
+    .unitTop{ display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+    .unitName{ font-weight:950; font-size:12px; line-height:1.1; }
+    .unitMana{ font-size:12px; color:var(--muted); }
+    .hpbar{
+      height:10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .hpfill{ height:100%; width:50%; background: rgba(156,255,156,.55); }
+    .hptext{ font-size:11px; color:var(--muted); margin-top:6px; display:flex; justify-content:space-between; }
+
+    .battleBottom{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .log{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+      white-space:pre-wrap;
+      max-height: 220px;
+      overflow:auto;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background: rgba(0,0,0,.18);
+    }
+
+    /* Modal */
+    .backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.65);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      padding:18px;
+    }
+    .backdrop.open{ display:flex; }
+    .modal{
+      width:min(720px, 96vw);
+      background: rgba(20,20,27,.92);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+    }
+    .modalBody{ padding:14px; color:var(--muted); }
+    .modalBtns{ padding:14px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap; border-top:1px solid var(--border); }
+
+    @media (max-width: 980px){
+      body{ overflow:auto; }
+      .app{ grid-template-columns: 1fr; height:auto; }
+      .grid{ width:min(520px, 92vw); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="titleRow">
+      <div class="title">アーケード</div>
+      <span class="badge gold">捕獲バトル</span>
+      <span class="badge" id="phaseBadge">準備</span>
+    </div>
+    <div class="rightBtns">
+      <button id="btnBackDeck" class="ghost" type="button">デッキへ戻る</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- LEFT: 選択/所持 -->
+    <div class="panel">
+      <div class="panelHead">
+        <div class="panelTitle">キャラ選択</div>
+        <span class="badge" id="pickCountBadge">0 / 3</span>
+      </div>
+
+      <div class="panelBody">
+        <div id="screenSelect" class="screen active">
+          <div class="hint" style="margin-bottom:12px;">
+・最初に弱めのキャラ（マナ4以下）を3体選ぶ
+・戦闘で敵を倒すと捕獲して山札に追加できる
+          </div>
+
+          <div id="pickList" class="cards"></div>
+
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            <button id="btnStart" class="primary" type="button" disabled>バトル開始</button>
+            <button id="btnPickReset" class="ghost" type="button">選択リセット</button>
+          </div>
+        </div>
+
+        <div id="screenBattleLeft" class="screen">
+          <div class="hint" style="margin-bottom:10px;">
+・ユニットをクリックして選択
+・移動：隣マス（上下左右）
+・攻撃：隣接敵に攻撃（固定ダメージ）
+          </div>
+
+          <div class="panel" style="box-shadow:none; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,.03);">
+            <div class="panelHead" style="border-bottom:1px solid var(--border);">
+              <div class="panelTitle">山札（捕獲で増える）</div>
+              <span class="badge" id="deckSizeBadge">0枚</span>
+            </div>
+            <div class="panelBody" style="padding:10px;">
+              <div id="deckList" class="hint"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="btnEndTurn" type="button">ターン終了</button>
+            <button id="btnResetRun" class="ghost" type="button">リトライ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: 盤面 -->
+    <div class="panel">
+      <div class="panelHead">
+        <div class="panelTitle">5×5 フィールド</div>
+        <span class="badge" id="turnBadge">TURN 1 / YOU</span>
+      </div>
+
+      <div class="panelBody" style="padding:0;">
+        <div id="screenBattleCenter" class="screen battleLayout">
+          <div class="battleTop">
+            <div class="statRow">
+              <span class="badge">あなた：<b id="youAlive">0</b>体</span>
+              <span class="badge">敵：<b id="enemyAlive">0</b>体</span>
+            </div>
+            <div class="statRow">
+              <span class="badge">選択：<b id="selLabel">なし</b></span>
+            </div>
+          </div>
+
+          <div class="gridWrap">
+            <div id="grid" class="grid" aria-label="battle-grid"></div>
+          </div>
+
+          <div class="battleBottom">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="btnMoveMode" class="ghost" type="button">移動モード</button>
+              <button id="btnAttackMode" class="ghost" type="button">攻撃モード</button>
+            </div>
+            <span class="badge" id="modeBadge">MODE: なし</span>
+          </div>
+        </div>
+
+        <div id="screenSelectCenter" class="screen active" style="padding:14px;">
+          <div class="hint" style="font-size:13px;">
+左でキャラを3体選んで「バトル開始」を押してね。  
+※ここは今 “アーケード骨組み” なので、後で既存カード定義に差し替えやすい構造にしてある。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: ログ/情報 -->
+    <div class="panel">
+      <div class="panelHead">
+        <div class="panelTitle">ログ</div>
+        <span class="badge" id="statusBadge">待機</span>
+      </div>
+      <div class="panelBody">
+        <div id="log" class="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- capture modal -->
+  <div id="modalBackdrop" class="backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modalHead">
+        <div style="font-weight:950;">捕獲しますか？</div>
+        <button id="modalClose" class="ghost" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div id="captureText"></div>
+      </div>
+      <div class="modalBtns">
+        <button id="btnCaptureNo" class="ghost" type="button">やめる</button>
+        <button id="btnCaptureYes" class="primary" type="button">捕獲して山札に追加</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./arcade.js?v=20260207_1"></script>
+</body>
+</html>

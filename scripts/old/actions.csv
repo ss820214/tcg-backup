@@ -1,0 +1,12 @@
+Cardid,name,cost,range,dmg,spDmg,rate,draw
+A,A,斬撃,front1,20,0,75,
+B,B,突き,side1,10,0,40,
+C,C,手裏剣,front3,10,0,70,
+D,D,ばちばち,rf1,10,0,50,1
+E,E,吸い取る,front1,0,10,50,
+kasabuta,瘡蓋,闇,front2,10,10,20,
+real_battler,バトラー(本物),闇,front1,10,10,50,
+inv,インバータ,火,front1,30,0,60,
+othimpo,おちんぽ,水,front1,0,10,40,
+konow,こうの,鋼,front1,20,0,25,
+huta,颯太,風,front4,20,0,70,

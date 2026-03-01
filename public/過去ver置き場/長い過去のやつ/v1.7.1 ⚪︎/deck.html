@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Online - Deck Builder</title>
+  <style>
+    body { font-family:sans-serif; background:#222; color:#fff; margin:0; }
+    header { padding:12px 14px; border-bottom:1px solid #444; display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    .wrap { display:flex; gap:14px; padding:14px; }
+    #left { flex: 1 1 auto; min-width: 420px; }
+    #right { width: 420px; max-width: 45vw; border-left:1px solid #444; padding-left:14px; }
+
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .pill { background:#333; border:1px solid #555; padding:4px 8px; border-radius:999px; font-size:12px; opacity:0.95; }
+
+    select, button, input { font-size:14px; }
+    button { cursor:pointer; padding:7px 10px; border-radius:10px; border:1px solid #666; background:#2b2b2b; color:#fff; }
+    button:disabled { opacity:0.45; cursor:not-allowed; }
+    input { padding:7px 10px; border-radius:10px; border:1px solid #666; background:#1b1b1b; color:#fff; }
+
+    .card { border:1px solid #555; background:#2b2b2b; border-radius:12px; padding:10px; margin:10px 0; }
+    .cardHead { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .small { font-size:12px; opacity:0.9; }
+    .btns { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .cnt { min-width: 70px; text-align:center; }
+
+    .hint { font-size:12px; opacity:0.85; line-height:1.5; }
+    #msg { color:#ff8080; font-size:13px; min-height:18px; margin-top:8px; }
+
+    details { border:1px solid #444; border-radius:12px; background:#1a1a1a; margin:10px 0; overflow:hidden; }
+    summary { cursor:pointer; padding:10px 12px; list-style:none; }
+    summary::-webkit-details-marker { display:none; }
+    .sumTop { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .sumTitle { font-weight:bold; font-size:15px; }
+    .sumDesc { font-size:12px; opacity:0.9; margin-top:4px; line-height:1.45; }
+    .sumRight { font-size:12px; opacity:0.75; white-space:nowrap; }
+
+    .sectionInner { padding:10px 12px 2px; border-top:1px solid #333; }
+
+    #deckList .card { background:#262626; }
+    #detail { border:1px solid #444; border-radius:12px; background:#141414; padding:10px; min-height:120px; }
+
+    /* badge */
+    .badge { display:inline-block; font-size:12px; padding:2px 8px; border:1px solid #555; border-radius:999px; background:#242424; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <b>デッキ編成</b>
+    <span class="pill">20枚 / 同名4枚まで</span>
+    <span class="pill">room: <span id="roomIdLabel">?</span></span>
+    <span class="pill">player: <span id="playerIdLabel">?</span></span>
+  </div>
+  <div class="row">
+    <button id="btnRule">📖 ルールブック</button>
+    <button id="btnTutorial">チュートリアル</button>
+    <button id="btnSave">保存</button>
+    <button id="btnToBattle" disabled>バトルへ</button>
+    <button id="randomDeckBtn">🎲 ランダムデッキ(20枚)</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="left">
+    <div class="row">
+      <label class="small">属性フィルタ</label>
+      <select id="typeSelect">
+        <option value="ALL">すべて</option>
+      </select>
+      <input id="search" placeholder="名前検索（例：ドラゴン）" />
+      <span class="pill">表示: <span id="shownCount">0</span></span>
+    </div>
+    <div class="hint" style="margin-top:8px;">
+      属性を選ぶと、その属性のセクションだけが表示されます（例：火→火属性カードだけ表示）。
+      セクションは折りたたみ式で、説明文つき。
+    </div>
+
+    <div id="cardSections"></div>
+  </div>
+
+  <div id="right">
+    <h3 style="margin-top:0;">デッキ <span class="small">(<span id="deckCount">0</span>/20)</span></h3>
+    <div id="deckList"></div>
+    <div id="msg"></div>
+
+    <h3>詳細</h3>
+    <div id="detail" class="small">カードの「詳細」を押すと表示されます。</div>
+  </div>
+</div>
+
+<script type="module" src="./deck.js?v=20260124_v150b"></script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+/* public/game.css */
+/* v20260128b - layout: board center, hand right, action rightmost, log under action */
+
+* { box-sizing: border-box; }
+
+:root{
+  --bg: #111;
+  --panel: #1a1a1a;
+  --panel2: #141414;
+  --border: #2d2d2d;
+  --text: #fff;
+  --muted: rgba(255,255,255,0.85);
+  --gold: rgba(255, 215, 0, 0.95);
+  --green: rgba(0,255,102,0.95);
+  --range: rgba(80, 255, 120, 0.75);
+}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.small{ font-size:12px; opacity:.9; }
+
+/* ===== レイアウト ===== */
+#app{
+  display:grid;
+  grid-template-columns: 320px 1fr 380px;
+  gap: 12px;
+  padding: 12px;
+  min-height: 100vh;
+}
+
+#leftPane, #rightPane{
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+#centerPane{
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.paneTitle{
+  font-weight: 800;
+  opacity: .95;
+  margin: 2px 0 10px;
+}
+
+.kv{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.controls button{
+  margin: 3px 2px;
+  cursor:pointer;
+  border: 1px solid #555;
+  background: #262626;
+  color: #fff;
+  border-radius: 10px;
+  padding: 7px 10px;
+}
+
+.controls button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+.quickActions{
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+#quickActions button{
+  border: 1px solid #666;
+  background: #2b2b2b;
+  color: #fff;
+  border-radius: 12px;
+  padding:8px 10px;
+  cursor:pointer;
+}
+#quickActions button:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+#quickMsg{ margin-left: 4px; }
+
+/* ===== 盤面（中央） ===== */
+#board{
+  display:grid;
+  grid-template-columns: repeat(5, 92px);
+  grid-template-rows: repeat(7, 92px);
+  gap: 8px;
+  padding: 14px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+/* セル */
+.cell{
+  width:92px; height:92px;
+  position:relative;
+  background:#444;
+  border-radius:10px;
+  cursor:pointer;
+  user-select:none;
+  overflow:hidden;
+}
+
+/* 陣営色 */
+.cell.unitA{ background:#d55; }
+.cell.unitB{ background:#355f8a; }
+
+/* 選択（自軍・金枠） */
+.cell.selected{
+  outline: 3px solid var(--gold);
+  outline-offset: -3px;
+}
+
+/* 疲労 */
+.cell.fatigued{
+  filter:saturate(.85) brightness(.92);
+}
+
+/* 召喚候補 */
+.cell.summon{
+  outline: 3px solid rgba(0,255,170,0.9);
+  outline-offset:-3px;
+}
+
+/* ===== 射程（attackモード） ===== */
+.cell.rangeOk{
+  outline: 2px solid var(--range);
+  outline-offset: -2px;
+  box-shadow: 0 0 10px rgba(80, 255, 120, 0.12);
+}
+.cell.rangeOk.rangeBlocked{
+  outline-color: rgba(80, 255, 120, 0.25);
+  box-shadow: none;
+  opacity: 0.45;
+}
+
+/* ===== ターゲット選択（常時：緑枠） =====
+   selected（金）と両立するため、box-shadowで内側を緑に */
+.cell.targetOk{
+  outline: 3px solid var(--green);
+  outline-offset: -3px;
+  box-shadow:
+    0 0 14px rgba(0,255,102,0.18),
+    inset 0 0 0 3px rgba(0,255,102,0.45);
+}
+
+/* ===== ユニット内表示 ===== */
+.attr{
+  position:absolute;
+  right:6px; top:4px;
+  font-size:14px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  pointer-events:none;
+}
+
+.unitName{
+  position:absolute; left:2px; right:2px;
+  top:22px;
+  text-align:left;
+  font-weight:bold;
+  font-size:12px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  pointer-events:none;
+  padding:0 4px;
+}
+
+.status{
+  position:absolute;
+  left:6px; bottom:6px;
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  pointer-events:none;
+}
+
+.fatigueTag{
+  position:absolute;
+  left:6px; top:4px;
+  font-size:11px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.70);
+  pointer-events:none;
+}
+
+/* コスト左上 */
+.unitCost{
+  position:absolute;
+  top:2px;
+  left:2px;
+  font-size:12px;
+  padding:1px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  pointer-events:none;
+}
+
+/* 状態異常アイコン */
+.statusIcons{
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:44px;
+  font-size:12px;
+  line-height:1.1;
+  text-align:left;
+  pointer-events:none;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  opacity:.95;
+}
+
+/* ===== 右ペイン（手札/行動/ログ） ===== */
+#hand{
+  max-height: 42vh;
+  overflow:auto;
+  padding-right: 2px;
+}
+.card{
+  border:1px solid #3a3a3a;
+  padding:8px;
+  margin-bottom:8px;
+  cursor:pointer;
+  background:#1b1b1b;
+  border-radius:12px;
+}
+.card.selected{ outline:2px solid var(--gold); }
+.card .small{ font-size:12px; opacity:0.9; }
+.cardRow{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+}
+.card button{
+  border: 1px solid #555;
+  background: #262626;
+  color:#fff;
+  border-radius: 10px;
+  padding: 4px 8px;
+  cursor:pointer;
+}
+
+/* actionPicker / detail */
+#detail, #actionPicker{
+  border:1px solid #333;
+  padding:10px;
+  border-radius:12px;
+  background:#111;
+}
+
+/* ログ（右下） */
+#log{
+  white-space:pre-wrap;
+  font-size:12px;
+  max-height: 34vh;
+  overflow:auto;
+  background:#0d0d0d;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #222;
+}
+
+/* ===== マナゲージ ===== */
+#manaGauge{
+  margin-top:6px;
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+}
+.manaPip{
+  width:12px;
+  height:10px;
+  border-radius:3px;
+  background:#444;
+  border:1px solid #666;
+}
+.manaPip.on{ background:#ffd700; border-color:#caa400; }
+.manaPip.max{ background:#2b2b2b; border-color:#555; }
+
+/* ===== ターンバナー / FX ===== */
+#turnBanner{
+  position:fixed; left:50%; top:14px; transform:translateX(-50%);
+  background:rgba(255, 215, 0, 0.15);
+  border:1px solid rgba(255, 215, 0, 0.6);
+  color:#ffd700;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:bold;
+  display:none;
+  z-index:9999;
+  backdrop-filter: blur(4px);
+}
+body.myTurnGlow{ box-shadow: inset 0 0 0 3px rgba(255,215,0,0.55); }
+
+#dice{
+  font-size:18px;
+  margin-top:10px;
+  min-height:24px;
+}
+
+#fxFlash{
+  position:fixed; inset:0;
+  background:rgba(255,255,255,0);
+  pointer-events:none;
+  z-index:99999;
+  transition: background 120ms ease;
+}
+#fxFlash.on{ background:rgba(255,255,255,0.22); }
+#fxFlash.kill{ background:rgba(255,215,0,0.28); }
+
+/* ヒット演出 */
+.hitFlash{ animation: hitFlash .6s ease; }
+@keyframes hitFlash{
+  0%{ filter:brightness(1); }
+  20%{ filter:brightness(1.6); }
+  100%{ filter:brightness(1); }
+}
+.floatDmg{
+  position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  font-weight:bold;
+  font-size:16px;
+  text-shadow:0 2px 0 rgba(0,0,0,.7);
+  animation: floatUp 1s ease forwards;
+  pointer-events:none;
+}
+@keyframes floatUp{
+  0%{ opacity:1; transform:translate(-50%,-50%); }
+  100%{ opacity:0; transform:translate(-50%,-90%); }
+}
+
+/* ===== モバイル対応（縦積み） ===== */
+@media (max-width: 980px){
+  #app{
+    grid-template-columns: 1fr;
+  }
+  #centerPane{ order: 1; }
+  #leftPane{ order: 2; }
+  #rightPane{ order: 3; }
+  #hand{ max-height: 36vh; }
+  #log{ max-height: 28vh; }
+}

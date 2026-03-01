@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Battle Lobby</title>
+
+  <!-- ★絶対パス + キャッシュバスター（CSSが効かない問題の対策） -->
+  <link rel="stylesheet" href="/battle.css?v=20260201b" />
+
+  <!-- 追加UI用：最小の補助CSS（battle.css触らずに済ませる） -->
+  <style>
+    .fieldPanel .fieldRow{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .fieldPanel select{ padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.22); color:#fff; }
+    .fieldPanel .pill{ padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.16); font-weight:900; font-size:12px; }
+    .fieldPanel .small2{ font-size:12px; opacity:.86; white-space:pre-wrap; line-height:1.35; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="room">
+        <div class="roomLabel">ROOM</div>
+        <div class="roomId" id="roomId">----</div>
+      </div>
+
+      <div class="topStatus">
+        <div class="statusTitle">ステータス</div>
+        <div class="statusText" id="status">読み込み中…</div>
+        <div class="statusSub muted" id="readyNote"></div>
+      </div>
+
+      <div class="topActions">
+        <button id="readyBtn" class="btnPrimary" disabled>準備完了</button>
+        <div class="hint muted">両者 READY で自動開始</div>
+      </div>
+    </header>
+
+    <!-- VS Banner -->
+    <section class="vsBanner panel">
+      <div class="sideCard" id="p1Card">
+        <div class="seatLabel">1P</div>
+        <div class="playerName" id="p1Name">---</div>
+
+        <div class="readyBadge" id="p1Ready"></div>
+        <div class="youTag" id="p1You"></div>
+
+        <!-- 追加：フィールド表示（小さく） -->
+        <div class="muted small" id="p1Field"></div>
+      </div>
+
+      <div class="vsCenter">
+        <div class="vsText">VS</div>
+        <div class="muted small">準備が揃うまで待機</div>
+      </div>
+
+      <div class="sideCard right" id="p2Card">
+        <div class="seatLabel">2P</div>
+        <div class="playerName" id="p2Name">---</div>
+        <div class="readyBadge" id="p2Ready"></div>
+        <div class="youTag" id="p2You"></div>
+
+        <!-- 追加：フィールド表示（小さく） -->
+        <div class="muted small" id="p2Field"></div>
+      </div>
+    </section>
+
+    <!-- Field Select -->
+    <section class="panel fieldPanel">
+      <div class="panelHeader">
+        <div class="panelTitle">フィールド選択</div>
+        <div class="panelSub muted">自分の希望フィールドを選んでください（introで両者表示）</div>
+      </div>
+
+      <div class="fieldRow">
+        <div class="pill">あなた</div>
+        <select id="fieldSelect">
+          <option value="grass">🌿 草原（grass）</option>
+          <option value="danger">💣 危険地帯（danger）</option>
+          <option value="swamp">🫧 沼地（swamp）</option>
+        </select>
+        <div class="pill" id="myFieldPill">選択：---</div>
+      </div>
+
+      <div class="small2 muted" id="fieldDesc">説明：---</div>
+
+      <div class="fieldRow" style="margin-top:10px;">
+        <div class="pill">相手</div>
+        <div class="pill" id="enemyFieldPill">相手の選択：---</div>
+      </div>
+    </section>
+
+    <!-- Main -->
+    <main class="mainGrid">
+      <!-- Deck (left) -->
+      <section class="panel deckPanel">
+        <div class="panelHeader">
+          <div class="panelTitle">デッキ（左：カード / 右：詳細）</div>
+          <div class="panelSub muted">クリックでカード詳細</div>
+        </div>
+
+        <div class="deckWrap">
+          <div class="deckLeft">
+            <div class="subTitle">カード一覧</div>
+            <div id="myDeck" class="deckList"></div>
+          </div>
+
+          <div class="deckDetail panelInner">
+            <div class="subTitle">カード詳細</div>
+            <div id="deckDetail" class="deckDetailBody muted">カードを選択してください</div>
+          </div>
+        </div>
+
+        <details class="compatBox">
+          <summary>（互換）参加者一覧 / デバッグ</summary>
+          <ul id="players" class="playersList"></ul>
+        </details>
+      </section>
+
+      <!-- Deck Evaluation (right) -->
+      <section class="panel evalPanel">
+        <div class="panelHeader">
+          <div class="panelTitle">デッキ評価</div>
+          <div class="panelSub muted">レーダー＋属性分布</div>
+        </div>
+
+        <div class="radarWrap">
+          <canvas id="battleDeckRadar" width="360" height="260"></canvas>
+          <div id="battleDeckRadarText" class="muted small"></div>
+        </div>
+
+        <div class="attrWrap">
+          <div class="subTitle">属性の分布</div>
+          <div id="attrDist" class="attrDist">
+            <div class="muted">デッキが読み込まれると表示されます</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Field Select -->
+<section class="panel fieldPanel">
+  <div class="panelHeader">
+    <div class="panelTitle">フィールド選択</div>
+    <div class="panelSub muted">対戦開始前に選んでね（introで双方表示）</div>
+  </div>
+
+  <div id="fieldPicker" class="fieldPicker"></div>
+
+  <div class="muted small" style="margin-top:10px; display:flex; gap:14px; flex-wrap:wrap;">
+    <div>あなた：<b id="myFieldTxt">---</b></div>
+    <div>相手：<b id="oppFieldTxt">---</b></div>
+  </div>
+</section>
+
+    <!-- Pong -->
+    <section class="panel pongPanel">
+      <div class="panelHeader">
+        <div class="panelTitle">ピンポン（待ち時間用）</div>
+        <div class="panelSub muted">左端付近で「打ち返す！」</div>
+      </div>
+
+      <div class="pongRow">
+        <div class="pong">
+          <div class="wall wallL"></div>
+          <div class="wall wallR"></div>
+          <div class="paddle"></div>
+          <div class="ball" id="ball"></div>
+        </div>
+
+        <div class="pongControls">
+          <button id="pingBtn" class="btnGhost">打ち返す！</button>
+          <button id="pingResetBtn" class="btnGhost">リセット</button>
+          <div id="pingStatus" class="muted">スタート！</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ★絶対パス + キャッシュバスター（JSも古いの踏まない） -->
+  <script type="module" src="/battle.js?v=20260207"></script>
+</body>
+</html>

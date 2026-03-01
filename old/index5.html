@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>TCG Prototype ver1.1.0</title>
+<style>
+body { font-family: sans-serif; background:#222; color:#fff; display:flex; }
+#left { margin-right:20px; }
+#board { display:grid; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(7, 64px); gap:4px; }
+.cell { width:64px; height:64px; background:#444; position:relative; cursor:pointer; font-size:14px; }
+.cell.summon { background:#2a5; }
+.cell.move { background:#296; }
+.cell.attack { background:#a33; }
+.cell.selected { outline:3px solid yellow; }
+.unitA { background:#4af; }
+.unitB { background:#f55; }
+.status { position:absolute; bottom:2px; left:2px; font-size:10px; background:rgba(0,0,0,0.6); padding:1px 2px; }
+#right { width:320px; }
+.card { border:1px solid #aaa; padding:4px; margin-bottom:4px; cursor:pointer; background:#333; }
+.card.selected { outline:2px solid yellow; }
+button { margin:2px; }
+#detail { border:1px solid #666; padding:6px; margin-top:6px; }
+#dice { font-size:22px; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<div id="left">
+<h3>フィールド</h3>
+<div id="board"></div>
+<div>
+  <div>ターン: <span id="turn"></span></div>
+  <div>マナ: <span id="mana"></span></div>
+  <button onclick="setMode('move')">移動</button>
+  <button onclick="setMode('attack')">攻撃</button>
+  <button onclick="endTurn()">ターンエンド</button>
+</div>
+<pre id="log"></pre>
+</div>
+
+<div id="right">
+<h3>山札</h3>
+<div id="deckCount"></div>
+
+<h3>手札</h3>
+<div id="hand"></div>
+<button onclick="setMode('summon')">召喚</button>
+<button onclick="showCardDetail()">カード詳細</button>
+
+<h3>キャラ情報</h3>
+<div id="detail"></div>
+<div id="dice"></div>
+</div>
+
+<script>
+const W=5,H=7;
+let turn='A', mana=5, mode=null;
+let selectedUnit=null, selectedCard=null;
+
+const cardDefs={
+ A:{elem:'火',cost:3,hp:50,sp:10,actions:[
+  {name:'斬撃',cost:2,range:'front1',dmg:20,rate:75}
+ ]},
+ B:{elem:'水',cost:2,hp:40,sp:30,actions:[
+  {name:'突き',cost:1,range:'side1',dmg:10,rate:40}
+ ]},
+ C:{elem:'風',cost:2,hp:30,sp:20,actions:[
+  {name:'貫通',cost:2,range:'front3',dmg:10,rate:70}
+ ]},
+ D:{elem:'雷',cost:3,hp:30,sp:20,actions:[
+  {name:'落雷',cost:3,range:'rf1',dmg:10,rate:50,draw:1}
+ ]},
+ E:{elem:'闇',cost:3,hp:40,sp:20,actions:[
+  {name:'吸魂',cost:3,range:'front1',spDmg:10,rate:50}
+ ]}
+};
+
+function makeDeck(){
+ const k=Object.keys(cardDefs);
+ return Array.from({length:40},(_,i)=>k[i%5]).sort(()=>Math.random()-0.5);
+}
+
+const players={A:{deck:makeDeck(),hand:[]},B:{deck:makeDeck(),hand:[]}};
+function draw(p,n=1){ for(let i=0;i<n;i++) if(players[p].deck.length) players[p].hand.push(players[p].deck.pop()); }
+draw('A',5); draw('B',5);
+
+const units=[];
+function log(t){ document.getElementById('log').textContent+=t+'\n'; }
+
+function setMode(m){
+ if(m==='attack'&&!selectedUnit){alert('攻撃キャラを選択');return;}
+ mode=m; render();
+}
+
+function endTurn(){
+ selectedUnit=null; selectedCard=null; mode=null;
+ turn=turn==='A'?'B':'A'; mana=5; draw(turn,1);
+ log(`--- ${turn}ターン ---`); render();
+}
+
+function frontDir(){ return turn==='A'?-1:1; }
+function summonArea(y){ return turn==='A'?y>=H-2:y<=1; }
+
+function render(){
+ const b=document.getElementById('board'); b.innerHTML='';
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const d=document.createElement('div'); d.className='cell';
+  d.onclick=()=>clickCell(x,y);
+
+  const u=units.find(u=>u.x===x&&u.y===y&&u.hp>0);
+  if(u){
+   d.classList.add(u.owner==='A'?'unitA':'unitB');
+   d.innerHTML=`${u.type}<div class="status">HP${u.hp} SP${u.sp}</div>`;
+   if(u===selectedUnit) d.classList.add('selected');
+  }
+
+  if(mode==='summon'&&selectedCard&&!u&&summonArea(y)&&mana>=cardDefs[selectedCard].cost) d.classList.add('summon');
+  if(selectedUnit&&mode==='move'&&!u&&mana>0&&Math.abs(selectedUnit.x-x)+Math.abs(selectedUnit.y-y)===1) d.classList.add('move');
+  if(selectedUnit&&mode==='attack'&&u&&isInRange(selectedUnit,x,y,cardDefs[selectedUnit.type].actions[0].range)) d.classList.add('attack');
+
+  b.appendChild(d);
+ }
+ document.getElementById('turn').textContent=turn;
+ document.getElementById('mana').textContent=mana;
+ document.getElementById('deckCount').textContent=`残り${players[turn].deck.length}枚`;
+ renderHand();
+}
+
+function renderHand(){
+ const h=document.getElementById('hand'); h.innerHTML='';
+ players[turn].hand.forEach(c=>{
+  const d=document.createElement('div'); d.className='card';
+  if(c===selectedCard) d.classList.add('selected');
+  d.textContent=`${c}(${cardDefs[c].elem}) コスト${cardDefs[c].cost}`;
+  d.onclick=()=>{selectedCard=c; render();};
+  h.appendChild(d);
+ });
+}
+
+function clickCell(x,y){
+ const target=units.find(u=>u.x===x&&u.y===y&&u.hp>0);
+
+ if(target){
+  showUnitDetail(target);
+  if(mode==='attack'){
+   const act=cardDefs[selectedUnit.type].actions[0];
+   if(mana<act.cost||!isInRange(selectedUnit,x,y,act.range)) return;
+   mana-=act.cost;
+   rollDice(act,target);
+   mode=null;
+  } else selectedUnit=target;
+  render(); return;
+ }
+
+ if(mode==='summon'&&selectedCard){
+  const def=cardDefs[selectedCard];
+  if(mana<def.cost||!summonArea(y)) return;
+  mana-=def.cost;
+  units.push({owner:turn,type:selectedCard,x,y,hp:def.hp,sp:def.sp});
+  players[turn].hand.splice(players[turn].hand.indexOf(selectedCard),1);
+  selectedCard=null; mode=null;
+ }
+
+ if(mode==='move'&&selectedUnit&&mana>0){
+  selectedUnit.x=x; selectedUnit.y=y; mana--; mode=null;
+ }
+ render();
+}
+
+function rollDice(a,t){
+ const r=Math.floor(Math.random()*100)+1;
+ document.getElementById('dice').textContent=`🎲 ${r} / ${a.rate}%`;
+ if(r<=a.rate){
+  if(a.dmg) t.hp-=a.dmg;
+  if(a.spDmg) t.sp-=a.spDmg;
+  if(a.draw) draw(turn,a.draw);
+  log('攻撃成功');
+ } else log('攻撃失敗');
+}
+
+function isInRange(u,x,y,t){
+ const dx=x-u.x,dy=y-u.y,f=frontDir();
+ if(t==='front1') return dx===0&&dy===f;
+ if(t==='front3') return dx===0&&dy*f>0&&Math.abs(dy)<=3;
+ if(t==='side1') return dy===0&&Math.abs(dx)===1;
+ if(t==='rf1') return dy===f&&dx===1;
+ return false;
+}
+
+function showUnitDetail(u){
+ const acts=cardDefs[u.type].actions;
+ let html=`<b>${u.type}</b><br>所有:${u.owner}<br>HP:${u.hp} SP:${u.sp}<br><br>`;
+ acts.forEach((a,i)=>{
+  html+=`【行動${i+1}】${a.name}<br>
+  マナ:${a.cost} 射程:${a.range}<br>
+  効果:${a.dmg||('SP-'+a.spDmg)} 成功率:${a.rate}%<br><br>`;
+ });
+ document.getElementById('detail').innerHTML=html;
+}
+
+function showCardDetail(){
+ if(!selectedCard) return;
+ const d=cardDefs[selectedCard];
+ let html=`<b>${selectedCard}</b>(${d.elem})<br>HP:${d.hp} SP:${d.sp}<br><br>`;
+ d.actions.forEach((a,i)=>{
+  html+=`【行動${i+1}】${a.name}<br>
+  マナ:${a.cost} 射程:${a.range}<br>
+  効果:${a.dmg||('SP-'+a.spDmg)} 成功率:${a.rate}%<br><br>`;
+ });
+ document.getElementById('detail').innerHTML=html;
+}
+
+render();
+</script>
+</body>
+</html>

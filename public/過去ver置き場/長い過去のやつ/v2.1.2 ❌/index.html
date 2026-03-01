@@ -1,0 +1,202 @@
+<!-- public/index.html -->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG デッキ編成</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./deck.css" />
+
+  <!-- font (optional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body data-filterType="ALL" data-searching="0">
+  <!-- ===== Topbar ===== -->
+  <header class="topbar">
+    <div class="topLeft">
+      <div class="titleRow">
+        <div class="title">デッキ編成</div>
+        <div class="nickPill">
+          <span class="small">ニックネーム</span>
+          <b id="nicknameLabel">---</b>
+        </div>
+      </div>
+
+      <div class="small metaRow">
+        room: <b id="roomIdLabel">----</b>
+        <span class="dot">•</span>
+        player: <b id="playerIdLabel">----</b>
+      </div>
+    </div>
+
+    <div class="topRight">
+      <button id="btnSettings" class="ghost">設定</button>
+      <button id="btnRule" class="ghost">ルール</button>
+      <button id="btnTutorial" class="ghost">チュートリアル</button>
+    </div>
+  </header>
+
+  <!-- ===== Main layout ===== -->
+  <main class="layout2">
+    <!-- LEFT COLUMN -->
+    <section class="leftCol">
+      <!-- Cards panel (top-left) -->
+      <section class="panel cardsPanel">
+        <div class="panelHead">
+          <div class="filters">
+            <label class="small">属性</label>
+            <select id="typeSelect"></select>
+
+            <label class="small">検索</label>
+            <input id="search" placeholder="カード名で検索（例：回復）" />
+
+            <div class="countBox">
+              <span class="small">表示</span>
+              <b id="shownCount">0</b>
+              <span class="small">枚</span>
+            </div>
+          </div>
+        </div>
+        <div id="cardSections" class="scroll"></div>
+      </section>
+
+      <!-- Game join panel (bottom-left) -->
+      <section class="panel gamePanel">
+        <div class="panelHead">
+          <div class="subTitle">ゲーム参加！</div>
+          <div class="small hint">※未実装の項目は無効化されています</div>
+        </div>
+
+        <div class="gameBody">
+          <div class="gameGrid">
+            <!-- 1P -->
+            <div class="modeCard">
+              <div class="modeHead">
+                <div class="modeTitle">1人プレイ</div>
+                <div class="modeBadge">ソロ</div>
+              </div>
+              <div class="small modeDesc">・アーケードモード（未実装）</div>
+              <div class="modeBtns">
+                <button class="ghost" disabled>アーケードモード</button>
+              </div>
+            </div>
+
+            <!-- 2P -->
+            <div class="modeCard">
+              <div class="modeHead">
+                <div class="modeTitle">2人プレイ</div>
+                <div class="modeBadge accent">オンライン</div>
+              </div>
+              <div class="small modeDesc">
+                ・ルーム作成 / ルーム参加 / 観戦（未実装）
+              </div>
+
+              <!-- ★ここに create/join を置く（IDはdeck.jsが使う） -->
+              <div class="modeBtns">
+                <button id="createBtn" class="primary" disabled>ルーム作成</button>
+                <button id="joinBtn" class="primary" disabled>ルーム参加</button>
+                <button id="spectateBtn" class="ghost" disabled>観戦（未実装）</button>
+              </div>
+
+              <!-- deck.js が使うメッセージ表示（位置は自由） -->
+              <div id="msg" class="msg"></div>
+            </div>
+          </div>
+
+          <div class="fineRow">
+            <div class="fineLeft">
+              <div class="small">
+                デッキ条件：<b><span id="deckCount">0</span> / 30</b>
+                <span class="hint">(同名は最大4枚)</span>
+              </div>
+            </div>
+            <div class="fineRight">
+              <!-- deck.jsが使う -->
+              <button id="randomDeckBtn" class="ghost">ランダム</button>
+              <button id="btnSave" class="primary">保存</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- RIGHT COLUMN -->
+    <section class="panel deckPanel">
+      <div class="panelHead">
+        <div class="deckTop">
+          <div>
+            <div class="subTitle">デッキに入れたカード</div>
+            <div class="small">
+              <b><span id="deckCountTopMirror"> </span></b>
+              <!-- ↑見た目用（JSで同期） -->
+            </div>
+          </div>
+        </div>
+
+        <!-- EX -->
+        <div class="exBox">
+          <div class="exLeft">
+            <div class="subTitle">EX（サポート1枚）</div>
+            <div id="exLabel" class="exLabel">
+              <span class="badge">ピンチ時のみ</span><br>未選択
+            </div>
+          </div>
+          <div class="exRight">
+            <button id="exPickBtn" class="ghost">EXを選ぶ</button>
+            <button id="exClearBtn" class="ghost" disabled>クリア</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="deckList" class="scroll"></div>
+
+      <div class="detailBox">
+        <div class="subTitle">詳細</div>
+        <div id="detail" class="detail small">
+          左の「詳細」ボタンでカード詳細が表示されます。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- tutorial modal (deck.jsが tutorial.js を呼ぶ想定で、DOMだけ用意) -->
+  <div id="modalBackdrop" class="modalBackdrop" aria-hidden="true" style="display:none;">
+    <div class="modal">
+      <div class="modalHead">
+        <b>チュートリアル</b>
+        <button id="btnCloseModal" class="ghost">閉じる</button>
+      </div>
+      <div id="tutorialBody" class="modalBody small"></div>
+    </div>
+  </div>
+
+  <!-- deck.js -->
+  <script type="module" src="./deck.js?v=20260131a"></script>
+
+  <!-- nickname label (deck.jsは触らない：表示だけ補助) -->
+  <script>
+    (function(){
+      try{
+        const key = "tcg_player_name_v15b";
+        const v = localStorage.getItem(key) || "";
+        const el = document.getElementById("nicknameLabel");
+        if (el) el.textContent = v ? v : "未設定";
+      }catch{}
+      // deckCount の見た目ミラー
+      const sync = ()=>{
+        const dc = document.getElementById("deckCount");
+        const m = document.getElementById("deckCountTopMirror");
+        if (dc && m) m.textContent = dc.textContent + " / 30";
+      };
+      const obs = new MutationObserver(sync);
+      const dc = document.getElementById("deckCount");
+      if (dc) obs.observe(dc, { childList:true, subtree:true });
+      sync();
+    })();
+  </script>
+</body>
+</html>

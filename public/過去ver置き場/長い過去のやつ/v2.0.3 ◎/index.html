@@ -1,0 +1,119 @@
+<!-- public/index.html -->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG デッキ構築</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./deck.css" />
+
+  <!-- 見た目を少し整えるためのフォント -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body data-filterType="ALL" data-searching="0">
+  <header class="topbar">
+    <div class="topLeft">
+      <div class="title">TCG デッキ構築</div>
+      <div class="small">
+        room: <b id="roomIdLabel">----</b> /
+        player: <b id="playerIdLabel">----</b>
+      </div>
+    </div>
+
+    <div class="topRight">
+      <button id="btnRule" class="ghost">ルール</button>
+      <button id="btnTutorial" class="ghost">チュートリアル</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- LEFT: cards -->
+    <section class="panel">
+      <div class="panelHead">
+        <div class="filters">
+          <label class="small">属性</label>
+          <select id="typeSelect"></select>
+
+          <label class="small">検索</label>
+          <input id="search" placeholder="カード名で検索（例：回復）" />
+
+          <div class="countBox">
+            <span class="small">表示</span>
+            <b id="shownCount">0</b>
+            <span class="small">枚</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="cardSections" class="scroll"></div>
+    </section>
+
+    <!-- RIGHT: deck -->
+    <section class="panel">
+      <div class="panelHead">
+        <div class="deckTop">
+          <div>
+            <div class="subTitle">デッキ</div>
+            <div class="small">
+              <b id="deckCount">0</b> / 20
+              <span class="hint">(同名は最大4枚)</span>
+            </div>
+          </div>
+
+          <div class="deckButtons">
+            <button id="randomDeckBtn" class="ghost">ランダム</button>
+            <button id="btnSave" class="primary">保存</button>
+          </div>
+        </div>
+
+        <!-- EX -->
+        <div class="exBox">
+          <div class="exLeft">
+            <div class="subTitle">EX（サポート1枚）</div>
+            <div id="exLabel" class="exLabel">
+              <span class="badge">ピンチ時のみ</span><br>未選択
+            </div>
+          </div>
+          <div class="exRight">
+            <button id="exPickBtn" class="ghost">EXを選ぶ</button>
+            <button id="exClearBtn" class="ghost" disabled>クリア</button>
+          </div>
+        </div>
+
+        <div id="msg" class="msg"></div>
+
+        <div class="playButtons">
+          <button id="createBtn" class="primary" disabled>ルーム作成</button>
+          <button id="joinBtn" class="primary" disabled>ルーム参加</button>
+        </div>
+      </div>
+
+      <div id="deckList" class="scroll"></div>
+
+      <div class="detailBox">
+        <div class="subTitle">詳細</div>
+        <div id="detail" class="detail small">
+          左の「詳細」ボタンでカード詳細が表示されます。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- tutorial modal (deck.jsが tutorial.js を呼ぶ想定で、DOMだけ用意) -->
+  <div id="modalBackdrop" class="modalBackdrop" aria-hidden="true" style="display:none;">
+    <div class="modal">
+      <div class="modalHead">
+        <b>チュートリアル</b>
+        <button id="btnCloseModal" class="ghost">閉じる</button>
+      </div>
+      <div id="tutorialBody" class="modalBody small"></div>
+    </div>
+  </div>
+
+  <!-- deck.js -->
+  <script type="module" src="./deck.js?v=20260129_2"></script>
+</body>
+</html>

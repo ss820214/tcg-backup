@@ -1,0 +1,213 @@
+/* public/game.css */
+/* v1.7.1 - statusアイコン表示 + コスト左上 + target枠強化 + ログ色分け */
+
+/* ===== ベース ===== */
+* { box-sizing: border-box; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:#111;
+  color:#fff;
+}
+
+.small{ font-size:12px; opacity:.9; }
+
+/* ===== 盤面 ===== */
+#board{
+  display:grid;
+  grid-template-columns: repeat(5, 92px);
+  grid-template-rows: repeat(7, 92px);
+  gap:8px;
+  padding:14px;
+}
+
+.cell{
+  width:92px; height:92px;
+  position:relative;
+  background:#444;
+  border-radius:10px;
+  cursor:pointer;
+  user-select:none;
+  overflow:hidden;
+}
+
+/* 陣営色 */
+.cell.unitA{ background:#d55; }
+.cell.unitB{ background:#355f8a; }
+
+/* 選択 */
+.cell.selected{
+  outline: 3px solid #ffd700;
+  outline-offset: -3px;
+}
+
+/* 疲労っぽく */
+.cell.fatigued{
+  filter:saturate(.85) brightness(.92);
+}
+
+/* 召喚候補 */
+.cell.summon{
+  outline: 3px solid rgba(0,255,170,0.9);
+  outline-offset:-3px;
+}
+
+/* ===== 追加：攻撃/ターゲット強調 ===== */
+.cell.attack {
+  outline: 3px solid rgba(0,255,0,0.85);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.35);
+  background:#2b4;
+}
+
+/* 攻撃可能な敵：枠だけ緑 */
+.cell.targetOk {
+  outline: 3px solid #00ff66;
+  outline-offset: -3px;
+  box-shadow: inset 0 0 0 3px rgba(0,255,0,0.85);
+}
+
+/* ===== ユニット内表示 ===== */
+.attr{
+  position:absolute;
+  right:6px; top:4px;
+  font-size:14px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  pointer-events:none;
+}
+
+.unitName{
+  position:absolute; left:2px; right:2px;
+  top:22px;
+  text-align:left;
+  font-weight:bold;
+  font-size:12px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  pointer-events:none;
+  padding:0 4px;
+}
+
+.status{
+  position:absolute;
+  left:6px; bottom:6px;
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  pointer-events:none;
+}
+
+/* 疲労/パニックなどのタグ（既存互換） */
+.fatigueTag{
+  position:absolute;
+  left:6px; top:4px;
+  font-size:11px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.70);
+  pointer-events:none;
+}
+
+/* ★コスト左上（要望） */
+.unitCost{
+  position:absolute;
+  top:2px;
+  left:2px;
+  font-size:12px;
+  padding:1px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,.55);
+  color:#fff;
+  pointer-events:none;
+}
+
+/* ★状態異常アイコン表示（[object Object] 対策の見た目側） */
+.statusIcons{
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:44px;          /* 疲労/パニックタグと被るならここ調整 */
+  font-size:12px;
+  line-height:1.1;
+  text-align:left;
+  pointer-events:none;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  opacity:.95;
+}
+
+/* ===== クイックアクション ===== */
+#quickActions button {
+  border: 1px solid #888;
+  background: #2b2b2b;
+  color: #fff;
+  border-radius: 10px;
+  padding:6px 10px;
+}
+#quickActions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* オーバレイボタン（将来用） */
+.unitOverlayBtns{
+  position:absolute; left:2px; right:2px; bottom:22px;
+  display:flex; gap:4px; justify-content:center;
+}
+.unitOverlayBtns button{
+  font-size:12px; padding:2px 6px;
+}
+
+/* ===== ログ色分け（クラス付けする場合用：現状は任意） ===== */
+.log-sys   { color:#ddd; }
+.log-attack{ color:#4f4; font-weight:bold; }
+.log-miss  { color:#f55; font-weight:bold; }
+.log-move  { color:#5af; }
+.log-summon{ color:#c6f; }
+.log-evo   { color:#ff5; }
+.log-panic { color:#fa0; font-weight:bold; }
+.log-win   { color:#ffd700; font-weight:bold; }
+
+/* ===== マナゲージ ===== */
+.manaPip{ width:10px; height:10px; border-radius:999px; background:#555; opacity:.35; }
+.manaPip.max{ opacity:.6; }
+.manaPip.on{ opacity:1; background:#ffd700; }
+
+/* ===== ヒットFX（既存互換） ===== */
+.hitFlash{
+  animation: hitFlash .6s ease;
+}
+@keyframes hitFlash{
+  0%{ filter:brightness(1); }
+  20%{ filter:brightness(1.6); }
+  100%{ filter:brightness(1); }
+}
+
+.floatDmg{
+  position:absolute;
+  left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  font-weight:bold;
+  font-size:16px;
+  text-shadow:0 2px 0 rgba(0,0,0,.7);
+  animation: floatUp 1s ease forwards;
+  pointer-events:none;
+}
+@keyframes floatUp{
+  0%{ opacity:1; transform:translate(-50%,-50%); }
+  100%{ opacity:0; transform:translate(-50%,-90%); }
+}
+
+.statusIcons{
+  position:absolute;
+  left:6px;
+  right:6px;
+  top:44px;
+  font-size:12px;
+  line-height:1.1;
+  text-align:left;
+  pointer-events:none;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  opacity:.95;
+}
+

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>対戦待機</title>
+  <link rel="stylesheet" href="./battle.css">
+</head>
+<body>
+
+<h1>対戦待機</h1>
+
+<p>ルームID：<b><span id="roomId"></span></b></p>
+<p id="status">読み込み中…</p>
+
+<h2>参加者</h2>
+<ul id="players"></ul>
+
+<button id="readyBtn" disabled>準備完了</button>
+<p id="readyNote" class="muted"></p>
+
+<hr>
+
+<h2>🧾 自分のデッキ確認</h2>
+<div class="deckWrap">
+  <div class="deckLeft">
+    <div id="myDeck">読み込み中…</div>
+  </div>
+
+  <div class="deckRight">
+    <h3>カード詳細</h3>
+    <div id="deckDetail" class="panel">
+      カードをクリックすると詳細が出ます
+    </div>
+
+    <h3 style="margin-top:12px;">📊 デッキ評価</h3>
+    <div class="panel">
+      <canvas id="battleDeckRadar" width="340" height="270"></canvas>
+      <div id="battleDeckRadarText" class="muted" style="margin-top:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<h2>🎮 ピンポン（暇つぶし・オフライン）</h2>
+
+<div class="pong">
+  <div id="ball" class="ball"></div>
+  <div id="paddle" class="paddle"></div>
+  <div class="wall wallL"></div>
+  <div class="wall wallR"></div>
+</div>
+
+<button id="pingBtn">打ち返す！</button>
+<button id="pingResetBtn">リセット</button>
+<p id="pingStatus"></p>
+
+<script type="module" src="./battle.js?v=20260124f"></script>
+</body>
+</html>

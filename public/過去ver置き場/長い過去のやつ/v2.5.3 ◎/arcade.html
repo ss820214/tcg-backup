@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Arcade（双六ローグ）</title>
+  <link rel="stylesheet" href="./arcade.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btnBackDeck" class="btn ghost">← 戻る</button>
+        <div class="brand">
+          <div class="brand-title">ARCADE</div>
+          <div class="brand-sub">双六ローグ / カード収集</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span id="phaseBadge" class="badge">準備</span>
+        <span id="stageBadge" class="badge soft">STAGE 1/5</span>
+        <span id="moneyBadge" class="badge gold">¥0</span>
+      </div>
+    </header>
+
+    <!-- MAIN LAYOUT -->
+    <main class="main">
+      <!-- LEFT: DECK BUILDER -->
+      <section class="panel left">
+        <div class="panel-title">
+          <div>
+            <div class="h1">デッキ編成</div>
+            <div class="hint">所持カード → デッキ（最大20枚）</div>
+          </div>
+          <div class="mini">
+            <span id="deckCountBadge" class="pill">0/20</span>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button id="tabOwned" class="tab active">所持</button>
+          <button id="tabDeck" class="tab">デッキ</button>
+        </div>
+
+        <div id="ownedWrap" class="listWrap active">
+          <div class="listHead">
+            <div class="listTitle">所持カード</div>
+            <button id="btnStarterPack" class="btn small">初期3枚を配布</button>
+          </div>
+          <div id="ownedList" class="list"></div>
+        </div>
+
+        <div id="deckWrap" class="listWrap">
+          <div class="listHead">
+            <div class="listTitle">デッキ</div>
+            <div class="row">
+              <button id="btnDeckAuto" class="btn small">自動整列</button>
+              <button id="btnDeckClear" class="btn small danger">全抜き</button>
+            </div>
+          </div>
+          <div id="deckList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- CENTER: MAP / BATTLE -->
+      <section class="panel center">
+        <!-- MAP SCREEN -->
+        <div id="screenMap" class="screen active">
+          <div class="panel-title">
+            <div>
+              <div class="h1">双六ステージ</div>
+              <div class="hint">サイコロを振って進む。止まったマスで効果発動。</div>
+            </div>
+            <div class="row">
+              <button id="btnDice" class="btn primary">🎲 サイコロ</button>
+              <button id="btnNextStage" class="btn" disabled>次のステージへ</button>
+            </div>
+          </div>
+
+          <div class="mapWrap">
+            <div id="mapLegend" class="legend"></div>
+            <div id="mapTrack" class="track"></div>
+          </div>
+
+          <div class="mapFooter">
+            <div class="pill soft">止まったマス： <span id="tileBadge">-</span></div>
+            <div class="pill">進行： <span id="posBadge">0</span> / <span id="lenBadge">0</span></div>
+            <div class="pill gold">所持金： <span id="moneyText">0</span></div>
+          </div>
+        </div>
+
+        <!-- BATTLE SCREEN -->
+        <div id="screenBattle" class="screen">
+          <div class="panel-title">
+            <div>
+              <div class="h1">バトル</div>
+              <div class="hint">移動 / 攻撃（隣接）で撃破。勝てば報酬。</div>
+            </div>
+            <div class="row">
+              <span id="turnBadge" class="pill">TURN 1 / YOU</span>
+              <span id="modeBadge" class="pill soft">MODE: なし</span>
+              <button id="btnMoveMode" class="btn small">移動</button>
+              <button id="btnAttackMode" class="btn small">攻撃</button>
+              <button id="btnEndTurn" class="btn primary small">ターン終了</button>
+              <button id="btnRetreat" class="btn danger small">撤退</button>
+            </div>
+          </div>
+
+          <div class="battleWrap">
+            <div class="battleLeft">
+              <div class="kpi">
+                <div class="kpiBox">
+                  <div class="kpiLabel">YOU</div>
+                  <div class="kpiValue"><span id="youAlive">0</span> 生存</div>
+                </div>
+                <div class="kpiBox">
+                  <div class="kpiLabel">ENEMY</div>
+                  <div class="kpiValue"><span id="enemyAlive">0</span> 生存</div>
+                </div>
+                <div class="kpiBox">
+                  <div class="kpiLabel">選択中</div>
+                  <div class="kpiValue" id="selLabel">なし</div>
+                </div>
+              </div>
+              <div class="subbox">
+                <div class="subTitle">状態</div>
+                <div id="statusBadge" class="status">-</div>
+              </div>
+            </div>
+
+            <div class="battleCenter">
+              <div id="grid" class="grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: LOG -->
+      <section class="panel right">
+        <div class="panel-title">
+          <div>
+            <div class="h1">ログ</div>
+            <div class="hint">イベント/戦闘ログ</div>
+          </div>
+          <button id="btnLogClear" class="btn small">クリア</button>
+        </div>
+
+        <pre id="log" class="log"></pre>
+
+        <div class="rules">
+          <div class="ruleTitle">マス種別</div>
+          <div id="legendHelp" class="ruleText"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modalBackdrop" class="modalBackdrop" aria-hidden="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="modalTitle" id="modalTitle">報酬</div>
+        <button id="modalClose" class="btn ghost small">✕</button>
+      </div>
+      <div class="modalBody" id="modalBody"></div>
+      <div class="modalFooter" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <script src="./arcade.js"></script>
+</body>
+</html>

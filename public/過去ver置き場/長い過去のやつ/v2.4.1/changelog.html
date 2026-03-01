@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TCG 変更履歴</title>
+  <style>
+    body{ font-family:sans-serif; background:#111; color:#fff; margin:0; }
+    header{ padding:12px 14px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center; }
+    .wrap{ padding:14px; max-width:980px; margin:0 auto; }
+    .card{ border:1px solid #333; background:#0b0b0b; border-radius:10px; padding:12px; margin:12px 0; }
+    .small{ opacity:.85; font-size:13px; line-height:1.55; }
+    button{ padding:8px 12px; cursor:pointer; }
+    code{ background:#222; padding:1px 4px; border-radius:4px; }
+    ul{ margin:6px 0 6px 18px; }
+    .pill{ display:inline-block; padding:2px 8px; border:1px solid #444; border-radius:999px; font-size:12px; opacity:.9; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <b>🧾 変更履歴</b>
+      <div class="small">vごとの修正点を残すページ（手で追記OK）</div>
+    </div>
+    <button onclick="location.href='./index.html'">← 戻る</button>
+  </header>
+
+  <div class="wrap">
+
+    <!-- v1.7.0 -->
+    <div class="card">
+      <div class="pill">v1.7.0（正式完了）</div>
+      <div class="small" style="margin-top:10px;">
+        <ul>
+          <li>UX改善：敵クリックは常に「詳細表示」、攻撃は <code>攻撃ボタン押下時のみ</code> 実行</li>
+          <li>行動UI改善：クイック攻撃を「実行ボタン」として分離</li>
+          <li>盤面の状態異常表示をテキストから <b>アイコン表示</b> に変更（<code>[object Object]</code> 問題解消）</li>
+          <li>addStatus / tags が <code>string / array / Firestore map</code> いずれでも安全に扱える吸収レイヤ追加</li>
+          <li>状態異常の表示ルール整理（付与なしの場合は非表示、状態異常のみ表示）</li>
+          <li>キャラ左上に <b>コスト（マナ）表示</b> を追加</li>
+          <li>移動制限修正：<b>1キャラ2マス/ターン</b> がターン切替時に正しく回復</li>
+          <li>後攻プレイヤーの移動不可になる不具合を修正（<code>turnSeq</code> 判定修正）</li>
+          <li>オンライン安定化：Firestore接続・再接続時の挙動を整理</li>
+          <li>v1.7 系を <b>UX・安定性重視の完成版</b> として確定</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- v1.5.1 -->
+    <div class="card">
+      <div class="pill">v1.5.1</div>
+      <div class="small" style="margin-top:10px;">
+        <ul>
+          <li>部屋番号4桁 / ニックネーム入力</li>
+          <li>ルームTTL 30分（expiresAt）</li>
+          <li>同じ部屋番号の残骸があれば掃除して再利用</li>
+          <li>遷移・デッキ保存の安定化</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- v1.5.2 -->
+    <div class="card">
+      <div class="pill">v1.5.2（予定）</div>
+      <div class="small" style="margin-top:10px;">
+        <ul>
+          <li>先行がドローできない問題 修正</li>
+          <li>移動：1キャラ2マス/ターン（ターン開始で回復）</li>
+          <li>ダメージ演出（ヒットフラッシュ・浮き文字）</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

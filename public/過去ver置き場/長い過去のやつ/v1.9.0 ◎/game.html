@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Online - Game</title>
+
+  <!-- ★CSSは外に統一（styleタグは置かない） -->
+  <link rel="stylesheet" href="./game.css?v=20260128b">
+</head>
+<body>
+
+  <div id="fxFlash"></div>
+  <div id="turnBanner">あなたのターン！</div>
+
+  <div id="app">
+    <!-- 左：ステータス/操作 -->
+    <aside id="leftPane">
+      <div class="paneTitle">ステータス</div>
+
+      <div class="kv">
+        <div>あなた: <span id="you"></span></div>
+        <div>ターン: <span id="turn"></span></div>
+        <div>マナ: <span id="mana"></span></div>
+        <div id="manaGauge"></div>
+      </div>
+
+      <div class="kv">
+        <div>撃破(A/B): <span id="kills"></span></div>
+        <div>侵入(A/B): <span id="infil"></span></div>
+        <div>山札: <span id="deckCount"></span></div>
+        <div class="small" id="modeHint"></div>
+      </div>
+
+      <div class="controls">
+        <button id="modeSummon">召喚</button>
+        <button id="modeMove">移動</button>
+        <button id="modeAttack">攻撃</button>
+        <button id="modeEvolve">進化</button>
+        <button id="doEvolve" style="display:none;">進化実行</button>
+        <button id="endTurn">ターンエンド</button>
+      </div>
+
+      <div id="quickActions" class="quickActions" style="display:none;">
+        <button id="quickMove">🏃 移動</button>
+        <button id="quickAttack">⚔️ 攻撃</button>
+        <span class="small" id="quickMsg"></span>
+      </div>
+
+      <div class="paneTitle" style="margin-top:12px;">詳細</div>
+      <div id="detail"></div>
+
+      <div id="dice"></div>
+    </aside>
+
+    <!-- 中央：盤面 -->
+    <main id="centerPane">
+      <div class="paneTitle">フィールド</div>
+      <div id="board"></div>
+    </main>
+
+    <!-- 右：手札 / 行動 / ログ -->
+    <aside id="rightPane">
+      <div class="paneTitle">手札</div>
+      <div id="hand"></div>
+
+      <div class="paneTitle" style="margin-top:12px;">行動</div>
+      <div id="actionPicker"></div>
+
+      <div class="paneTitle" style="margin-top:12px;">ログ</div>
+      <pre id="log"></pre>
+    </aside>
+  </div>
+
+  <script type="module" src="./game.js?v=20260128b"></script>
+</body>
+</html>

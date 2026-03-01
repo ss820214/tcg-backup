@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG デッキ編集（EX対応）</title>
+  <style>
+    :root{
+      --bg:#111;
+      --panel:#1b1b1b;
+      --line:#333;
+      --text:#fff;
+      --muted:#aaa;
+      --accent:#ffd700;
+      --ok:#3dff8d;
+      --ng:#ff5b6a;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+    .wrap{ max-width:1100px; margin:0 auto; padding:14px; display:flex; flex-direction:column; gap:12px; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; }
+    .title{ font-weight:900; }
+    .muted{ color:var(--muted); font-size:12px; }
+    .topbar{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .pill{ padding:6px 10px; border:1px solid var(--line); border-radius:999px; font-weight:800; }
+    .btn{ padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#222; color:#fff; font-weight:900; cursor:pointer; }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btnPrimary{ border-color: rgba(255,215,0,.55); background: rgba(255,215,0,.12); }
+    .btnDanger{ border-color: rgba(255,91,106,.55); background: rgba(255,91,106,.10); }
+    .list{ display:flex; flex-direction:column; gap:8px; max-height:520px; overflow:auto; padding-right:6px; }
+    .cardBtn{
+      width:100%; text-align:left; padding:10px 10px;
+      border-radius:12px; border:1px solid var(--line);
+      background:#222; color:#fff; cursor:pointer;
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
+    }
+    .cardBtn:hover{ background:#2a2a2a; }
+    .small{ font-size:12px; color:var(--muted); margin-top:4px; }
+    .countBox{ display:flex; gap:6px; align-items:center; }
+    .mini{ padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:#191919; color:#fff; font-weight:900; cursor:pointer; }
+    .mini:disabled{ opacity:.4; cursor:not-allowed; }
+    .badge{ font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+    .badge.ok{ border-color: rgba(61,255,141,.5); color: var(--ok); }
+    .badge.ng{ border-color: rgba(255,91,106,.5); color: var(--ng); }
+    .detail{ min-height:140px; border:1px dashed var(--line); border-radius:12px; padding:10px; background:#161616; }
+    .exBox{
+      margin-top:10px;
+      border:1px solid rgba(255,215,0,.35);
+      border-radius:14px;
+      padding:10px;
+      background: rgba(255,215,0,.06);
+    }
+    .exRow{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    .exName{ font-weight:900; }
+    @media (max-width: 960px){
+      .row{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel topbar">
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div class="title">デッキ編集（20枚 + EX1枚）</div>
+        <div class="pill">ROOM: <span id="roomId">----</span></div>
+        <div class="pill">PLAYER: <span id="playerId">----</span></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <button id="saveBtn" class="btn btnPrimary" disabled>保存</button>
+        <button id="toBattleBtn" class="btn" disabled>バトル待機へ</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="panel">
+        <div class="title">カード一覧</div>
+        <div class="muted">+/- でデッキに追加（同名4枚まで）</div>
+        <div id="cardList" class="list" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="panel">
+        <div class="title">デッキ</div>
+        <div class="muted">枚数: <b><span id="deckCount">0</span>/20</b></div>
+        <div id="deckList" class="list" style="margin-top:10px;"></div>
+
+        <div class="exBox">
+          <div class="exRow">
+            <div>
+              <div class="title">EX（サポートカードから1枚）</div>
+              <div class="muted">ピンチ時のみ使用可能 / 1回きり</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button id="clearExBtn" class="btn btnDanger" disabled>EX解除</button>
+            </div>
+          </div>
+
+          <div style="margin-top:8px;">
+            <div class="exName">選択中: <span id="exName">なし</span></div>
+            <div class="muted">※カード一覧の「EXに設定」から選ぶ</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;" class="detail" id="detail">カード詳細</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./deck.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG アーケード</title>
+  <style>
+    :root{ --bg:#0e0f12; --panel:rgba(255,255,255,.04); --line:rgba(255,255,255,.10); --text:#fff; --muted:rgba(255,255,255,.75); }
+    body{ margin:0; font-family:system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--text); }
+    header{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,0)); }
+    .title{ font-size:18px; font-weight:900; letter-spacing:.02em; }
+    .ghost{ border:1px solid var(--line); background:rgba(0,0,0,.18); color:#fff; padding:10px 12px; border-radius:14px; font-weight:900; cursor:pointer; }
+    .ghost:hover{ background:rgba(255,255,255,.06); }
+    main{ max-width:980px; margin:0 auto; padding:16px; }
+    .grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
+    .card{ border:1px solid var(--line); background:var(--panel); border-radius:18px; padding:14px; box-shadow:0 12px 28px rgba(0,0,0,.35); }
+    .card h3{ margin:0 0 6px; font-size:14px; }
+    .small{ font-size:12px; color:var(--muted); line-height:1.5; }
+    .btnRow{ display:flex; gap:10px; margin-top:12px; }
+    .primary{ border:1px solid rgba(90,170,255,.55); background:rgba(90,170,255,.18); }
+    .primary:hover{ background:rgba(90,170,255,.24); }
+    .warn{ border:1px solid rgba(255,200,90,.45); background:rgba(255,200,90,.10); }
+    @media (max-width: 860px){ .grid{ grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="title">アーケードモード</div>
+      <div class="small">1人プレイの簡易クエスト（まずはチュートリアル戦を流用）</div>
+    </div>
+    <button id="btnBack" class="ghost" type="button">デッキへ戻る</button>
+  </header>
+
+  <main>
+    <div class="small" style="margin:0 0 12px;">
+      ※ここは v2.3 の追加要素（MVP）。まずは <b>tutorial_game</b> を使って「基礎/攻撃/進化」を遊べる入口を用意。
+      後で敵デッキの強化・ステージ分岐・報酬（称号/スキン/カード解放など）を足せる構造にしてあります。
+    </div>
+
+    <section class="grid">
+      <div class="card">
+        <h3>QUEST 1：基礎（召喚・手札・マナ）</h3>
+        <div class="small">・召喚エリアの確認<br>・マナ消費<br>・手札の見方</div>
+        <div class="btnRow">
+          <button class="ghost primary" data-start="2" type="button">開始</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>QUEST 2：攻撃（移動→攻撃）</h3>
+        <div class="small">・移動の基本<br>・射程の確認<br>・攻撃の成功率</div>
+        <div class="btnRow">
+          <button class="ghost primary" data-start="3" type="button">開始</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>QUEST 3：進化（進化UI）</h3>
+        <div class="small">・進化モード<br>・候補カードの選び方<br>・進化実行</div>
+        <div class="btnRow">
+          <button class="ghost warn" data-start="4" type="button">開始</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <h3>今後の拡張案（メモ）</h3>
+      <div class="small">
+        ・ステージを 1〜10 にして敵デッキを段階的に強化<br>
+        ・クリア報酬：称号 / プロフィールフレーム / BGM 解放<br>
+        ・「今日のクエスト」(日替わり) でログイン導線<br>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./arcade.js?v=20260203_v23"></script>
+</body>
+</html>

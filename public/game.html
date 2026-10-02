@@ -11,8 +11,10 @@
 
     <!-- Desktop/base battle UI -->
     <link rel="stylesheet" href="./game.css?v=20260228_9" />
-    <!-- Mobile-only override. Desktop is intentionally untouched. -->
+    <!-- Mobile-only layers. Desktop stays on game.css. -->
     <link rel="stylesheet" href="./game_mobile.css?v=20261003_1" />
+    <link rel="stylesheet" href="./game_mobile_landscape.css?v=20261003_1" />
+    <link rel="stylesheet" href="./game_mobile_polish.css?v=20261003_1" />
   </head>
   <body>
     <!-- ===== FX/Overlay (game.js が参照) ===== -->
@@ -150,6 +152,7 @@
     <script type="module" src="./game.js?v=20260228_34"></script>
     <!-- Presentation-only mobile shell. It moves existing live DOM nodes; no game rules live here. -->
     <script type="module" src="./game_mobile.js?v=20261003_1"></script>
+    <script type="module" src="./game_mobile_polish.js?v=20261003_1"></script>
 
     <style>
       #joinGameBtn,

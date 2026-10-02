@@ -2,23 +2,27 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b0d12" />
     <title>TCG Online - Battle</title>
 
-    <!-- 既存の game.css をそのまま使う（レイアウト/FX/射程/右ペイン/ログ/マナ等） -->
+    <!-- Desktop/base battle UI -->
     <link rel="stylesheet" href="./game.css?v=20260228_9" />
+    <!-- Mobile-only override. Desktop is intentionally untouched. -->
+    <link rel="stylesheet" href="./game_mobile.css?v=20261003_1" />
   </head>
   <body>
     <!-- ===== FX/Overlay (game.js が参照) ===== -->
-    <div id="turnBanner">あなたのターン！</div>
-    <div id="fxFlash"></div>
+    <div id="turnBanner" aria-live="polite">あなたのターン！</div>
+    <div id="fxFlash" aria-hidden="true"></div>
     <div id="pinchFx" aria-hidden="true"></div>
 
-    <!-- ===== App Layout (game.css の #app / #leftPane / #centerPane / #rightPane を使う) ===== -->
+    <!-- ===== App Layout ===== -->
     <div id="app">
-      <!-- ======================
-         LEFT PANE (情報 + 操作)
-         ====================== -->
+      <!-- LEFT: information + controls -->
       <aside id="leftPane">
         <div class="paneTitle">情報</div>
 
@@ -30,12 +34,12 @@
             <span id="mana">A ?/? | B ?/?</span>
           </div>
 
-          <!-- ★ マナゲージ（黄色菱形：CSS側で変更済み想定。未変更なら後でCSSだけ差し替えOK） -->
           <div id="manaGauge"></div>
 
           <div class="row small" style="margin-top: 8px">
             <div id="deckCount">残り A:? / B:?</div>
           </div>
+
           <div id="scoreWrap" class="scoreWrap">
             <div class="scoreRow">
               <div class="scoreLabel">🏴 KILL</div>
@@ -69,7 +73,6 @@
               </div>
             </div>
 
-            <!-- 既存の span は残したいなら hidden にして保持でもOK -->
             <span id="kills" style="display: none"></span>
             <span id="infil" style="display: none"></span>
           </div>
@@ -84,23 +87,23 @@
 
         <div class="paneTitle">操作</div>
         <div class="controls">
-          <button id="modeSummon">召喚</button>
-          <button id="modeMove">移動</button>
-          <button id="modeAttack">行動</button>
-          <button id="modeEvolve">進化</button>
-          <button id="modeSupport">サポート</button>
-          <button id="doEvolve" style="display: none">進化実行</button>
-          <button id="endTurn">ターン終了</button>
+          <button id="modeSummon" type="button">召喚</button>
+          <button id="modeMove" type="button">移動</button>
+          <button id="modeAttack" type="button">行動</button>
+          <button id="modeEvolve" type="button">進化</button>
+          <button id="modeSupport" type="button">サポート</button>
+          <button id="doEvolve" type="button" style="display: none">進化実行</button>
+          <button id="endTurn" type="button">ターン終了</button>
         </div>
 
         <!-- Quick actions -->
         <div id="quickActions" class="quickActions" style="display: none">
-          <button id="quickMove">🏃 移動</button>
-          <button id="quickAttack">⚔️ 行動</button>
+          <button id="quickMove" type="button">🏃 移動</button>
+          <button id="quickAttack" type="button">⚔️ 行動</button>
           <span id="quickMsg" class="small"></span>
         </div>
 
-        <!-- Pinch + EX UI（game.jsが参照するIDを全部用意） -->
+        <!-- Pinch + EX -->
         <div id="exWrap" class="kv" style="margin-top: 10px">
           <div
             class="row"
@@ -118,16 +121,12 @@
         </div>
       </aside>
 
-      <!-- ======================
-         CENTER PANE (盤面)
-         ====================== -->
+      <!-- CENTER: 5x7 board -->
       <main id="centerPane" aria-label="battle-board">
         <div id="board"></div>
       </main>
 
-      <!-- ======================
-         RIGHT PANE (手札→行動→ログ)
-         ====================== -->
+      <!-- RIGHT: hand / actions / detail / log -->
       <aside id="rightPane">
         <div class="paneTitle">手札</div>
         <div id="hand"></div>
@@ -149,41 +148,46 @@
 
     <!-- ===== Game code ===== -->
     <script type="module" src="./game.js?v=20260228_34"></script>
+    <!-- Presentation-only mobile shell. It moves existing live DOM nodes; no game rules live here. -->
+    <script type="module" src="./game_mobile.js?v=20261003_1"></script>
 
     <style>
-      /* 「ゲーム参加！」ボタンだけ非表示（周りのUIは残す） */
       #joinGameBtn,
       #btnJoinGame,
-      #gameJoinBtn {
-        display: none !important;
-      }
-
-      /* もし class で付いてる場合の保険 */
+      #gameJoinBtn,
       .join-game-btn {
         display: none !important;
       }
     </style>
 
+    <!-- BGM UI/controller: use sfx.js public controller only. -->
     <script type="module">
-      import { setBgmEnabled } from "./sfx.js?v=20260228_1";
+      import {
+        setBgmEnabled,
+        setBgmMode,
+      } from "./sfx.js?v=20260228_1";
 
       const BGM_KEY = "tcg_bgm_on";
       const VOLUME = 0.35;
       const RATE = 1.0;
-
       let bgmOn = (localStorage.getItem(BGM_KEY) ?? "1") === "1";
+      let pinchLevel = 0;
 
-      function applyBgmState() {
-        setBgmEnabled(bgmOn);
-        if (bgmOn) syncBgmNow({ volume: VOLUME, playbackRate: RATE });
+      function modeFromLevel(lv) {
+        if (lv >= 2) return "alert2";
+        if (lv >= 1) return "alert1";
+        return "battle";
       }
 
-      btn.addEventListener("click", () => {
-        bgmOn = !bgmOn;
-        localStorage.setItem(BGM_KEY, bgmOn ? "1" : "0");
-        btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
-        applyBgmState(); // ←ここで “今のピンチレベル” に応じて勝手に戻る
-      });
+      function applyBgmState() {
+        setBgmEnabled(bgmOn, { volume: VOLUME, playbackRate: RATE });
+        if (bgmOn) {
+          setBgmMode(modeFromLevel(pinchLevel), {
+            volume: VOLUME,
+            playbackRate: RATE,
+          });
+        }
+      }
 
       function isSoloUrl() {
         const p = new URLSearchParams(location.search);
@@ -194,52 +198,50 @@
         const btn = document.createElement("button");
         btn.id = "bgmToggleBtn";
         btn.type = "button";
-        btn.style.marginLeft = "6px";
         btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
+        btn.style.marginLeft = "6px";
 
         const solo = isSoloUrl();
-
-        // ★Consoleボタン（soloの時だけ）
         let cbtn = null;
         if (solo) {
           cbtn = document.createElement("button");
           cbtn.id = "consoleToggleBtn";
           cbtn.type = "button";
-          cbtn.style.marginLeft = "6px";
           cbtn.textContent = "🖥 コンソール";
+          cbtn.style.marginLeft = "6px";
         }
 
-        // いったん「操作」タイトルの近くに差し込む（あなたの現行ロジック維持）
         const leftPane = document.querySelector("#leftPane");
-        const controlsTitle = leftPane?.querySelectorAll(".paneTitle")?.[1]; // 2つ目が「操作」
+        const controlsTitle = leftPane?.querySelectorAll(".paneTitle")?.[1];
         if (controlsTitle && controlsTitle.parentElement) {
           const wrap = document.createElement("div");
+          wrap.className = "controlsTitleRow";
           wrap.style.display = "flex";
           wrap.style.alignItems = "center";
           wrap.style.justifyContent = "space-between";
+          wrap.style.gap = "6px";
 
           const titleClone = controlsTitle.cloneNode(true);
           controlsTitle.replaceWith(wrap);
           wrap.appendChild(titleClone);
 
           const right = document.createElement("div");
+          right.className = "audioControls";
           right.style.display = "flex";
           right.style.gap = "6px";
           right.appendChild(btn);
-          if (cbtn) right.appendChild(cbtn); // ✅ solo時だけ
+          if (cbtn) right.appendChild(cbtn);
           wrap.appendChild(right);
         } else {
           leftPane?.prepend(btn);
-          if (cbtn) leftPane?.prepend(cbtn); // ✅ solo時だけ
+          if (cbtn) leftPane?.prepend(cbtn);
         }
 
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", () => {
           bgmOn = !bgmOn;
           localStorage.setItem(BGM_KEY, bgmOn ? "1" : "0");
           btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
-
-          setBgmEnabled(bgmOn);
-          if (bgmOn) await syncBgmNow({ volume: VOLUME, playbackRate: RATE });
+          applyBgmState();
         });
 
         if (cbtn) {
@@ -247,69 +249,39 @@
             if (typeof window.toggleSoloConsole === "function") {
               await window.toggleSoloConsole();
             } else {
-              alert(
-                "console機能がまだ読み込まれてない（game.jsにtoggle関数を追加して）",
-              );
+              alert("console機能がまだ読み込まれていません。");
             }
           });
         }
-
-        return btn;
       }
 
+      // game.js can call this without caring how BGM is implemented.
+      window.setPinchBgmLevel = function (lv) {
+        pinchLevel = Math.max(0, Math.min(2, Number(lv) || 0));
+        if (bgmOn) {
+          setBgmMode(modeFromLevel(pinchLevel), {
+            volume: VOLUME,
+            playbackRate: RATE,
+          });
+        }
+      };
+
       function armAutoStartOnce() {
-        const startOnce = async () => {
-          window.removeEventListener("pointerdown", startOnce);
+        const startOnce = () => {
           if (!bgmOn) return;
-          setBgmEnabled(true);
-          await syncBgmNow({ volume: VOLUME, playbackRate: RATE });
+          applyBgmState();
         };
         window.addEventListener("pointerdown", startOnce, { once: true });
       }
 
-      // UI設置
       mountBgmToggle();
-
       if (bgmOn) armAutoStartOnce();
 
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) setBgmEnabled(false);
+        else if (bgmOn) applyBgmState();
       });
       window.addEventListener("beforeunload", () => setBgmEnabled(false));
-
-      // ===== Pinch BGM level controller (called from game.js) =====
-      // lv: 0=normal(battle), 1=alert1, 2=alert2
-      let _pinchLevel = 0;
-
-      async function stopAllBgms() {
-        stopBattleBgmMp3();
-        stopAlert1Mp3();
-        stopAlert2Mp3();
-      }
-
-      async function playLevel(lv) {
-        if (!bgmOn) {
-          await stopAllBgms();
-          return;
-        }
-
-        // 一回全部止めてから1つだけ鳴らす（被り防止）
-        await stopAllBgms();
-
-        if (lv === 2)
-          return startAlert2Mp3({ volume: VOLUME, playbackRate: RATE });
-        if (lv === 1)
-          return startAlert1Mp3({ volume: VOLUME, playbackRate: RATE });
-        return startBattleBgmMp3({ volume: VOLUME, playbackRate: RATE });
-      }
-
-      window.setPinchBgmLevel = async function (lv) {
-        lv = Number(lv) || 0;
-        lv = Math.max(0, Math.min(2, lv));
-        if (lv === _pinchLevel) return;
-        _pinchLevel = lv;
-        await playLevel(lv);
-      };
     </script>
   </body>
 </html>

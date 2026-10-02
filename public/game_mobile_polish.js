@@ -1,6 +1,8 @@
 // public/game_mobile_polish.js
-// v20261003_3
+// v20261003_4
 // Small mobile affordances that mirror desktop-only controls without touching game rules.
+
+import "./game_mobile_fit.js?v=20261003_1";
 
 const MOBILE_QUERY = "(max-width: 820px), ((pointer: coarse) and (max-width: 980px))";
 const mq = window.matchMedia(MOBILE_QUERY);
@@ -149,7 +151,6 @@ function bindDelegatedMobileBehavior() {
 
     const handCard = ev.target?.closest?.("#hand .handCard");
     if (handCard && !ev.target?.closest?.(".hcDetailBtn")) {
-      // Card selection/summon/support/evolve should immediately return the player to the board.
       window.setTimeout(() => window.__mobileBattleUI?.close?.(), 90);
     }
   });

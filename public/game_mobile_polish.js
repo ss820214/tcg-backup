@@ -1,5 +1,5 @@
 // public/game_mobile_polish.js
-// v20261003_1
+// v20261003_2
 // Small mobile affordances that mirror desktop-only controls without touching game rules.
 
 const MOBILE_QUERY = "(max-width: 820px), ((pointer: coarse) and (max-width: 980px))";
@@ -45,10 +45,10 @@ function compactBgmLabel(text) {
 }
 
 function mountExtraControls() {
-  if (!mq.matches) return;
+  if (!mq.matches) return false;
   const panel = $("mobilePanel-log");
   const sourceBgm = $("bgmToggleBtn");
-  if (!panel || !sourceBgm) return;
+  if (!panel || !sourceBgm) return false;
 
   let wrap = panel.querySelector(".mobileExtraControls");
   if (!wrap) {
@@ -84,37 +84,45 @@ function mountExtraControls() {
     if (mirror) mirror.textContent = compactBgmLabel(sourceBgm.textContent);
   });
   sourceObserver.observe(sourceBgm, { subtree: true, childList: true, characterData: true });
-}
 
-function reconcile() {
-  syncHint();
-  if (mq.matches) mountExtraControls();
-  else {
-    sourceObserver?.disconnect?.();
-    sourceObserver = null;
-    $("mobileModeHint")?.replaceChildren();
-  }
+  // The expensive body-wide observer is only needed during startup/re-mount.
+  bodyObserver?.disconnect?.();
+  bodyObserver = null;
+  return true;
 }
 
 function watchForMobileShell() {
   bodyObserver?.disconnect?.();
+  bodyObserver = null;
+  if (!mq.matches) return;
+  if (mountExtraControls()) return;
+
   bodyObserver = new MutationObserver(() => {
-    if ($("mobilePanel-log") && $("bgmToggleBtn")) {
-      mountExtraControls();
-    }
+    mountExtraControls();
   });
   bodyObserver.observe(document.body, { subtree: true, childList: true });
+}
+
+function reconcile() {
+  syncHint();
+  if (mq.matches) {
+    watchForMobileShell();
+  } else {
+    sourceObserver?.disconnect?.();
+    sourceObserver = null;
+    bodyObserver?.disconnect?.();
+    bodyObserver = null;
+    $("mobileModeHint")?.replaceChildren();
+  }
 }
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     bindHint();
-    watchForMobileShell();
     reconcile();
   }, { once: true });
 } else {
   bindHint();
-  watchForMobileShell();
   reconcile();
 }
 

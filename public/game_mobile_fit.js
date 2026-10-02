@@ -1,7 +1,9 @@
 // public/game_mobile_fit.js
-// v20261003_1
+// v20261003_2
 // Final board fitter: measure the ACTUAL centerPane after safe-area / portrait / landscape CSS.
 // This runs after the base mobile fitter and therefore corrects iOS notch/home-indicator cases.
+
+import "./game_mobile_audit.js?v=20261003_1";
 
 const MOBILE_QUERY = "(max-width: 820px), ((pointer: coarse) and (max-width: 980px))";
 const mq = window.matchMedia(MOBILE_QUERY);
@@ -40,14 +42,10 @@ function fitFromStage() {
     cellW = clamp(byW, 34, 86);
     cellH = clamp(Math.min(byH, Math.floor(cellW * 1.34)), 32, 116);
   } else {
-    // Landscape uses a right-side action rail. Prioritize height, then give cards
-    // enough width for the name + two compact bars.
     cellH = clamp(byH, 28, 66);
     cellW = clamp(Math.min(byW, Math.floor(cellH * 1.28)), 36, 76);
   }
 
-  // Final hard guarantee: if the min clamp itself would overflow a tiny viewport,
-  // relax it rather than clipping the seventh row / fifth column.
   const totalW = (w) => w * 5 + gap * 4 + pad * 2;
   const totalH = (h) => h * 7 + gap * 6 + pad * 2;
   while (cellW > 24 && totalW(cellW) > availW) cellW -= 1;
@@ -62,8 +60,6 @@ function fitFromStage() {
 function queueFit() {
   cancelAnimationFrame(raf1);
   cancelAnimationFrame(raf2);
-  // The base mobile script also reacts to resize. Two frames puts this fitter last,
-  // after fixed bars/safe-area/side-rail layout has settled.
   raf1 = requestAnimationFrame(() => {
     raf2 = requestAnimationFrame(fitFromStage);
   });

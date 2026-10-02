@@ -1,5 +1,5 @@
 // public/game_mobile_audit.js
-// v20261003_1
+// v20261003_2
 // Runtime audit helper for real mobile devices. No game-state mutation.
 
 const PRIMARY_IDS = [
@@ -27,7 +27,9 @@ function rectInfo(el) {
 function isPointOwnedBy(el, x, y) {
   const top = document.elementFromPoint(x, y);
   if (!top) return false;
-  return top === el || el.contains(top) || top.closest?.(`#${CSS.escape(el.id)}`) === el;
+  if (top === el || el.contains(top)) return true;
+  // IDs here are fixed safe identifiers, so a CSS.escape dependency is unnecessary.
+  return top.closest?.(`#${el.id}`) === el;
 }
 
 function auditButton(id) {
@@ -112,7 +114,7 @@ export function runMobileBattleAudit({ log = true } = {}) {
   if (!board.ok) failures.push({ id: "board", reason: board.reason || "board-overflow" });
 
   const result = {
-    version: "20261003_1",
+    version: "20261003_2",
     at: new Date().toISOString(),
     viewport: {
       width: window.innerWidth,
@@ -137,15 +139,33 @@ export function runMobileBattleAudit({ log = true } = {}) {
 
 window.__mobileBattleAudit = runMobileBattleAudit;
 
-function autoAudit() {
+let auditTimer = 0;
+let classObserver = null;
+
+function autoAudit(delay = 900) {
+  clearTimeout(auditTimer);
   if (!document.body.classList.contains("mobileBattle")) return;
-  window.setTimeout(() => runMobileBattleAudit({ log: true }), 900);
+  auditTimer = window.setTimeout(() => {
+    if (document.body.classList.contains("mobileBattle")) {
+      runMobileBattleAudit({ log: true });
+    }
+  }, delay);
+}
+
+function watchMobileMount() {
+  classObserver?.disconnect?.();
+  classObserver = new MutationObserver(() => {
+    if (document.body.classList.contains("mobileBattle")) autoAudit(950);
+  });
+  classObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  autoAudit(950);
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", autoAudit, { once: true });
+  document.addEventListener("DOMContentLoaded", watchMobileMount, { once: true });
 } else {
-  autoAudit();
+  watchMobileMount();
 }
 
-window.addEventListener("orientationchange", () => window.setTimeout(autoAudit, 700), { passive: true });
+window.addEventListener("orientationchange", () => autoAudit(1000), { passive: true });
+window.visualViewport?.addEventListener("resize", () => autoAudit(1100), { passive: true });

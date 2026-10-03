@@ -16,6 +16,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Diagnose deployed files
+        run: |
+          set -euxo pipefail
+          URL="https://tcg-0bato.web.app/deck.html?diag=$(date +%s)"
+          curl -fsSL -D prod-headers.txt "$URL" -o prod-deck.html
+          echo '--- RESPONSE HEADERS ---'
+          cat prod-headers.txt
+          echo '--- HTML TITLE / SCRIPT MARKERS ---'
+          grep -n -E '<title>|deck_bootstrap_recovery|deck_runtime_guard|deck\.js\?v=|global_ui_20260821' prod-deck.html || true
+          echo '--- FIRST 12 LINES ---'
+          head -12 prod-deck.html
+          echo '--- FILE CHECKS ---'
+          curl -fsSL "https://tcg-0bato.web.app/deck_bootstrap_recovery_20261003.js?v=20261003_recovery1&diag=$(date +%s)" -o recovery.js
+          curl -fsSL "https://tcg-0bato.web.app/deck_runtime_guard_20261003.js?v=20261003_guard2&diag=$(date +%s)" -o guard.js
+          grep -n '20261003_recovery1' recovery.js | head
+          grep -n '20261003_guard2' guard.js | head
+          grep -q 'deck_bootstrap_recovery_20261003.js?v=20261003_recovery1' prod-deck.html
+          grep -q 'deck_runtime_guard_20261003.js?v=20261003_guard2' prod-deck.html
+          grep -q 'deck.js?v=20261003_play_stability2' prod-deck.html
+
       - name: Install Playwright
         run: |
           npm init -y >/dev/null 2>&1
@@ -49,7 +69,8 @@ jobs:
               if (!guard || !recoveryLoaded || !document.getElementById('btnSafeBack')) return false;
               const normal = document.querySelector('#deckStart [data-home-action="play"]');
               const nr = normal?.getBoundingClientRect();
-              const normalVisible = !!normal && nr.width > 30 && nr.height > 25 && getComputedStyle(normal).visibility !== 'hidden' && getComputedStyle(normal).display !== 'none';
+              const ns = normal ? getComputedStyle(normal) : null;
+              const normalVisible = !!normal && nr.width > 30 && nr.height > 25 && ns.visibility !== 'hidden' && ns.display !== 'none' && Number(ns.opacity || 1) > 0;
               const recovery = document.querySelector('#deckRecoveryHome [data-recovery-play]');
               const rr = recovery?.getBoundingClientRect();
               const recoveryVisible = !!recovery && !document.getElementById('deckRecoveryHome')?.hidden && rr.width > 30 && rr.height > 25;
@@ -63,7 +84,7 @@ jobs:
               if (normal) {
                 const r = normal.getBoundingClientRect();
                 const s = getComputedStyle(normal);
-                if (r.width > 30 && r.height > 25 && s.visibility !== 'hidden' && s.display !== 'none') return 'normal';
+                if (r.width > 30 && r.height > 25 && s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity || 1) > 0) return 'normal';
               }
               const recovery = document.querySelector('#deckRecoveryHome [data-recovery-play]');
               if (recovery && !document.getElementById('deckRecoveryHome')?.hidden) return 'recovery';
@@ -84,9 +105,27 @@ jobs:
             }, open, { timeout: 8000 });
           }
 
-          const base = 'https://tcg-0bato.web.app/deck.html?view=mobile&prodsmoke=a08ac8';
-          await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
-          await waitEntry();
+          const base = 'https://tcg-0bato.web.app/deck.html?view=mobile&prodsmoke=a08ac8-' + Date.now();
+          const response = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          console.log('HTTP=' + response?.status() + ' FINAL_URL=' + page.url());
+          try {
+            await waitEntry();
+          } catch (e) {
+            const diag = await page.evaluate(() => ({
+              title: document.title,
+              href: location.href,
+              htmlDataset: { ...document.documentElement.dataset },
+              bodyClass: document.body?.className || '',
+              scripts: [...document.scripts].map(s => s.src || 'inline').filter(Boolean),
+              recovery: !!document.getElementById('deckRecoveryHome'),
+              guardBack: !!document.getElementById('btnSafeBack'),
+              room: !!document.getElementById('roomDrawer'),
+              text: (document.body?.innerText || '').slice(0, 1200)
+            }));
+            console.log('ENTRY_TIMEOUT_DIAG=' + JSON.stringify(diag));
+            await page.screenshot({ path: 'production-deck-smoke.png', fullPage: true });
+            throw e;
+          }
           await clickEntry();
           await waitDrawer(true);
           await page.click('#btnSafeBack');
@@ -100,9 +139,7 @@ jobs:
 
           await page.screenshot({ path: 'production-deck-smoke.png', fullPage: true });
           const critical = errors.filter(x => !/favicon|404|ERR_BLOCKED_BY_CLIENT/i.test(x));
-          if (critical.length) {
-            console.log('NONFATAL_BROWSER_ERRORS=' + JSON.stringify(critical.slice(0, 20)));
-          }
+          if (critical.length) console.log('NONFATAL_BROWSER_ERRORS=' + JSON.stringify(critical.slice(0, 20)));
           console.log('PRODUCTION_PLAY_SMOKE_OK');
           await browser.close();
           EOF

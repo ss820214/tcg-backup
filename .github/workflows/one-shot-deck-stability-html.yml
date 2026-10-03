@@ -27,21 +27,25 @@ jobs:
           s = p.read_text(encoding='utf-8-sig')
 
           marker = '  <meta name="viewport" content="width=device-width,initial-scale=1" />\n'
-          preload = '''  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-  <link rel="dns-prefetch" href="//www.gstatic.com" />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js" crossorigin />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js" crossorigin />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js" crossorigin />
-'''
+          preload = '\n'.join([
+              '  <meta name="viewport" content="width=device-width,initial-scale=1" />',
+              '  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />',
+              '  <link rel="dns-prefetch" href="//www.gstatic.com" />',
+              '  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js" crossorigin />',
+              '  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js" crossorigin />',
+              '  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js" crossorigin />',
+              ''
+          ])
           if 'firebasejs/9.23.0/firebase-app.js" crossorigin' not in s:
               if marker not in s:
                   raise SystemExit('viewport marker not found')
               s = s.replace(marker, preload, 1)
 
           old_deck = '<script type="module" src="./deck.js?v=20260926_mobile_stack2"></script>'
-          new_deck = '''<script src="./deck_runtime_guard_20261003.js?v=20261003_guard2" data-deck-runtime-guard="20261003_guard2"></script>
-<script type="module" src="./deck.js?v=20261003_play_stability2"></script>'''
+          new_deck = '\n'.join([
+              '<script src="./deck_runtime_guard_20261003.js?v=20261003_guard2" data-deck-runtime-guard="20261003_guard2"></script>',
+              '<script type="module" src="./deck.js?v=20261003_play_stability2"></script>'
+          ])
           if old_deck in s:
               s = s.replace(old_deck, new_deck, 1)
           elif 'deck_runtime_guard_20261003.js?v=20261003_guard2' not in s:

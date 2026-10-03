@@ -1,0 +1,58 @@
+name: Temporary 0bato Preview Tunnel
+
+on:
+  push:
+    branches:
+      - preview-deck-20261003
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start static server
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          echo $! >/tmp/http.pid
+          sleep 2
+          curl -I http://127.0.0.1:8000/deck.html
+
+      - name: Install cloudflared
+        run: |
+          curl -L --fail --retry 3 -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+          cloudflared --version
+
+      - name: Publish preview tunnel
+        run: |
+          nohup cloudflared tunnel --url http://127.0.0.1:8000 --no-autoupdate >/tmp/cloudflared.log 2>&1 &
+          echo $! >/tmp/cloudflared.pid
+          for i in $(seq 1 30); do
+            URL=$(grep -o 'https://[-a-z0-9]*\.trycloudflare.com' /tmp/cloudflared.log | head -1 || true)
+            if [ -n "$URL" ]; then
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              echo "### 0バト確認サイト" >> "$GITHUB_STEP_SUMMARY"
+              echo "$URL/deck.html" >> "$GITHUB_STEP_SUMMARY"
+              echo "PREVIEW_URL=$URL/deck.html"
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "${URL:-}" ]; then
+            cat /tmp/cloudflared.log
+            exit 1
+          fi
+          curl -I "$URL/deck.html" || true
+
+      - name: Keep preview alive
+        run: |
+          echo "Preview: $PREVIEW_URL/deck.html"
+          sleep 2400

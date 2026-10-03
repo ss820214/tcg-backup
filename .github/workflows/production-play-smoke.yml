@@ -1,0 +1,118 @@
+name: Production PLAY Smoke Check
+
+on:
+  push:
+    branches:
+      - test/production-play-smoke-20261003
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.57.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Test deployed mobile deck
+        run: |
+          cat > prod-smoke.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({
+            viewport: { width: 460, height: 900 },
+            userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 Chrome/154 Mobile Safari/537.36'
+          });
+          const errors = [];
+          page.on('pageerror', e => errors.push(String(e)));
+          page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+          await page.addInitScript(() => {
+            try {
+              localStorage.setItem('tcgDeckStartSeen', '1');
+              localStorage.setItem('tcgDeviceModeOverrideV2', 'mobile');
+            } catch {}
+          });
+
+          async function waitEntry() {
+            await page.waitForFunction(() => {
+              const guard = document.documentElement.dataset.deckRuntimeGuardBound === '20261003_guard2';
+              const recoveryLoaded = document.documentElement.dataset.deckBootstrapRecovery === '20261003_recovery1';
+              if (!guard || !recoveryLoaded || !document.getElementById('btnSafeBack')) return false;
+              const normal = document.querySelector('#deckStart [data-home-action="play"]');
+              const nr = normal?.getBoundingClientRect();
+              const normalVisible = !!normal && nr.width > 30 && nr.height > 25 && getComputedStyle(normal).visibility !== 'hidden' && getComputedStyle(normal).display !== 'none';
+              const recovery = document.querySelector('#deckRecoveryHome [data-recovery-play]');
+              const rr = recovery?.getBoundingClientRect();
+              const recoveryVisible = !!recovery && !document.getElementById('deckRecoveryHome')?.hidden && rr.width > 30 && rr.height > 25;
+              return normalVisible || recoveryVisible;
+            }, null, { timeout: 20000 });
+          }
+
+          async function clickEntry() {
+            const which = await page.evaluate(() => {
+              const normal = document.querySelector('#deckStart [data-home-action="play"]');
+              if (normal) {
+                const r = normal.getBoundingClientRect();
+                const s = getComputedStyle(normal);
+                if (r.width > 30 && r.height > 25 && s.visibility !== 'hidden' && s.display !== 'none') return 'normal';
+              }
+              const recovery = document.querySelector('#deckRecoveryHome [data-recovery-play]');
+              if (recovery && !document.getElementById('deckRecoveryHome')?.hidden) return 'recovery';
+              return '';
+            });
+            if (which === 'normal') await page.click('#deckStart [data-home-action="play"]');
+            else if (which === 'recovery') await page.click('#deckRecoveryHome [data-recovery-play]');
+            else throw new Error('No usable PLAY entry');
+            console.log('ENTRY=' + which);
+          }
+
+          async function waitDrawer(open) {
+            await page.waitForFunction((wanted) => {
+              const d = document.getElementById('roomDrawer');
+              if (!d) return false;
+              const actual = d.classList.contains('open') && d.getAttribute('aria-hidden') === 'false';
+              return wanted ? actual : !actual;
+            }, open, { timeout: 8000 });
+          }
+
+          const base = 'https://tcg-0bato.web.app/deck.html?view=mobile&prodsmoke=a08ac8';
+          await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await waitEntry();
+          await clickEntry();
+          await waitDrawer(true);
+          await page.click('#btnSafeBack');
+          await waitDrawer(false);
+          if (!page.url().includes('tcg-0bato.web.app/deck.html')) throw new Error('Safe back escaped production deck');
+
+          for (let i = 0; i < 2; i++) {
+            await page.goto(base + '&reload=' + i, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await waitEntry();
+          }
+
+          await page.screenshot({ path: 'production-deck-smoke.png', fullPage: true });
+          const critical = errors.filter(x => !/favicon|404|ERR_BLOCKED_BY_CLIENT/i.test(x));
+          if (critical.length) {
+            console.log('NONFATAL_BROWSER_ERRORS=' + JSON.stringify(critical.slice(0, 20)));
+          }
+          console.log('PRODUCTION_PLAY_SMOKE_OK');
+          await browser.close();
+          EOF
+          node prod-smoke.mjs
+
+      - name: Upload production screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-play-smoke
+          path: production-deck-smoke.png
+          if-no-files-found: ignore
+          retention-days: 1

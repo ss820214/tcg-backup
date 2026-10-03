@@ -70,11 +70,31 @@ jobs:
           cat /tmp/cloudflared.log
           exit 1
 
-      - name: Upload preview URL
+      - name: Capture 460px mobile screenshot
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome not found"
+            exit 1
+          fi
+          "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --hide-scrollbars \
+            --window-size=460,1000 \
+            --virtual-time-budget=9000 \
+            --screenshot=mobile-preview.png \
+            "$PREVIEW_URL/deck.html?view=mobile&density=1"
+          test -s mobile-preview.png
+
+      - name: Upload preview review bundle
         uses: actions/upload-artifact@v4
         with:
-          name: preview-url-density
-          path: preview-url.txt
+          name: preview-density-review
+          path: |
+            preview-url.txt
+            mobile-preview.png
           retention-days: 1
 
       - name: Keep preview alive

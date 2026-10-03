@@ -241,18 +241,32 @@
   window.addEventListener("orientationchange", () => refreshDeviceMode(false), { passive: true });
 })();
 
-// Deck builder only: load the final mobile refinement after all static page scripts.
-// Keeping this outside the main UI IIFE avoids coupling the shared global UI to deck internals.
+// Deck builder only: load the final mobile refinement after all static page scripts,
+// then load the density pass last so it wins over older mobile layout layers.
 (() => {
   const path = (location.pathname.split("/").pop() || "").toLowerCase();
   if (path !== "deck.html" && path !== "deck") return;
 
+  const loadDensity = () => {
+    if (document.querySelector('script[data-deck-mobile-density="20261003_density1"]')) return;
+    const density = document.createElement("script");
+    density.src = "./deck_mobile_density_20261003.js?v=20261003_density1";
+    density.async = false;
+    density.dataset.deckMobileDensity = "20261003_density1";
+    document.body.appendChild(density);
+  };
+
   const load = () => {
-    if (document.querySelector('script[data-deck-mobile-refine="20261003_refine2"]')) return;
+    const existing = document.querySelector('script[data-deck-mobile-refine="20261003_refine2"]');
+    if (existing) {
+      loadDensity();
+      return;
+    }
     const script = document.createElement("script");
     script.src = "./deck_mobile_refine_20261003.js?v=20261003_refine2";
-    script.defer = true;
+    script.async = false;
     script.dataset.deckMobileRefine = "20261003_refine2";
+    script.addEventListener("load", loadDensity, { once: true });
     document.body.appendChild(script);
   };
 

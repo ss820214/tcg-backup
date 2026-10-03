@@ -241,35 +241,72 @@
   window.addEventListener("orientationchange", () => refreshDeviceMode(false), { passive: true });
 })();
 
-// Deck builder only: load the final mobile refinement after all static page scripts,
-// then load the density pass last so it wins over older mobile layout layers.
+// Deck builder only: load the mobile refinement stack as soon as the DOM is ready.
+// This avoids waiting for every image/resource and removes the intermittent half-rendered state.
 (() => {
   const path = (location.pathname.split("/").pop() || "").toLowerCase();
   if (path !== "deck.html" && path !== "deck") return;
 
+  const REFINE = "20261003_refine2";
+  const DENSITY = "20261003_density2";
+  const GUARD = "20261003_guard1";
+
+  const loadGuard = () => {
+    if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;
+    const guard = document.createElement("script");
+    guard.src = `./deck_runtime_guard_20261003.js?v=${GUARD}`;
+    guard.async = false;
+    guard.dataset.deckRuntimeGuard = GUARD;
+    document.body.appendChild(guard);
+  };
+
   const loadDensity = () => {
-    if (document.querySelector('script[data-deck-mobile-density="20261003_density2"]')) return;
+    const existing = document.querySelector(`script[data-deck-mobile-density="${DENSITY}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === "1") loadGuard();
+      else existing.addEventListener("load", loadGuard, { once: true });
+      return;
+    }
     const density = document.createElement("script");
-    density.src = "./deck_mobile_density_20261003.js?v=20261003_density2";
+    density.src = `./deck_mobile_density_20261003.js?v=${DENSITY}`;
     density.async = false;
-    density.dataset.deckMobileDensity = "20261003_density2";
+    density.dataset.deckMobileDensity = DENSITY;
+    density.addEventListener("load", () => {
+      density.dataset.loaded = "1";
+      loadGuard();
+    }, { once: true });
     document.body.appendChild(density);
   };
 
-  const load = () => {
-    const existing = document.querySelector('script[data-deck-mobile-refine="20261003_refine2"]');
+  const loadRefine = () => {
+    const existing = document.querySelector(`script[data-deck-mobile-refine="${REFINE}"]`);
     if (existing) {
-      loadDensity();
+      if (existing.dataset.loaded === "1") loadDensity();
+      else existing.addEventListener("load", loadDensity, { once: true });
       return;
     }
-    const script = document.createElement("script");
-    script.src = "./deck_mobile_refine_20261003.js?v=20261003_refine2";
-    script.async = false;
-    script.dataset.deckMobileRefine = "20261003_refine2";
-    script.addEventListener("load", loadDensity, { once: true });
-    document.body.appendChild(script);
+    const refine = document.createElement("script");
+    refine.src = `./deck_mobile_refine_20261003.js?v=${REFINE}`;
+    refine.async = false;
+    refine.dataset.deckMobileRefine = REFINE;
+    refine.addEventListener("load", () => {
+      refine.dataset.loaded = "1";
+      loadDensity();
+    }, { once: true });
+    document.body.appendChild(refine);
   };
 
-  if (document.readyState === "complete") load();
-  else window.addEventListener("load", load, { once: true });
+  const start = () => {
+    if (!document.body) {
+      requestAnimationFrame(start);
+      return;
+    }
+    loadRefine();
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
 })();

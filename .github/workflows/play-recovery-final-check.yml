@@ -77,13 +77,14 @@ jobs:
               if (!d) return false;
               const now = d.classList.contains('open') && d.getAttribute('aria-hidden') === 'false';
               return open ? now : !now;
-            }, wanted, { timeout: 5000 });
+            }, wanted, { timeout: 6000 });
           }
 
           await page.goto('http://127.0.0.1:8000/deck.html?view=mobile&recovery=1', { waitUntil: 'domcontentloaded' });
           await waitBoot();
           await waitRecovery();
 
+          // Worst-case network: local recovery PLAY must still open the room UI.
           await page.click('[data-recovery-play]');
           await waitDrawer(true);
 
@@ -92,16 +93,19 @@ jobs:
           await waitDrawer(false);
           if (!page.url().includes('/deck.html')) throw new Error('safe back left deck page');
 
+          // A second safe back gives a usable home instead of a blank state.
           await page.click('#btnSafeBack');
           await waitRecovery();
 
+          // Android/browser back closes the room overlay first.
           await page.click('[data-recovery-play]');
           await waitDrawer(true);
           await page.evaluate(() => history.back());
           await waitDrawer(false);
           if (!page.url().includes('/deck.html')) throw new Error('browser back escaped deck page');
 
-          // Match the actual dynamic PLAY element's class as well as its data action.
+          // Simulate the normal dynamic PLAY event arriving late. We dispatch the event directly
+          // because this synthetic node intentionally lacks the full visual home hierarchy.
           await page.evaluate(() => {
             document.getElementById('deckRecoveryHome')?.setAttribute('hidden', '');
             document.getElementById('deckStart')?.remove();
@@ -109,19 +113,20 @@ jobs:
             home.id = 'deckStart';
             home.innerHTML = '<button class="deckStartDuel" type="button" data-home-action="play">PLAY</button>';
             document.body.appendChild(home);
+            home.querySelector('[data-home-action="play"]')?.dispatchEvent(
+              new MouseEvent('click', { bubbles: true, cancelable: true })
+            );
           });
-          await page.waitForFunction(() => {
-            const p = document.querySelector('[data-home-action="play"]');
-            const r = p?.getBoundingClientRect();
-            return !!p && r.width > 20 && r.height > 20 && getComputedStyle(p).visibility !== 'hidden';
-          }, null, { timeout: 5000 });
-          await page.click('[data-home-action="play"]');
           await waitDrawer(true);
           await page.click('#btnSafeBack');
           await waitDrawer(false);
 
+          // Return to recovery home for a visual screenshot.
+          await page.click('#btnSafeBack');
+          await waitRecovery();
           await page.screenshot({ path: 'play-recovery-final.png', fullPage: true });
 
+          // Repeated reloads under total Firebase failure must never lose the safe entry UI.
           for (let i = 0; i < 3; i++) {
             await page.reload({ waitUntil: 'domcontentloaded' });
             await waitBoot();

@@ -1,0 +1,109 @@
+name: Deck Play Stability V2 Check
+
+on:
+  push:
+    branches:
+      - test/play-stability2-20261003
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_mobile_refine_20261003.js
+          node --check public/deck_mobile_density_20261003.js
+          node --check public/deck_runtime_guard_20261003.js
+
+      - name: Start site
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          sleep 2
+          curl --fail -I http://127.0.0.1:8000/deck.html
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.57.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Check mobile render, PLAY, and safe back
+        run: |
+          cat > check.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({ viewport: { width: 460, height: 900 } });
+
+          async function waitStable() {
+            await page.waitForFunction(() =>
+              document.documentElement.dataset.deckMobileDensity === '20261003_density2' &&
+              document.documentElement.dataset.deckRuntimeGuardBound === '20261003_guard2' &&
+              !!document.getElementById('btnSafeBack'),
+              null,
+              { timeout: 12000 }
+            );
+          }
+
+          async function waitHome() {
+            await page.waitForFunction(() => {
+              const h = document.getElementById('deckStart');
+              const p = h?.querySelector?.('[data-home-action="play"]');
+              if (!h || !p) return false;
+              const ps = getComputedStyle(p);
+              const r = p.getBoundingClientRect();
+              return document.body.classList.contains('mobileHomeFit') &&
+                !h.classList.contains('hide') &&
+                h.getAttribute('aria-hidden') !== 'true' &&
+                ps.display !== 'none' && ps.visibility !== 'hidden' &&
+                Number(ps.opacity || 1) > 0 && r.width > 20 && r.height > 20;
+            }, null, { timeout: 12000 });
+          }
+
+          await page.goto('http://127.0.0.1:8000/deck.html?view=mobile', { waitUntil: 'domcontentloaded' });
+          await waitStable();
+          await waitHome();
+
+          await page.click('[data-home-action="play"]');
+          await page.waitForFunction(() => {
+            const d = document.getElementById('roomDrawer');
+            return !!d && d.classList.contains('open') && d.getAttribute('aria-hidden') === 'false';
+          }, null, { timeout: 7000 });
+
+          await page.click('#btnSafeBack');
+          await page.waitForFunction(() => {
+            const d = document.getElementById('roomDrawer');
+            return !!d && !d.classList.contains('open') && d.getAttribute('aria-hidden') !== 'false';
+          }, null, { timeout: 3000 });
+
+          await page.click('#btnSafeBack');
+          await waitHome();
+          await page.screenshot({ path: 'play-stability2.png', fullPage: true });
+
+          for (let i = 0; i < 3; i++) {
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await waitStable();
+            await waitHome();
+          }
+
+          await browser.close();
+          EOF
+          node check.mjs
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-stability2-check
+          path: play-stability2.png
+          if-no-files-found: ignore
+          retention-days: 1

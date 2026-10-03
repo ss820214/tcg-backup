@@ -96,6 +96,7 @@ jobs:
           // A second safe back gives a usable home instead of a blank state.
           await page.click('#btnSafeBack');
           await waitRecovery();
+          await page.screenshot({ path: 'play-recovery-final.png', fullPage: true });
 
           // Android/browser back closes the room overlay first.
           await page.click('[data-recovery-play]');
@@ -104,8 +105,8 @@ jobs:
           await waitDrawer(false);
           if (!page.url().includes('/deck.html')) throw new Error('browser back escaped deck page');
 
-          // Simulate the normal dynamic PLAY event arriving late. We dispatch the event directly
-          // because this synthetic node intentionally lacks the full visual home hierarchy.
+          // Simulate the normal dynamic PLAY event arriving late. Dispatch directly because the
+          // synthetic node intentionally lacks the complete visual home hierarchy.
           await page.evaluate(() => {
             document.getElementById('deckRecoveryHome')?.setAttribute('hidden', '');
             document.getElementById('deckStart')?.remove();
@@ -121,12 +122,8 @@ jobs:
           await page.click('#btnSafeBack');
           await waitDrawer(false);
 
-          // Return to recovery home for a visual screenshot.
-          await page.click('#btnSafeBack');
-          await waitRecovery();
-          await page.screenshot({ path: 'play-recovery-final.png', fullPage: true });
-
-          // Repeated reloads under total Firebase failure must never lose the safe entry UI.
+          // Each full reload resets the local recovery state. Even with Firebase fully blocked,
+          // the safe entry UI must always return instead of leaving a blank/half-rendered page.
           for (let i = 0; i < 3; i++) {
             await page.reload({ waitUntil: 'domcontentloaded' });
             await waitBoot();

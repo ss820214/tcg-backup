@@ -7,6 +7,7 @@ on:
     paths:
       - 'public/deck*.js'
       - 'public/deck.html'
+      - 'public/index.html'
       - 'public/global_ui_20260821.js'
       - 'firebase.json'
       - '.github/workflows/deck-smoke.yml'
@@ -26,6 +27,7 @@ jobs:
           node --check public/global_ui_20260821.js
           node --check public/deck_mobile_refine_20261003.js
           node --check public/deck_mobile_density_20261003.js
+          node --check public/deck_mobile_compact_v3_20261004.js
           node --check public/deck_runtime_guard_20261003.js
           node --check public/deck_runtime_guard_v3_20261003.js
 
@@ -36,9 +38,14 @@ jobs:
           grep -q 'id="roomDrawerToggle"' public/deck.html
           grep -q 'tcgEmergencyBack' public/deck_runtime_guard_v3_20261003.js
           grep -q 'forceDrawer(true)' public/deck_runtime_guard_v3_20261003.js
+          grep -q 'deck_mobile_compact_v3_20261004.js' public/deck_runtime_guard_20261003.js
+          grep -q 'grid-template-columns:repeat(2,minmax(0,1fr))' public/deck_mobile_compact_v3_20261004.js
+          grep -q '#deckInfoDock > .deckInfoDockHead' public/deck_mobile_compact_v3_20261004.js
+          grep -q '#deckProgressMini .deckProgressMiniHead' public/deck_mobile_compact_v3_20261004.js
 
-      - name: Verify Firebase hosting config
+      - name: Verify root Deck Builder and Firebase hosting config
         run: |
+          grep -q '20261003_root_guard3' public/index.html
           python3 -m json.tool firebase.json >/dev/null
           grep -q 'no-cache' firebase.json
           grep -q 'tcg-0bato' .firebaserc

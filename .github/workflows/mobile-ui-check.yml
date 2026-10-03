@@ -1,0 +1,81 @@
+name: Mobile UI Check
+
+on:
+  push:
+    branches:
+      - feature/mobile-ui-overhaul-release2
+  pull_request:
+    paths:
+      - 'public/game.html'
+      - 'public/game_mobile*.js'
+      - 'public/game_mobile*.css'
+      - '.github/workflows/mobile-ui-check.yml'
+
+jobs:
+  syntax-and-wiring:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JavaScript syntax
+        run: |
+          node --check public/game_mobile.js
+          node --check public/game_mobile_polish.js
+          node --check public/game_mobile_fit.js
+          node --check public/game_mobile_audit.js
+
+      - name: Verify mobile assets are wired
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'game_mobile.css' public/game.html
+          grep -q 'game_mobile_landscape.css' public/game.html
+          grep -q 'game_mobile_polish.css' public/game.html
+          grep -q 'game_mobile.js' public/game.html
+          grep -q 'game_mobile_polish.js' public/game.html
+          grep -q 'game_mobile_fit.js' public/game_mobile_polish.js
+          grep -q 'game_mobile_audit.js' public/game_mobile_fit.js
+
+      - name: Verify critical battle DOM IDs remain unique
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('public/game.html').read_text(encoding='utf-8')
+          ids = re.findall(r'\bid="([^"]+)"', html)
+          critical = [
+              'app','leftPane','centerPane','rightPane','board','hand','actionPicker','detail','log',
+              'modeSummon','modeMove','modeAttack','modeEvolve','modeSupport','endTurn','exBtn',
+              'turn','mana','you','killTextA','killTextB','infilTextA','infilTextB','dice','modeHint'
+          ]
+          dup = {x for x in ids if ids.count(x) > 1}
+          missing = [x for x in critical if ids.count(x) != 1]
+          if dup:
+              raise SystemExit(f'Duplicate IDs: {sorted(dup)}')
+          if missing:
+              raise SystemExit(f'Critical IDs missing/not unique: {missing}')
+          print(f'OK: {len(ids)} IDs, critical battle IDs unique')
+          PY
+
+      - name: Basic CSS balance check
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              'public/game_mobile.css',
+              'public/game_mobile_landscape.css',
+              'public/game_mobile_polish.css',
+          ]
+          for f in files:
+              text = Path(f).read_text(encoding='utf-8')
+              depth = 0
+              for ch in text:
+                  if ch == '{': depth += 1
+                  elif ch == '}': depth -= 1
+                  if depth < 0:
+                      raise SystemExit(f'{f}: closing brace before opening brace')
+              if depth != 0:
+                  raise SystemExit(f'{f}: unbalanced braces, depth={depth}')
+              print(f'{f}: braces OK')
+          PY

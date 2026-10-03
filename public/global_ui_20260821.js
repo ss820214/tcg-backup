@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20260926_device_switch4";
+  const VERSION = "20261004_visual4";
   const STORAGE_KEY = "tcgDeviceModeOverrideV2";
   const MODES = ["auto", "pc", "mobile"];
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -76,8 +76,6 @@
       }
     })();
 
-    // Narrow desktop windows and DevTools should stay PC. Mobile requires mobile UA,
-    // or a coarse pointer on a truly phone-sized screen.
     return (mobileUa && viewportWidth <= 1180) || (coarsePointer && screenWidth <= 900);
   }
 
@@ -242,7 +240,6 @@
 })();
 
 // Deck builder only: load the mobile refinement stack as soon as the DOM is ready.
-// This avoids waiting for every image/resource and removes the intermittent half-rendered state.
 (() => {
   const path = (location.pathname.split("/").pop() || "").toLowerCase();
   const pathLooksLikeDeck = path === "deck.html" || path === "deck";
@@ -251,7 +248,7 @@
 
   const REFINE = "20261003_refine2";
   const DENSITY = "20261003_density2";
-  const GUARD = "20261003_guard3";
+  const GUARD = "20261004_visual4";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;

@@ -38,7 +38,7 @@ jobs:
 
       - name: Check mobile render, PLAY, and safe back
         run: |
-          cat > /tmp/check.mjs <<'EOF'
+          cat > check.mjs <<'EOF'
           import { chromium } from 'playwright';
 
           const browser = await chromium.launch({ headless: true });
@@ -95,7 +95,7 @@ jobs:
 
           await browser.close();
           EOF
-          node /tmp/check.mjs
+          node check.mjs
 
       - name: Upload screenshot
         uses: actions/upload-artifact@v4

@@ -1,0 +1,55 @@
+name: Mobile Density Screenshot Check
+
+on:
+  push:
+    branches:
+      - preview-mobile-density-20261003
+
+permissions:
+  contents: read
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_mobile_refine_20261003.js
+          node --check public/deck_mobile_density_20261003.js
+
+      - name: Start local site
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          sleep 2
+          curl --fail -I http://127.0.0.1:8000/deck.html
+
+      - name: Capture mobile view
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome not found"
+            exit 1
+          fi
+          "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --hide-scrollbars \
+            --window-size=460,1000 \
+            --virtual-time-budget=12000 \
+            --screenshot=mobile-density.png \
+            "http://127.0.0.1:8000/deck.html?view=mobile&density=1"
+          test -s mobile-density.png
+
+      - name: Upload screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-density-screenshot
+          path: mobile-density.png
+          retention-days: 1

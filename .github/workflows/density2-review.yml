@@ -1,0 +1,79 @@
+name: Mobile Density V2 Review
+
+on:
+  push:
+    branches:
+      - preview-mobile-density2-20261003
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_mobile_refine_20261003.js
+          node --check public/deck_mobile_density_20261003.js
+
+      - name: Start local site
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          sleep 2
+          curl --fail -I http://127.0.0.1:8000/deck.html
+
+      - name: Capture 460px mobile view
+        run: |
+          CHROME="$(which google-chrome || which chromium || which chromium-browser || true)"
+          test -n "$CHROME"
+          "$CHROME" --headless=new --no-sandbox --disable-gpu --hide-scrollbars \
+            --window-size=460,1000 --virtual-time-budget=12000 \
+            --screenshot=mobile-density2.png \
+            "http://127.0.0.1:8000/deck.html?view=mobile&density=2"
+          test -s mobile-density2.png
+
+      - name: Install cloudflared
+        run: |
+          curl -L --fail --retry 3 -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Publish and verify
+        run: |
+          nohup cloudflared tunnel --url http://127.0.0.1:8000 --no-autoupdate >/tmp/cloudflared.log 2>&1 &
+          URL=""
+          for i in $(seq 1 30); do
+            URL=$(grep -o 'https://[-a-z0-9]*\.trycloudflare.com' /tmp/cloudflared.log | head -1 || true)
+            [ -n "$URL" ] && break
+            sleep 2
+          done
+          test -n "$URL"
+          for i in $(seq 1 12); do
+            CODE=$(curl -L -sS -o /tmp/page.html -w '%{http_code}' "$URL/deck.html?view=mobile&density=2" || true)
+            if [ "$CODE" = "200" ] && grep -q "Deck Builder" /tmp/page.html; then
+              echo "$URL/deck.html?view=mobile&density=2" > preview-url.txt
+              echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+              exit 0
+            fi
+            sleep 3
+          done
+          cat /tmp/cloudflared.log
+          exit 1
+
+      - name: Upload review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: density2-review
+          path: |
+            mobile-density2.png
+            preview-url.txt
+          retention-days: 1
+
+      - name: Keep preview alive
+        run: sleep 2400

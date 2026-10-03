@@ -84,37 +84,37 @@ jobs:
           await waitBoot();
           await waitRecovery();
 
-          // Even with Firebase unavailable, PLAY must always produce a room UI.
           await page.click('[data-recovery-play]');
           await waitDrawer(true);
 
-          // Safe back closes the drawer and stays on deck page.
           const deckUrl = page.url();
           await page.click('#btnSafeBack');
           await waitDrawer(false);
           if (!page.url().includes('/deck.html')) throw new Error('safe back left deck page');
 
-          // Safe back again brings a usable recovery home instead of a dead/blank screen.
           await page.click('#btnSafeBack');
           await waitRecovery();
 
-          // Reopen via PLAY, then Android/browser back semantics should close overlay safely.
           await page.click('[data-recovery-play]');
           await waitDrawer(true);
           await page.evaluate(() => history.back());
           await waitDrawer(false);
           if (!page.url().includes('/deck.html')) throw new Error('browser back escaped deck page');
 
-          // Simulate a dynamic PLAY appearing late; guard must also make that click non-silent.
+          // Match the actual dynamic PLAY element's class as well as its data action.
           await page.evaluate(() => {
             document.getElementById('deckRecoveryHome')?.setAttribute('hidden', '');
-            const old = document.getElementById('deckStart');
-            old?.remove();
+            document.getElementById('deckStart')?.remove();
             const home = document.createElement('section');
             home.id = 'deckStart';
-            home.innerHTML = '<button type="button" data-home-action="play">PLAY</button>';
+            home.innerHTML = '<button class="deckStartDuel" type="button" data-home-action="play">PLAY</button>';
             document.body.appendChild(home);
           });
+          await page.waitForFunction(() => {
+            const p = document.querySelector('[data-home-action="play"]');
+            const r = p?.getBoundingClientRect();
+            return !!p && r.width > 20 && r.height > 20 && getComputedStyle(p).visibility !== 'hidden';
+          }, null, { timeout: 5000 });
           await page.click('[data-home-action="play"]');
           await waitDrawer(true);
           await page.click('#btnSafeBack');
@@ -122,7 +122,6 @@ jobs:
 
           await page.screenshot({ path: 'play-recovery-final.png', fullPage: true });
 
-          // Reload repeatedly under the same worst-case network condition.
           for (let i = 0; i < 3; i++) {
             await page.reload({ waitUntil: 'domcontentloaded' });
             await waitBoot();

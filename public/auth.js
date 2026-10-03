@@ -1,4 +1,7 @@
 // public/auth.js
+// deck_mobile_hotfix.js is presentation-only and immediately no-ops outside deck builder pages.
+import "./deck_mobile_hotfix.js?v=20261003_1";
+
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,

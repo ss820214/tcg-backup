@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="迅速反応 illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#62d7ff"/>
+      <stop offset=".52" stop-color="#0b1728"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".50" cy=".34" r=".60">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".78"/>
+      <stop offset=".42" stop-color="#62d7ff" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#0b1728" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figure" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".62" stop-color="#62d7ff"/>
+      <stop offset="1" stop-color="#10131a"/>
+    </linearGradient>
+    <radialGradient id="core" cx=".38" cy=".22" r=".7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".32" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#62d7ff"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".45"/>
+    </linearGradient>
+    <filter id="S101_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="356" rx="26" fill="#080b12"/>
+  <rect x="7" y="7" width="242" height="342" rx="22" fill="url(#bg)"/>
+  <rect x="10" y="10" width="236" height="336" rx="19" fill="url(#halo)"/>
+  <path d="M-20 92 C64 44 132 48 276 12" stroke="white" stroke-opacity=".10" stroke-width="42"/>
+  <path d="M-18 286 C72 222 178 282 274 216" stroke="#ffffff" stroke-opacity=".16" stroke-width="38"/>
+  <g transform="rotate(355 128 176)" opacity=".36">
+    <ellipse cx="128" cy="176" rx="83" ry="118" fill="none" stroke="white" stroke-opacity=".15" stroke-width="2"/>
+    <ellipse cx="128" cy="176" rx="54" ry="104" fill="none" stroke="#ffffff" stroke-opacity=".26" stroke-width="4"/>
+  </g>
+  <path d="M20 252 L236 84" stroke="white" stroke-opacity=".12" stroke-width="2"/>
+  <path d="M66 306 L218 72" stroke="#ffffff" stroke-opacity=".18" stroke-width="7" transform="rotate(21 128 178)"/>
+  <g opacity=".82"><path d="M44 98h50M162 238h46" stroke="white" stroke-opacity=".20" stroke-width="7" stroke-linecap="round"/><circle cx="68" cy="216" r="14" fill="url(#core)" opacity=".46"/></g>
+  <g filter="url(#S101_glow)"><path d="M128 67l70 68h-42v91h-56v-91H58Z" fill="url(#figure)" opacity=".9"/><path d="M84 245h88" stroke="url(#core)" stroke-width="13" stroke-linecap="round"/><circle cx="188" cy="96" r="18" fill="url(#paper)" opacity=".54"/></g>
+  <circle cx="220" cy="207" r="1.5" fill="white" opacity="0.15"/><circle cx="204" cy="167" r="2.6" fill="white" opacity="0.41"/><circle cx="27" cy="261" r="1.5" fill="white" opacity="0.28"/><circle cx="204" cy="176" r="2.0" fill="white" opacity="0.26"/><circle cx="77" cy="75" r="2.4" fill="white" opacity="0.46"/><circle cx="144" cy="125" r="2.4" fill="white" opacity="0.18"/><circle cx="130" cy="74" r="2.7" fill="white" opacity="0.45"/><circle cx="89" cy="208" r="1.3" fill="white" opacity="0.28"/><circle cx="211" cy="201" r="2.2" fill="white" opacity="0.36"/>
+  <rect x="18" y="18" width="42" height="42" rx="14" fill="rgba(0,0,0,.38)" stroke="white" stroke-opacity=".22"/>
+  <text x="39" y="46" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="white">2</text>
+  <rect x="190" y="18" width="48" height="30" rx="15" fill="rgba(0,0,0,.34)" stroke="white" stroke-opacity=".22"/>
+  <text x="214" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="white">R</text>
+  <rect x="21" y="264" width="42" height="24" rx="12" fill="rgba(0,0,0,.32)" stroke="white" stroke-opacity=".14"/>
+  <text x="42" y="281" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="900" fill="white" opacity=".66">迅</text>
+  <rect x="18" y="292" width="220" height="44" rx="14" fill="rgba(0,0,0,.44)" stroke="white" stroke-opacity=".16"/>
+  <text x="128" y="319" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="white">迅速反応</text>
+</svg>

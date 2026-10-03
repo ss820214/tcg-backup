@@ -1,0 +1,557 @@
+.statusDoodle {
+  --status-tone: currentColor;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1em;
+  height: 1em;
+  min-width: 1em;
+  border: 0.09em solid currentColor;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.58), transparent 0.22em),
+    radial-gradient(circle at 62% 78%, color-mix(in srgb, currentColor, transparent 78%), transparent 0.34em),
+    rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0.45em color-mix(in srgb, currentColor, transparent 62%),
+    inset 0 0.05em 0.25em rgba(255, 255, 255, 0.16);
+  transform: rotate(-4deg);
+}
+
+.statusDoodle > i,
+.statusDoodle > b,
+.statusDoodle > em,
+.statusDoodle > strong {
+  position: absolute;
+  display: block;
+  box-sizing: border-box;
+  color: inherit;
+  border-color: currentColor;
+  pointer-events: none;
+}
+
+.statusDoodle > em,
+.statusDoodle > strong {
+  font-style: normal;
+  font-weight: 900;
+}
+
+.statusDoodle > span {
+  display: none;
+}
+
+.statusDoodle-bleed > i {
+  width: 0.34em;
+  height: 0.48em;
+  border-radius: 0.5em 0.5em 0.5em 0.08em;
+  background: currentColor;
+  transform: rotate(-42deg);
+}
+
+.statusDoodle-poison > i,
+.statusDoodle-poison > b {
+  width: 0.12em;
+  height: 0.38em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-poison > i { transform: rotate(45deg); left: 0.34em; top: 0.25em; }
+.statusDoodle-poison > b { transform: rotate(-45deg); right: 0.34em; top: 0.25em; }
+.statusDoodle-poison > em {
+  width: 0.38em;
+  height: 0.14em;
+  border-bottom: 0.08em solid currentColor;
+  border-radius: 50%;
+  left: 0.31em;
+  bottom: 0.24em;
+}
+
+.statusDoodle-smell > i,
+.statusDoodle-smell > b,
+.statusDoodle-smell > em {
+  width: 0.56em;
+  height: 0.16em;
+  border-top: 0.08em solid currentColor;
+  border-radius: 50%;
+  left: 0.22em;
+}
+
+.statusDoodle-smell > i { top: 0.25em; transform: rotate(-10deg); }
+.statusDoodle-smell > b { top: 0.43em; transform: rotate(8deg); }
+.statusDoodle-smell > em { top: 0.61em; transform: rotate(-7deg); }
+
+.statusDoodle-blind > i {
+  width: 0.62em;
+  height: 0.36em;
+  border: 0.08em solid currentColor;
+  border-radius: 50%;
+}
+
+.statusDoodle-blind > b {
+  width: 0.16em;
+  height: 0.16em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusDoodle-blind > em {
+  width: 0.78em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(-28deg);
+}
+
+.statusDoodle-fracture > i {
+  width: 0.12em;
+  height: 0.7em;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(43deg);
+}
+
+.statusDoodle-fracture > b,
+.statusDoodle-fracture > em {
+  width: 0.22em;
+  height: 0.12em;
+  border-radius: 999px;
+  border: 0.06em solid currentColor;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.statusDoodle-fracture > b { left: 0.24em; top: 0.23em; transform: rotate(43deg); }
+.statusDoodle-fracture > em { right: 0.22em; bottom: 0.22em; transform: rotate(43deg); }
+
+.statusDoodle-lostSoul > i {
+  width: 0.58em;
+  height: 0.58em;
+  border-radius: 50%;
+  border: 0.07em solid currentColor;
+}
+
+.statusDoodle-lostSoul > b {
+  width: 0.32em;
+  height: 0.58em;
+  border-radius: 0 999px 999px 0;
+  border-left: 0.07em solid currentColor;
+  right: 0.21em;
+}
+
+.statusDoodle-lostSoul > em,
+.statusDoodle-lostSoul > strong {
+  width: 0.08em;
+  height: 0.08em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusDoodle-lostSoul > em { top: 0.31em; left: 0.35em; }
+.statusDoodle-lostSoul > strong { bottom: 0.31em; right: 0.35em; }
+
+.statusDoodle-rage > i,
+.statusDoodle-rage > b {
+  width: 0.2em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+  top: 0.34em;
+}
+
+.statusDoodle-rage > i { left: 0.26em; transform: rotate(28deg); }
+.statusDoodle-rage > b { right: 0.26em; transform: rotate(-28deg); }
+.statusDoodle-rage > em {
+  width: 0.38em;
+  height: 0.18em;
+  border-bottom: 0.08em solid currentColor;
+  border-radius: 50%;
+  bottom: 0.22em;
+}
+
+.statusDoodle-brainwash > i {
+  width: 0.58em;
+  height: 0.58em;
+  border: 0.08em solid currentColor;
+  border-left-color: transparent;
+  border-radius: 50%;
+}
+
+.statusDoodle-brainwash > b {
+  width: 0.3em;
+  height: 0.3em;
+  border: 0.07em solid currentColor;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  transform: rotate(18deg);
+}
+
+.statusDoodle-sludge > i {
+  width: 0.62em;
+  height: 0.34em;
+  left: 0.19em;
+  bottom: 0.2em;
+  border-radius: 0.28em 0.28em 0.18em 0.18em;
+  background: currentColor;
+  opacity: 0.82;
+}
+
+.statusDoodle-sludge > b,
+.statusDoodle-sludge > em {
+  width: 0.08em;
+  height: 0.08em;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  top: 0.5em;
+}
+
+.statusDoodle-sludge > b { left: 0.4em; }
+.statusDoodle-sludge > em { right: 0.34em; }
+
+.statusDoodle-counter > i {
+  width: 0.56em;
+  height: 0.56em;
+  border: 0.08em solid currentColor;
+  border-radius: 50%;
+}
+
+.statusDoodle-counter > b {
+  width: 0.24em;
+  height: 0.24em;
+  border: 0.08em solid currentColor;
+  border-radius: 50%;
+}
+
+.statusDoodle-counter > em {
+  width: 0.46em;
+  height: 0.08em;
+  right: 0.1em;
+  bottom: 0.19em;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(-35deg);
+}
+
+.statusDoodle-evade > i,
+.statusDoodle-evade > b {
+  width: 0.6em;
+  height: 0.22em;
+  border-top: 0.08em solid currentColor;
+  border-radius: 50%;
+}
+
+.statusDoodle-evade > i { top: 0.33em; left: 0.2em; transform: rotate(-14deg); }
+.statusDoodle-evade > b { top: 0.52em; left: 0.23em; transform: rotate(10deg); }
+
+.statusDoodle-evade > em {
+  width: 0;
+  height: 0;
+  border-top: 0.11em solid transparent;
+  border-bottom: 0.11em solid transparent;
+  border-left: 0.18em solid currentColor;
+  right: 0.14em;
+  top: 0.28em;
+}
+
+.statusDoodle-seal > i,
+.statusDoodle-seal > b {
+  width: 0.72em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-seal > i { transform: rotate(45deg); }
+.statusDoodle-seal > b { transform: rotate(-45deg); }
+
+.statusDoodle-armor > i {
+  width: 0.52em;
+  height: 0.62em;
+  border: 0.08em solid currentColor;
+  border-radius: 0.12em 0.12em 0.28em 0.28em;
+  transform: perspective(1em) rotateX(10deg);
+}
+
+.statusDoodle-armor > b {
+  width: 0.3em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-panic > i {
+  width: 0.12em;
+  height: 0.5em;
+  top: 0.2em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-panic > b {
+  width: 0.12em;
+  height: 0.12em;
+  bottom: 0.16em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusDoodle-fatigue > i,
+.statusDoodle-fatigue > b {
+  width: 0.48em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-fatigue > i { top: 0.34em; transform: rotate(-18deg); }
+.statusDoodle-fatigue > b { top: 0.55em; transform: rotate(18deg); }
+
+.statusDoodle-aim > i,
+.statusDoodle-hitUp > i {
+  width: 0.56em;
+  height: 0.56em;
+  border: 0.07em solid currentColor;
+  border-radius: 50%;
+}
+
+.statusDoodle-aim > b,
+.statusDoodle-hitUp > b {
+  width: 0.16em;
+  height: 0.16em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.statusDoodle-jinx > i {
+  width: 0.62em;
+  height: 0.08em;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(-28deg);
+}
+
+.statusDoodle-jinx > b {
+  width: 0.08em;
+  height: 0.54em;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(28deg);
+}
+
+.statusDoodle-powerUp > i,
+.statusDoodle-power > i {
+  width: 0.58em;
+  height: 0.58em;
+  border-radius: 0.12em;
+  border: 0.08em solid currentColor;
+  transform: rotate(45deg);
+}
+
+.statusDoodle-powerUp > b,
+.statusDoodle-power > b {
+  width: 0.09em;
+  height: 0.42em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-powerUp > em,
+.statusDoodle-power > em {
+  width: 0.42em;
+  height: 0.09em;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.statusDoodle-fallback > span {
+  display: inline;
+  font-size: 0.56em;
+  line-height: 1;
+}
+
+/* User-provided hand-drawn status marks.
+   Keep the old CSS doodles above as fallback, but use the scanned marks whenever
+   the matching PNG exists. */
+.statusDoodle {
+  --status-mark-url: none;
+  overflow: hidden;
+}
+
+.statusDoodle::after {
+  content: "";
+  position: absolute;
+  inset: 0.06em;
+  background: currentColor;
+  opacity: 0.96;
+  filter: drop-shadow(0 0 0.08em color-mix(in srgb, currentColor, white 12%));
+  -webkit-mask: var(--status-mark-url) center / contain no-repeat;
+  mask: var(--status-mark-url) center / contain no-repeat;
+  pointer-events: none;
+}
+
+.statusDoodle-bleed,
+.statusDoodle-poison,
+.statusDoodle-smell,
+.statusDoodle-blind,
+.statusDoodle-fracture,
+.statusDoodle-lostSoul,
+.statusDoodle-rage,
+.statusDoodle-brainwash,
+.statusDoodle-sludge,
+.statusDoodle-counter,
+.statusDoodle-evade,
+.statusDoodle-seal,
+.statusDoodle-taiman,
+.statusDoodle-aim,
+.statusDoodle-hitUp,
+.statusDoodle-panic,
+.statusDoodle-fatigue,
+.statusDoodle-jinx,
+.statusDoodle-powerUp,
+.statusDoodle-power,
+.statusDoodle-armor {
+  background:
+    radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.28), transparent 0.24em),
+    radial-gradient(circle at 62% 78%, color-mix(in srgb, currentColor, transparent 76%), transparent 0.38em),
+    rgba(255, 255, 255, 0.075);
+}
+
+.statusDoodle-bleed > i,
+.statusDoodle-bleed > b,
+.statusDoodle-bleed > em,
+.statusDoodle-bleed > strong,
+.statusDoodle-poison > i,
+.statusDoodle-poison > b,
+.statusDoodle-poison > em,
+.statusDoodle-poison > strong,
+.statusDoodle-smell > i,
+.statusDoodle-smell > b,
+.statusDoodle-smell > em,
+.statusDoodle-smell > strong,
+.statusDoodle-blind > i,
+.statusDoodle-blind > b,
+.statusDoodle-blind > em,
+.statusDoodle-blind > strong,
+.statusDoodle-fracture > i,
+.statusDoodle-fracture > b,
+.statusDoodle-fracture > em,
+.statusDoodle-fracture > strong,
+.statusDoodle-lostSoul > i,
+.statusDoodle-lostSoul > b,
+.statusDoodle-lostSoul > em,
+.statusDoodle-lostSoul > strong,
+.statusDoodle-rage > i,
+.statusDoodle-rage > b,
+.statusDoodle-rage > em,
+.statusDoodle-rage > strong,
+.statusDoodle-brainwash > i,
+.statusDoodle-brainwash > b,
+.statusDoodle-brainwash > em,
+.statusDoodle-brainwash > strong,
+.statusDoodle-sludge > i,
+.statusDoodle-sludge > b,
+.statusDoodle-sludge > em,
+.statusDoodle-sludge > strong,
+.statusDoodle-counter > i,
+.statusDoodle-counter > b,
+.statusDoodle-counter > em,
+.statusDoodle-counter > strong,
+.statusDoodle-evade > i,
+.statusDoodle-evade > b,
+.statusDoodle-evade > em,
+.statusDoodle-evade > strong,
+.statusDoodle-seal > i,
+.statusDoodle-seal > b,
+.statusDoodle-seal > em,
+.statusDoodle-seal > strong,
+.statusDoodle-taiman > i,
+.statusDoodle-taiman > b,
+.statusDoodle-taiman > em,
+.statusDoodle-taiman > strong,
+.statusDoodle-aim > i,
+.statusDoodle-aim > b,
+.statusDoodle-aim > em,
+.statusDoodle-aim > strong,
+.statusDoodle-hitUp > i,
+.statusDoodle-hitUp > b,
+.statusDoodle-hitUp > em,
+.statusDoodle-hitUp > strong,
+.statusDoodle-panic > i,
+.statusDoodle-panic > b,
+.statusDoodle-panic > em,
+.statusDoodle-panic > strong,
+.statusDoodle-fatigue > i,
+.statusDoodle-fatigue > b,
+.statusDoodle-fatigue > em,
+.statusDoodle-fatigue > strong,
+.statusDoodle-jinx > i,
+.statusDoodle-jinx > b,
+.statusDoodle-jinx > em,
+.statusDoodle-jinx > strong,
+.statusDoodle-powerUp > i,
+.statusDoodle-powerUp > b,
+.statusDoodle-powerUp > em,
+.statusDoodle-powerUp > strong,
+.statusDoodle-power > i,
+.statusDoodle-power > b,
+.statusDoodle-power > em,
+.statusDoodle-power > strong,
+.statusDoodle-armor > i,
+.statusDoodle-armor > b,
+.statusDoodle-armor > em,
+.statusDoodle-armor > strong {
+  display: none !important;
+}
+
+.statusDoodle-bleed { --status-mark-url: url("./assets/status_marks/bleed.png"); }
+.statusDoodle-poison { --status-mark-url: url("./assets/status_marks/poison.png"); }
+.statusDoodle-smell { --status-mark-url: url("./assets/status_marks/smell.png"); }
+.statusDoodle-blind { --status-mark-url: url("./assets/status_marks/blind.png"); }
+.statusDoodle-fracture { --status-mark-url: url("./assets/status_marks/fracture.png"); }
+.statusDoodle-lostSoul { --status-mark-url: url("./assets/status_marks/lostSoul.png"); }
+.statusDoodle-rage { --status-mark-url: url("./assets/status_marks/rage.png"); }
+.statusDoodle-brainwash { --status-mark-url: url("./assets/status_marks/brainwash.png"); }
+.statusDoodle-sludge { --status-mark-url: url("./assets/status_marks/sludge.png"); }
+.statusDoodle-counter { --status-mark-url: url("./assets/status_marks/counter.png"); }
+.statusDoodle-evade { --status-mark-url: url("./assets/status_marks/evade.png"); }
+.statusDoodle-seal { --status-mark-url: url("./assets/status_marks/seal.png"); }
+.statusDoodle-aim { --status-mark-url: url("./assets/status_marks/aim.png"); }
+.statusDoodle-hitUp { --status-mark-url: url("./assets/status_marks/hitUp.png"); }
+.statusDoodle-panic { --status-mark-url: url("./assets/status_marks/panic.png"); }
+.statusDoodle-fatigue { --status-mark-url: url("./assets/status_marks/fatigue.png"); }
+.statusDoodle-jinx { --status-mark-url: url("./assets/status_marks/jinx.png"); }
+.statusDoodle-powerUp { --status-mark-url: url("./assets/status_marks/powerUp.png"); }
+.statusDoodle-power { --status-mark-url: url("./assets/status_marks/power.png"); }
+.statusDoodle-armor { --status-mark-url: url("./assets/status_marks/armor.png"); }
+
+.statusDoodle-fallback::after {
+  display: none;
+}
+
+/* Direct cropped icons supplied by the player. These must render as the
+   original pencil marks, not as CSS masks or tinted silhouettes. */
+.statusDoodle::after {
+  inset: 0.08em;
+  border-radius: 50%;
+  background-color: transparent;
+  background-image: var(--status-mark-url);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.98;
+  filter:
+    grayscale(0.06)
+    contrast(1.1)
+    brightness(1.04)
+    drop-shadow(0 0 0.07em rgba(255, 255, 255, 0.28));
+  -webkit-mask: none;
+  mask: none;
+}
+
+.statusDoodle-taiman { --status-mark-url: url("./assets/status_marks/taiman.png"); }
+
+.statusDoodle-taiman > i,
+.statusDoodle-taiman > b,
+.statusDoodle-taiman > em,
+.statusDoodle-taiman > strong {
+  display: none !important;
+}

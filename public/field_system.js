@@ -8,14 +8,23 @@
 // - swamp  : moving INTO center row (4th row; y=3 when H=7) has 70% chance to succeed; fail -> stop (stay)
 
 export function normalizeFieldId(id){
-  const s = String(id ?? "").trim().toLowerCase();
-  if (s === "danger" || s === "dangerzone") return "danger";
-  if (s === "swamp") return "swamp";
+  const raw = String(id ?? "").trim();
+  const s = raw.toLowerCase().replace(/[\s_-]/g, "");
+  if (s === "danger" || s === "dangerzone" || raw.includes("危険")) return "danger";
+  if (s === "swamp" || raw.includes("沼")) return "swamp";
+  if (s === "grass" || raw.includes("草")) return "grass";
   return "grass";
 }
 
+const FIELD_NAME_JA = {
+  grass: "草原",
+  danger: "危険地帯",
+  swamp: "沼地",
+};
+
 export function fieldNameJa(fieldId){
   const f = normalizeFieldId(fieldId);
+  return FIELD_NAME_JA[f] || FIELD_NAME_JA.grass;
   if (f === "danger") return "危険地帯";
   if (f === "swamp") return "沼地";
   return "草原";

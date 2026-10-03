@@ -1,0 +1,155 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>0BATo - 繝ｬ繧｢蠎ｦ邂｡逅・/title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.09);
+      --line: rgba(255,255,255,.13);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --r: #8fd0ff;
+      --sr: #d4adff;
+      --ssr: #ffd166;
+      --ok: #78e3ad;
+      --bad: #ff7a90;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 580px at 14% 0%, rgba(143,208,255,.16), transparent 56%),
+        radial-gradient(820px 560px at 88% 0%, rgba(255,209,102,.12), transparent 54%),
+        linear-gradient(180deg, #08090d, var(--bg));
+    }
+    .wrap { width: min(1220px, calc(100vw - 28px)); margin: 0 auto; padding: 18px 0 34px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    h1 { margin: 0; font-size: 22px; }
+    .sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    button, select, input {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 9px 12px;
+      outline: none;
+    }
+    button { cursor: pointer; font-weight: 800; }
+    button:hover { background: rgba(255,255,255,.11); }
+    button.primary { border-color: rgba(120,227,173,.38); background: rgba(120,227,173,.12); }
+    button.danger { border-color: rgba(255,122,144,.42); background: rgba(255,122,144,.12); }
+    input { width: min(420px, 100%); }
+    .bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .stats { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: rgba(0,0,0,.20);
+    }
+    .pill.R { color: var(--r); }
+    .pill.SR { color: var(--sr); }
+    .pill.SSR { color: var(--ssr); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(245px, 1fr)); gap: 10px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel2), var(--panel));
+      padding: 12px;
+      min-width: 0;
+    }
+    .cardHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .name { font-weight: 900; line-height: 1.35; word-break: break-word; }
+    .id { margin-top: 7px; color: var(--muted); font-size: 12px; word-break: break-all; }
+    .meta { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .raritySelect { min-width: 76px; font-weight: 900; }
+    .raritySelect.R { border-color: rgba(143,208,255,.45); color: var(--r); }
+    .raritySelect.SR { border-color: rgba(212,173,255,.45); color: var(--sr); }
+    .raritySelect.SSR { border-color: rgba(255,209,102,.50); color: var(--ssr); }
+    .toast { min-height: 22px; margin: 8px 0 12px; color: var(--muted); font-size: 13px; }
+    .toast.ok { color: var(--ok); }
+    .toast.bad { color: var(--bad); }
+    .lock {
+      display: none;
+      border: 1px solid rgba(255,122,144,.36);
+      border-radius: 8px;
+      background: rgba(255,122,144,.08);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .empty { color: var(--muted); padding: 18px 0; }
+    @media (max-width: 760px) {
+      header, .bar { grid-template-columns: 1fr; display: grid; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>繝ｬ繧｢蠎ｦ邂｡逅・/h1>
+        <div class="sub">cards 繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ縺ｮ rarity 繧・R / SR / SSR 縺ｫ蜑ｲ繧頑険繧・/div>
+      </div>
+      <div class="actions">
+        <button id="btnDeck" type="button">繝・ャ繧ｭ</button>
+        <button id="btnGacha" type="button">繧ｬ繝√Ε遒ｺ隱・/button>
+        <button id="btnReload" type="button">譖ｴ譁ｰ</button>
+      </div>
+    </header>
+
+    <div id="lock" class="lock">
+      邂｡逅・・Δ繝ｼ繝峨′隗｣髯､縺輔ｌ縺ｦ縺・∪縺帙ｓ縲ゅョ繝・く逕ｻ髱｢縺ｮ縲瑚ｨｭ螳壹阪°繧臥ｮ｡逅・・Δ繝ｼ繝峨ｒ隗｣髯､縺励※縺九ｉ菴ｿ縺｣縺ｦ縺上□縺輔＞縲・    </div>
+
+    <section class="bar">
+      <div class="filters">
+        <input id="search" type="search" placeholder="繧ｫ繝ｼ繝牙錐 / ID / 螻樊ｧ縺ｧ讀懃ｴ｢">
+        <select id="filterRarity" aria-label="繝ｬ繧｢蠎ｦ繝輔ぅ繝ｫ繧ｿ繝ｼ">
+          <option value="">蜈ｨ繝ｬ繧｢蠎ｦ</option>
+          <option value="UNSET">譛ｪ險ｭ螳・/option>
+          <option value="R">R</option>
+          <option value="SR">SR</option>
+          <option value="SSR">SSR</option>
+        </select>
+        <select id="bulkRarity" aria-label="荳諡ｬ繝ｬ繧｢蠎ｦ">
+          <option value="R">R 縺ｫ縺吶ｋ</option>
+          <option value="SR">SR 縺ｫ縺吶ｋ</option>
+          <option value="SSR">SSR 縺ｫ縺吶ｋ</option>
+        </select>
+        <button id="btnBulk" type="button" class="primary">讀懃ｴ｢邨先棡繧剃ｸ諡ｬ蜿肴丐</button>
+      </div>
+      <div id="stats" class="stats"></div>
+    </section>
+
+    <div id="toast" class="toast"></div>
+    <main id="list" class="grid"></main>
+  </div>
+
+  <script type="module" src="./rarity_admin.js?v=20260627_rarity1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>
+

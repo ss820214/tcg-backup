@@ -1,5 +1,5 @@
 // public/action_text.js
-// v20260226_action_text
+// v20260728_priority123
 // 目的：技(action)の効果テキストを統一（deck/battle共通）
 // - hpDelta/spDelta の符号で「ダメージ/回復」を出し分け
 // - tags / addStatus（CSV）を拾って「命中UP/装甲…」を表示
@@ -20,21 +20,35 @@ function fmtTurns(t) {
   const x = Math.max(1, nInt(t, 1));
   return `${x}T`;
 }
+function fmtVitalDelta(kind, delta) {
+  const n = nInt(delta, 0);
+  if (!n) return "";
+  const upper = String(kind).toUpperCase();
+  const icon =
+    upper === "SP"
+      ? n > 0
+        ? "🩵"
+        : "💙"
+      : n > 0
+        ? "💚"
+        : "❤️";
+  return `${icon}${n > 0 ? "+" : ""}${n}`;
+}
 
 // ===== アイコン + 表示名（CSVに合わせる） =====
 const STATUS_META = {
-  hitUp: { icon: "🎯", label: "命中UP" },
-  aim: { icon: "🎯", label: "命中UP" }, // 互換
+  hitUp: { icon: "🎯", label: "命中増加" },
+  aim: { icon: "🎯", label: "命中増加" }, // 互換
   jinx: { icon: "🌀", label: "命中DOWN" },
   armor: { icon: "🛡️", label: "装甲" },
-  powerUp: { icon: "💥", label: "威力UP" },
+  powerUp: { icon: "💥", label: "攻撃増加" },
   evade: { icon: "💨", label: "回避" },
   recoverMove: { icon: "👟", label: "移動回復" },
   recoverFatigue: { icon: "😌", label: "疲労回復" },
   fracture: { icon: "🦴", label: "骨折" },
   bleed: { icon: "🩸", label: "出血" },
-  blind: { icon: "🙈", label: "目隠し" },
-  smell: { icon: "🦨", label: "悪臭" },
+  blind: { icon: "🙈", label: "盲目" },
+  smell: { icon: "🦨", label: "におい" },
   lostSoul: { icon: "👻", label: "失魂" },
   pierce: { icon: "📌", label: "貫通" },
   aoe: { icon: "💢", label: "範囲" },
@@ -44,6 +58,16 @@ const STATUS_META = {
   seal: { icon: "🔒", label: "封印" },
   // public/action_text.js の STATUS_META に追加
   draw: { icon: "🃏", label: "ドロー" },
+  rage: { icon: "💢", label: "激怒" },
+  激怒: { icon: "💢", label: "激怒" },
+  brainwash: { icon: "🧠", label: "洗脳" },
+  洗脳: { icon: "🧠", label: "洗脳" },
+  sludge: { icon: "🟣", label: "ヘドロ" },
+  ヘドロ: { icon: "🟣", label: "ヘドロ" },
+  counter: { icon: "↩", label: "カウンター" },
+  カウンター: { icon: "↩", label: "カウンター" },
+  taiman: { icon: "◎", label: "タイマン" },
+  タイマン: { icon: "◎", label: "タイマン" },
 };
 
 function fmtStatusKey(k) {
@@ -260,11 +284,11 @@ export function actionEffectTextJa(eff) {
       const spHeal = Math.max(0, sp);
 
       const dmgHeal = [];
-      if (hpDmg) dmgHeal.push(`HPダメージ:${hpDmg}`);
-      if (spDmg) dmgHeal.push(`SPダメージ:${spDmg}`);
-      if (hpHeal) dmgHeal.push(`HP回復:${hpHeal}`);
-      if (spHeal) dmgHeal.push(`SP回復:${spHeal}`);
-      if (dmgHeal.length) parts.push(`ダメージ/回復:${dmgHeal.join(" ")}`);
+      if (hpDmg) dmgHeal.push(fmtVitalDelta("HP", -hpDmg));
+      if (spDmg) dmgHeal.push(fmtVitalDelta("SP", -spDmg));
+      if (hpHeal) dmgHeal.push(fmtVitalDelta("HP", hpHeal));
+      if (spHeal) dmgHeal.push(fmtVitalDelta("SP", spHeal));
+      if (dmgHeal.length) parts.push(dmgHeal.join(" "));
 
       // 特殊（状態/タグ/bonus/draw etc）
       const spc = actionSpecialTextJa(eff);
@@ -275,8 +299,8 @@ export function actionEffectTextJa(eff) {
     }
 
     // それ以外の「効果オブジェクト」用の既存表示
-    if (eff.healHp != null) return `💚HP回復${eff.healHp}`;
-    if (eff.healSP != null) return `💙SP回復${eff.healSP}`;
+    if (eff.healHp != null) return fmtVitalDelta("HP", eff.healHp);
+    if (eff.healSP != null) return fmtVitalDelta("SP", eff.healSP);
     if (eff.damage != null) return `💥ダメージ${eff.damage}`;
     if (eff.draw != null) return `🃏ドロー${eff.draw}`;
     if (eff.mana != null) return `🔷マナ${eff.mana >= 0 ? "+" : ""}${eff.mana}`;
@@ -340,6 +364,45 @@ export function rangeToArrowJa(range) {
     .join(" + ");
 }
 
+function rangeTokenToReadable(tok) {
+  const t = String(tok || "").trim();
+  if (!t) return "";
+  if (t === "self") return "自分";
+  if (t === "all") return "全体";
+  if (t === "enemyAll") return "敵全体";
+  if (t === "allyAll") return "味方全体";
+
+  const t2 = t.replace(/^f(\d+)$/i, "front$1");
+  let m;
+
+  if ((m = t2.match(/^front(\d+)$/i))) return `前方${m[1]}`;
+  if ((m = t2.match(/^back(\d+)$/i))) return `後方${m[1]}`;
+  if ((m = t2.match(/^rf(\d+)$/i))) return `右前${m[1]}`;
+  if ((m = t2.match(/^lf(\d+)$/i))) return `左前${m[1]}`;
+  if ((m = t2.match(/^side(\d+)$/i))) return `横${m[1]}`;
+  if ((m = t2.match(/^adj(\d+)$/i))) return `周囲${m[1]}`;
+  if ((m = t2.match(/^right(\d+)$/i))) return `右${m[1]}`;
+  if ((m = t2.match(/^left(\d+)$/i))) return `左${m[1]}`;
+  if ((m = t2.match(/^up(\d+)$/i))) return `上${m[1]}`;
+  if ((m = t2.match(/^down(\d+)$/i))) return `下${m[1]}`;
+
+  return t;
+}
+
+export function rangeToReadableJa(range) {
+  const s = String(range || "").trim();
+  if (!s) return "";
+  const readable = s
+    .split("+")
+    .map((x) => rangeTokenToReadable(x))
+    .filter(Boolean)
+    .join(" + ");
+  const arrows = rangeToArrowJa(s);
+  if (!readable) return arrows || s;
+  if (arrows && arrows !== readable && arrows !== s) return `${readable} / ${arrows}`;
+  return readable;
+}
+
 // ===== 「技(action)」から “効果” を作る（JSON出さない） =====
 function actionExtraEffectJa(action) {
   const a = isObj(action) ? action : {};
@@ -379,7 +442,7 @@ export function actionDetailPartsJa(action) {
   const cost = nInt(a.cost, 0);
   const name = String(a.name || "");
   const rate = nInt(a.rate, 0);
-  const range = rangeToArrowJa(a.range || "");
+  const range = rangeToReadableJa(a.range || "");
 
   const hpDelta = nInt(a.hpDelta, 0);
   const spDelta = nInt(a.spDelta, 0);
@@ -410,6 +473,35 @@ export function actionSpecialTextJa(action) {
     if (n) out.push(`🃏ドロー+${n}`);
   }
 
+  const directAttrChange =
+    a.changeAttr ?? a.setAttr ?? a.attrChange ?? a.attributeChange ?? null;
+  if (directAttrChange != null) {
+    const attr =
+      typeof directAttrChange === "object"
+        ? String(directAttrChange.attr ?? directAttrChange.to ?? directAttrChange.value ?? "").trim()
+        : String(directAttrChange).trim();
+    if (attr) out.push(`属性変更:${attr}`);
+  }
+
+  const effs = Array.isArray(a.effects)
+    ? a.effects
+    : Array.isArray(a.effect)
+      ? a.effect
+      : [];
+  for (const eff of effs) {
+    if (!eff || typeof eff !== "object") continue;
+    const type = String(eff.type ?? "").toLowerCase();
+    if (
+      type === "changeattr" ||
+      type === "setattr" ||
+      type === "attrchange" ||
+      type === "attributechange"
+    ) {
+      const attr = String(eff.attr ?? eff.to ?? eff.value ?? eff.targetAttr ?? "").trim();
+      if (attr) out.push(`属性変更:${attr}`);
+    }
+  }
+
   for (const e of list) {
     const meta = fmtStatusKey(e.key);
     if (!meta) continue;
@@ -432,5 +524,7 @@ window.actionDetailPartsJa = actionDetailPartsJa;
 console.log("[action_text] exported actionDetailPartsJa");
 
 window.actionEffectTextJa = actionEffectTextJa;
+window.rangeToArrowJa = rangeToArrowJa;
+window.rangeToReadableJa = rangeToReadableJa;
 console.log("[action_text] loaded v20260226");
 console.log("action_text exports loaded");

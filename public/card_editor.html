@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>カード工房（キャラカード編集）</title>
+  <title>繧ｫ繝ｼ繝牙ｷ･謌ｿ・医く繝｣繝ｩ繧ｫ繝ｼ繝臥ｷｨ髮・ｼ・/title>
   <style>
     :root{ --bg:#0b0f14; --panel:#111826; --panel2:#0f1622; --text:#e8eef7; --muted:#93a4b8; --accent:#6ee7ff; --danger:#ff6b6b; }
     body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; background:var(--bg); color:var(--text); }
@@ -90,68 +90,70 @@
     .imgPreview img{ width:100%; height:100%; object-fit:cover; display:block; }
     .tiny{ font-size:11px; color:var(--muted); }
   </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
 <body>
   <header>
-    <div class="title">カード工房（キャラカード）</div>
-    <div class="pill" id="connState">Firestore: 未接続</div>
-    <button class="btn ghost" id="btnReload">再読み込み</button>
+    <div class="title">繧ｫ繝ｼ繝牙ｷ･謌ｿ・医く繝｣繝ｩ繧ｫ繝ｼ繝会ｼ・/div>
+    <div class="pill" id="connState">Firestore: 譛ｪ謗･邯・/div>
+    <button class="btn ghost" id="btnReload">蜀崎ｪｭ縺ｿ霎ｼ縺ｿ</button>
   </header>
 
   <div class="wrap">
 
-    <!-- 左：カード一覧 -->
+    <!-- 蟾ｦ・壹き繝ｼ繝我ｸ隕ｧ -->
     <section class="card">
-      <h2>カード一覧</h2>
+      <h2>繧ｫ繝ｼ繝我ｸ隕ｧ</h2>
       <div class="body">
         <div class="row">
-          <input id="search" placeholder="検索（名前 / id / 属性）" />
+          <input id="search" placeholder="讀懃ｴ｢・亥錐蜑・/ id / 螻樊ｧ・・ />
         </div>
         <div class="row">
-          <button class="btn" id="btnNew">＋ 新規</button>
-          <button class="btn ghost" id="btnClone">複製</button>
-          <button class="btn danger" id="btnDelete">削除</button>
+          <button class="btn" id="btnNew">・・譁ｰ隕・/button>
+          <button class="btn ghost" id="btnClone">隍・｣ｽ</button>
+          <button class="btn danger" id="btnDelete">蜑企勁</button>
         </div>
         <div class="row">
-          <div class="tiny">保存先: <b>cards</b> コレクション（docId=カードID）</div>
+          <div class="tiny">菫晏ｭ伜・: <b>cards</b> 繧ｳ繝ｬ繧ｯ繧ｷ繝ｧ繝ｳ・・ocId=繧ｫ繝ｼ繝迂D・・/div>
         </div>
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:12px 0;">
         <div class="list" id="list"></div>
       </div>
     </section>
 
-    <!-- 中：編集 -->
+    <!-- 荳ｭ・夂ｷｨ髮・-->
     <section class="card">
-      <h2>編集</h2>
+      <h2>邱ｨ髮・/h2>
       <div class="body">
         <div class="split">
           <div>
-            <label>カードID（docId）</label>
-            <input id="cardId" placeholder="例: siwasiwakintama" />
-            <div class="tiny">※ 空のまま保存すると自動生成（ただしゲーム側がdocId参照なら手入力推奨）</div>
+            <label>繧ｫ繝ｼ繝迂D・・ocId・・/label>
+            <input id="cardId" placeholder="萓・ siwasiwakintama" />
+            <div class="tiny">窶ｻ 遨ｺ縺ｮ縺ｾ縺ｾ菫晏ｭ倥☆繧九→閾ｪ蜍慕函謌撰ｼ医◆縺縺励ご繝ｼ繝蛛ｴ縺慧ocId蜿ら・縺ｪ繧画焔蜈･蜉帶耳螂ｨ・・/div>
           </div>
           <div>
-            <label>表示名</label>
-            <input id="name" placeholder="シワシワキン玉" />
+            <label>陦ｨ遉ｺ蜷・/label>
+            <input id="name" placeholder="繧ｷ繝ｯ繧ｷ繝ｯ繧ｭ繝ｳ邇・ />
           </div>
         </div>
 
         <div class="split" style="margin-top:10px;">
           <div>
-            <label>属性</label>
+            <label>螻樊ｧ</label>
             <select id="attr">
-              <option value="雷">雷</option>
-              <option value="炎">炎</option>
-              <option value="水">水</option>
-              <option value="風">風</option>
-              <option value="土">土</option>
-              <option value="光">光</option>
-              <option value="闇">闇</option>
-              <option value="無">無</option>
+              <option value="轣ｫ">轣ｫ</option>
+              <option value="豌ｴ">豌ｴ</option>
+              <option value="髮ｷ">髮ｷ</option>
+              <option value="闕・>闕・/option>
+              <option value="鬚ｨ">鬚ｨ</option>
+              <option value="驪ｼ">驪ｼ</option>
+              <option value="蜈・>蜈・/option>
+              <option value="髣・>髣・/option>
+              <option value="蟷ｻ">蟷ｻ</option>
             </select>
           </div>
           <div>
-            <label>コスト</label>
+            <label>繧ｳ繧ｹ繝・/label>
             <input id="cost" type="number" step="1" />
           </div>
         </div>
@@ -169,12 +171,12 @@
 
         <div class="split" style="margin-top:10px;">
           <div>
-            <label>画像URL（任意）</label>
+            <label>逕ｻ蜒酋RL・井ｻｻ諢擾ｼ・/label>
             <input id="imageUrl" placeholder="https://..." />
           </div>
           <div>
-            <label>説明（任意）</label>
-            <input id="desc" placeholder="フレーバー/説明" />
+            <label>隱ｬ譏趣ｼ井ｻｻ諢擾ｼ・/label>
+            <input id="desc" placeholder="繝輔Ξ繝ｼ繝舌・/隱ｬ譏・ />
           </div>
         </div>
 
@@ -182,11 +184,11 @@
 
         <div class="row" style="justify-content:space-between;">
           <div>
-            <div style="font-weight:700;">技（actions）</div>
-            <div class="muted">hpDelta/spDelta は「-がダメージ / +が回復」</div>
+            <div style="font-weight:700;">謚・・ctions・・/div>
+            <div class="muted">hpDelta/spDelta 縺ｯ縲・縺後ム繝｡繝ｼ繧ｸ / +縺悟屓蠕ｩ縲・/div>
           </div>
           <div class="row">
-            <button class="btn" id="btnAddAction">＋ 技を追加</button>
+            <button class="btn" id="btnAddAction">・・謚繧定ｿｽ蜉</button>
           </div>
         </div>
 
@@ -195,34 +197,34 @@
         <hr style="border:0;border-top:1px solid rgba(255,255,255,.08); margin:14px 0;">
 
         <div class="row">
-          <button class="btn" id="btnSave">保存（Firestore）</button>
-          <button class="btn ghost" id="btnExport">JSON書き出し</button>
-          <button class="btn ghost" id="btnImport">JSON読み込み</button>
+          <button class="btn" id="btnSave">菫晏ｭ假ｼ・irestore・・/button>
+          <button class="btn ghost" id="btnExport">JSON譖ｸ縺榊・縺・/button>
+          <button class="btn ghost" id="btnImport">JSON隱ｭ縺ｿ霎ｼ縺ｿ</button>
         </div>
 
         <div class="row">
-          <textarea id="jsonBox" placeholder="ここにJSONを貼って Import / Export できます"></textarea>
+          <textarea id="jsonBox" placeholder="縺薙％縺ｫJSON繧定ｲｼ縺｣縺ｦ Import / Export 縺ｧ縺阪∪縺・></textarea>
         </div>
 
         <div class="row">
-          <div class="tiny" id="saveState">未保存</div>
+          <div class="tiny" id="saveState">譛ｪ菫晏ｭ・/div>
         </div>
       </div>
     </section>
 
-    <!-- 右：プレビュー -->
+    <!-- 蜿ｳ・壹・繝ｬ繝薙Η繝ｼ -->
     <section class="card">
-      <h2>プレビュー</h2>
+      <h2>繝励Ξ繝薙Η繝ｼ</h2>
       <div class="body">
-        <div class="imgPreview" id="imgPreview"><div class="muted">画像なし</div></div>
-        <div style="margin-top:10px; font-weight:800; font-size:18px;" id="pvName">—</div>
-        <div class="muted" id="pvMeta">—</div>
+        <div class="imgPreview" id="imgPreview"><div class="muted">逕ｻ蜒上↑縺・/div></div>
+        <div style="margin-top:10px; font-weight:800; font-size:18px;" id="pvName">窶・/div>
+        <div class="muted" id="pvMeta">窶・/div>
         <div style="margin-top:10px;">
-          <div style="font-weight:700; margin-bottom:6px;">技</div>
-          <pre id="pvActions">—</pre>
+          <div style="font-weight:700; margin-bottom:6px;">謚</div>
+          <pre id="pvActions">窶・/pre>
         </div>
         <div style="margin-top:10px;">
-          <div style="font-weight:700; margin-bottom:6px;">このカードのJSON</div>
+          <div style="font-weight:700; margin-bottom:6px;">縺薙・繧ｫ繝ｼ繝峨・JSON</div>
           <pre id="pvJson">{}</pre>
         </div>
       </div>
@@ -230,6 +232,11 @@
 
   </div>
 
-  <script type="module" src="./card_editor.js?v=20260227"></script>
+  <script type="module" src="./card_editor.js?v=20260722_vital_icons1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
 </body>
 </html>
+

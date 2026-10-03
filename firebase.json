@@ -4,7 +4,18 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "old/**",
+      "**/old/**",
+      "**/_*",
+      "_codex_backup_*/**",
+      "public/_codex_backup_*/**",
+      "過去ver置き場/**",
+      "public/過去ver置き場/**",
+      "**/*.bak_*",
+      "**/*.mojibake_bak_*",
+      "**/_remote_*",
+      "**/_check_*"
     ],
     "rewrites": [
       {

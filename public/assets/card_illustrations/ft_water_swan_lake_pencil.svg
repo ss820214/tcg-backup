@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="swan lake knight pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#1f1f1f" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".14" stroke-width="1">
+      <path d="M20 252c43-20 82 15 125-5 36-16 63 10 91-3M24 281c44-13 81 11 123-6 36-14 62 8 88-2"/>
+      <path d="M45 41l166 269M214 45L42 314"/>
+    </g>
+    <g stroke-width="3.6">
+      <circle cx="129" cy="76" r="22"/>
+      <path d="M92 126c21-31 51-35 75 0"/>
+      <path d="M92 126c-18 46-8 91 36 127 45-35 56-81 39-127"/>
+      <path d="M83 168c-27-32-19-67 20-82"/>
+      <path d="M173 164c26-32 18-64-20-80"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M88 185c31 17 53 18 82 0"/>
+      <path d="M128 126v126"/>
+      <path d="M72 116c-24 4-39 20-42 45 25-11 46-10 64 3"/>
+      <path d="M184 114c24 4 40 19 43 44-26-10-46-9-65 5"/>
+      <path d="M100 270c-13 12-22 29-28 52M156 270c13 12 23 29 29 52"/>
+      <path d="M103 60c14-12 32-14 48-3"/>
+    </g>
+    <g opacity=".35" stroke-width="1.2">
+      <path d="M101 133c18 8 37 8 55 0M92 203c24 12 48 12 72 0"/>
+      <path d="M53 144c17-4 36 0 56 12M203 142c-19-4-39 0-58 14"/>
+    </g>
+  </g>
+</svg>

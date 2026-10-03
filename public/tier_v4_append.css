@@ -1,0 +1,68 @@
+/* v20260508_4 追記: 閲覧/編集モード、草属性、ティア内並び替え */
+.mode-toggle-wrap {
+  display: grid;
+  gap: 6px;
+}
+
+.mode-toggle-btn {
+  border: 1px solid rgba(77, 232, 255, 0.35);
+  border-radius: 999px;
+  padding: 13px 18px;
+  color: #071018;
+  background: linear-gradient(90deg, #ff55da, #4de8ff);
+  font-weight: 1000;
+  box-shadow: 0 14px 34px rgba(77, 232, 255, 0.16);
+  cursor: pointer;
+}
+
+.mode-toggle-btn[aria-pressed="false"] {
+  color: #f8f8ff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mode-hint {
+  margin: 0;
+  color: rgba(255,255,255,0.62);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.is-view-mode .delete-mini,
+.is-view-mode #addDeckBtn,
+.is-view-mode #resetBtn,
+.is-view-mode #saveDeckBtn,
+.is-view-mode #deleteDeckBtn,
+.is-view-mode #deleteImageBtn {
+  opacity: 0.38;
+  pointer-events: none;
+}
+
+.is-view-mode .deck-chip {
+  cursor: pointer;
+}
+
+.is-edit-mode .deck-chip {
+  cursor: grab;
+}
+
+.is-edit-mode .deck-chip:active {
+  cursor: grabbing;
+}
+
+.is-view-mode .attr-range,
+.is-view-mode #deckNameInput,
+.is-view-mode #deckMemoInput,
+.is-view-mode #imageDropArea {
+  opacity: 0.78;
+}
+
+.is-view-mode #imageDropArea {
+  cursor: default;
+}
+
+.is-edit-mode .tier-dropzone.drag-over,
+.is-edit-mode .deck-pool.drag-over {
+  outline: 2px dashed rgba(255, 230, 109, 0.72);
+  outline-offset: -6px;
+}

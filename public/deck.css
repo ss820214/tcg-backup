@@ -23,6 +23,95 @@
   --glow: 0 0 0 1px rgba(255,215,0,.18), 0 0 22px rgba(255,215,0,.10);
 }
 
+/* 20260823: keep support rows gray-toned, but restore each card's attribute color. */
+#cardList .cardRow,
+#deckList .cardRow {
+  --row-attr: #7dd3fc;
+  position: relative;
+  isolation: isolate;
+  border-color: color-mix(in srgb, var(--row-attr) 24%, rgba(255,255,255,.10)) !important;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--row-attr) 8%, transparent), rgba(255,255,255,.018)),
+    rgba(0,0,0,.22) !important;
+}
+
+#cardList .cardRow::before,
+#deckList .cardRow::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 5px;
+  border-radius: 0 999px 999px 0;
+  background: var(--row-attr);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--row-attr) 70%, transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#cardList .cardRow > *,
+#deckList .cardRow > * {
+  position: relative;
+  z-index: 1;
+}
+
+#cardList .cardRow[data-type="火"],
+#deckList .cardRow[data-type="火"] { --row-attr: #ff5a58; }
+#cardList .cardRow[data-type="水"],
+#deckList .cardRow[data-type="水"] { --row-attr: #45a9ff; }
+#cardList .cardRow[data-type="雷"],
+#deckList .cardRow[data-type="雷"] { --row-attr: #ffe05c; }
+#cardList .cardRow[data-type="草"],
+#deckList .cardRow[data-type="草"] { --row-attr: #60d978; }
+#cardList .cardRow[data-type="風"],
+#deckList .cardRow[data-type="風"] { --row-attr: #7ee7d2; }
+#cardList .cardRow[data-type="鋼"],
+#deckList .cardRow[data-type="鋼"] { --row-attr: #b9c3d6; }
+#cardList .cardRow[data-type="光"],
+#deckList .cardRow[data-type="光"] { --row-attr: #fff1a8; }
+#cardList .cardRow[data-type="闇"],
+#deckList .cardRow[data-type="闇"] { --row-attr: #b066ff; }
+#cardList .cardRow[data-type="幻"],
+#deckList .cardRow[data-type="幻"] { --row-attr: #ff92d6; }
+
+#cardList .cardRow[data-kind="support"],
+#deckList .cardRow[data-kind="support"],
+#cardList .cardRow[data-kind="ex_support"],
+#deckList .cardRow[data-kind="ex_support"] {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--row-attr) 7%, transparent), rgba(255,255,255,.012)),
+    linear-gradient(90deg, rgba(174,180,188,.16), rgba(174,180,188,.04) 58%, transparent),
+    rgba(0,0,0,.24) !important;
+}
+
+.attrBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 23px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--row-attr) 54%, rgba(255,255,255,.18));
+  background: color-mix(in srgb, var(--row-attr) 16%, rgba(0,0,0,.24));
+  color: color-mix(in srgb, var(--row-attr) 68%, white);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 13px color-mix(in srgb, var(--row-attr) 20%, transparent);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .attrBadge {
+    min-width: 26px;
+    height: 21px;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+}
+
 html, body { height:100%; }
 body{
   margin:0;
@@ -520,4 +609,388 @@ summary::-webkit-details-marker{ display:none; }
   max-height: calc(min(60vh, 520px) - 56px);
   font-size: 13px;
   line-height: 1.55;
+}
+
+/* 0310追加分 */
+
+/* ===== Card Filters ===== */
+.filterBar {
+  position: sticky;
+  top: 58px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 12px 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterTab,
+.filterChip {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.08s ease,
+    background 0.1s ease,
+    border-color 0.1s ease,
+    box-shadow 0.12s ease;
+}
+
+.filterTab:hover,
+.filterChip:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.filterTab:active,
+.filterChip:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.filterTab.active,
+.filterChip.active {
+  color: #fff;
+  border-color: rgba(105, 180, 255, 0.55);
+  background: rgba(105, 180, 255, 0.16);
+  box-shadow: 0 0 0 3px rgba(105, 180, 255, 0.1);
+}
+
+.filterChip[data-attr="火"].active { border-color: rgba(255, 90, 90, 0.9); background: rgba(255, 90, 90, 0.16); box-shadow: 0 0 0 3px rgba(255, 90, 90, 0.08); }
+.filterChip[data-attr="水"].active { border-color: rgba(90, 170, 255, 0.9); background: rgba(90, 170, 255, 0.16); box-shadow: 0 0 0 3px rgba(90, 170, 255, 0.08); }
+.filterChip[data-attr="雷"].active { border-color: rgba(255, 220, 70, 0.95); background: rgba(255, 220, 70, 0.16); box-shadow: 0 0 0 3px rgba(255, 220, 70, 0.08); color: #fff; }
+.filterChip[data-attr="草"].active { border-color: rgba(110, 255, 160, 0.95); background: rgba(110, 255, 160, 0.16); box-shadow: 0 0 0 3px rgba(110, 255, 160, 0.08); }
+.filterChip[data-attr="風"].active { border-color: rgba(150, 255, 235, 0.95); background: rgba(150, 255, 235, 0.16); box-shadow: 0 0 0 3px rgba(150, 255, 235, 0.08); }
+.filterChip[data-attr="土"].active { border-color: rgba(255, 170, 90, 0.95); background: rgba(255, 170, 90, 0.16); box-shadow: 0 0 0 3px rgba(255, 170, 90, 0.08); }
+.filterChip[data-attr="鋼"].active { border-color: rgba(200, 220, 255, 0.95); background: rgba(200, 220, 255, 0.16); box-shadow: 0 0 0 3px rgba(200, 220, 255, 0.08); }
+.filterChip[data-attr="光"].active { border-color: rgba(255, 245, 190, 0.95); background: rgba(255, 245, 190, 0.16); box-shadow: 0 0 0 3px rgba(255, 245, 190, 0.08); color: #fff; }
+.filterChip[data-attr="闇"].active { border-color: rgba(180, 120, 255, 0.95); background: rgba(180, 120, 255, 0.16); box-shadow: 0 0 0 3px rgba(180, 120, 255, 0.08); }
+.filterChip[data-attr="夢"].active { border-color: rgba(255, 140, 220, 0.95); background: rgba(255, 140, 220, 0.16); box-shadow: 0 0 0 3px rgba(255, 140, 220, 0.08); }
+.filterChip[data-attr="幻"].active { border-color: rgba(120, 255, 255, 0.95); background: rgba(120, 255, 255, 0.16); box-shadow: 0 0 0 3px rgba(120, 255, 255, 0.08); }
+
+.cardRow.isFilteredOut {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .filterBar {
+    top: 54px;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .filterTab,
+  .filterChip {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+}
+
+.cardRow {
+  align-items: center;
+}
+
+.cardRowMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.cardRowText {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.cardRowArt {
+  position: relative;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 74px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 10px 24px rgba(0,0,0,.26);
+}
+
+.cardRowArt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(130deg, rgba(255,255,255,.26), transparent 32%),
+    linear-gradient(0deg, rgba(0,0,0,.24), transparent 46%);
+  pointer-events: none;
+}
+
+.cardRowArtImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btns {
+  display: grid;
+  grid-template-columns: 44px 72px 44px;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  justify-items: stretch;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 190px;
+}
+
+.btns .miniBtn[data-detail] {
+  grid-row: 2;
+  grid-column: 1 / 4;
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#cardList .cardRow {
+  min-height: 116px;
+}
+
+.cardRow .btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap; /* ←重要 */
+}
+
+.miniBtn {
+  padding: 4px 6px;
+  font-size: 11px;
+  min-width: 28px;
+}
+
+.count {
+  font-size: 11px;
+  min-width: 26px;
+}
+
+/* 非公開チェック縮小 */
+input[type="checkbox"] {
+  transform: scale(0.8);
+}
+
+/* === ボタン縮小 === */
+.cardRow .btns {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap; /* ←はみ出し防止 */
+  justify-content: flex-end;
+  min-width: 210px;
+  max-width: 260px;
+}
+
+/* + - ボタン */
+.cardRow .miniBtn {
+  padding: 2px 6px;     /* 小さく */
+  font-size: 11px;
+  min-width: 24px;
+  height: 24px;
+  line-height: 1;
+}
+
+/* 数字 */
+.cardRow .count {
+  font-size: 11px;
+  min-width: 22px;
+  padding: 2px 4px;
+}
+
+/* 詳細ボタンだけ少しだけ大きめ */
+.cardRow [data-detail] {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+/* 行全体の高さ圧縮 */
+.cardRow {
+  padding: 6px 8px;
+}
+
+.cardRow .miniBtn[data-plus],
+.cardRow .miniBtn[data-minus] {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.cardRow .adminHideToggle {
+  width: 100%;
+  min-height: 28px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border-color: rgba(255, 120, 120, 0.45);
+  background: rgba(95, 32, 42, 0.42);
+  color: #ffd6dc;
+  font-size: 11px;
+  font-weight: 900;
+  order: 10;
+}
+
+.cardRow .adminHideToggle.isHidden {
+  border-color: rgba(120, 210, 255, 0.48);
+  background: rgba(25, 72, 100, 0.42);
+  color: #d8f2ff;
+}
+
+.attrHintBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+  max-width: 420px;
+}
+
+.attrHintTitle {
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.68);
+  letter-spacing: 0.04em;
+}
+
+.attrHintText {
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+  .listHead {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attrHintBox {
+    align-items: flex-start;
+    text-align: left;
+    max-width: 100%;
+  }
+
+  .attrHintText {
+    font-size: 11px;
+  }
+}
+
+/* 20260629: stable two-line card controls (+ count - / EX detail). */
+.cardRow > div:first-child {
+  min-width: 0;
+}
+
+.cardRow .btns,
+#cardList .cardRow .btns,
+#deckList .cardRow .btns {
+  display: grid !important;
+  grid-template-columns: 42px minmax(60px, 1fr) 42px !important;
+  grid-template-areas:
+    "plus count minus"
+    "ex detail detail"
+    "admin admin admin";
+  gap: 6px !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  flex: 0 0 190px;
+  width: 190px;
+  min-width: 190px !important;
+  max-width: 190px !important;
+  align-self: center;
+}
+
+.cardRow .btns [data-plus] { grid-area: plus; }
+.cardRow .btns [data-minus] { grid-area: minus; }
+.cardRow .btns .count,
+.cardRow .btns .cnt { grid-area: count; }
+.cardRow .btns [data-ex],
+.cardRow .btns [data-expick] { grid-area: ex; }
+.cardRow .btns [data-detail] { grid-area: detail; }
+.cardRow .btns .adminHideToggle { grid-area: admin; }
+
+.cardRow .btns [data-plus],
+.cardRow .btns [data-minus] {
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  border-radius: 10px !important;
+  padding: 0 !important;
+}
+
+.cardRow .btns .count,
+.cardRow .btns .cnt {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 10px;
+}
+
+.cardRow .btns [data-ex],
+.cardRow .btns [data-expick],
+.cardRow .btns [data-detail],
+.cardRow .btns .adminHideToggle {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+  padding: 0 8px !important;
+}
+
+@media (max-width: 640px) {
+  .cardRow .btns,
+  #cardList .cardRow .btns,
+  #deckList .cardRow .btns {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex-basis: auto;
+    grid-template-columns: 44px minmax(76px, 1fr) 44px !important;
+  }
+  .cardRowMain {
+    gap: 9px;
+  }
+  .cardRowArt {
+    flex-basis: 44px;
+    width: 44px;
+    height: 60px;
+    border-radius: 10px;
+  }
 }

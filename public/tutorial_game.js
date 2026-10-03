@@ -84,10 +84,10 @@ const cardDefs = {
   },
   // t=4: 新規カード
   kusokimo_metabo: {
-    id:"kusokimo_metabo",
-    name:"クソキモメタボ",
+    id:"Aoi",
+    name:"Aoi",
     type:"光",
-    cost: 3,
+    cost: 6,
     hp: 10,
     sp: 990,
     actions: []
@@ -136,13 +136,33 @@ try {
 // デバッグ用：Consoleから __tutorial._showDialog できる
 window.__tutorial = tutorial;
 
+function tHideDialog(){
+  try {
+    if (typeof tutorial._hideDialog === "function") tutorial._hideDialog();
+    else {
+      tutorial.dialogLayer?.remove?.();
+      tutorial.dialogLayer = null;
+    }
+  } catch(e){ console.error(e); }
+}
+
 // ついでに「安全に呼ぶ」ラッパ（失敗してもゲーム自体は動かす）
 function tShowDialog(payload){
   try {
     tutorial._ensureRoot();
     const tr = document.getElementById("tutorialRoot");
     if (tr) tr.style.zIndex = "1000000";
-    tutorial._showDialog(payload);
+
+    const originalOnNext = payload?.onNext;
+
+    tutorial._showDialog({
+      ...payload,
+      onNext: () => {
+        tHideDialog(); // ★押した瞬間に消す
+        if (originalOnNext) originalOnNext();
+        else tutorial._resolveWait?.();
+      }
+    });
   } catch (e) {
     console.error("[tutorial] showDialog failed", e);
   }
@@ -653,8 +673,8 @@ function handleSummonAttempt_T2({ cid, x, y, cost }){
   if (cid !== t2.requireCardId) {
     setLock(true, { hand:false, board:false });
     tShowDialog({
-      face: "konow1",
-      name: "コレステ@コッペパン（Konow）",
+      face: "Aoi_default",
+      name: "説明AI_Aoi",
       text: "残業確定ね。\nもう一回、手元のデコイを召喚させる。",
       nextLabel: "やり直す",
       onNext: () => {
@@ -709,43 +729,43 @@ async function runScript_T2(){
   render();
 
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
-    text: "こんにちメタボ！\n囚人番号はしっかり覚えたかな？",
+    face: "Aoi_default",
+    name: "説明AI_Aoi",
+    text: "今日も来たんだね！\n囚人番号はしっかり覚えたかな？",
   });
   await tWait();
 
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
+    face: "Aoi_nazo",
+    name: "Aoi",
     text: "さてここが君の職場だよ。\n日光？あー今日見れたらいいね！",
   });
   await tWait();
 
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
-    text: "さて今回は、ゲームを進める上での手札を確認しようか。",
+    face: "Aoi_default",
+    name: "Aoi",
+    text: "さて今回は、ゲームを進める上での手札っていうのを確認しようか。",
   });
   await tWait();
 
   tShowDialog({
-    face: "konow7",
-    name: "コレステ@コッペパン（Konow）",
+    face: "Aoi_konwaku",
+    name: "Aoi",
     text: "うん？手札とは…？わからない…？？",
   });
   await tWait();
 
   tShowDialog({
-    face: "konow4",
-    name: "コレステ@コッペパン（Konow）",
-    text: "これだから新卒は…\n手札は「自分が持ってる手駒」のことだね。\nこの手駒を出し合って勝利を目指すのがこのゲームさ。",
+    face: "Aoi_nico",
+    name: "Aoi",
+    text: "これだから新卒は…\n手札は「自分が持ってる手駒」のことだね。\nこの手駒を出し合って勝利を目指すのがこのゲームになってるよ",
   });
   await tWait();
 
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
+    face: "Aoi_default",
+    name: "Aoi",
     text: "さて、実際に手駒を出そうか。\n手元のデコイを出してみよう。",
     nextLabel: "やってみる",
     onNext: () => tutorial._resolveWait?.(),
@@ -761,8 +781,8 @@ async function runScript_T2(){
 
 async function runAfterSummon_T2(){
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
+    face: "Aoi_kirakira",
+    name: "Aoi",
     text: "よし、うまく出せたね。\n召喚にはカードに書いてあるコスト分、「マナ」ってのを使うんだ。",
   });
   await tWait();
@@ -779,9 +799,16 @@ async function runAfterSummon_T2(){
   await tWait();
   tHideTips();
 
+  function tHideDialog(){
+  try {
+    tutorial.dialogLayer?.remove?.();
+    tutorial.dialogLayer = null;
+  } catch(e){ console.error(e); }
+}
+
   tShowDialog({
-    face: "konow2",
-    name: "コレステ@コッペパン（Konow）",
+    face: "Aoi_default",
+    name: "Aoi",
     text: "重要なのが、何をするにも大体マナが必要なんだ。\nマナ管理ができる頭をこの、かんご…職場で養っていこうか。",
     nextLabel: "完了",
     onNext: () => goBack(),
@@ -814,8 +841,8 @@ function handleSummonAttempt_T3({ cid, x, y, cost }){
   if (cid !== "prototype_A") {
     setLock(true, { hand:false, board:false });
     tShowDialog({
-      face: "konow1",
-      name: "コレステ@コッペパン（Konow）",
+      face: "Aoi_kobusi",
+      name: "Aoi",
       text: "残業確定。\n練習用キャラ（prototype_A）を召喚し直せ。",
       nextLabel: "やり直す",
       onNext: () => {
@@ -870,25 +897,25 @@ async function runScript_T3(){
 
   render();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"こんにちポテチ！\n僕のお腹の7割は水じゃなくてジャガイモでできてるんだ" });
+  tShowDialog({ face:"Aoi_default", name:"Aoi", text:"寝不足顔も見飽きたね！\n今日も頑張っていこう" });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"さて、今回はいよいよ、敵に近づいて倒してしまうってことをやるよ。" });
+  tShowDialog({ face:"Aoi_kirakira", name:"Aoi", text:"さて、今回はいよいよ、敵に近づいて倒してしまうってことをやるよ。" });
   await tWait();
 
-  tShowDialog({ face:"konow3", name:"コレステ@コッペパン（Konow）", text:"え？かわいそうでできない？" });
+  tShowDialog({ face:"Aoi_konwaku", name:"Aoi", text:"え？かわいそうでできない？" });
   await tWait();
 
-  tShowDialog({ face:"konow1", name:"コレステ@コッペパン（Konow）", text:"うるせぇ！この世界は殺すか殺されるかなんだよ！！" });
+  tShowDialog({ face:"Aoi_nico", name:"Aoi", text:"ダメ社員だね！この世界は殺すか殺されるかなんだよ！！" });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"それじゃ実際に戦闘に移ろう。\nあそこに突っ立ってる無能そうなデコイがいるね。あいつを倒そう。" });
+  tShowDialog({ face:"Aoi_nico", name:"Aoi", text:"それじゃ実際に戦闘に移ろう。\nあそこにさぼりがいるね。あいつに有給をプレゼントしようか。" });
   await tWait();
 
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"それじゃ手札のキャラを召喚しよう。\nまさか忘れたなんて、えりぃとてくなーは言わないよね？？",
+    face:"Aoi_kirakira",
+    name:"Aoi",
+    text:"それじゃ手札のキャラを召喚しよう。\nまさか忘れたなんていったら、機械学習の失敗作って呼ぶよ",
     nextLabel:"召喚してみる",
     onNext: () => tutorial._resolveWait?.(),
     hint:"練習用キャラ（prototype_A）を選んで召喚！"
@@ -903,8 +930,8 @@ async function runScript_T3(){
 
 async function runAfterSummon_T3(){
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
+    face:"Aoi_default",
+    name:"Aoi",
     text:"よし。\n召喚したキャラを選択して、実際に移動させてみよう。\nそれから不意打ちを決めろ！！",
     nextLabel:"移動する",
     onNext: () => tutorial._resolveWait?.(),
@@ -928,8 +955,8 @@ function handleMovedOnce(){
 
   setLock(true, { board:false });
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
+    face:"Aoi_attack",
+    name:"Aoi",
     text:"いいね。\n次は攻撃だ。『攻撃』ボタンを押して、不意打ちを叩き込め！",
     nextLabel:"攻撃する",
     onNext: () => {
@@ -945,9 +972,9 @@ function handleMovedOnce(){
 
 async function finish_T3(){
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"不意打ちで倒せたね。\n実戦ではこんなうまくいかず、攻撃には『成功率』ってのがあるからね。",
+    face:"Aoi_default",
+    name:"Aoi",
+    text:"これで有給消化率があがったね。\n実戦ではこんなうまくいかず、攻撃には『成功率』ってのがあるからね。",
   });
   await tWait();
 
@@ -964,9 +991,9 @@ async function finish_T3(){
   tHideTips();
 
   tShowDialog({
-    face:"konow5",
-    name:"コレステ@コッペパン（Konow）",
-    text:"こんなところかな。君もいい感じにおなか出てきたね！！",
+    face:"Aoi_default",
+    name:"Aoi",
+    text:"こんなところかな。君もいい感じに順応してきたね",
     nextLabel:"完了",
     onNext: () => goBack(),
     hint:"完了で戻る"
@@ -983,8 +1010,8 @@ function handleAttackResolved({ ok }){
   if (!ok || !dead) {
     setLock(true, { board:false });
     tShowDialog({
-      face:"konow1",
-      name:"コレステ@コッペパン（Konow）",
+      face:"Aoi_nico",
+      name:"Aoi",
       text:"外したな。\n実戦ではこういうこともある。\nもう一回やれ。",
       nextLabel:"もう一回",
       onNext: () => {
@@ -1013,9 +1040,9 @@ function handleSummonAttempt_T4({ cid, x, y, cost }){
   if (cid !== "prototype_A") {
     setLock(true, { hand:false, board:false });
     tShowDialog({
-      face:"konow1",
-      name:"コレステ@コッペパン（Konow）",
-      text:"そっちはエリートの方だ吹っ飛ばすぞ",
+      face:"Aoi_yami",
+      name:"Aoi",
+      text:"今回は進化の練習だから、まずは練習用キャラを出してね。\n寄り道はあとで勤務時間外にしよう。",
       nextLabel:"やり直す",
       onNext: () => {
         tutorial._resolveWait?.();
@@ -1045,18 +1072,19 @@ function handleSummonAttempt_T4({ cid, x, y, cost }){
   render();
 
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"よく分かってんじゃん。\nじゃあこのイケメンでハーレム人生の俺を進化させてみよう。",
+    face:"Aoi",
+    name:"Aoi",
+    text:"いい配置だね。\n次はそのキャラを進化させるよ。進化元はもう選んでおくから、合図したら進化実行を押して。",
     nextLabel:"進化する",
     onNext: () => {
       tutorial._resolveWait?.();
+      // 迷子防止
+      selectedUnitId = u.id;
+      evolveHandIndex = state.hands[state.you].findIndex((cardId) => cardId === "kusokimo_metabo");
+      if (evolveHandIndex < 0) evolveHandIndex = null;
       // unlock evolve
       setLock(false, { evolve:true, hand:true, board:true, summon:false, move:false, attack:false });
       setMode("evolve");
-      // 迷子防止
-      selectedUnitId = u.id;
-      evolveHandIndex = null;
       render();
       updateDoEvolveEnabled();
     }
@@ -1080,59 +1108,59 @@ async function runScript_T4(){
   render();
 
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"おは贅肉。\nいい顔になってきたね。\n目の上のクマは発展途上ということで60点ってとこかな。",
+    face:"Aoi_default",
+    name:"Aoi",
+    text:"今日も来たんだね。\n顔色は60点だけど、出勤できてるから合格にしておこう。",
   });
   await tWait();
 
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"今回は進化っていう要素の説明だ。\nそれにあたって激ヤバ3先輩を連れてきたぞ！！",
+    face:"Aoi_kirakira",
+    name:"Aoi",
+    text:"今回は進化の説明だよ。\n場に出したキャラを、手札の別カードに差し替えて強くする操作だ。",
   });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"まずは残業したいだけで仕事しないバトラー！" });
+  tShowDialog({ face:"Aoi_hakken", name:"Aoi", text:"進化先のイメージをつかむために、うちの先輩たちを呼んでみたよ！" });
   await tWait();
 
-  tShowDialog({ face:"batter", name:"バトラー", text:"ﾌﾌﾌﾌ" });
+  tShowDialog({ face:"senpai1", name:"ビジッタ", text:"処理なら任せて。たまに熱暴走するけど。" });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"説明0から！誰がわかんねん指示　ホームレスリーダー！" });
+  tShowDialog({ face:"Aoi_hakken", name:"Aoi", text:"彼女の持つ鉛筆はすべて歯形付き！" });
   await tWait();
 
-  tShowDialog({ face:"homeless", name:"ホームレスリーダー", text:"遅すぎますわ。紹介が。" });
+  tShowDialog({ face:"senpai2", name:"リッカ", text:"紹介が遅いですわ。" });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"近づくなと言われている！パワハラの貴公子！ワニータ！" });
+  tShowDialog({ face:"Aoi_hakken", name:"Aoi", text:"幼稚園での徒競走選手権1位の好成績持ち！" });
   await tWait();
 
-  tShowDialog({ face:"pawahara", name:"ワニータ", text:"若い頃は這いずってでも来てんねんアホが" });
+  tShowDialog({ face:"senpai3", name:"ピニャータ", text:"若い頃はもっと速かった。" });
   await tWait();
 
   tShowDialog({
-    face:"konow1",
-    name:"コレステ@コッペパン（Konow）",
-    text:"さて、先輩方呼んだし、このうちの誰に進化したい？",
+    face:"Aoi_default",
+    name:"Aoi",
+    text:"この中なら誰に進化してみたい？\n今回は選んでも実演用の進化先に進むけど、気分は大事だからね。",
     choices:[
-      { label:"バトラーD", action:()=>tutorial._resolveWait?.() },
-      { label:"ホームレスリーダー", action:()=>tutorial._resolveWait?.() },
-      { label:"わにータ", action:()=>tutorial._resolveWait?.() },
+      { label:"ビジッタ", action:()=>tutorial._resolveWait?.() },
+      { label:"リッカ", action:()=>tutorial._resolveWait?.() },
+      { label:"ピニャータ", action:()=>tutorial._resolveWait?.() },
     ]
   });
   await tWait();
 
-  tShowDialog({ face:"konow1", name:"コレステ@コッペパン（Konow）", text:"は？そこは俺やろが押し潰すぞ" });
+  tShowDialog({ face:"Aoi_kobusi", name:"Aoi", text:"私っていう選択肢はないってことね" });
   await tWait();
 
-  tShowDialog({ face:"konow2", name:"コレステ@コッペパン（Konow）", text:"茶番は置いといて、戦闘に入ろうか" });
+  tShowDialog({ face:"Aoi_nico", name:"Aoi", text:"茶番はここまで。\n実際の盤面で、召喚から進化まで一気にやってみよう。" });
   await tWait();
 
   tShowDialog({
-    face:"konow2",
-    name:"コレステ@コッペパン（Konow）",
-    text:"さてまず凡人出そうか",
+    face:"Aoi_default",
+    name:"Aoi",
+    text:"まずは練習用キャラを場に出そう。\n進化は、場にいるキャラがいないと始まらないからね。",
     nextLabel:"召喚する",
     onNext: () => tutorial._resolveWait?.(),
     hint:"練習用キャラ（prototype_A）を召喚してね"
@@ -1150,39 +1178,40 @@ function handleEvolved_T4(){
   setLock(true, { hand:false, board:false });
 
   tShowDialog({
-    face:"konow5",
-    name:"コレステ@コッペパン（Konow）",
-    text:"上出来か。\nマナが余ってたら進化することも選択肢に入れるといいデブよ。",
+    face:"Aoi_kirakira",
+    name:"Aoi",
+    text:"上出来。\n進化すると、位置を保ったまま能力を伸ばせる。盤面を作り直さなくていいのが強いところだね。",
   });
 
   tutorial._wait(abortRef).then(async ()=>{
     tShowTips({
       title:"Tips：進化について",
       lines:[
-        "進化ばっかしてるとキャラ数が足りなくて物量で押し切られる",
-        "そこらへんの配分に頭を使わないといけない"
+        "進化は場のキャラを強くできる。位置を活かしたまま次の役割を持たせやすい",
+        "ただし、進化ばかりだと場の数が増えにくい。召喚との配分が大事",
+        "マナが余っていて進化先があるなら、有力な選択肢になる"
       ]
     });
     await tWait();
     tHideTips();
 
-    tShowDialog({ face:"konow4", name:"コレステ@コッペパン（Konow）", text:"さて、これで基本的なゲームのシステムは終わりかな。" });
+    tShowDialog({ face:"Aoi_default", name:"Aoi", text:"これで基本操作はひと通り触れたね。\n召喚、移動、攻撃、進化。だいたい仕事より覚えることが少ない。" });
     await tWait();
 
     tShowDialog({
-      face:"konow2",
-      name:"コレステ@コッペパン（Konow）",
-      text:"案外簡単なゲームシステムだけど、戦略が多いことがわかってくれたと思うんだ。\nそうだよね？バトラー？",
+      face:"Aoi_nazo",
+      name:"Aoi",
+      text:"ルールはシンプルだけど、どこにマナを使うかでかなり変わる。\nそこがこのゲームの面白いところだよ。",
     });
     await tWait();
 
-    tShowDialog({ face:"batter", name:"バトラー", text:"えっ私に聞くの???笑笑" });
+    tShowDialog({ face:"Aoi_hakken", name:"Aoi", text:"もちろん、全部を完璧に覚える必要はない。\n実戦で何回か失敗すれば、会社より優しく教えてくれる。" });
     await tWait();
 
     tShowDialog({
-      face:"konow2",
-      name:"コレステ@コッペパン（Konow）",
-      text:"ほんとにTecherになったらこんな感じの聞けるから、ぜひいろんな人を誘って入社しよう！",
+      face:"Aoi_nico",
+      name:"Aoi",
+      text:"今日はここまで。\n次は実戦で、進化を使うタイミングを自分で選んでみよう。",
       nextLabel:"完了",
       onNext: () => goBack(),
       hint:"完了で戻る"

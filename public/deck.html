@@ -1,290 +1,51 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TCG Online - Deck Builder</title>
   <style>
-    :root{
-      --bg:#111; --panel:#1b1b1b; --panel2:#222;
-      --line:#333; --text:#fff; --muted:#b9b9b9;
-      --acc:#5aaaff; --ok:#78ffaa; --bad:#ff7878;
-    }
-    body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui, -apple-system, Segoe UI, sans-serif; }
-    header{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:12px 14px; border-bottom:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,0));
-    }
-    header .left{ display:flex; gap:10px; align-items:center; }
-    header h1{ margin:0; font-size:16px; letter-spacing:.02em; }
-    header .meta{ font-size:12px; color:var(--muted); }
-
-    .wrap{
-      display:grid;
-      grid-template-columns: 1.35fr 0.85fr; /* 右ペインを“ちゃんと広く” */
-      gap:14px;
-      padding:14px;
-      min-height: calc(100vh - 56px);
-      box-sizing:border-box;
-    }
-
-    .panel{
-      background: rgba(255,255,255,.03);
-      border:1px solid var(--line);
-      border-radius:14px;
-      box-shadow: 0 10px 24px rgba(0,0,0,.35);
-      overflow:hidden;
-    }
-    .panel .hd{
-      padding:10px 12px;
-      border-bottom:1px solid var(--line);
-      background: rgba(0,0,0,.20);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .panel .hd b{ font-size:13px; }
-    .panel .bd{ padding:12px; }
-
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .pill{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:4px 8px; border-radius:999px;
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.10);
-      font-size:12px; color:var(--muted);
-    }
-
-    /* 左：カード一覧 + デッキ */
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-    .list{
-      display:flex; flex-direction:column; gap:8px;
-      max-height: calc(100vh - 160px);
-      overflow:auto;
-      padding-right:4px;
-    }
-    .cardRow{
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      border-radius:12px;
-      padding:10px 10px;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      cursor:pointer;
-    }
-    .cardRow:hover{ border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.05); }
-    .cardRow .name{ font-weight:900; font-size:13px; }
-    .cardRow .sub{ font-size:12px; color:var(--muted); margin-top:2px; }
-    .cardRow .btns{ display:flex; gap:6px; align-items:center; }
-    .miniBtn{
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      padding:6px 10px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:12px;
-    }
-    .miniBtn:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.26); }
-    .miniBtn:disabled{ opacity:.45; cursor:not-allowed; }
-
-    .count{
-      min-width:34px;
-      text-align:center;
-      font-weight:900;
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:10px;
-      padding:6px 8px;
-      background: rgba(0,0,0,.18);
-    }
-
-    /* 右：操作タブ + 詳細（広い！） */
-    .tabs{
-      display:flex; gap:8px;
-      padding:10px 12px;
-      border-bottom:1px solid var(--line);
-      background: rgba(0,0,0,.18);
-    }
-    .tab{
-      border-radius:999px;
-      padding:7px 10px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.18);
-      color:#fff;
-      cursor:pointer;
-      font-weight:900;
-      font-size:12px;
-      user-select:none;
-    }
-    .tab.active{
-      border-color: rgba(90,170,255,.55);
-      background: rgba(90,170,255,.18);
-    }
-
-    .tabBody{ padding:12px; }
-    .tabBody[hidden]{ display:none; }
-
-    .input{
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      padding:10px 10px;
-      box-sizing:border-box;
-      font-size:14px;
-      outline:none;
-    }
-    .input:focus{ border-color: rgba(90,170,255,.55); }
-    .btn{
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(90,170,255,.16);
-      color:#fff;
-      padding:10px 12px;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btn:hover{ background: rgba(90,170,255,.22); }
-    .btn:disabled{ opacity:.45; cursor:not-allowed; background: rgba(0,0,0,.16); }
-
-    .btnGhost{
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.18);
-      color:#fff;
-      padding:10px 12px;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btnGhost:hover{ background: rgba(255,255,255,.06); }
-
-    .msg{ font-size:12px; color:var(--muted); white-space:pre-wrap; line-height:1.35; }
-    .msg.bad{ color: var(--bad); }
-    .msg.ok{ color: var(--ok); }
-
-    /* 詳細を“右下の狭い枠”から解放：右ペイン下を大きく使う */
-    #detail{
-      min-height: 260px;
-      max-height: calc(100vh - 340px);
-      overflow:auto;
-      padding:12px;
-      border-top:1px solid var(--line);
-      background: rgba(0,0,0,.14);
-      white-space: pre-wrap;
-      line-height:1.35;
-      font-size:13px;
-    }
-    .small{ font-size:12px; color:var(--muted); }
-
-    @media (max-width: 980px){
-      .wrap{ grid-template-columns: 1fr; }
-      .grid2{ grid-template-columns: 1fr; }
-      #detail{ max-height: unset; }
-    }
+    :root{--bg:#070a0d;--panel:#111820;--panel2:#17222b;--line:rgba(255,255,255,.12);--text:#fff;--muted:rgba(255,255,255,.66);--acc:#65b7ff;--ok:#76f7bd;--gold:#ffd86b;--bad:#ff7777;}
+    *{box-sizing:border-box}html,body{min-height:100%}body{margin:0;color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;background:radial-gradient(900px 520px at 12% -8%,rgba(255,216,107,.12),transparent 62%),radial-gradient(880px 560px at 94% 0%,rgba(90,170,255,.13),transparent 58%),linear-gradient(180deg,#0b1117,#06080b 56%,#050608);overflow-x:hidden}button,input,select{font:inherit}button{min-height:38px;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));color:#fff;padding:8px 12px;font-weight:900;cursor:pointer;transition:transform .08s ease,border-color .15s ease,filter .15s ease}button:hover{border-color:rgba(255,255,255,.28);filter:brightness(1.06)}button:active{transform:translateY(1px)}button:disabled{opacity:.48;cursor:not-allowed}.btn{border-color:rgba(90,170,255,.42);background:linear-gradient(180deg,rgba(90,170,255,.24),rgba(90,170,255,.08))}.btnGhost{background:rgba(0,0,0,.24)}.danger{border-color:rgba(255,115,115,.34)}input,select,.input{width:100%;min-height:42px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(0,0,0,.30);color:#fff;padding:9px 12px;outline:none}input:focus,select:focus{border-color:rgba(90,170,255,.60);box-shadow:0 0 0 3px rgba(90,170,255,.12)}.small{color:var(--muted);font-size:12px;line-height:1.45}.msg{color:var(--muted);font-size:12px;line-height:1.45;white-space:pre-wrap}.pill,.badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:28px;padding:4px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(0,0,0,.24);color:rgba(255,255,255,.78);font-size:12px;white-space:nowrap}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    header{position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.13);background:rgba(6,10,13,.88);backdrop-filter:blur(16px)}header .left{display:flex;align-items:center;gap:10px;min-width:0}header h1{margin:0;font-size:18px;white-space:nowrap}.topRight{justify-content:flex-end}.topRight button{white-space:nowrap}.versionPill{opacity:.82}
+    .deckStart{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 35%,rgba(90,170,255,.22),transparent 32%),linear-gradient(180deg,rgba(8,12,18,.96),rgba(4,5,8,.98));cursor:pointer;transition:opacity .42s ease,visibility .42s ease}.deckStart.hide{opacity:0;visibility:hidden;pointer-events:none}.deckStartInner{width:min(520px,92vw);padding:34px;border:1px solid rgba(255,255,255,.16);border-radius:26px;background:radial-gradient(380px 180px at 25% 10%,rgba(90,170,255,.20),transparent 60%),rgba(12,18,26,.86);box-shadow:0 28px 90px rgba(0,0,0,.55);text-align:center}.deckStartMark{width:72px;height:72px;margin:0 auto 18px;border-radius:22px;background:linear-gradient(135deg,#7196ff,#74f0aa);box-shadow:0 0 34px rgba(90,170,255,.38)}.deckStartTitle{margin:0;font-size:36px;letter-spacing:.04em}.deckStartSub{margin:12px 0 20px;color:rgba(255,255,255,.72)}.deckStartPrompt{display:inline-flex;padding:10px 18px;border-radius:999px;border:1px solid rgba(180,255,120,.34);background:rgba(160,255,60,.10);color:#dfff8c;font-weight:950}
+    .wrap{display:grid;grid-template-columns:minmax(0,1.28fr) minmax(430px,.72fr);gap:14px;padding:14px;min-height:calc(100vh - 62px)}.panel{min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:radial-gradient(660px 220px at 16% -12%,rgba(90,170,255,.10),transparent 60%),linear-gradient(180deg,rgba(255,255,255,.052),rgba(255,255,255,.02)),rgba(12,16,20,.88);box-shadow:0 20px 58px rgba(0,0,0,.44)}.panel .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:56px;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.18)}.panel .bd{padding:12px}.workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-height:calc(100vh - 116px)}#deckMainPanel{min-height:calc(100vh - 92px)}#deckPanel{position:sticky;top:76px;min-height:calc(100vh - 92px);max-height:calc(100vh - 92px);display:flex;flex-direction:column}#deckPanel>.bd{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:10px}.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}.filterBox{margin-bottom:12px;padding:12px;border:1px solid rgba(255,255,255,.11);border-radius:18px;background:rgba(0,0,0,.18)}.filterGrid{display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:10px;align-items:end}.typeRow,.attrRow,.ownedRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}.ownedRow{justify-content:flex-end;border-left:1px solid rgba(255,255,255,.10);padding-left:12px;margin-left:auto}.tab,.filterBtn{min-height:34px;border-radius:999px;padding:7px 11px;font-size:12px}.tab.active,.filterBtn.active{border-color:rgba(90,170,255,.62);background:linear-gradient(180deg,rgba(90,170,255,.24),rgba(90,170,255,.08));box-shadow:0 0 20px rgba(90,170,255,.18)}.attrRow .filterBtn.active{border-color:rgba(120,255,170,.62);background:linear-gradient(180deg,rgba(120,255,170,.22),rgba(120,255,170,.06));box-shadow:0 0 20px rgba(120,255,170,.16)}#typeSelect{display:none}.list{display:flex;flex-direction:column;gap:8px;overflow:auto;padding-right:5px;scrollbar-color:rgba(120,255,190,.45) rgba(255,255,255,.05)}#cardList{max-height:calc(100vh - 255px)}#deckList{flex:1;min-height:180px}.cardRow{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(182px,auto);gap:10px;align-items:center;min-height:82px;padding:10px 12px;border:1px solid rgba(255,255,255,.115);border-radius:16px;background:linear-gradient(90deg,rgba(255,255,255,.055),rgba(255,255,255,.018));overflow:hidden}.cardRow.notOwned{opacity:.45}.cardRow.selected{border-color:rgba(90,170,255,.86);box-shadow:0 0 0 1px rgba(90,170,255,.20),0 0 28px rgba(90,170,255,.20)}.cardMain{min-width:0}.cardName{font-weight:950;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cardMeta{margin-top:6px;color:rgba(255,255,255,.72);font-size:12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cardCtrl{display:grid;grid-template-columns:40px minmax(58px,1fr) 40px;gap:6px;align-items:center;min-width:182px}.cardCtrl button{min-height:34px;border-radius:11px;padding:5px 9px}.countBox{text-align:center;min-height:34px;border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(0,0,0,.22);display:grid;place-items:center;font-weight:900}.detailBtn{grid-column:1/4}.deckPanelActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.deckPanelActions button{min-width:86px}.deckSaveDock,.deckInfoDock{border:1px solid rgba(255,255,255,.11);border-radius:16px;background:rgba(0,0,0,.18);overflow:hidden}.deckSaveDockHead,.deckInfoDockHead,.listHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.10)}.deckSaveDockHeadMain b,.deckInfoDockHeadMain b,.listHead b{display:block}.deckSaveDockHeadMain span,.deckInfoDockHeadMain span{display:block;margin-top:3px}.deckSaveRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px}.deckSaveDock.isCollapsed .deckSaveRow,.deckInfoDock.isCollapsed .deckInfoBody{display:none}.deckInfoBody{display:flex;flex-direction:column;min-height:0;padding:0 10px 10px;gap:8px;flex:1}.deckInfoDock{flex:1;min-height:0;display:flex;flex-direction:column}.deckInfoDock .deckInfoBody{flex:1}.deckLab{border:1px solid rgba(90,170,255,.18);border-radius:16px;padding:12px;background:rgba(30,80,100,.12)}
+    #roomDrawerOverlay{position:fixed;inset:0;z-index:4200;background:rgba(0,0,0,.54);backdrop-filter:blur(8px);display:none}#roomDrawerOverlay.open{display:block}#roomDrawer{position:fixed;z-index:4300;top:0;right:0;width:min(520px,100vw);height:100vh;overflow:auto;background:linear-gradient(180deg,rgba(14,18,23,.98),rgba(6,8,10,.98));border-left:1px solid rgba(255,255,255,.14);box-shadow:-22px 0 64px rgba(0,0,0,.55);transform:translateX(104%);transition:transform .22s ease}#roomDrawer.open{transform:none}.drawerHead{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid rgba(255,255,255,.12);background:rgba(8,10,12,.92);backdrop-filter:blur(12px)}.roomCard{margin:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;overflow:hidden;background:rgba(255,255,255,.035)}.roomCardHead{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.10)}.roomCardBody{padding:14px}.roomHero{padding:22px}.roomHero h2{margin:8px 0 8px;font-size:26px}.kicker{color:#b9ff62;font-weight:950;letter-spacing:.08em;font-size:12px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}.tabBody{padding:14px;border-top:1px solid rgba(255,255,255,.10)}#roomDrawerToggle{position:fixed;right:18px;bottom:18px;z-index:4000;border-radius:999px;box-shadow:0 0 34px rgba(120,255,190,.26)}#detailWrap{position:fixed;right:16px;bottom:74px;z-index:3900;width:min(430px,calc(100vw - 32px));max-height:62vh;overflow:auto;border:1px solid rgba(255,255,255,.14);border-radius:18px;background:rgba(12,16,20,.96);box-shadow:0 20px 70px rgba(0,0,0,.50);display:none}#detailWrap.open{display:block}.detailHead{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid rgba(255,255,255,.12)}#detail{padding:12px}.guideOverlay[aria-hidden="true"]{display:none}.guideOverlay{position:fixed;inset:0;z-index:90000}.guideDim{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(5px)}.guideFocus{position:absolute;border:2px solid rgba(120,220,255,.9);border-radius:18px;box-shadow:0 0 30px rgba(120,220,255,.35)}.guideCard{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(520px,calc(100vw - 24px));padding:16px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(12,17,24,.96)}.guideBtns{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
+    body[data-kind-filter="unit"] #cardList .cardRow:not([data-kind="unit"]){display:none!important}body[data-kind-filter="support"] #cardList .cardRow:not([data-kind="support"]):not([data-kind="ex_support"]){display:none!important}body[data-owned-filter="owned"] #cardList .cardRow.notOwned{display:none!important}body[data-owned-filter="missing"] #cardList .cardRow:not(.notOwned){display:none!important}
+    @media(max-width:1180px){.wrap{grid-template-columns:1fr}#deckPanel{position:relative;top:auto;max-height:none;min-height:auto}#cardList{max-height:52vh}}@media(max-width:720px){header{align-items:flex-start;flex-direction:column}.topRight{width:100%;overflow-x:auto;flex-wrap:nowrap}.wrap{padding:8px;gap:8px}.panel{border-radius:16px}.filterGrid{grid-template-columns:1fr}.ownedRow{justify-content:flex-start;border-left:0;padding-left:0}.cardRow{grid-template-columns:minmax(0,1fr) 150px;min-height:72px;padding:8px}.cardName{font-size:13px}.cardMeta{font-size:11px}.cardCtrl{grid-template-columns:34px minmax(44px,1fr) 34px;min-width:150px}.detailBtn{min-height:31px}.deckSaveRow{grid-template-columns:1fr}#roomDrawerToggle{right:10px;bottom:10px}.deckStartTitle{font-size:30px}}
   </style>
+  <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260808_deck_flow2" />
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
 </head>
-
-<body>
+<body data-kind-filter="all" data-owned-filter="all">
+  <div id="deckStart" class="deckStart" role="button" tabindex="0" aria-label="Deck start">
+    <div class="deckStartInner"><div class="deckStartMark"></div><h1 class="deckStartTitle">Deck Builder</h1><p class="deckStartSub">&#51;&#48;&#26522;&#12434;&#32068;&#12435;&#12391;&#12289;&#25126;&#22580;&#12408;&#25345;&#12385;&#36796;&#12416;&#28310;&#20633;&#12434;&#12375;&#12424;&#12358;&#12290;</p><div class="deckStartPrompt">Click / Tap to Start</div></div>
+  </div>
+  <script>(()=>{const s=document.getElementById('deckStart');const close=()=>{s.classList.add('hide');setTimeout(()=>s.remove(),430)};s.addEventListener('click',close);s.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();close();}});if(location.hash||localStorage.getItem('tcgDeckStartSeen')==='1')s.classList.add('hide');localStorage.setItem('tcgDeckStartSeen','1');})();</script>
   <header>
-    <div class="left">
-      <h1>Deck Builder</h1>
-      <div class="meta">30枚 / 同名4枚まで</div>
-    </div>
-
-    <div class="row" style="gap:8px; justify-content:flex-end;">
-      <button id="btnArcade" type="button">アーケード</button>
-      <button id="btnSolo" type="button">ソロで開始</button>
-      <span id="versionLabel" class="badge">v20260207</span>
-      <button id="btnSettings" type="button">設定</button>
-    </div>
+    <div class="left"><h1>Deck Builder</h1><span class="pill">30&#26522; / &#21516;&#21517;4&#26522;&#12414;&#12391;</span></div>
+    <div class="row topRight"><button id="btnHome" class="btnGhost" type="button">&#21021;&#26399;&#30011;&#38754;</button><button id="btnDeckTop" class="btnGhost" type="button">&#12487;&#12483;&#12461;</button><button id="btnRule" class="btnGhost" type="button" hidden>&#21021;&#24515;&#32773;&#12399;&#12371;&#12385;&#12425;</button><button id="btnGuide" class="btnGhost" type="button" hidden>&#26696;&#20869;</button><span id="versionLabel" class="pill versionPill" hidden>v20260906 curse-nav1</span><button id="btnSolo" class="btnGhost" type="button" hidden>&#12477;&#12525;&#38283;&#22987;</button><button id="btnSettings" class="btnGhost" type="button" hidden>&#12523;&#12540;&#12512;&#25805;&#20316;</button><button id="btnBgm" class="btnGhost" type="button" hidden>BGM</button></div>
   </header>
-
-  <div style="padding:10px 14px;">
-    <span class="pill">v20260207 deck-ui</span>
-  </div>
-
-  <div class="wrap">
-    <!-- LEFT -->
-    <div class="panel">
-      <div class="hd">
-        <b>カード / デッキ</b>
-        <div class="pill">デッキ枚数：<span id="deckCount">0</span>/30</div>
-      </div>
-
-      <div class="bd grid2">
-        <!-- Card list -->
-        <div>
-          <div class="row" style="justify-content:space-between; margin-bottom:8px;">
-            <b style="font-size:13px;">カード一覧</b>
-            <span class="small">クリックで詳細</span>
-          </div>
-          <div id="cardList" class="list"></div>
-        </div>
-
-        <!-- Deck list -->
-        <div>
-          <div class="row" style="justify-content:space-between; margin-bottom:8px;">
-            <b style="font-size:13px;">デッキ</b>
-            <button id="btnClearDeck" class="btnGhost" type="button">全消し</button>
-          </div>
-          <div id="deckList" class="list"></div>
-          <div id="deckMsg" class="msg bad" style="margin-top:8px;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="panel">
-      <!-- name input -->
-      <div class="hd">
-        <b>プレイヤー設定</b>
-        <span class="small">部屋作成/参加時に保存</span>
-      </div>
-      <div class="bd">
-        <div class="row" style="margin-bottom:10px;">
-          <input id="playerName" class="input" maxlength="16" placeholder="プレイヤーネーム（例：Terada）" />
-          <button id="btnSaveName" class="btn" type="button">保存</button>
-        </div>
-        <div id="nameMsg" class="msg"></div>
-      </div>
-
-      <!-- tabs -->
-      <div class="tabs">
-        <div class="tab active" data-tab="create">ルーム作成</div>
-        <div class="tab" data-tab="join">ルーム参加</div>
-      </div>
-
-      <div class="tabBody" id="tab-create">
-        <div class="row" style="margin-bottom:8px;">
-          <button id="createBtn" class="btn" type="button" disabled>ルーム作成</button>
-          <span class="small">デッキ30枚で有効</span>
-        </div>
-        <div id="createMsg" class="msg"></div>
-      </div>
-
-      <div class="tabBody" id="tab-join" hidden>
-        <div class="row" style="margin-bottom:8px;">
-          <input id="joinRoomId" class="input" placeholder="roomId を入力" />
-        </div>
-        <div class="row">
-          <button id="joinBtn" class="btn" type="button" disabled>ルーム参加</button>
-        </div>
-        <div id="joinMsg" class="msg"></div>
-      </div>
-
-      <!-- 詳細パネル：左下固定 -->
-<div id="detailWrap" class="detailWrap" style="display:none;" aria-hidden="true">
-  <div class="detailHead">
-    <b>詳細</b>
-    <button id="detailClose" class="detailClose" type="button" title="詳細を閉じる">✕</button>
-  </div>
-  <div id="detail" class="detailBody">カード詳細がここに表示されます。</div>
-</div>
-
-  <script type="module" src="./deck.js?v=20260214_4"></script>
+  <main class="wrap">
+    <section class="panel" id="deckMainPanel"><div class="hd"><b>&#12459;&#12540;&#12489;&#19968;&#35239;</b><span class="small">&#12463;&#12522;&#12483;&#12463;&#12391;&#35443;&#32048; / + &#12391;&#36861;&#21152;</span></div><div class="bd workspace"><section id="mobileCardSection"><div class="filterBox"><div class="sectionHead"><input id="search" class="input" placeholder="&#20505;&#35036;&#12434;&#26908;&#32034;" /><div class="small" id="attributeHint">&#23646;&#24615;&#12398;&#29305;&#24500;</div></div><select id="typeSelect"><option value="ALL">ALL</option><option value="&#28779;">&#28779;</option><option value="&#27700;">&#27700;</option><option value="&#38647;">&#38647;</option><option value="&#33609;">&#33609;</option><option value="&#39080;">&#39080;</option><option value="&#37628;">&#37628;</option><option value="&#20809;">&#20809;</option><option value="&#38343;">&#38343;</option><option value="&#24187;">&#24187;</option><option value="&#21610;">&#21610;</option></select><div class="filterGrid"><div><div class="typeRow"><button class="filterBtn active" type="button" data-kind-filter="all">&#20840;&#37096;</button><button class="filterBtn" type="button" data-kind-filter="unit">&#12461;&#12515;&#12521;</button><button class="filterBtn" type="button" data-kind-filter="support">&#12469;&#12509;&#12540;&#12488;</button></div><div class="attrRow"><button class="filterBtn active" type="button" data-attr-filter="ALL">&#20840;&#23646;&#24615;</button><button class="filterBtn" type="button" data-attr-filter="&#28779;">&#28779;</button><button class="filterBtn" type="button" data-attr-filter="&#27700;">&#27700;</button><button class="filterBtn" type="button" data-attr-filter="&#38647;">&#38647;</button><button class="filterBtn" type="button" data-attr-filter="&#33609;">&#33609;</button><button class="filterBtn" type="button" data-attr-filter="&#39080;">&#39080;</button><button class="filterBtn" type="button" data-attr-filter="&#37628;">&#37628;</button><button class="filterBtn" type="button" data-attr-filter="&#20809;">&#20809;</button><button class="filterBtn" type="button" data-attr-filter="&#38343;">&#38343;</button><button class="filterBtn" type="button" data-attr-filter="&#24187;">&#24187;</button><button class="filterBtn" type="button" data-attr-filter="&#21610;">&#21610;</button></div></div><div class="ownedRow"><button class="filterBtn active" type="button" data-owned-filter="all">&#12377;&#12409;&#12390;</button><button class="filterBtn" type="button" data-owned-filter="owned">&#25152;&#25345;&#28168;&#12415;</button><button class="filterBtn" type="button" data-owned-filter="missing">&#26410;&#25152;&#25345;</button></div></div></div><div id="cardList" class="list"></div></section></div></section>
+    <section id="deckPanel" class="panel"><div class="hd"><b>&#12487;&#12483;&#12461;</b><div class="row"><span class="pill">&#26522;&#25968;: <span id="deckCount">0</span>/30</span><button id="btnClearDeck" class="btnGhost" type="button">&#20840;&#28040;&#12375;</button></div></div><div class="bd"><div id="deckPanelActions" class="deckPanelActions"><button class="btnGhost isActive" type="button" data-deck-panel-action="save">&#20445;&#23384;</button><button class="btnGhost" type="button" data-deck-panel-action="library">&#12487;&#12483;&#12461;&#19968;&#35239;</button><button class="btnGhost" type="button" data-deck-panel-action="lab">&#35413;&#20385;</button><button class="btn" type="button" data-deck-panel-action="play">&#38283;&#22987;</button></div><div class="deckSaveDock" id="deckSaveDock"><div class="deckSaveDockHead"><div class="deckSaveDockHeadMain"><b>&#12487;&#12483;&#12461;&#31649;&#29702;</b><span class="small">&#21517;&#21069;&#12434;&#27770;&#12417;&#12390;&#20445;&#23384;&#12289;&#24517;&#35201;&#12394;&#26178;&#12384;&#12369;&#19968;&#35239;&#12434;&#38283;&#12367;</span></div><button id="deckSaveMinBtn" class="btnGhost" type="button" title="minimize">-</button></div><div class="deckSaveRow"><input id="deckTitle" class="input" maxlength="40" placeholder="&#12487;&#12483;&#12461;&#21517;" /><button id="btnSave" class="btn" type="button">&#12487;&#12483;&#12461;&#20445;&#23384;</button></div></div><div class="deckInfoDock" id="deckInfoDock"><div class="deckInfoDockHead"><div class="deckInfoDockHeadMain"><b>&#25505;&#29992;&#12459;&#12540;&#12489;</b><span class="small">&#12371;&#12371;&#12434;&#35211;&#12394;&#12364;&#12425;30&#26522;&#12395;&#25972;&#12360;&#12427;</span></div><button id="deckInfoMinBtn" class="btnGhost" type="button" title="minimize">-</button></div><div class="deckInfoBody"><div class="listHead"><b>&#20837;&#12428;&#12383;&#12459;&#12540;&#12489;</b><span class="small">30&#26522;&#12385;&#12423;&#12358;&#12393;&#12391;&#12523;&#12540;&#12512;&#20316;&#25104;&#12539;&#21442;&#21152;&#12364;&#26377;&#21177;</span></div><div id="deckList" class="list"></div><div id="deckMsg" class="msg" style="margin-top:8px;color:var(--bad);"></div></div></div></div></section>
+  </main>
+  <div id="roomDrawerOverlay" aria-hidden="true"></div><aside id="roomDrawer" aria-hidden="true"><div class="drawerHead"><b>&#12523;&#12540;&#12512;&#25805;&#20316;</b><button id="roomDrawerClose" class="btnGhost" type="button">&#38281;&#12376;&#12427;</button></div><div class="roomCard"><div class="roomHero"><div class="kicker">BATTLE ENTRY</div><h2>&#23550;&#25126;&#12523;&#12540;&#12512;</h2><p class="small">&#12487;&#12483;&#12461;&#12434;30&#26522;&#12395;&#12375;&#12383;&#12425;&#12289;&#12371;&#12371;&#12363;&#12425;&#12477;&#12525;&#12539;&#12523;&#12540;&#12512;&#20316;&#25104;&#12539;&#21442;&#21152;&#12434;&#36984;&#12435;&#12391;&#38283;&#22987;&#12391;&#12365;&#12414;&#12377;&#12290;</p></div></div><div class="roomCard"><div class="roomCardHead"><b>&#12503;&#12524;&#12452;&#12516;&#12540;</b><span class="small">&#34920;&#31034;&#21517;</span></div><div class="roomCardBody"><div class="row" style="margin-bottom:10px;"><input id="playerName" class="input" maxlength="16" placeholder="&#12503;&#12524;&#12452;&#12516;&#12540;&#21517;" /><button id="btnSaveName" class="btn" type="button">&#20445;&#23384;</button></div><div id="nameMsg" class="msg"></div></div></div><div class="roomCard"><div class="roomCardHead"><b>&#12510;&#12483;&#12503;</b><span class="small">&#20316;&#25104; / &#21442;&#21152;&#26178;&#12395;&#21453;&#26144;</span></div><div class="roomCardBody" id="roomFieldMount"></div></div><div class="roomCard"><div class="tabs"><button class="tab active" type="button" data-tab="create">&#12523;&#12540;&#12512;&#20316;&#25104;</button><button class="tab" type="button" data-tab="join">&#12523;&#12540;&#12512;&#21442;&#21152;</button></div><div class="tabBody" id="tab-create"><div class="row"><button id="createBtn" class="btn" type="button" disabled>&#12523;&#12540;&#12512;&#20316;&#25104;</button><span class="small">&#12487;&#12483;&#12461;30&#26522;&#12391;&#26377;&#21177;</span></div><div id="createMsg" class="msg" style="margin-top:8px;"></div></div><div class="tabBody" id="tab-join" hidden><input id="joinRoomId" class="input" placeholder="&#21442;&#21152;&#12467;&#12540;&#12489; &#20363;: 1234" /><div class="row" style="margin-top:10px;"><button id="joinBtn" class="btn" type="button" disabled>&#21442;&#21152;</button></div><div id="joinMsg" class="msg" style="margin-top:8px;"></div></div></div></aside><button id="roomDrawerToggle" class="btn" type="button">&#38283;&#22987; &#9654;</button>
+  <div id="detailWrap" aria-hidden="true"><div class="detailHead"><b>&#35443;&#32048;</b><button id="detailClose" class="btnGhost" type="button">x</button></div><div id="detail">&#12459;&#12540;&#12489;&#35443;&#32048;&#12364;&#12371;&#12371;&#12395;&#34920;&#31034;&#12373;&#12428;&#12414;&#12377;&#12290;</div></div>
+  <div id="guideOverlay" class="guideOverlay" aria-hidden="true"><div id="guideDim" class="guideDim"></div><div id="guideFocus" class="guideFocus"></div><div id="guideCard" class="guideCard"><div class="small" id="guideStep"></div><h3 id="guideTitle" style="margin:6px 0 8px;"></h3><div id="guideText" class="msg"></div><div class="guideBtns"><button id="guidePrev" class="btnGhost" type="button">&#25147;&#12427;</button><button id="guideSkip" class="btnGhost" type="button">&#38281;&#12376;&#12427;</button><button id="guideNext" class="btn" type="button">&#27425;&#12408;</button></div></div></div>
+  <script>(()=>{const typeSelect=document.getElementById('typeSelect');const kindBtns=Array.from(document.querySelectorAll('[data-kind-filter]'));const attrBtns=Array.from(document.querySelectorAll('[data-attr-filter]'));const ownedBtns=Array.from(document.querySelectorAll('[data-owned-filter]'));const setKind=(kind)=>{document.body.dataset.kindFilter=kind;kindBtns.forEach(b=>b.classList.toggle('active',b.dataset.kindFilter===kind));};const setOwned=(owned)=>{document.body.dataset.ownedFilter=owned;ownedBtns.forEach(b=>b.classList.toggle('active',b.dataset.ownedFilter===owned));};const setAttr=(attr)=>{if(typeSelect){typeSelect.value=attr;typeSelect.dispatchEvent(new Event('change',{bubbles:true}));}attrBtns.forEach(b=>b.classList.toggle('active',b.dataset.attrFilter===attr));};kindBtns.forEach(b=>b.addEventListener('click',()=>setKind(b.dataset.kindFilter||'all')));ownedBtns.forEach(b=>b.addEventListener('click',()=>setOwned(b.dataset.ownedFilter||'all')));attrBtns.forEach(b=>b.addEventListener('click',()=>setAttr(b.dataset.attrFilter||'ALL')));setKind('all');setOwned('all');setAttr(typeSelect?.value||'ALL');const openRoom=()=>{document.getElementById('roomDrawer')?.classList.add('open');document.getElementById('roomDrawerOverlay')?.classList.add('open');};const closeRoom=()=>{document.getElementById('roomDrawer')?.classList.remove('open');document.getElementById('roomDrawerOverlay')?.classList.remove('open');};document.getElementById('roomDrawerToggle')?.addEventListener('click',openRoom);document.getElementById('btnSettings')?.addEventListener('click',openRoom);document.getElementById('roomDrawerClose')?.addEventListener('click',closeRoom);document.getElementById('roomDrawerOverlay')?.addEventListener('click',closeRoom);document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b===btn));document.getElementById('tab-create').hidden=btn.dataset.tab!=='create';document.getElementById('tab-join').hidden=btn.dataset.tab!=='join';}));document.getElementById('btnHome')?.addEventListener('click',()=>location.href='./index.html');document.getElementById('btnDeckTop')?.addEventListener('click',()=>document.getElementById('deckPanel')?.scrollIntoView({behavior:'smooth',block:'start'}));document.getElementById('btnRule')?.addEventListener('click',()=>location.href='./rule.html');})();</script>
+<script type="module" src="./deck.js?v=20260926_mobile_stack2"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260821_drag1"></script>
+  <script src="./visual_upgrade_20260805.js?v=20260808_deck_flow2"></script>
+<script src="./deck_layout_guard.js?v=20260821_readable_ui1"></script>
+  <script src="./mobile_deck_ui.js?v=20260906_curse_nav1"></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script src="./mobile_home_deck_ui_20260926.js?v=20260926_device_switch4" defer></script>
 </body>
 </html>
+
+

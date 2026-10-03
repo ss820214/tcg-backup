@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="こーののエロ画像 illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#78f3ff"/>
+      <stop offset=".52" stop-color="#091524"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".50" cy=".34" r=".60">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".78"/>
+      <stop offset=".42" stop-color="#78f3ff" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#091524" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figure" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".62" stop-color="#78f3ff"/>
+      <stop offset="1" stop-color="#10131a"/>
+    </linearGradient>
+    <radialGradient id="core" cx=".38" cy=".22" r=".7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".32" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#78f3ff"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".45"/>
+    </linearGradient>
+    <filter id="S004_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="356" rx="26" fill="#080b12"/>
+  <rect x="7" y="7" width="242" height="342" rx="22" fill="url(#bg)"/>
+  <rect x="10" y="10" width="236" height="336" rx="19" fill="url(#halo)"/>
+  <path d="M-20 92 C64 44 132 48 276 12" stroke="white" stroke-opacity=".10" stroke-width="42"/>
+  <path d="M-18 286 C72 222 178 282 274 216" stroke="#ffffff" stroke-opacity=".16" stroke-width="38"/>
+  <g transform="rotate(28 128 176)" opacity=".36">
+    <ellipse cx="128" cy="176" rx="83" ry="118" fill="none" stroke="white" stroke-opacity=".15" stroke-width="2"/>
+    <ellipse cx="128" cy="176" rx="54" ry="104" fill="none" stroke="#ffffff" stroke-opacity=".26" stroke-width="4"/>
+  </g>
+  <path d="M20 252 L236 84" stroke="white" stroke-opacity=".12" stroke-width="2"/>
+  <path d="M63 306 L212 72" stroke="#ffffff" stroke-opacity=".18" stroke-width="7" transform="rotate(-9 128 178)"/>
+  <g opacity=".82"><path d="M48 250c34-22 68-22 102 0" fill="none" stroke="white" stroke-opacity=".18" stroke-width="7" stroke-linecap="round"/><path d="M202 118l17 13-17 13-17-13Z" fill="url(#core)" opacity=".46"/></g>
+  <g filter="url(#S004_glow)"><rect x="58" y="82" width="140" height="170" rx="18" fill="url(#figure)" opacity=".82"/><path d="M82 130c31-38 61 45 94 5M82 184c44 33 64-37 94 6" fill="none" stroke="url(#paper)" stroke-width="10" stroke-linecap="round" opacity=".65"/><circle cx="98" cy="221" r="14" fill="url(#core)"/><circle cx="161" cy="112" r="14" fill="url(#core)"/></g>
+  <circle cx="106" cy="60" r="1.2" fill="white" opacity="0.19"/><circle cx="177" cy="185" r="2.5" fill="white" opacity="0.15"/><circle cx="80" cy="123" r="3.4" fill="white" opacity="0.45"/><circle cx="88" cy="214" r="3.1" fill="white" opacity="0.29"/><circle cx="60" cy="56" r="1.9" fill="white" opacity="0.46"/><circle cx="134" cy="97" r="1.4" fill="white" opacity="0.33"/><circle cx="48" cy="221" r="1.7" fill="white" opacity="0.41"/><circle cx="162" cy="243" r="2.1" fill="white" opacity="0.42"/><circle cx="233" cy="146" r="3.6" fill="white" opacity="0.25"/>
+  <rect x="18" y="18" width="42" height="42" rx="14" fill="rgba(0,0,0,.38)" stroke="white" stroke-opacity=".22"/>
+  <text x="39" y="46" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="white">2</text>
+  <rect x="190" y="18" width="48" height="30" rx="15" fill="rgba(0,0,0,.34)" stroke="white" stroke-opacity=".22"/>
+  <text x="214" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="white">R</text>
+  <rect x="21" y="264" width="42" height="24" rx="12" fill="rgba(0,0,0,.32)" stroke="white" stroke-opacity=".14"/>
+  <text x="42" y="281" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="900" fill="white" opacity=".66">こ</text>
+  <rect x="18" y="292" width="220" height="44" rx="14" fill="rgba(0,0,0,.44)" stroke="white" stroke-opacity=".16"/>
+  <text x="128" y="319" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="white">こーののエロ画像</text>
+</svg>

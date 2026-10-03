@@ -1,5 +1,5 @@
 // public/evolve_system.js
-// v20260205_evolve_system_fix_fatigue_actions
+// v20260722_lifecycle_fx1
 // - 進化時に疲労系ステータスを確実に解除（fatigue/tired/exhaust/疲労 など）
 // - （任意）evoDef.actions が定義されている場合のみ、ユニットの actions を進化先で上書き（技重複の温床対策）
 // - 既存機能は削らない（進化手順/候補表示/マナ差分支払い/HPSP差分加算/ログ/勝利判定など維持）
@@ -22,15 +22,18 @@ export function createEvolveSystem(deps) {
     logPush, // (st,line)=>void
     checkWinLocal, // (st)=> "A"|"B"|null
     isPanic, // (unit)=>bool
+    fireCardEffects, // optional: (st, trigger, unit)=>number
   } = deps;
 
   // internal state
   let baseUnitId = null;
   let candidateSet = new Set(); // hand indices
+  let potentialSet = new Set(); // evolve-compatible hand indices, even when mana is short
 
   function reset() {
     baseUnitId = null;
     candidateSet = new Set();
+    potentialSet = new Set();
   }
 
   function getBaseUnitId() {
@@ -89,9 +92,44 @@ export function createEvolveSystem(deps) {
     }
   }
 
+  function normalizeAttrKey(v) {
+    const raw = String(v ?? "").trim();
+    const low = raw.toLowerCase();
+    const map = {
+      fire: "火",
+      "炎": "火",
+      "火": "火",
+      water: "水",
+      "水": "水",
+      thunder: "雷",
+      lightning: "雷",
+      "雷": "雷",
+      grass: "草",
+      "草": "草",
+      wind: "風",
+      "風": "風",
+      steel: "鋼",
+      metal: "鋼",
+      "鋼": "鋼",
+      light: "光",
+      "光": "光",
+      dark: "闇",
+      "闇": "闇",
+      dream: "幻",
+      illusion: "幻",
+      "幻": "幻",
+    };
+    return map[raw] || map[low] || raw;
+  }
+
+  function cardAttrOf(def) {
+    return normalizeAttrKey(def?.type ?? def?.attr ?? "");
+  }
+
   function computeCandidates(st, baseUnit) {
     const seat = getSeat();
     const res = new Set();
+    potentialSet = new Set();
     if (!st || !baseUnit) return res;
 
     const cardDefs = cardDefsRef();
@@ -107,8 +145,9 @@ export function createEvolveSystem(deps) {
       if (!evoDef) continue;
 
       // 同属性 + コスト増
-      if (String(evoDef.type ?? "") !== String(baseDef.type ?? "")) continue;
+      if (cardAttrOf(evoDef) !== cardAttrOf(baseDef)) continue;
       if (!(Number(evoDef.cost) > Number(baseDef.cost))) continue;
+      potentialSet.add(i);
 
       const extra = Math.max(
         0,
@@ -140,33 +179,18 @@ export function createEvolveSystem(deps) {
   function decorateHandCard({ cardEl, index, cardId, st, onShowDetail }) {
     if (!cardEl) return;
 
-    // 進化元が未選択なら候補も出さない
+    const isPotential = baseUnitId && potentialSet && potentialSet.has(index);
     const isCand = baseUnitId && candidateSet && candidateSet.has(index);
-    if (isCand) cardEl.classList.add("evoCandidate");
-    else cardEl.classList.remove("evoCandidate");
+    cardEl.classList.toggle("evoPotential", !!isPotential);
+    cardEl.classList.toggle("evoCandidate", !!isCand);
+    cardEl.classList.toggle("evoManaShort", !!isPotential && !isCand);
 
-    // 既存ボタンがあれば更新だけ
+    // Fixed top-right hand button handles execution now.
+    // Keep only card highlight / READY badge to avoid stretched in-card buttons.
     let btn = cardEl.querySelector(".hcEvoBtn");
+    if (btn) btn.remove();
     if (!isCand) {
-      if (btn) btn.remove();
       return;
-    }
-
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "hcEvoBtn";
-      btn.textContent = "進化";
-      btn.title = "このカードで進化";
-      btn.addEventListener("click", async (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        try {
-          onShowDetail?.(cardId);
-        } catch {}
-        await execEvolveFromHandIndex(index);
-      });
-      cardEl.appendChild(btn);
     }
   }
 
@@ -208,7 +232,7 @@ export function createEvolveSystem(deps) {
       if (!baseDef || !evoDef) return;
 
       // 同属性＆コスト増
-      if (String(evoDef.type ?? "") !== String(baseDef.type ?? "")) return;
+      if (cardAttrOf(evoDef) !== cardAttrOf(baseDef)) return;
       if (!(Number(evoDef.cost) > Number(baseDef.cost))) return;
 
       const extra = Math.max(
@@ -290,6 +314,10 @@ export function createEvolveSystem(deps) {
         s,
         `[${seat}] 進化：${cardName(fromId)} → ${cardName(evoCardId)}（追加マナ:${extra}）`,
       );
+      try {
+        fireCardEffects?.(s, "onEvolve", base);
+        fireCardEffects?.(s, "onEnter", base);
+      } catch {}
       if (diedByOverDamage) {
         logPush(
           s,
@@ -301,6 +329,8 @@ export function createEvolveSystem(deps) {
         owner: seat,
         baseId: baseUnitId,
         to: evoCardId,
+        x: base.x,
+        y: base.y,
       };
 
       // 勝利判定

@@ -1,1023 +1,3696 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TCG Online - Deck Builder</title>
-  
-  <script>
-  window.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("btnLogin");
-    if (!btn) return;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TCG Online - Deck Builder</title>
 
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const ret = encodeURIComponent(location.pathname + location.search);
-      location.href = "./login.html?return=" + ret;
-    });
-  });
-</script>
-  <style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("btnLogin");
+        if (!btn) return;
 
-    /* ===== DETAIL：左下に固定 ===== */
-#detailWrap.detailFloating{
-  position: fixed;
-  left: 14px;
-  bottom: 14px;
-  width: min(560px, calc(100vw - 28px));
-  max-height: min(60vh, 520px);
-  z-index: 9999;
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const ret = encodeURIComponent(location.pathname + location.search);
+          location.href = "./login.html?return=" + ret;
+        });
+      });
+    </script>
 
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 16px;
-  box-shadow: 0 22px 70px rgba(0,0,0,.65);
-  background: rgba(16,16,18,.96);
-  overflow: hidden;
+    <style>
+      :root {
+        --bg0: #07080b;
+        --bg1: #0b0d12;
+        --panel: rgba(255, 255, 255, 0.045);
+        --panel2: rgba(0, 0, 0, 0.34);
+        --line: rgba(255, 255, 255, 0.1);
+        --line2: rgba(255, 255, 255, 0.16);
+        --text: #fff;
+        --muted: rgba(255, 255, 255, 0.74);
+        --muted2: rgba(255, 255, 255, 0.58);
 
-}
+        --acc: #69b4ff;
+        --acc2: rgba(105, 180, 255, 0.22);
+        --ok: #78ffb6;
+        --bad: #ff8080;
 
-#detail{
-  overflow-wrap: anywhere;
-  word-break: break-word; /* iOS対策 */
-}
+        --shadow: 0 22px 70px rgba(0, 0, 0, 0.62);
+        --shadow2: 0 14px 40px rgba(0, 0, 0, 0.5);
 
-#detailWrap .detailBody{ display:none; } /* 念のため（古いCSS混入対策） */
+        --r: 18px;
+        --r2: 22px;
 
-    :root{
-      --bg:#0f1115;
-      --panel:rgba(255,255,255,.035);
-      --panel2:rgba(0,0,0,.22);
-      --line:rgba(255,255,255,.10);
-      --line2:rgba(255,255,255,.14);
-      --text:#fff;
-      --muted:rgba(255,255,255,.70);
-      --muted2:rgba(255,255,255,.55);
-      --acc:#5aaaff;
-      --acc2:rgba(90,170,255,.20);
-      --ok:#78ffaa;
-      --bad:#ff7878;
-      --shadow: 0 16px 50px rgba(0,0,0,.55);
-      --r:16px;
-    }
+        --glowA: rgba(105, 180, 255, 0.25);
+        --glowB: rgba(120, 255, 170, 0.18);
+        --glowC: rgba(255, 180, 90, 0.12);
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      background:
-        radial-gradient(900px 420px at 22% 0%, rgba(90,170,255,.12), transparent 60%),
-        radial-gradient(900px 420px at 86% 10%, rgba(120,255,170,.08), transparent 60%),
-        radial-gradient(700px 360px at 55% -10%, rgba(255,255,255,.06), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
-    }
+        /* premium */
+        --gold1: rgba(255, 215, 120, 0.55);
+        --gold2: rgba(255, 180, 80, 0.22);
+        --gold3: rgba(255, 245, 210, 0.18);
+      }
 
-    /* ===== Header (ちょい豪華) ===== */
-    header{
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.10));
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-    header::after{
-      content:"";
-      position:absolute;
-      left:0; right:0; bottom:-1px;
-      height:1px;
-      background: linear-gradient(90deg,
-        transparent,
-        rgba(90,170,255,.55),
-        rgba(120,255,170,.35),
-        transparent
-      );
-      opacity:.55;
-      pointer-events:none;
-    }
-    header .left{
-      display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
-      position:relative;
-    }
-    header h1{
-      margin:0;
-      font-size:16px;
-      letter-spacing:.03em;
-      font-weight:950;
-      background: linear-gradient(90deg, rgba(255,255,255,.95), rgba(210,230,255,.95), rgba(255,255,255,.85));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    header .meta{
-      font-size:12px;
-      color:var(--muted2);
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.22);
-      white-space:nowrap;
-    }
-    .pill{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:5px 10px; border-radius:999px;
-      background: rgba(0,0,0,.28);
-      border:1px solid rgba(255,255,255,.12);
-      font-size:12px; color:var(--muted2);
-      white-space:nowrap;
-    }
-    .topRight{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      position:relative;
-    }
-    #btnSettings{
-      border-radius:999px;
-      padding:8px 12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-    }
-    #btnSettings:hover{ background: rgba(255,255,255,.07); }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
 
-    /* ===== Layout ===== */
-    .wrap{
-      display:grid;
-      grid-template-columns: 1.15fr 0.85fr; /* 左=カード一覧(広) / 右=デッキ */
-      gap:14px;
-      padding:14px;
-      min-height: calc(100vh - 56px);
-    }
-    @media (max-width: 980px){
-      .wrap{ grid-template-columns: 1fr; }
-    }
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          sans-serif;
+        background:
+          radial-gradient(
+            1200px 520px at 18% -10%,
+            var(--glowA),
+            transparent 60%
+          ),
+          radial-gradient(
+            1000px 540px at 86% 0%,
+            var(--glowB),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 460px at 52% -12%,
+            rgba(255, 255, 255, 0.07),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 700px at 60% 110%,
+            rgba(120, 140, 255, 0.08),
+            transparent 60%
+          ),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        overflow-x: hidden;
+      }
 
-    .panel{
-      background: var(--panel);
-      border:1px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      min-width:0;
-    }
-    .hd{
-      padding:10px 12px;
-      border-bottom:1px solid var(--line);
-      background: rgba(0,0,0,.20);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-    }
-    .hd b{ font-size:13px; letter-spacing:.01em; }
-    .bd{ padding:12px; }
+      /* subtle noise */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          radial-gradient(
+            circle at 20% 30%,
+            rgba(255, 255, 255, 0.045),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(255, 255, 255, 0.03),
+            transparent 35%
+          ),
+          radial-gradient(
+            circle at 60% 90%,
+            rgba(255, 255, 255, 0.03),
+            transparent 35%
+          );
+        opacity: 0.22;
+        mix-blend-mode: overlay;
+        filter: blur(0.2px);
+      }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .small{ font-size:12px; color:var(--muted2); }
+      /* ===== Header ===== */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(0, 0, 0, 0.12)
+        );
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+      }
+      header::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(105, 180, 255, 0.65),
+          rgba(120, 255, 170, 0.4),
+          rgba(255, 180, 90, 0.28),
+          transparent
+        );
+        opacity: 0.55;
+        pointer-events: none;
+      }
 
-    /* scroll lists */
-    .list{
-      display:flex; flex-direction:column; gap:10px;
-      max-height: calc(100vh - 150px);
-      overflow:auto;
-      padding-right:6px;
-    }
-    .list::-webkit-scrollbar{ width:10px; }
-    .list::-webkit-scrollbar-thumb{
-      background: rgba(255,255,255,.10);
-      border: 3px solid rgba(0,0,0,0);
-      background-clip: padding-box;
-      border-radius: 999px;
-    }
+      header .left {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        flex-wrap: wrap;
+        position: relative;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 15px;
+        letter-spacing: 0.05em;
+        font-weight: 950;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.96),
+          rgba(205, 230, 255, 0.95),
+          rgba(255, 255, 255, 0.86)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-transform: uppercase;
+      }
+      header .meta {
+        font-size: 12px;
+        color: var(--muted2);
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.26);
+        white-space: nowrap;
+      }
 
-    .listHead{
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 10px;
-      margin: -2px -2px 10px -2px;
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: 14px;
-      background: rgba(0,0,0,.28);
-      backdrop-filter: blur(6px);
-    }
-    .listHead b{ font-size:13px; }
-    .listHead .hint{ font-size:12px; color:var(--muted2); }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+        color: var(--muted2);
+        white-space: nowrap;
+      }
 
-    /* ===== Cards (base) ===== */
-    .cardRow{
-      --typeColor: rgba(255,255,255,.18);
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.22);
-      border-radius:14px;
-      padding:12px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      cursor:pointer;
-      transition: transform .08s ease, border-color .08s ease, background .08s ease;
-      position:relative;
-      overflow:hidden;
-    }
-    .cardRow::before{
-      content:"";
-      position:absolute;
-      left:0; top:0; bottom:0;
-      width:4px;
-      background: var(--typeColor);
-      opacity:.9;
-    }
-    .cardRow:hover{
-      border-color: color-mix(in srgb, var(--typeColor) 55%, rgba(255,255,255,.18));
-      background: rgba(255,255,255,.045);
-      transform: translateY(-1px);
-    }
+      .topRight {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      header .topRight > :not(#btnHome):not(#btnDeckTop):not(#deviceModeBadge) {
+        display: none !important;
+      }
 
-    /* deck.js が出す class: name/sub を読みやすく */
-    .cardRow .name{
-      font-weight: 950;
-      font-size: 14px;
-      letter-spacing:.01em;
-      line-height:1.25;
-      margin-right:10px;
-      max-width: 44vw;
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space:nowrap;
-    }
-    @media (max-width: 980px){
-      .cardRow .name{ max-width: 70vw; }
-    }
-    .cardRow .sub{
-      margin-top:6px;
-      font-size:13px;
-      line-height:1.35;
-      color: rgba(255,255,255,.78);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 100%;
-    }
+      .topRight > button,
+      .beginnerMenu > button {
+        border-radius: 999px;
+        padding: 8px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.24);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease,
+          border-color 0.1s ease;
+      }
+      .topRight > button:hover,
+      .beginnerMenu > button:hover,
+      .beginnerMenu > button.active {
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.24);
+        transform: translateY(-1px);
+      }
+      .topRight > button:active,
+      .beginnerMenu > button:active {
+        transform: translateY(0px) scale(0.99);
+      }
 
-    .btns{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-      flex-shrink:0;
-    }
+      .beginnerMenu {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
 
-    .miniBtn{
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.25);
-      color:#fff;
-      padding:7px 10px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:12px;
-      transition: background .08s ease, border-color .08s ease;
-    }
-    .miniBtn:hover{ background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.26); }
-    .miniBtn:disabled{ opacity:.45; cursor:not-allowed; }
+      .beginnerMenu > button.active {
+        border-color: rgba(185, 255, 55, 0.52);
+        box-shadow: 0 0 0 3px rgba(185, 255, 55, 0.1), 0 0 22px rgba(105, 180, 255, 0.14);
+      }
 
-    .count{
-      min-width: 44px;
-      text-align:center;
-      font-weight:900;
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:12px;
-      padding:7px 10px;
-      background: rgba(0,0,0,.18);
-    }
+      .beginnerPanel {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 80;
+        min-width: 230px;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+        border-radius: 18px;
+        border: 1px solid rgba(185, 255, 55, 0.22);
+        background:
+          radial-gradient(240px 140px at 18% 0%, rgba(185, 255, 55, 0.13), transparent 62%),
+          linear-gradient(180deg, rgba(22, 32, 42, 0.98), rgba(8, 10, 14, 0.98));
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46), 0 0 28px rgba(105, 180, 255, 0.12);
+      }
 
-    .btn{
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(90,170,255,.18);
-      color:#fff;
-      padding:10px 12px;
-      font-weight:900;
-      cursor:pointer;
-      transition: background .08s ease, border-color .08s ease;
-    }
-    .btn:hover{ background: rgba(90,170,255,.24); }
-    .btn:disabled{ opacity:.45; cursor:not-allowed; background: rgba(0,0,0,.18); }
+      .beginnerPanel[hidden] {
+        display: none;
+      }
 
-    .btnGhost{
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      padding:10px 12px;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .btnGhost:hover{ background: rgba(255,255,255,.07); }
+      .beginnerPanel button {
+        width: 100%;
+        min-height: 42px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.045);
+        color: #fff;
+        font-weight: 950;
+        text-align: left;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
 
-    .msg{ font-size:12px; color:var(--muted2); white-space:pre-wrap; line-height:1.35; }
-    .msg.bad{ color: var(--bad); }
-    .msg.ok{ color: var(--ok); }
+      .beginnerPanel button:hover {
+        border-color: rgba(105, 180, 255, 0.38);
+        background: rgba(105, 180, 255, 0.11);
+      }
 
-    /* ===== 属性色マップ（data-type） ===== */
-    .cardRow[data-type="火"]{ --typeColor: rgba(255, 90, 90, .9); }
-    .cardRow[data-type="雷"]{ --typeColor: rgba(255, 220, 70, .95); }
-    .cardRow[data-type="水"]{ --typeColor: rgba(90, 170, 255, .95); }
-    .cardRow[data-type="草"]{ --typeColor: rgba(110, 255, 160, .9); }
-    .cardRow[data-type="風"]{ --typeColor: rgba(150, 255, 235, .9); }
-    .cardRow[data-type="土"]{ --typeColor: rgba(255, 170, 90, .9); }
-    .cardRow[data-type="鋼"]{ --typeColor: rgba(200, 220, 255, .9); }
-    .cardRow[data-type="闇"]{ --typeColor: rgba(180, 120, 255, .9); }
-    .cardRow[data-type="光"]{ --typeColor: rgba(255, 245, 190, .95); }
-    .cardRow[data-type="夢"]{ --typeColor: rgba(255, 140, 220, .9); }
-    .cardRow[data-type="幻"]{ --typeColor: rgba(120, 255, 255, .9); }
+      #btnBgm {
+        border-radius: 999px;
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.22);
+        color: #fff;
+        font-weight: 900;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease,
+          border-color 0.1s ease,
+          box-shadow 0.12s ease;
+      }
+      #btnBgm:hover {
+        background: rgba(255, 255, 255, 0.07);
+        transform: translateY(-1px);
+      }
+      #btnBgm.on {
+        box-shadow:
+          0 0 0 3px rgba(105, 180, 255, 0.18),
+          0 18px 40px rgba(0, 0, 0, 0.35);
+        border-color: rgba(105, 180, 255, 0.55);
+        background: rgba(105, 180, 255, 0.1);
+      }
 
-    /* =========================
-       ★カード一覧だけ 2倍級でデカくする
-       ========================= */
-    #cardList .cardRow{
-      padding: 20px 16px;
-      border-radius: 18px;
-      min-height: 98px;
-      gap: 14px;
-    }
-    #cardList .cardRow .name{
-  font-size: 18px;
-  line-height: 1.22;
-  max-width: none;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ★デッキ側（右）も大きくする */
-#deckList .cardRow{
-  padding: 18px 14px;
-  min-height: 92px;
-  gap: 12px;
-}
-#deckList .cardRow .name{
-  font-size: 16px;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-#deckList .cardRow .sub{
-  font-size: 13px;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-#cardList .cardRow .sub{
-  font-size: 14px;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-    #cardList .miniBtn{
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 13px;
-    }
-    #cardList .count{
-      min-width: 56px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-size: 14px;
-    }
-    #cardList.list{ gap: 12px; }
-
-    #detailHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-    }
-    #detailHead b{ letter-spacing:.02em; }
-    #detailClose{
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      padding:6px 10px;
-      cursor:pointer;
-      font-weight:900;
-    }
-    #detailClose:hover{ background: rgba(255,255,255,.07); }
-    #detail{
-      max-height: min(320px, 38vh);
-      overflow:auto;
-      padding:12px;
-      white-space: pre-wrap;
-      line-height:1.42;
-      font-size:13px;
-    }
-
-    /* ===== Drawer Toggle (arrow) ===== */
-    #roomDrawerToggle{
-      position: fixed;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 9999;
-      border-radius: 999px;
-      padding: 10px 12px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.35);
-      color: #fff;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 28px rgba(0,0,0,.45);
-      user-select:none;
-    }
-    #roomDrawerToggle:hover{ background: rgba(255,255,255,.07); }
-
-    /* overlay */
-    #roomDrawerOverlay{
-      position: fixed;
-      inset: 0;
-      z-index: 9997;
-      background: rgba(0,0,0,.45);
-      backdrop-filter: blur(2px);
-      display:none;
-    }
-    #roomDrawerOverlay.open{ display:block; }
-
-    /* drawer */
-    #roomDrawer{
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: min(420px, 92vw);
-      height: 100vh;
-      z-index: 9998;
-      background: rgba(16,16,18,.96);
-      border-left: 1px solid rgba(255,255,255,.14);
-      transform: translateX(105%);
-      transition: transform .18s ease;
-      box-shadow: 0 18px 60px rgba(0,0,0,.6);
-      display:flex;
-      flex-direction:column;
-    }
-    #roomDrawer.open{ transform: translateX(0); }
-
-    .roomDrawerHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      padding: 12px 12px;
-      border-bottom: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.25);
-    }
-    #roomDrawerClose{
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.2);
-      color:#fff;
-      padding: 8px 10px;
-      cursor:pointer;
-      font-weight:900;
-    }
-    #roomDrawerClose:hover{ background: rgba(255,255,255,.07); }
-    .roomDrawerBody{
-      padding: 12px;
-      overflow:auto;
-    }
-    .roomRow{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-    .divider{
-      border:0;
-      border-top:1px solid rgba(255,255,255,.10);
-      margin:12px 0;
-    }
-
-    #btnArcade{
-  border-radius:999px;
-  padding:8px 12px;
-  border:1px solid rgba(255,255,255,.16);
-  background: rgba(0,0,0,.22);
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
-}
-#btnArcade:hover{ background: rgba(255,255,255,.07); }
-
-    #btnGacha{
-      border-radius:999px;
-      padding:8px 12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.22);
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-    }
-    #btnGacha:hover{ background: rgba(255,255,255,.07); }
-
-#btnBgm{
-  border-radius:999px;
-  padding:8px 10px;
-  border:1px solid rgba(255,255,255,.16);
-  background: rgba(0,0,0,.22);
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
-}
-#btnBgm:hover{ background: rgba(255,255,255,.07); }
-#btnBgm.on{ box-shadow: 0 0 0 3px rgba(90,170,255,.18); border-color: rgba(90,170,255,.45); }
-
-    .input{
-      width:100%;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.25);
-      color:#fff;
-      padding:11px 12px;
-      font-size:14px;
-      outline:none;
-    }
-    .input:focus{ border-color: rgba(90,170,255,.55); box-shadow: 0 0 0 3px rgba(90,170,255,.10); }
-    .roomDrawerBody .input{ background: rgba(0,0,0,.28); }
-    .roomDrawerBody .btn{ min-width: 110px; }
-  </style>
-</head>
-
-<body>
-  <header>
-    <div class="left">
-      <h1>Deck Builder</h1>
-      <div class="meta">30枚 / 同名4枚まで</div>
-    </div>
-
-    <div class="topRight">
-      <button id="btnLogin" type="button" class="btnGhost">ログイン（任意）</button>
-      <button id="btnArcade" type="button">アーケードモード</button>
-      <button id="btnGacha" type="button">ガチャ</button>
-      <span class="pill">v20260203 deck-ui</span>
-      <button id="btnBgm" type="button" title="BGM">🎵</button>
-      <button id="btnSettings" type="button">設定</button>
-    </div>
-  </header>
-
-  <main class="wrap">
-    <!-- LEFT = カード一覧（デカい） -->
-    <section class="panel">
-      <div class="hd">
-        <b>カード一覧</b>
-        <span class="small">クリックで詳細 / ＋で追加</span>
-      </div>
-
-      <div class="bd">
-        <div class="listHead">
-          <b>候補</b>
-          <span class="hint">属性色で見分け</span>
-        </div>
-
-        <div id="cardList" class="list"></div>
-      </div>
-    </section>
-
-    <!-- RIGHT = デッキ -->
-    <section class="panel">
-      <div class="hd">
-        <b>デッキ</b>
-        <div class="row" style="justify-content:flex-end;">
-          <span class="pill">枚数：<span id="deckCount">0</span>/30</span>
-          <button id="btnClearDeck" class="btnGhost" type="button">全消し</button>
-        </div>
-      </div>
-
-      <div class="bd">
-        <div class="listHead">
-          <b>入れたカード</b>
-          <span class="hint">EXはサポートから指定</span>
-        </div>
-
-        <div id="deckList" class="list"></div>
-
-        <!-- deck.js が msgEl として拾う（エラー/ガイド表示） -->
-        <div id="deckMsg" class="msg bad" style="margin-top:10px;"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- deck.js -->
-  <script type="module" src="./deck.js?v=20260226_8"></script>
-  <script>
-    // Solo button fallback/diagnostic:
-    // index.html 側は「btnSolo クリック → deck.js のハンドラ呼び出し/イベント通知」まで。
-    // ★重要：btnSolo は Drawer 内にあるので、このスクリプト時点では DOM 未生成のことがある。
-    // そのため「イベント委譲」で確実に拾う。
-    (function(){
-      function runSolo(){
-        try{
-          if (typeof window.__tcg_handleSoloRoom === 'function'){
-            console.log('[solo] calling window.__tcg_handleSoloRoom()');
-            window.__tcg_handleSoloRoom();
-            return;
-          }
-
-          console.warn('[solo] handler not found. deck.js may not have initialized yet.');
-          window.dispatchEvent(new CustomEvent('tcg:solo'));
-
-          // ユーザーに分かる形で一度だけ通知（静かにしたければ消してOK）
-          alert('ソロ開始ハンドラが見つかりませんでした。\n\n1) コンソールに出ているエラーを貼ってください\n2) deck.js が読み込めているか（Network/Console）確認してください');
-        } catch (err){
-          console.error('[solo] runSolo crashed', err);
-          alert('ソロ開始の処理でエラーが出ました。\nコンソールの赤いエラーを貼ってください。');
+      /* ===== Layout ===== */
+      .wrap {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 14px;
+        padding: 14px;
+        min-height: calc(100vh - 56px);
+      }
+      @media (max-width: 980px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        header {
+          padding: 10px 12px;
         }
       }
 
-      // ★btnSolo がまだ無くても拾えるように、document に click を委譲
-      document.addEventListener('click', (e)=>{
-        const t = e.target;
-        if (!t) return;
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--r2);
+        box-shadow: var(--shadow2);
+        overflow: hidden;
+        min-width: 0;
+        position: relative;
+      }
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        background:
+          radial-gradient(
+            800px 240px at 20% 0%,
+            rgba(105, 180, 255, 0.14),
+            transparent 55%
+          ),
+          radial-gradient(
+            800px 240px at 85% 0%,
+            rgba(120, 255, 170, 0.1),
+            transparent 55%
+          );
+        opacity: 0.9;
+        pointer-events: none;
+      }
 
-        // ボタン内の span などを押しても拾えるように closest
-        const btn = (t.closest ? t.closest('#btnSolo') : null);
-        if (!btn) return;
+      .hd {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        position: relative;
+        z-index: 1;
+      }
+      .hd b {
+        font-size: 13px;
+        letter-spacing: 0.02em;
+      }
+      .panelHdText {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+      .panelHdText .small {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .panel.isPanelCollapsed > .bd {
+        display: none !important;
+      }
+      .panel.isPanelCollapsed {
+        min-height: 0;
+      }
+      .panel.isPanelCollapsed > .hd {
+        border-bottom: 0;
+      }
+      .panelMinBtn {
+        box-shadow: 0 0 18px rgba(125, 211, 252, 0.12);
+      }
+      .wrap.libraryCollapsed {
+        grid-template-columns: minmax(180px, 260px) 1fr;
+      }
+      .wrap.deckCollapsed {
+        grid-template-columns: 1fr minmax(180px, 260px);
+      }
+      .wrap.libraryCollapsed.deckCollapsed {
+        grid-template-columns: 1fr 1fr;
+      }
+      .bd {
+        padding: 12px;
+        position: relative;
+        z-index: 1;
+      }
 
-        e.preventDefault();
-        e.stopPropagation();
-        runSolo();
-      }, { capture:true });
-    })();
-  </script>
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted2);
+      }
 
-  <!-- ===== Right Drawer ===== -->
-  <button id="roomDrawerToggle" aria-label="ルーム操作を開く" type="button">▶</button>
-  <div id="roomDrawerOverlay" aria-hidden="true"></div>
+      /* scroll lists */
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: calc(100vh - 150px);
+        overflow: auto;
+        padding-right: 6px;
+        scroll-behavior: smooth;
+      }
+      .list::-webkit-scrollbar {
+        width: 10px;
+      }
+      .list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border: 3px solid rgba(0, 0, 0, 0);
+        background-clip: padding-box;
+        border-radius: 999px;
+      }
 
-  <aside id="roomDrawer" aria-hidden="true">
-    <div class="roomDrawerHead">
-      <b>設定 / ルーム操作</b>
-      <button id="roomDrawerClose" type="button">✕</button>
+      .listHead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 10px;
+        margin: -2px -2px 10px -2px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+      }
+      .listHead b {
+        font-size: 13px;
+      }
+      .listHead .hint {
+        font-size: 12px;
+        color: var(--muted2);
+      }
+
+      /* ===== Cards ===== */
+      .cardRow {
+        --typeColor: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.26);
+        border-radius: 18px;
+        padding: 14px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        cursor: pointer;
+        transition:
+          transform 0.1s ease,
+          border-color 0.1s ease,
+          background 0.1s ease,
+          box-shadow 0.12s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+      }
+      .cardRow::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background: linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--typeColor) 70%, rgba(255, 255, 255, 0.18)),
+          var(--typeColor)
+        );
+        opacity: 0.95;
+        filter: drop-shadow(
+          0 0 10px color-mix(in srgb, var(--typeColor) 35%, transparent)
+        );
+      }
+      .cardRow::after {
+        content: "";
+        position: absolute;
+        inset: -40px -80px auto auto;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1),
+          transparent 60%
+        );
+        transform: rotate(18deg);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+      .cardRow:hover {
+        border-color: color-mix(
+          in srgb,
+          var(--typeColor) 60%,
+          rgba(255, 255, 255, 0.18)
+        );
+        background: rgba(255, 255, 255, 0.055);
+        transform: translateY(-2px);
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+      }
+      .cardRow:active {
+        transform: translateY(-1px) scale(0.995);
+      }
+
+      .cardRow .name {
+        font-weight: 950;
+        font-size: 14px;
+        letter-spacing: 0.01em;
+        line-height: 1.25;
+        margin-right: 10px;
+        max-width: 44vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @media (max-width: 980px) {
+        .cardRow .name {
+          max-width: 70vw;
+        }
+      }
+
+      .cardRow .sub {
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.35;
+        color: rgba(255, 255, 255, 0.8);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      /* ===== Buttons group (A: 邵ｦ縺ｫ隧ｰ繧√ｋ) ===== */
+
+      /* 荳頑ｮｵ縺ｮ - count + 繧偵・陦後阪↓謠・∴繧具ｼ・OM縺ｯ隗ｦ繧峨↑縺・ｼ・*/
+      .btns {
+        display: grid;
+        grid-template-columns: 28px 64px 28px;
+        grid-template-areas:
+          "minus count plus"
+          "detail detail detail"
+          "admin admin admin";
+        gap: 6px;
+        align-items: center;
+        justify-content: end;
+        min-width: 132px;
+      }
+
+      .miniBtn {
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.26);
+        color: #fff;
+        padding: 4px 8px;
+        font-weight: 900;
+        cursor: pointer;
+        font-size: 11px;
+        min-width: 0;
+        height: 28px;
+        line-height: 1;
+      }
+
+      .miniBtn[data-plus],
+      .miniBtn[data-minus] {
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border-radius: 999px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .miniBtn[data-minus] { grid-area: minus; }
+      .miniBtn[data-plus] { grid-area: plus; }
+
+      .count {
+        grid-area: count;
+        min-width: 56px;
+        height: 28px;
+        text-align: center;
+        font-weight: 900;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+        padding: 4px 6px;
+        background: rgba(0, 0, 0, 0.2);
+        font-size: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btns .adminHideToggle {
+        grid-area: admin;
+        width: 100%;
+        height: 28px;
+        padding: 4px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+        border-color: rgba(255, 120, 120, 0.45);
+        background: rgba(95, 32, 42, 0.42);
+        color: #ffd6dc;
+      }
+      .btns .adminHideToggle.isHidden {
+        border-color: rgba(120, 210, 255, 0.48);
+        background: rgba(25, 72, 100, 0.42);
+        color: #d8f2ff;
+      }
+
+      .btns .miniBtn[data-detail] {
+        grid-area: detail;
+        width: 100%;
+        height: 36px;
+        margin-top: 4px;
+      }
+
+      /* 1谿ｵ逶ｮ繧・蛻励↓縺吶ｋ */
+
+      .miniBtn {
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.26);
+        color: #fff;
+        padding: 3px 6px;
+        font-weight: 900;
+        cursor: pointer;
+        font-size: 11px;
+        min-width: 24px;
+        height: 24px;
+      }
+      .miniBtn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
+      }
+      .miniBtn:active {
+        transform: translateY(0px) scale(0.99);
+      }
+      .miniBtn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .count {
+        min-width: 24px;
+        text-align: center;
+        font-weight: 900;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 3px 4px;
+        background: rgba(0, 0, 0, 0.2);
+        font-size: 11px;
+      }
+
+      .miniBtn[data-plus],
+      .miniBtn[data-minus] {
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border-radius: 999px;
+        font-size: 12px;
+      }
+
+      .btn {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(105, 180, 255, 0.18);
+        color: #fff;
+        padding: 10px 12px;
+        font-weight: 950;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease,
+          border-color 0.1s ease;
+      }
+      .btn:hover {
+        background: rgba(105, 180, 255, 0.26);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0px) scale(0.99);
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .btnGhost {
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.24);
+        color: #fff;
+        padding: 10px 12px;
+        font-weight: 950;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease,
+          border-color 0.1s ease;
+      }
+      .btnGhost:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.26);
+        transform: translateY(-1px);
+      }
+      .btnGhost:active {
+        transform: translateY(0px) scale(0.99);
+      }
+
+      .msg {
+        font-size: 12px;
+        color: var(--muted2);
+        white-space: pre-wrap;
+        line-height: 1.35;
+      }
+      .msg.bad {
+        color: var(--bad);
+      }
+      .msg.ok {
+        color: var(--ok);
+      }
+
+      /* ===== type colors ===== */
+      .cardRow[data-type="火"] {
+        --typeColor: rgba(255, 90, 90, 0.95);
+      }
+      .cardRow[data-type="雷"] {
+        --typeColor: rgba(255, 220, 70, 0.98);
+      }
+      .cardRow[data-type="水"] {
+        --typeColor: rgba(90, 170, 255, 0.98);
+      }
+      .cardRow[data-type="草"] {
+        --typeColor: rgba(110, 255, 160, 0.95);
+      }
+      .cardRow[data-type="風"] {
+        --typeColor: rgba(150, 255, 235, 0.95);
+      }
+      .cardRow[data-type="鋼"] {
+        --typeColor: rgba(200, 220, 255, 0.95);
+      }
+      .cardRow[data-type="闇"] {
+        --typeColor: rgba(180, 120, 255, 0.95);
+      }
+      .cardRow[data-type="光"] {
+        --typeColor: rgba(255, 245, 190, 0.98);
+      }
+      .cardRow[data-type="幻"] {
+        --typeColor: rgba(255, 140, 220, 0.95);
+      }
+      .cardRow[data-type="幻"] {
+        --typeColor: rgba(120, 255, 255, 0.95);
+      }
+      .cardRow[data-type="呪"] {
+        --typeColor: rgba(192, 132, 252, 0.95);
+      }
+
+      /* bigger lists */
+      #cardList .cardRow {
+        padding: 20px 16px;
+        border-radius: 20px;
+        min-height: 118px;
+        gap: 14px;
+      }
+      #cardList .cardRow .name {
+        font-size: 18px;
+        line-height: 1.22;
+        max-width: none;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      #cardList .cardRow .sub {
+        font-size: 14px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      #cardList .miniBtn {
+        padding: 3px 6px;
+        border-radius: 8px;
+        font-size: 11px;
+        min-width: 24px;
+        height: 24px;
+      }
+
+      #cardList .count {
+        min-width: 40px;
+        height: 24px;
+        padding: 2px 6px;
+        border-radius: 8px;
+        font-size: 11px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #cardList.list {
+        gap: 12px;
+      }
+
+      #deckList .cardRow {
+        padding: 18px 14px;
+        min-height: 92px;
+        gap: 12px;
+      }
+      #deckList .cardRow .name {
+        font-size: 16px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      #deckList .cardRow .sub {
+        font-size: 13px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      #cardList .miniBtn[data-plus],
+      #cardList .miniBtn[data-minus] {
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        padding: 0;
+        border-radius: 999px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ===== Premium Save CTA ===== */
+      .btnPrimary {
+        border-radius: 999px;
+        padding: 9px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 950;
+        cursor: pointer;
+        background:
+          radial-gradient(120px 70px at 20% 20%, var(--gold3), transparent 60%),
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(0, 0, 0, 0.12)
+          ),
+          linear-gradient(90deg, var(--gold2), rgba(105, 180, 255, 0.1));
+        box-shadow:
+          0 14px 34px rgba(0, 0, 0, 0.45),
+          0 0 0 3px rgba(255, 215, 120, 0.08);
+        transition:
+          transform 0.08s ease,
+          filter 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+      .btnPrimary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow:
+          0 18px 44px rgba(0, 0, 0, 0.52),
+          0 0 0 3px rgba(255, 215, 120, 0.12);
+      }
+      .btnPrimary:active {
+        transform: translateY(0px) scale(0.99);
+      }
+
+      .deckSaveDock {
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 12px;
+        background:
+          radial-gradient(420px 150px at 12% 0%, rgba(105, 180, 255, 0.14), transparent 62%),
+          linear-gradient(180deg, rgba(255,255,255,0.045), rgba(0,0,0,0.18));
+        padding: 8px 10px;
+      }
+      .deckSaveDockHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .deckSaveDockHead b {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+      }
+      .deckSaveDockHead span {
+        color: var(--muted2);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .deckSaveDockHeadMain,
+      .deckInfoDockHeadMain {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+      }
+      .sectionMinBtn {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(0, 0, 0, 0.24);
+        color: #fff;
+        font-weight: 950;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          transform 0.08s ease,
+          background 0.12s ease,
+          border-color 0.12s ease;
+      }
+      .sectionMinBtn:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
+      }
+      .sectionMinBtn:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .deckSaveRow .input {
+        flex: 1 1 180px;
+        min-width: 160px;
+      }
+      .deckSaveRow {
+        align-items: center;
+        gap: 8px;
+      }
+      .deckSaveRow .small {
+        flex: 1 1 auto;
+        min-width: 160px;
+      }
+      .deckSaveDock .deckLibBox {
+        max-height: min(34vh, 360px);
+        overflow: auto;
+      }
+      .deckSaveDock.isCollapsed .deckSaveRow,
+      .deckSaveDock.isCollapsed .deckLibBox,
+      .deckInfoDock.isCollapsed .deckInfoBody {
+        display: none !important;
+      }
+      .deckSaveDock.isCollapsed,
+      .deckInfoDock.isCollapsed {
+        padding-bottom: 10px;
+      }
+      .deckSaveDock.isCollapsed .deckSaveDockHead {
+        margin-bottom: 0;
+      }
+      .deckInfoDock.isCollapsed {
+        flex: 0 0 auto;
+      }
+      .deckInfoDock {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+        flex: 1;
+      }
+      .deckInfoDockHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.22);
+      }
+      .deckInfoDockHead b {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+      }
+      .deckInfoDockHead span {
+        color: var(--muted2);
+        font-size: 12px;
+      }
+      .deckInfoBody {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 0;
+        flex: 1;
+      }
+
+      /* ===== Deck panel glow when ready ===== */
+      #deckPanel.deckReadyGlow {
+        box-shadow:
+          0 14px 40px rgba(0, 0, 0, 0.55),
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          0 0 0 3px rgba(120, 255, 170, 0.08),
+          0 0 38px rgba(120, 255, 170, 0.1);
+      }
+      #deckPanel.deckReadyGlow::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            600px 240px at 60% 0%,
+            rgba(120, 255, 170, 0.1),
+            transparent 60%
+          ),
+          radial-gradient(
+            600px 240px at 20% 30%,
+            rgba(105, 180, 255, 0.1),
+            transparent 65%
+          );
+        opacity: 0.9;
+      }
+
+      /* ===== DETAIL floating ===== */
+      #detailWrap.detailFloating {
+        position: fixed;
+        left: 14px;
+        bottom: 14px;
+        width: min(560px, calc(100vw - 28px));
+        max-height: min(60vh, 520px);
+        z-index: 9999;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 18px;
+        box-shadow: 0 22px 70px rgba(0, 0, 0, 0.68);
+        background: rgba(16, 16, 18, 0.96);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
+      #detail {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      #detailWrap .detailBody {
+        display: none;
+      }
+
+      #detailHead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(0, 0, 0, 0.22)
+        );
+      }
+      #detailHead b {
+        letter-spacing: 0.06em;
+        font-weight: 950;
+      }
+      #detailClose {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.22);
+        color: #fff;
+        padding: 6px 10px;
+        cursor: pointer;
+        font-weight: 950;
+        transition:
+          background 0.1s ease,
+          transform 0.08s ease;
+      }
+      #detailClose:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+      #detailClose:active {
+        transform: translateY(0px) scale(0.99);
+      }
+      #detail {
+        max-height: min(320px, 38vh);
+        overflow: auto;
+        padding: 12px;
+        white-space: pre-wrap;
+        line-height: 1.46;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.86);
+      }
+      #detailWrap.isHidden {
+        display: none !important;
+      }
+
+      /* ===== Drawer toggle ===== */
+      #roomDrawerToggle {
+        position: fixed;
+        right: 18px;
+        top: auto;
+        bottom: 24px;
+        transform: none;
+        z-index: 9999;
+        border-radius: 999px;
+        padding: 11px 14px;
+        min-width: 88px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(0, 0, 0, 0.4);
+        color: #fff;
+        font-weight: 950;
+        font-size: 14px;
+        cursor: pointer;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.52);
+        user-select: none;
+        letter-spacing: 0;
+        transition:
+          transform 0.1s ease,
+          background 0.1s ease,
+          border-color 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      #roomDrawerToggle:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+      #roomDrawerToggle.deckReady {
+        border-color: rgba(110, 255, 180, 0.66);
+        background: linear-gradient(
+          135deg,
+          rgba(35, 155, 95, 0.9),
+          rgba(40, 115, 205, 0.82)
+        );
+        box-shadow:
+          0 0 0 1px rgba(120, 255, 190, 0.18),
+          0 0 26px rgba(90, 255, 170, 0.42),
+          0 18px 42px rgba(0, 0, 0, 0.56);
+        animation: playReadyPulse 1.5s ease-in-out infinite;
+      }
+      @keyframes playReadyPulse {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.18);
+        }
+      }
+
+      #roomDrawerOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9997;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        display: none;
+      }
+      #roomDrawerOverlay.open {
+        display: block;
+      }
+
+      #roomDrawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(420px, 92vw);
+        height: 100vh;
+        z-index: 9998;
+        background: rgba(16, 16, 18, 0.96);
+        border-left: 1px solid rgba(255, 255, 255, 0.14);
+        transform: translateX(105%);
+        transition: transform 0.18s ease;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65);
+        display: flex;
+        flex-direction: column;
+        backdrop-filter: blur(10px);
+      }
+      #roomDrawer.open {
+        transform: translateX(0);
+      }
+
+      .roomDrawerHead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(0, 0, 0, 0.22)
+        );
+      }
+      #roomDrawerClose {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(0, 0, 0, 0.22);
+        color: #fff;
+        padding: 8px 10px;
+        cursor: pointer;
+        font-weight: 950;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease;
+      }
+      #roomDrawerClose:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+      #roomDrawerClose:active {
+        transform: translateY(0px) scale(0.99);
+      }
+
+      .roomDrawerBody {
+        padding: 12px;
+        overflow: auto;
+        display: grid;
+        gap: 12px;
+      }
+      .roomRow {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .roomOpHero,
+      .roomOpCard {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        background:
+          radial-gradient(440px 180px at 18% 0%, rgba(105, 180, 255, 0.13), transparent 58%),
+          linear-gradient(180deg, rgba(255,255,255,0.055), rgba(0,0,0,0.20));
+        box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+        overflow: hidden;
+      }
+      .roomOpHero {
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+      }
+      .roomOpKicker {
+        color: rgba(185,255,55,0.92);
+        font-size: 11px;
+        font-weight: 950;
+        letter-spacing: 0.12em;
+      }
+      .roomOpTitle {
+        font-size: 22px;
+        font-weight: 950;
+        letter-spacing: 0.02em;
+      }
+      .roomOpLead {
+        color: var(--muted2);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .roomOpCardHd {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.18);
+      }
+      .roomOpCardHd b {
+        font-size: 13px;
+        letter-spacing: 0.04em;
+      }
+      .roomOpCardBd {
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .roomOpGrid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .roomOpGrid .btn,
+      .roomOpGrid .btnGhost {
+        width: 100%;
+        min-height: 44px;
+      }
+      .roomOpHint {
+        color: var(--muted2);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .divider {
+        border: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 12px 0;
+      }
+
+      .input {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.26);
+        color: #fff;
+        padding: 11px 12px;
+        font-size: 14px;
+        outline: none;
+        transition:
+          border-color 0.1s ease,
+          box-shadow 0.12s ease;
+      }
+      .input:focus {
+        border-color: rgba(105, 180, 255, 0.62);
+        box-shadow: 0 0 0 3px rgba(105, 180, 255, 0.12);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
+      }
+
+      /* 繧ｹ繝槭・縺ｧ縺ｯ繝峨Ο繝ｯ繝ｼ繝医げ繝ｫ繧剃ｸ企Κ縺ｸ */
+      @media (max-width: 720px) {
+        #roomDrawerToggle {
+          top: 10px;
+          bottom: auto;
+          right: 10px;
+          left: auto;
+          transform: none;
+          padding: 10px 12px;
+          min-width: 82px;
+        }
+        header {
+          padding-right: 64px;
+        }
+      }
+
+      /* ===== Card Filters ===== */
+      .filterBar {
+        position: sticky;
+        top: 58px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 0 0 12px 0;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+      }
+
+      .filterRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .filterSpacer {
+        flex: 1 1 18px;
+        min-width: 12px;
+      }
+
+      .ownedFilterGroup {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        padding-left: 10px;
+        border-left: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .filterTab,
+      .filterChip {
+        appearance: none;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.88);
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+        transition:
+          transform 0.08s ease,
+          background 0.1s ease,
+          border-color 0.1s ease,
+          box-shadow 0.12s ease;
+      }
+      .ownedFilter {
+        min-width: 74px;
+        overflow: hidden;
+      }
+      .ownedFilter::after {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 3px;
+        height: 2px;
+        border-radius: 999px;
+        background: currentColor;
+        opacity: 0;
+        transform: scaleX(0.42);
+        transition:
+          opacity 0.12s ease,
+          transform 0.16s ease;
+      }
+      .ownedFilter.active::after,
+      .ownedFilter.isSelected::after,
+      .ownedFilter[aria-pressed="true"]::after {
+        opacity: 0.95 !important;
+        transform: scaleX(1) !important;
+      }
+
+      .filterTab:hover,
+      .filterChip:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+
+      .filterTab:active,
+      .filterChip:active {
+        transform: translateY(0) scale(0.99);
+      }
+
+      .filterTab.active,
+      .filterChip.active {
+        color: #fff;
+        border-color: rgba(105, 180, 255, 0.55);
+        background: rgba(105, 180, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(105, 180, 255, 0.1);
+      }
+
+      .ownedFilter[data-owned="all"].active,
+      .ownedFilter[data-owned="all"].isSelected,
+      .ownedFilter[data-owned="all"][aria-pressed="true"] {
+        border-color: rgba(105, 180, 255, 0.88) !important;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(105, 180, 255, 0.32), transparent 68%),
+          rgba(105, 180, 255, 0.18) !important;
+        box-shadow:
+          0 0 0 3px rgba(105, 180, 255, 0.12),
+          0 0 18px rgba(105, 180, 255, 0.32) !important;
+        color: rgba(230, 245, 255, 0.98) !important;
+      }
+
+      .ownedFilter[data-owned="owned"].active,
+      .ownedFilter[data-owned="owned"].isSelected,
+      .ownedFilter[data-owned="owned"][aria-pressed="true"] {
+        border-color: rgba(120, 255, 175, 0.9) !important;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(120, 255, 175, 0.30), transparent 68%),
+          rgba(120, 255, 175, 0.16) !important;
+        box-shadow:
+          0 0 0 3px rgba(120, 255, 175, 0.12),
+          0 0 18px rgba(120, 255, 175, 0.30) !important;
+        color: rgba(225, 255, 238, 0.98) !important;
+      }
+
+      .ownedFilter[data-owned="unowned"].active,
+      .ownedFilter[data-owned="unowned"].isSelected,
+      .ownedFilter[data-owned="unowned"][aria-pressed="true"] {
+        border-color: rgba(255, 125, 145, 0.9) !important;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 125, 145, 0.30), transparent 68%),
+          rgba(255, 125, 145, 0.16) !important;
+        box-shadow:
+          0 0 0 3px rgba(255, 125, 145, 0.12),
+          0 0 18px rgba(255, 125, 145, 0.30) !important;
+        color: rgba(255, 232, 236, 0.98) !important;
+      }
+      .ownedFilter.ownedFlash {
+        animation: ownedFilterFlash 0.34s ease-out;
+      }
+      @keyframes ownedFilterFlash {
+        0% { transform: translateY(0) scale(1); filter: brightness(1); }
+        45% { transform: translateY(-1px) scale(1.045); filter: brightness(1.32); }
+        100% { transform: translateY(0) scale(1); filter: brightness(1); }
+      }
+
+      .filterChip[data-attr="火"].active {
+        border-color: rgba(255, 90, 90, 0.9);
+        background: rgba(255, 90, 90, 0.16);
+        box-shadow: 0 0 0 3px rgba(255, 90, 90, 0.08);
+      }
+      .filterChip[data-attr="水"].active {
+        border-color: rgba(90, 170, 255, 0.9);
+        background: rgba(90, 170, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(90, 170, 255, 0.08);
+      }
+      .filterChip[data-attr="雷"].active {
+        border-color: rgba(255, 220, 70, 0.95);
+        background: rgba(255, 220, 70, 0.16);
+        box-shadow: 0 0 0 3px rgba(255, 220, 70, 0.08);
+        color: #fff;
+      }
+      .filterChip[data-attr="草"].active {
+        border-color: rgba(110, 255, 160, 0.95);
+        background: rgba(110, 255, 160, 0.16);
+        box-shadow: 0 0 0 3px rgba(110, 255, 160, 0.08);
+      }
+      .filterChip[data-attr="風"].active {
+        border-color: rgba(150, 255, 235, 0.95);
+        background: rgba(150, 255, 235, 0.16);
+        box-shadow: 0 0 0 3px rgba(150, 255, 235, 0.08);
+      }
+      .filterChip[data-attr="鋼"].active {
+        border-color: rgba(200, 220, 255, 0.95);
+        background: rgba(200, 220, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(200, 220, 255, 0.08);
+      }
+      .filterChip[data-attr="光"].active {
+        border-color: rgba(255, 245, 190, 0.95);
+        background: rgba(255, 245, 190, 0.16);
+        box-shadow: 0 0 0 3px rgba(255, 245, 190, 0.08);
+        color: #fff;
+      }
+      .filterChip[data-attr="闇"].active {
+        border-color: rgba(180, 120, 255, 0.95);
+        background: rgba(180, 120, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(180, 120, 255, 0.08);
+      }
+      .filterChip[data-attr="幻"].active {
+        border-color: rgba(120, 255, 255, 0.95);
+        background: rgba(120, 255, 255, 0.16);
+        box-shadow: 0 0 0 3px rgba(120, 255, 255, 0.08);
+      }
+      .filterChip[data-attr="呪"].active {
+        border-color: rgba(192, 132, 252, 0.95);
+        background: rgba(192, 132, 252, 0.16);
+        box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.1);
+      }
+
+      .cardRow.isFilteredOut {
+        display: none !important;
+      }
+
+      @media (max-width: 720px) {
+        .filterBar {
+          top: 54px;
+          padding: 8px;
+          gap: 8px;
+        }
+
+        .filterTab,
+        .filterChip {
+          padding: 7px 10px;
+          font-size: 11px;
+        }
+
+        .cardRow {
+          align-items: center;
+        }
+
+        .btns .miniBtn[data-detail] {
+          grid-row: 2;
+          grid-column: 1 / 4;
+          width: 100%;
+          min-height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        #cardList .cardRow {
+          min-height: 116px;
+        }
+      }
+
+      /* ===== Beginner Guide Overlay ===== */
+      #guideOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 12000;
+        display: none;
+        background: rgba(3, 6, 12, 0.72);
+        backdrop-filter: blur(4px);
+      }
+
+      #guideOverlay.open {
+        display: block;
+      }
+
+      #guideDim {
+        position: absolute;
+        inset: 0;
+      }
+
+      .guideFocus {
+        position: fixed;
+        z-index: 12001;
+        border-radius: 18px;
+        border: 2px solid rgba(125, 220, 255, 0.95);
+        box-shadow:
+          0 0 0 9999px rgba(0, 0, 0, 0.45),
+          0 0 0 8px rgba(125, 220, 255, 0.1),
+          0 0 32px rgba(125, 220, 255, 0.3);
+        pointer-events: none;
+        transition: all 0.2s ease;
+      }
+
+      #guideCard {
+        position: fixed;
+        z-index: 12002;
+        width: min(420px, calc(100vw - 28px));
+        background: rgba(10, 14, 22, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 20px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
+        padding: 16px;
+      }
+
+      #guideStep {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.65);
+        margin-bottom: 8px;
+        font-weight: 800;
+      }
+
+      #guideTitle {
+        font-size: 20px;
+        font-weight: 950;
+        margin-bottom: 10px;
+      }
+
+      #guideText {
+        font-size: 14px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.9);
+        white-space: pre-wrap;
+      }
+
+      #guideActions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+
+      .guideBtn {
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        padding: 8px 12px;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .guideBtn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .guideBtn.primary {
+        background: rgba(105, 180, 255, 0.18);
+        border-color: rgba(105, 180, 255, 0.42);
+      }
+
+      #guideBadge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.75);
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 720px) {
+        #guideCard {
+          width: calc(100vw - 20px);
+        }
+      }
+
+      /* ===== 20260626 deck builder layout refresh ===== */
+      body {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.025), transparent 220px),
+          radial-gradient(900px 500px at 18% -12%, rgba(76, 166, 255, 0.18), transparent 62%),
+          radial-gradient(760px 520px at 95% 4%, rgba(108, 225, 170, 0.13), transparent 58%),
+          radial-gradient(820px 620px at 45% 110%, rgba(255, 194, 94, 0.08), transparent 55%),
+          linear-gradient(180deg, #07090d, #0d1017 52%, #08090d);
+      }
+
+      header {
+        min-height: 58px;
+        padding: 10px 18px;
+      }
+
+      header .left {
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 16px;
+        letter-spacing: 0.02em;
+        color: rgba(255,255,255,0.96);
+        background: none;
+        -webkit-background-clip: initial;
+        background-clip: initial;
+        text-transform: none;
+      }
+
+      .topRight {
+        gap: 8px;
+      }
+
+      .topRight > button,
+      .topRight > .pill,
+      #btnBgm {
+        min-height: 36px;
+      }
+
+      .wrap {
+        grid-template-columns: minmax(520px, 1.5fr) minmax(360px, 0.82fr);
+        gap: 12px;
+        padding: 12px;
+        align-items: start;
+      }
+
+      .panel {
+        border-radius: 14px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.058), rgba(255,255,255,0.026)),
+          rgba(10, 13, 18, 0.78);
+        border-color: rgba(255,255,255,0.13);
+        box-shadow: 0 18px 54px rgba(0,0,0,0.48);
+      }
+
+      .panel::before {
+        opacity: 0.52;
+      }
+
+      .libraryPanel,
+      #deckPanel {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        max-height: calc(100vh - 80px);
+      }
+
+      #deckPanel {
+        position: sticky;
+        top: 66px;
+      }
+
+      .hd {
+        min-height: 46px;
+        padding: 9px 12px;
+        background: rgba(0,0,0,0.24);
+      }
+
+      .hd b {
+        font-size: 14px;
+      }
+
+      .bd {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 0;
+        flex: 1;
+      }
+
+      .listHead {
+        position: relative;
+        top: auto;
+        margin: 0;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      .filterBar {
+        position: sticky;
+        top: 62px;
+        z-index: 8;
+        border-radius: 12px;
+        padding: 8px;
+        background: rgba(9, 12, 18, 0.84);
+        border: 1px solid rgba(255,255,255,0.11);
+        backdrop-filter: blur(12px);
+      }
+
+      #cardList.list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        align-content: start;
+        gap: 10px;
+        max-height: none;
+        flex: 1;
+      }
+
+      #deckList.list {
+        max-height: none;
+        flex: 1;
+        gap: 8px;
+      }
+
+      .cardRow {
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+      }
+
+      #cardList .cardRow {
+        min-height: 92px;
+        padding: 12px 11px 11px 13px;
+        gap: 10px;
+      }
+
+      #deckList .cardRow {
+        min-height: 74px;
+        padding: 12px 12px 12px 14px;
+      }
+
+      #cardList .cardRow .name {
+        font-size: 15px;
+        line-height: 1.28;
+      }
+
+      #deckList .cardRow .name {
+        font-size: 14px;
+        line-height: 1.28;
+      }
+
+      #cardList .cardRow .sub,
+      #deckList .cardRow .sub {
+        font-size: 12px;
+        line-height: 1.42;
+        color: rgba(255,255,255,0.72);
+      }
+
+      .btns {
+        grid-template-columns: 34px 34px;
+        grid-auto-rows: 32px;
+        gap: 7px;
+        align-self: stretch;
+        align-content: center;
+      }
+
+      .btns .count {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 28px;
+        min-width: 0;
+      }
+
+      .btns .miniBtn[data-detail],
+      .btns .adminHideToggle {
+        grid-column: 1 / -1;
+      }
+
+      .miniBtn,
+      #cardList .miniBtn,
+      #cardList .miniBtn[data-plus],
+      #cardList .miniBtn[data-minus],
+      .miniBtn[data-plus],
+      .miniBtn[data-minus] {
+        min-width: 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+      }
+
+      .btns .miniBtn[data-detail] {
+        width: 100%;
+        height: 30px;
+        margin-top: 0;
+      }
+
+      .btnPrimary,
+      .btnGhost,
+      .btn {
+        border-radius: 10px;
+      }
+
+      #deckPanel .pill {
+        border-color: rgba(120, 255, 180, 0.26);
+        background: rgba(120, 255, 180, 0.08);
+        color: rgba(222, 255, 235, 0.92);
+      }
+
+      #detailWrap.detailFloating {
+        left: auto;
+        right: 18px;
+        bottom: 18px;
+        width: min(440px, calc(100vw - 36px));
+        max-height: min(54vh, 500px);
+        border-radius: 14px;
+        z-index: 9000;
+      }
+
+      #detail {
+        max-height: min(330px, 40vh);
+        font-size: 12px;
+      }
+
+      @media (min-width: 1380px) {
+        #cardList.list {
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        .libraryPanel,
+        #deckPanel {
+          min-height: auto;
+          max-height: none;
+        }
+        #deckPanel {
+          position: relative;
+          top: auto;
+        }
+        #cardList.list {
+          max-height: none;
+        }
+      }
+
+      @media (max-width: 720px) {
+        header {
+          align-items: flex-start;
+        }
+        .wrap {
+          padding: 10px;
+          gap: 10px;
+        }
+        #cardList.list {
+          display: flex;
+          gap: 9px;
+        }
+        #cardList .cardRow {
+          min-height: 100px;
+        }
+        .filterBar {
+          top: 58px;
+        }
+        #detailWrap.detailFloating {
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+          width: auto;
+        }
+      }
+
+      /* Mobile polish: keep deck builder controls readable and tappable. */
+      @media (max-width: 640px) {
+        header {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 10px;
+          position: sticky;
+          top: 0;
+          z-index: 80;
+        }
+        header .left,
+        .topRight {
+          width: 100%;
+        }
+        .beginnerMenu {
+          flex: 0 0 auto;
+        }
+        .beginnerPanel {
+          left: 0;
+          right: auto;
+          min-width: min(260px, calc(100vw - 28px));
+        }
+        .topRight {
+          justify-content: flex-start;
+          overflow-x: auto;
+          flex-wrap: nowrap;
+          padding-bottom: 2px;
+          scrollbar-width: thin;
+        }
+        .topRight > button,
+        .beginnerMenu > button,
+        .topRight > .pill,
+        #btnBgm {
+          flex: 0 0 auto;
+          min-height: 36px;
+        }
+        .panel .hd,
+        .listHead,
+        .deckTop,
+        .fineRow,
+        .modeHead {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 8px;
+        }
+        #cardList .cardRow,
+        #deckList .cardRow,
+        .cardRow {
+          align-items: stretch;
+          flex-direction: column;
+          min-height: 0;
+          padding: 12px;
+          gap: 10px;
+        }
+        #cardList .cardRow .name,
+        #deckList .cardRow .name,
+        .cardRow .name {
+          max-width: none;
+          -webkit-line-clamp: 3;
+        }
+        #cardList .cardRow .sub,
+        #deckList .cardRow .sub,
+        .cardRow .sub {
+          -webkit-line-clamp: 3;
+        }
+        .btns {
+          align-self: stretch;
+          grid-template-columns: 36px minmax(76px, 1fr) 36px;
+          min-width: 0;
+          width: 100%;
+        }
+        .btns .count {
+          width: 100%;
+        }
+        .miniBtn[data-plus],
+        .miniBtn[data-minus],
+        #cardList .miniBtn[data-plus],
+        #cardList .miniBtn[data-minus] {
+          width: 36px;
+          min-width: 36px;
+          height: 36px;
+        }
+        .btns .miniBtn[data-detail],
+        .btns .adminHideToggle {
+          height: 34px;
+        }
+        .filterBar {
+          position: static;
+          border-radius: 12px;
+        }
+        .filterRow {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+        .filterSpacer {
+          display: none;
+        }
+        .ownedFilterGroup {
+          flex: 0 0 auto;
+          margin-left: 4px;
+          padding-left: 8px;
+        }
+        .filterTab,
+        .filterChip {
+          flex: 0 0 auto;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .wrap {
+          padding: 8px;
+        }
+        .panel {
+          border-radius: 12px;
+        }
+        .bd,
+        .gameBody {
+          padding: 10px;
+        }
+        .cardRow {
+          border-radius: 12px;
+        }
+      }
+      /* 20260629: stable two-line card controls (+ count - / EX detail). */
+      .cardRow > div:first-child {
+        min-width: 0;
+      }
+
+      .cardRow .btns,
+      #cardList .cardRow .btns,
+      #deckList .cardRow .btns {
+        display: grid !important;
+        grid-template-columns: 42px minmax(60px, 1fr) 42px !important;
+        grid-template-areas:
+          "plus count minus"
+          "ex detail detail"
+          "admin admin admin";
+        gap: 6px !important;
+        align-items: center !important;
+        justify-items: stretch !important;
+        flex: 0 0 190px;
+        width: 190px;
+        min-width: 190px !important;
+        max-width: 190px !important;
+        align-self: center;
+      }
+
+      .cardRow .btns [data-plus] { grid-area: plus; }
+      .cardRow .btns [data-minus] { grid-area: minus; }
+      .cardRow .btns .count,
+      .cardRow .btns .cnt { grid-area: count; }
+      .cardRow .btns [data-ex],
+      .cardRow .btns [data-expick] { grid-area: ex; }
+      .cardRow .btns [data-detail] { grid-area: detail; }
+      .cardRow .btns .adminHideToggle { grid-area: admin; }
+
+      .cardRow .btns [data-plus],
+      .cardRow .btns [data-minus] {
+        width: 42px !important;
+        min-width: 42px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        border-radius: 10px !important;
+        padding: 0 !important;
+      }
+
+      .cardRow .btns .count,
+      .cardRow .btns .cnt {
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 34px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 10px;
+      }
+
+      .cardRow .btns [data-ex],
+      .cardRow .btns [data-expick],
+      .cardRow .btns [data-detail],
+      .cardRow .btns .adminHideToggle {
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 34px !important;
+        height: 34px !important;
+        border-radius: 10px !important;
+        padding: 0 8px !important;
+      }
+
+      @media (max-width: 640px) {
+        .cardRow .btns,
+        #cardList .cardRow .btns,
+        #deckList .cardRow .btns {
+          width: 100%;
+          min-width: 0 !important;
+          max-width: none !important;
+          flex-basis: auto;
+          grid-template-columns: 44px minmax(76px, 1fr) 44px !important;
+        }
+      }
+
+      /* 20260727: smartphone compact board view for the active deck builder page. */
+      @media (max-width: 720px) {
+        body {
+          padding-bottom: 18px !important;
+          overflow-x: hidden !important;
+        }
+
+        header {
+          position: sticky;
+          top: 0;
+          z-index: 90;
+        }
+
+        .wrap {
+          width: 860px !important;
+          max-width: none !important;
+          zoom: .44;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 12px !important;
+          padding: 12px !important;
+          margin: 0 auto !important;
+          transform-origin: top center;
+          min-height: 0 !important;
+        }
+
+        .libraryPanel {
+          order: 1;
+          min-height: 0 !important;
+          max-height: none !important;
+        }
+
+        #deckPanel {
+          order: 2;
+          min-height: 0 !important;
+          max-height: none !important;
+        }
+
+        .libraryPanel .bd,
+        #deckPanel .bd {
+          min-height: 0 !important;
+        }
+
+        #cardList.list {
+          display: grid !important;
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+          max-height: 430px !important;
+          overflow: auto !important;
+          padding-right: 6px !important;
+          align-content: start;
+          scrollbar-width: thin;
+        }
+
+        #deckList.list {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+          max-height: 360px !important;
+          overflow: auto !important;
+          padding-right: 6px !important;
+          align-content: start;
+          scrollbar-width: thin;
+        }
+
+        #cardList .cardRow {
+          padding: 8px !important;
+          gap: 6px !important;
+          min-height: 112px !important;
+        }
+
+        #cardList .cardRow .name,
+        #cardList .cardRow b {
+          font-size: 12px !important;
+          line-height: 1.2 !important;
+          -webkit-line-clamp: 2 !important;
+        }
+
+        #cardList .cardRow .sub {
+          font-size: 10.5px !important;
+          line-height: 1.25 !important;
+          -webkit-line-clamp: 2 !important;
+        }
+
+        #deckList .cardRow {
+          padding: 9px !important;
+          min-height: 96px !important;
+        }
+
+        #deckList .cardRow .name,
+        #deckList .cardRow b {
+          font-size: 12px !important;
+          line-height: 1.2 !important;
+          -webkit-line-clamp: 2 !important;
+        }
+
+        #deckList .cardRow .sub {
+          font-size: 10.5px !important;
+          line-height: 1.25 !important;
+          -webkit-line-clamp: 1 !important;
+        }
+
+        #cardList .cardRow .btns {
+          grid-template-columns: 34px minmax(38px, 1fr) 34px 48px !important;
+          grid-template-areas:
+            "plus count minus detail"
+            "ex ex ex ex"
+            "admin admin admin admin" !important;
+        }
+
+        #deckList .cardRow .btns {
+          grid-template-columns: 42px minmax(56px, 1fr) 42px 64px !important;
+          grid-template-areas:
+            "plus count minus detail"
+            "ex ex ex detail" !important;
+        }
+
+        #cardList .cardRow .btns [data-plus],
+        #cardList .cardRow .btns [data-minus],
+        #cardList .cardRow .btns .count,
+        #cardList .cardRow .btns .cnt,
+        #cardList .cardRow .btns [data-detail],
+        #deckList .cardRow .btns [data-plus],
+        #deckList .cardRow .btns [data-minus],
+        #deckList .cardRow .btns .count,
+        #deckList .cardRow .btns .cnt,
+        #deckList .cardRow .btns [data-detail] {
+          min-height: 34px !important;
+          height: 34px !important;
+          border-radius: 10px !important;
+          font-size: 11px !important;
+        }
+
+        .deckSaveDock,
+        .deckInfoDock {
+          border-radius: 16px !important;
+        }
+      }
+
+      @media (max-width: 380px) {
+        .wrap { zoom: .39; }
+      }
+
+      @media (min-width: 431px) and (max-width: 520px) {
+        .wrap { zoom: .50; }
+      }
+
+      @media (min-width: 521px) and (max-width: 720px) {
+        .wrap { zoom: .66; }
+      }
+
+      /* 20260729 priority 4: mobile deck builder density */
+      @media (max-width: 720px) {
+        header {
+          gap: 8px;
+        }
+        .topRight {
+          max-width: 620px;
+          justify-content: flex-end;
+        }
+        .wrap::before {
+          content: "上: カード候補 / 下: デッキ";
+          display: block;
+          order: 0;
+          width: 100%;
+          padding: 7px 10px;
+          border: 1px solid rgba(125, 211, 252, 0.24);
+          border-radius: 999px;
+          background: linear-gradient(90deg, rgba(105, 180, 255, 0.14), rgba(120, 255, 180, 0.08));
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 12px;
+          font-weight: 800;
+          text-align: center;
+          letter-spacing: 0.02em;
+          box-sizing: border-box;
+        }
+        .libraryPanel .hd,
+        #deckPanel > .hd {
+          position: sticky;
+          top: 0;
+          z-index: 15;
+          background: linear-gradient(90deg, rgba(19, 25, 34, 0.96), rgba(10, 18, 18, 0.94));
+          backdrop-filter: blur(10px);
+        }
+        .attrHintBox {
+          min-height: 54px !important;
+          padding: 10px 12px !important;
+        }
+        .attrHintTitle {
+          font-size: 15px !important;
+        }
+        .attrHintText {
+          font-size: 12px !important;
+        }
+        #cardFilters.filterBar {
+          gap: 8px !important;
+          padding: 10px !important;
+        }
+        #cardList.list {
+          max-height: 390px !important;
+          padding-bottom: 8px !important;
+        }
+        #deckList.list {
+          max-height: 430px !important;
+          padding-bottom: 10px !important;
+        }
+        .cardRow {
+          box-shadow:
+            inset 4px 0 0 rgba(125, 211, 252, 0.26),
+            0 10px 24px rgba(0, 0, 0, 0.28);
+        }
+        .listHead {
+          display: grid !important;
+          grid-template-columns: auto 1fr;
+          align-items: center;
+          gap: 8px;
+        }
+        .listHead .hint {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .deckSaveDock.isCollapsed,
+        .deckInfoDock.isCollapsed {
+          padding: 9px 10px !important;
+        }
+        .deckSaveDockHead,
+        .deckInfoDockHead {
+          gap: 8px !important;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .wrap.libraryCollapsed,
+        .wrap.deckCollapsed,
+        .wrap.libraryCollapsed.deckCollapsed {
+          grid-template-columns: 1fr !important;
+        }
+        .panelHdText {
+          gap: 8px;
+        }
+        .panelHdText .small {
+          max-width: 52vw;
+        }
+      }
+
+      /* 20260911: panel minimization must win over all desktop/mobile density rules. */
+      .wrap .panel.isPanelCollapsed {
+        min-height: 0 !important;
+        max-height: 54px !important;
+        overflow: hidden !important;
+        flex: 0 0 auto !important;
+      }
+      .wrap .panel.isPanelCollapsed > .bd {
+        display: none !important;
+      }
+      .wrap .panel.isPanelCollapsed > .hd {
+        min-height: 54px !important;
+        border-bottom: 0 !important;
+      }
+      .wrap .panel.isPanelCollapsed .panelHdText .small {
+        display: none !important;
+      }
+      .wrap.libraryCollapsed {
+        grid-template-columns: minmax(210px, 260px) minmax(0, 1fr) !important;
+      }
+      .wrap.deckCollapsed {
+        grid-template-columns: minmax(0, 1fr) minmax(210px, 260px) !important;
+      }
+      .wrap.libraryCollapsed.deckCollapsed {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      @media (max-width: 720px) {
+        .wrap .panel.isPanelCollapsed {
+          max-height: 58px !important;
+        }
+        .wrap .panel.isPanelCollapsed > .hd {
+          min-height: 58px !important;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260808_deck_flow2" />
+    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+    <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260830_statusguide1" />
+  <link rel="stylesheet" href="./mobile_deck_block_final_20260927.css?v=20260930_mobile_deck_stable3" />
+</head>
+
+  <body>
+    <header>
+      <div class="left">
+        <h1>Deck Builder</h1>
+        <div class="meta">30枚 / 同名4枚まで</div>
+      </div>
+
+      <div class="topRight">
+        <button id="btnHome" type="button" class="btnGhost">ホーム</button>
+        <button id="btnDeckTop" type="button" class="btnGhost">デッキ</button>
+        <div class="beginnerMenu">
+          <button id="btnBeginner" type="button" class="btnGhost" aria-expanded="false" aria-controls="beginnerPanel">
+            初心者はこちら
+          </button>
+          <div id="beginnerPanel" class="beginnerPanel" hidden>
+            <button id="btnGuide" type="button">遊び方ガイド</button>
+            <button id="btnRule" type="button">ルール</button>
+            <button id="btnTutorial" type="button">チュートリアル</button>
+          </div>
+        </div>
+        <span class="pill" id="deckVersionPill">v20260911 home-random-art1</span>
+        <button id="btnBgm" type="button" title="BGM">BGM</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="panel libraryPanel">
+        <div class="hd">
+          <div class="panelHdText">
+            <b>カード一覧</b>
+            <span class="small">クリックで詳細 / +で追加</span>
+          </div>
+          <button
+            id="libraryPanelMinBtn"
+            class="sectionMinBtn panelMinBtn"
+            type="button"
+            aria-expanded="true"
+            aria-controls="cardList"
+            title="カード一覧を最小化"
+          >-</button>
+        </div>
+
+        <div class="bd">
+          <div class="listHead">
+            <b>候補</b>
+            <div class="attrHintBox">
+              <div id="attrHintTitle" class="attrHintTitle">属性の特徴</div>
+              <div id="attrHintText" class="attrHintText">
+                属性を選ぶと、ここに特徴が表示されます。
+              </div>
+            </div>
+          </div>
+
+          <div id="cardFilters" class="filterBar">
+            <div class="filterRow" id="kindTabs">
+              <button class="filterTab active" data-kind="all">全部</button>
+              <button class="filterTab" data-kind="unit">キャラ</button>
+              <button class="filterTab" data-kind="support">サポート</button>
+            </div>
+
+            <div class="filterRow" id="attrTabs">
+              <button class="filterChip active" data-attr="all">全属性</button>
+              <button class="filterChip" data-attr="火">火</button>
+              <button class="filterChip" data-attr="水">水</button>
+              <button class="filterChip" data-attr="雷">雷</button>
+              <button class="filterChip" data-attr="草">草</button>
+              <button class="filterChip" data-attr="風">風</button>
+              <button class="filterChip" data-attr="鋼">鋼</button>
+              <button class="filterChip" data-attr="光">光</button>
+              <button class="filterChip" data-attr="闇">闇</button>
+              <button class="filterChip" data-attr="幻">幻</button>
+              <button class="filterChip" data-attr="呪">呪</button>
+              <span class="filterSpacer" aria-hidden="true"></span>
+              <span id="ownedTabs" class="ownedFilterGroup" aria-label="所持状態フィルタ">
+                <button class="filterChip ownedFilter active isSelected" data-owned="all" aria-pressed="true">すべて</button>
+                <button class="filterChip ownedFilter" data-owned="owned" aria-pressed="false">所持済み</button>
+                <button class="filterChip ownedFilter" data-owned="unowned" aria-pressed="false">未所持</button>
+              </span>
+            </div>
+          </div>
+
+          <div id="cardList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- 右パネル: デッキ作成・保存と採用カード管理 -->
+      <section class="panel" id="deckPanel">
+        <div class="hd">
+          <div class="panelHdText">
+            <b>デッキ</b>
+            <span class="small">採用カードと保存を管理</span>
+          </div>
+          <div class="row" style="justify-content: flex-end">
+            <span class="pill">枚数: <span id="deckCount">0</span>/30</span>
+
+            <button id="btnClearDeck" class="btnGhost" type="button">
+              全消し
+            </button>
+            <button
+              id="deckPanelMinBtn"
+              class="sectionMinBtn panelMinBtn"
+              type="button"
+              aria-expanded="true"
+              aria-controls="deckPanel"
+              title="デッキを最小化"
+            >-</button>
+          </div>
+        </div>
+
+        <div class="bd">
+          <div class="deckSaveDock" id="deckSaveDock">
+            <div class="deckSaveDockHead">
+              <div class="deckSaveDockHeadMain">
+                <b>デッキ管理</b>
+                <span>名前を決めて保存、必要な時だけ一覧を開く</span>
+              </div>
+              <button
+                id="deckSaveMinBtn"
+                class="sectionMinBtn"
+                type="button"
+                aria-expanded="true"
+                aria-controls="deckSaveDock"
+                title="デッキ管理を最小化"
+              >-</button>
+            </div>
+            <div class="roomRow deckSaveRow">
+              <button id="btnSave" class="btnPrimary" type="button">
+                デッキ保存
+              </button>
+              <span class="small">30枚ちょうどのデッキを保存できます</span>
+            </div>
+          </div>
+
+          <div class="deckInfoDock" id="deckInfoDock">
+            <div class="deckInfoDockHead">
+              <div class="deckInfoDockHeadMain">
+                <b>採用カード</b>
+                <span>ここを見ながら30枚に整える</span>
+              </div>
+              <button
+                id="deckInfoMinBtn"
+                class="sectionMinBtn"
+                type="button"
+                aria-expanded="true"
+                aria-controls="deckInfoDock"
+                title="デッキ情報を最小化"
+              >-</button>
+            </div>
+
+            <div class="deckInfoBody">
+              <div class="listHead">
+                <b>入れたカード</b>
+                <span class="hint">30枚ちょうどでルーム作成・参加が有効</span>
+              </div>
+
+              <div id="deckList" class="list"></div>
+              <div id="deckMsg" class="msg bad" style="margin-top: 10px"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- deck.js 読み込み（URL維持） -->
+  <script type="module" src="./deck.js?v=20260930_mobile_deck_stable3"></script>
+
+    <script>
+      (() => {
+        const btn = document.getElementById("btnBeginner");
+        const panel = document.getElementById("beginnerPanel");
+        if (!btn || !panel) return;
+
+        const setOpen = (open) => {
+          panel.hidden = !open;
+          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          btn.classList.toggle("active", open);
+        };
+
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(panel.hidden);
+        });
+
+        panel.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (e.target?.closest?.("button")) setTimeout(() => setOpen(false), 0);
+        });
+        document.addEventListener("click", () => setOpen(false));
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") setOpen(false);
+        });
+      })();
+    </script>
+
+    <script>
+      (() => {
+        document.getElementById("btnHome")?.addEventListener("click", () => {
+          window.showDeckStart?.();
+          if (!window.showDeckStart) location.href = "./index.html";
+        });
+        document.getElementById("btnDeckTop")?.addEventListener("click", () => {
+          const target = document.querySelector(".deckPanel") || document.getElementById("deckPanel");
+          target?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      })();
+    </script>
+
+    <script>
+      (() => {
+        const pairs = [
+          {
+            key: "tcg_deck_save_collapsed_v20260715",
+            box: document.querySelector(".deckSaveDock"),
+            btn: document.getElementById("deckSaveMinBtn"),
+            closedLabel: "+",
+            openLabel: "-",
+          },
+          {
+            key: "tcg_deck_info_collapsed_v20260715",
+            box: document.getElementById("deckInfoDock"),
+            btn: document.getElementById("deckInfoMinBtn"),
+            closedLabel: "+",
+            openLabel: "-",
+          },
+        ];
+
+        const read = (key) => {
+          try {
+            return localStorage.getItem(key) === "1";
+          } catch {
+            return false;
+          }
+        };
+        const write = (key, value) => {
+          try {
+            localStorage.setItem(key, value ? "1" : "0");
+          } catch {}
+        };
+
+        function apply(pair, collapsed) {
+          if (!pair.box || !pair.btn) return;
+          pair.box.classList.toggle("isCollapsed", collapsed);
+          pair.btn.textContent = collapsed ? pair.closedLabel : pair.openLabel;
+          pair.btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+          pair.btn.title = collapsed ? "開く" : "最小化";
+        }
+
+        pairs.forEach((pair) => {
+          apply(pair, read(pair.key));
+          pair.btn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const next = !pair.box?.classList.contains("isCollapsed");
+            apply(pair, next);
+            write(pair.key, next);
+          });
+        });
+      })();
+    </script>
+
+    <script>
+      (() => {
+        const wrap = document.querySelector(".wrap");
+        const pairs = [
+          {
+            key: "tcg_library_panel_collapsed_v20260911",
+            box: document.querySelector(".libraryPanel"),
+            btn: document.getElementById("libraryPanelMinBtn"),
+            wrapClass: "libraryCollapsed",
+            closedTitle: "カード一覧を開く",
+            openTitle: "カード一覧を最小化",
+          },
+          {
+            key: "tcg_deck_panel_collapsed_v20260911",
+            box: document.getElementById("deckPanel"),
+            btn: document.getElementById("deckPanelMinBtn"),
+            wrapClass: "deckCollapsed",
+            closedTitle: "デッキを開く",
+            openTitle: "デッキを最小化",
+          },
+        ];
+
+        const read = (key) => {
+          try {
+            return localStorage.getItem(key) === "1";
+          } catch {
+            return false;
+          }
+        };
+        const write = (key, value) => {
+          try {
+            localStorage.setItem(key, value ? "1" : "0");
+          } catch {}
+        };
+
+        function apply(pair, collapsed) {
+          if (!pair.box || !pair.btn) return;
+          pair.box.classList.toggle("isPanelCollapsed", collapsed);
+          wrap?.classList.toggle(pair.wrapClass, collapsed);
+          pair.btn.textContent = collapsed ? "+" : "-";
+          pair.btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+          pair.btn.title = collapsed ? pair.closedTitle : pair.openTitle;
+        }
+
+        pairs.forEach((pair) => {
+          apply(pair, read(pair.key));
+          pair.btn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const next = !pair.box?.classList.contains("isPanelCollapsed");
+            apply(pair, next);
+            write(pair.key, next);
+          });
+        });
+      })();
+    </script>
+
+    <script>
+      // Solo button fallback/diagnostic.
+      (function () {
+        async function runSolo() {
+          if (window.__tcg_solo_clicking) return;
+          window.__tcg_solo_clicking = true;
+
+          try {
+            if (typeof window.__tcg_handleSoloRoom === "function") {
+              console.log("[solo] calling window.__tcg_handleSoloRoom()");
+              await window.__tcg_handleSoloRoom();
+              return;
+            }
+            console.warn(
+              "[solo] handler not found. deck.js may not have initialized yet.",
+            );
+            window.dispatchEvent(new CustomEvent("tcg:solo"));
+            window.__tcg_solo_clicking = false;
+            alert(
+              "ソロ開始ハンドラが見つかりませんでした。\nConsoleの赤いエラーを貼ってください。",
+            );
+          } catch (err) {
+            console.error("[solo] runSolo crashed", err);
+            window.__tcg_solo_clicking = false;
+            alert(
+              "ソロ開始の処理でエラーが出ました。\nコンソールの赤いエラーを貼ってください。",
+            );
+          } finally {
+            setTimeout(() => {
+              window.__tcg_solo_clicking = false;
+            }, 1500);
+          }
+        }
+
+        document.addEventListener(
+          "click",
+          (e) => {
+            const t = e.target;
+            if (!t) return;
+            const btn = t.closest ? t.closest("#btnSolo") : null;
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+            runSolo();
+          },
+          { capture: true },
+        );
+      })();
+    </script>
+
+    <!-- ===== Right Drawer ===== -->
+    <button id="roomDrawerToggle" aria-label="ルーム操作を開く" type="button">
+      プレイ ▶
+    </button>
+    <div id="roomDrawerOverlay" aria-hidden="true"></div>
+
+    <aside id="roomDrawer" aria-hidden="true">
+      <div class="roomDrawerHead">
+        <b>ルーム操作</b>
+        <button id="roomDrawerClose" type="button">×</button>
+      </div>
+
+      <div class="roomDrawerBody">
+        <section class="roomOpHero">
+          <div class="roomOpKicker">BATTLE ENTRY</div>
+          <div class="roomOpTitle">対戦ルーム</div>
+          <div class="roomOpLead">
+            デッキを30枚にしたら、ここからソロ・ルーム作成・参加を選んで開始できます。
+          </div>
+        </section>
+
+        <section class="roomOpCard">
+          <div class="roomOpCardHd">
+            <b>プレイヤー</b>
+            <span class="small">表示名</span>
+          </div>
+          <div class="roomOpCardBd">
+            <div class="roomRow">
+              <input
+                id="playerName"
+                class="input"
+                maxlength="16"
+                placeholder="プレイヤー名（例: terada）"
+              />
+              <button id="btnSaveName" class="btn" type="button">保存</button>
+            </div>
+            <div id="nameMsg" class="msg"></div>
+          </div>
+        </section>
+
+        <section class="roomOpCard">
+          <div class="roomOpCardHd">
+            <b>マップ</b>
+            <span class="small">作成/参加時に反映</span>
+          </div>
+          <div class="roomOpCardBd">
+            <div id="roomFieldMount"></div>
+          </div>
+        </section>
+
+        <section class="roomOpCard">
+          <div class="roomOpCardHd">
+            <b>開始</b>
+            <span class="small">30枚で有効</span>
+          </div>
+          <div class="roomOpCardBd">
+            <div class="roomRow">
+              <button id="btnSolo" class="btnGhost" type="button">
+                ソロで開始
+              </button>
+              <span class="roomOpHint">デッキを使って1人で遊ぶ</span>
+            </div>
+
+            <div class="roomRow">
+              <input
+                id="joinRoomId"
+                class="input"
+                placeholder="参加コード 例: 1234"
+                maxlength="4"
+                inputmode="numeric"
+              />
+              <button id="joinBtn" class="btn" type="button" disabled>参加</button>
+            </div>
+
+            <div class="roomRow">
+              <button id="createBtn" class="btn" type="button" disabled>
+                ルーム作成
+              </button>
+              <span class="roomOpHint">新しい4桁ルームを作成</span>
+            </div>
+
+            <div class="roomOpHint">
+              ※作成/参加が押せない場合は、デッキが30枚ちょうどか確認してね。
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Drawer script・亥ｼｷ縺・婿縺縺第ｮ九＠縺ｦ螳牙ｮ壼喧・・-->
+    <script>
+      (() => {
+        try {
+          const toggle = document.getElementById("roomDrawerToggle");
+          const drawer = document.getElementById("roomDrawer");
+          const closeBtn = document.getElementById("roomDrawerClose");
+          const overlay = document.getElementById("roomDrawerOverlay");
+          const settings = document.getElementById("btnSettings");
+
+          if (!toggle || !drawer) {
+            console.warn("[drawer] required elements not found", {
+              toggle,
+              drawer,
+            });
+            return;
+          }
+          window.__tcg_room_drawer_inline_bound = true;
+
+          toggle.setAttribute("type", "button");
+          closeBtn?.setAttribute("type", "button");
+
+          toggle.style.pointerEvents = "auto";
+          toggle.style.zIndex = "99999";
+
+          const setToggleLabel = (opened) => {
+            toggle.textContent = opened
+              ? "閉じる ◀"
+              : toggle.classList.contains("deckReady")
+                ? "開始 ▶"
+                : "プレイ ▶";
+          };
+
+          const open = () => {
+            drawer.classList.add("open");
+            drawer.setAttribute("aria-hidden", "false");
+            overlay?.classList.add("open");
+            overlay?.setAttribute("aria-hidden", "false");
+            setToggleLabel(true);
+          };
+
+          const close = () => {
+            drawer.classList.remove("open");
+            drawer.setAttribute("aria-hidden", "true");
+            overlay?.classList.remove("open");
+            overlay?.setAttribute("aria-hidden", "true");
+            setToggleLabel(false);
+          };
+
+          const isOpen = () => drawer.classList.contains("open");
+
+          toggle.addEventListener(
+            "click",
+            (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              isOpen() ? close() : open();
+            },
+            { capture: true },
+          );
+
+          closeBtn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+          });
+
+          overlay?.addEventListener("click", close);
+
+          settings?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            isOpen() ? close() : open();
+          });
+
+          window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && isOpen()) close();
+          });
+
+          console.log("[drawer] ready");
+        } catch (err) {
+          console.error("[drawer] init failed", err);
+        }
+      })();
+    </script>
+
+    <!-- UI Post-Process -->
+    <script>
+      (function () {
+        const TYPE_LIST = ["火", "雷", "水", "草", "風", "鋼", "光", "闇", "幻", "呪"];
+
+        function extractTypeFromText(txt) {
+          const s = String(txt || "").trim();
+          for (const t of TYPE_LIST) {
+            if (s.endsWith(" " + t) || s.endsWith("　" + t) || s.endsWith(t)) return t;
+          }
+          for (const t of TYPE_LIST) {
+            if (s.includes("属性:" + t) || s.includes("属性：" + t)) return t;
+          }
+          return "";
+        }
+
+        function stripSupportNoise(subEl) {
+          if (!subEl) return;
+          let v = subEl.textContent || "";
+          v = v.replace(/(^|\s)(support|サポート)\s*\/\s*/gi, "");
+          v = v.replace(/HP\s*:?\s*[-]?\d+\s*\/?\s*SP\s*:?\s*[-]?\d+\s*\/\s*/gi, "");
+          v = v.replace(/\s{2,}/g, " ").replace(/\s*\/\s*\/\s*/g, " / ").trim();
+          subEl.textContent = v;
+        }
+
+        function decorateCardRow(row) {
+          if (!row || row.dataset.decorated === "1") return;
+          const nameEl = row.querySelector(".name");
+          const subEl = row.querySelector(".sub");
+          const t = extractTypeFromText(nameEl?.textContent || "") || extractTypeFromText(subEl?.textContent || "");
+          if (t) row.dataset.type = t;
+
+          const txt = `${subEl?.textContent || ""} ${nameEl?.textContent || ""}`;
+          const existingKind = String(row.dataset.kind || "").toLowerCase();
+          const looksSupport = existingKind === "support" || existingKind === "ex_support" || existingKind === "exsupport" || /(^|\s)(support|サポート)\b/i.test(txt);
+          row.dataset.kind = looksSupport ? "support" : existingKind || "unit";
+
+          if (looksSupport) {
+            stripSupportNoise(subEl);
+            if (nameEl) nameEl.textContent = (nameEl.textContent || "").replace(/\s*(support|サポート)\s*$/i, "").trim();
+          }
+
+          row.dataset.decorated = "1";
+        }
+
+        function decorateContainer(container) {
+          if (!container) return;
+          container.querySelectorAll(".cardRow").forEach(decorateCardRow);
+        }
+
+        const cardList = document.getElementById("cardList");
+        const deckList = document.getElementById("deckList");
+        const mo = new MutationObserver(() => {
+          decorateContainer(cardList);
+          decorateContainer(deckList);
+        });
+        if (cardList) mo.observe(cardList, { childList: true, subtree: true });
+        if (deckList) mo.observe(deckList, { childList: true, subtree: true });
+        setTimeout(() => {
+          decorateContainer(cardList);
+          decorateContainer(deckList);
+        }, 300);
+      })();
+    </script>
+    <!-- DETAIL・域里蟄倡ｶｭ謖・ｼ・-->
+    <div id="detailWrap" class="detailFloating">
+      <div id="detailHead">
+        <b>DETAIL</b>
+        <button id="detailClose" type="button" title="詳細を閉じる">×</button>
+      </div>
+      <div id="detail">カード詳細がここに表示されます。</div>
     </div>
 
-    <div class="roomDrawerBody">
-      <!-- プレイヤー設定（deck.jsが拾うID維持） -->
-      <div class="small" style="margin-bottom:6px;">プレイヤー名</div>
-      <div class="roomRow">
-        <input id="playerName" class="input" maxlength="16" placeholder="プレイヤーネーム（例：Terada）" />
-        <button id="btnSaveName" class="btn" type="button">保存</button>
-      </div>
-      <div id="nameMsg" class="msg" style="margin-top:8px;"></div>
-
-      <hr class="divider">
-
-      <!-- ルール/チュートリアル -->
-      <div class="roomRow">
-        <button id="btnRule" class="btnGhost" type="button">ルール</button>
-        <button id="btnTutorial" class="btnGhost" type="button">チュートリアル</button>
-      </div>
-
-      <hr class="divider">
-
-      <!-- デッキ保存（deck.js が拾うID） -->
-      <div class="roomRow">
-        <button id="btnSave" class="btn" type="button">デッキ保存</button>
-        <span class="small">いつでもOK</span>
-      </div>
-
-      <hr class="divider">
-
-      <!-- ソロ（追加：既存機能は維持） -->
-      <div class="small" style="margin-bottom:6px;">ソロ</div>
-      <div class="roomRow">
-        <button id="btnSolo" class="btnGhost" type="button">ソロで開始</button>
-        <span class="small">デッキを使って1人で遊ぶ</span>
-      </div>
-
-      <hr class="divider">
-
-      <!-- 参加 -->
-      <div class="small" style="margin-bottom:6px;">参加（4桁）</div>
-      <div class="roomRow">
-        <input id="joinRoomId" class="input" placeholder="例：1234" maxlength="4" inputmode="numeric" />
-        <button id="joinBtn" class="btn" type="button" disabled>参加</button>
-      </div>
-
-      <hr class="divider">
-
-      <!-- 作成（1つだけ） -->
-      <div class="roomRow">
-        <button id="createBtn" class="btn" type="button" disabled>ルーム作成</button>
-        <span class="small">デッキ30枚で有効</span>
-      </div>
-
-      <div class="small" style="opacity:.8; margin-top:12px;">
-        ※作成/参加が押せない場合：デッキが30枚ちょうどか確認してね
-      </div>
-    </div>
-  </aside>
-
-  <!-- Drawer script -->
-  <script>
-    (function(){
-      const toggle = document.getElementById("roomDrawerToggle");
-      const drawer = document.getElementById("roomDrawer");
-      const closeBtn = document.getElementById("roomDrawerClose");
-      const overlay = document.getElementById("roomDrawerOverlay");
-      const settingsBtn = document.getElementById("btnSettings");
-
-      const open = ()=>{
-        drawer.classList.add("open");
-        overlay.classList.add("open");
-        drawer.setAttribute("aria-hidden","false");
-        overlay.setAttribute("aria-hidden","false");
-        toggle.textContent = "◀";
-      };
-      const close = ()=>{
-        drawer.classList.remove("open");
-        overlay.classList.remove("open");
-        drawer.setAttribute("aria-hidden","true");
-        overlay.setAttribute("aria-hidden","true");
-        toggle.textContent = "▶";
-      };
-      const isOpen = ()=> drawer.classList.contains("open");
-
-      toggle?.addEventListener("click", ()=> isOpen() ? close() : open());
-      settingsBtn?.addEventListener("click", ()=> isOpen() ? close() : open());
-      closeBtn?.addEventListener("click", close);
-      overlay?.addEventListener("click", close);
-
-      window.addEventListener("keydown", (e)=>{
-        if (e.key === "Escape" && isOpen()) close();
+    <script>
+      document.getElementById("btnArcade")?.addEventListener("click", () => {
+        location.href = "./arcade.html";
       });
-    })();
-  </script>
 
-  <!-- UI Post-Process: サポート表記を消す/属性色を付ける（deck.jsは改造しない） -->
-  <script>
-    (function(){
-      const TYPE_LIST = ["火","雷","水","草","風","土","鋼","闇","光","夢","幻"];
+      document.getElementById("btnCreator")?.addEventListener("click", () => {
+        location.href = "./creator.html?v=20260725_dark_illusion_gen1";
+      });
 
-      function extractTypeFromText(txt){
-        const s = String(txt || "").trim();
-        for (const t of TYPE_LIST){
-          if (s.endsWith(" " + t) || s.endsWith("　" + t) || s.endsWith(t)) return t;
+      function getPlayerIdForNav() {
+        try {
+          const url = new URL(location.href);
+          const p = url.searchParams.get("player");
+          if (p) return p;
+        } catch (_) {}
+
+        const keys = [
+          "playerId",
+          "player",
+          "playerName",
+          "tcg_player",
+          "tcg_playerId",
+          "tcg0bato_player",
+          "tcg0bato_playerId",
+        ];
+        for (const k of keys) {
+          const v = (localStorage.getItem(k) || "").trim();
+          if (v) return v;
         }
-        for (const t of TYPE_LIST){
-          if (s.includes("属性:" + t) || s.includes("属性：" + t)) return t;
-        }
+
+        const input = document.getElementById("playerName");
+        const v2 = (input?.value || "").trim();
+        if (v2) return v2;
+
         return "";
       }
 
-      function stripSupportNoise(subEl){
-        if (!subEl) return;
-        let v = subEl.textContent || "";
-
-        v = v.replace(/(^|\s)(support|サポート)\s*\/\s*/gi, "");
-        v = v.replace(/HP\s*:\s*[-]?\d+\s*SP\s*:\s*[-]?\d+\s*\/\s*/gi, "");
-
-        v = v.replace(/\s{2,}/g, " ").replace(/\s*\/\s*\/\s*/g, " / ").trim();
-        subEl.textContent = v;
-      }
-
-      function decorateCardRow(row){
-        if (!row || row.dataset.decorated === "1") return;
-
-        const nameEl = row.querySelector(".name");
-        const subEl  = row.querySelector(".sub");
-
-        const t = extractTypeFromText(nameEl?.textContent || "") || extractTypeFromText(subEl?.textContent || "");
-        if (t) row.dataset.type = t;
-
-        const txt = (subEl?.textContent || "") + " " + (nameEl?.textContent || "");
-        const looksSupport = /(^|\s)(support|サポート)\b/i.test(txt);
-        if (looksSupport){
-          stripSupportNoise(subEl);
-          if (nameEl) nameEl.textContent = (nameEl.textContent || "").replace(/\s*(support|サポート)\s*$/i, "").trim();
-        }
-
-        row.dataset.decorated = "1";
-      }
-
-      function decorateContainer(container){
-        if (!container) return;
-        const rows = container.querySelectorAll(".cardRow");
-        rows.forEach(decorateCardRow);
-      }
-
-      const cardList = document.getElementById("cardList");
-      const deckList = document.getElementById("deckList");
-
-      const mo = new MutationObserver(()=>{
-        decorateContainer(cardList);
-        decorateContainer(deckList);
+      document.getElementById("btnProfile")?.addEventListener("click", () => {
+        location.href = "./profile.html";
       });
-      if (cardList) mo.observe(cardList, { childList:true, subtree:true });
-      if (deckList) mo.observe(deckList, { childList:true, subtree:true });
 
-      setTimeout(()=>{
-        decorateContainer(cardList);
-        decorateContainer(deckList);
-      }, 300);
-    })();
-  </script>
+      document.getElementById("btnGacha")?.addEventListener("click", () => {
+        const pid = getPlayerIdForNav();
+        if (false && !pid) {
+          alert(
+            "ガチャに行くには player が必要です。\nプレイヤー名を保存するか、URLに ?player=XXXX を付けて開いてください。",
+          );
+          return;
+        }
+        location.href = "./gacha.html";
+      });
+    </script>
+    <!-- 笘・BGM: deck_bgm_cafe_loop.mp3 -->
+    <script type="module">
+      import { startDeckBgmCafe, stopDeckBgmCafe } from "./sfx.js?v=20260919_ratbeat";
 
-  <script>
-(() => {
-  // 依存JSが死んでもドロワーは動かす
-  try {
-    const toggle   = document.getElementById("roomDrawerToggle");
-    const drawer   = document.getElementById("roomDrawer");
-    const closeBtn = document.getElementById("roomDrawerClose");
-    const overlay  = document.getElementById("roomDrawerOverlay");
-    const settings = document.getElementById("btnSettings"); // あれば
+      const btn = document.getElementById("btnBgm");
+      let enabled = false;
 
-    if (!toggle || !drawer) {
-      console.warn("[drawer] required elements not found", { toggle, drawer });
-      return;
-    }
+      const BGM_VOL = 0.35;
+      const BGM_RATE = 1.1;
 
-    // 念のためボタン化（submit事故防止）
-    toggle.setAttribute("type", "button");
-    closeBtn?.setAttribute("type", "button");
-
-    // クリックが吸われてたら困るので最前面＆クリック許可
-    toggle.style.pointerEvents = "auto";
-    toggle.style.zIndex = "99999";
-
-    const open = () => {
-      drawer.classList.add("open");
-      drawer.setAttribute("aria-hidden", "false");
-      overlay?.classList.add("open");
-      overlay?.setAttribute("aria-hidden", "false");
-      toggle.textContent = "◀";
-    };
-
-    const close = () => {
-      drawer.classList.remove("open");
-      drawer.setAttribute("aria-hidden", "true");
-      overlay?.classList.remove("open");
-      overlay?.setAttribute("aria-hidden", "true");
-      toggle.textContent = "▶";
-    };
-
-    const isOpen = () => drawer.classList.contains("open");
-
-    // 重要：確実に反応させるため “capture: true” でも拾う
-    toggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      isOpen() ? close() : open();
-    }, { capture: true });
-
-    closeBtn?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    });
-
-    overlay?.addEventListener("click", close);
-
-    settings?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      isOpen() ? close() : open();
-    });
-
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && isOpen()) close();
-    });
-
-    console.log("[drawer] ready");
-  } catch (err) {
-    console.error("[drawer] init failed", err);
-  }
-})();
-  </script>
-
-  <!-- ここを body の一番最後（</body>の直前）へ -->
-  <div id="detailWrap" class="detailFloating">
-    <div id="detailHead">
-      <b>DETAIL</b>
-      <button id="detailClose" type="button" title="詳細を閉じる">✕</button>
-    </div>
-    <div id="detail">カード詳細がここに表示されます。</div>
-  </div>
-
-  <script>
-    // ---- navigation buttons ----
-    document.getElementById("btnArcade")?.addEventListener("click", ()=>{
-      location.href = "./arcade.html";
-    });
-
-    // ソロ開始は deck.js 側で room/player を作って battle に遷移する。
-    // index.html 側は「btnSolo クリック → deck.js のハンドラ呼び出し/イベント通知」まで。
-
-    // ガチャは `gacha.html?player=xxxx` が必要
-    // playerId の候補：URL ?player= / localStorage / 入力欄 #playerName
-    function getPlayerIdForNav(){
-      try{
-        const url = new URL(location.href);
-        const p = url.searchParams.get("player");
-        if (p) return p;
-      }catch(_){ }
-
-      const keys = [
-        "playerId",
-        "player",
-        "playerName",
-        "tcg_player",
-        "tcg_playerId",
-        "tcg0bato_player",
-        "tcg0bato_playerId",
-      ];
-      for (const k of keys){
-        const v = (localStorage.getItem(k) || "").trim();
-        if (v) return v;
-      }
-
-      const input = document.getElementById("playerName");
-      const v2 = (input?.value || "").trim();
-      if (v2) return v2;
-
-      return "";
-    }
-
-    document.getElementById("btnGacha")?.addEventListener("click", ()=>{
-      const pid = getPlayerIdForNav();
-      if (!pid){
-        alert("ガチャに行くには player が必要です。\n右ドロワーでプレイヤー名を保存するか、URLに ?player=XXXX を付けて開いてください。");
-        return;
-      }
-      location.href = `./gacha.html?player=${encodeURIComponent(pid)}`;
-    });
-  </script>
-
-  <!-- ★ BGM: deck_bgm_cafe_loop.mp3 を使う（テンポ少し早め） -->
-  <script type="module">
-    // sfx.js 側に startDeckBgmCafe/stopDeckBgmCafe が入っている前提
-    import { startDeckBgmCafe, stopDeckBgmCafe } from "./sfx.js?v=20260228";
-
-    const btn = document.getElementById("btnBgm");
-    let enabled = false;
-
-    // 好みで調整（テンポ少し早め）
-    const BGM_VOL  = 0.35;  // 0.25〜0.45 推奨
-    const BGM_RATE = 1.10;  // 1.05〜1.15 推奨（=テンポアップ）
-
-    async function on(){
-      enabled = true;
-      btn?.classList.add("on");
-      await startDeckBgmCafe({ volume: BGM_VOL, playbackRate: BGM_RATE });
-    }
-
-    function off(){
-      enabled = false;
-      btn?.classList.remove("on");
-      stopDeckBgmCafe();
-    }
-
-    btn?.addEventListener("click", async (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      if (enabled) off();
-      else await on();
-    });
-
-    // タブ非表示で止める
-    document.addEventListener("visibilitychange", async ()=>{
-      if (document.hidden){
+      async function on() {
+        enabled = true;
+        btn?.classList.add("on");
         stopDeckBgmCafe();
-      } else if (enabled){
         await startDeckBgmCafe({ volume: BGM_VOL, playbackRate: BGM_RATE });
       }
-    });
 
-    window.addEventListener("beforeunload", ()=> stopDeckBgmCafe());
-  </script>
+      function off() {
+        enabled = false;
+        btn?.classList.remove("on");
+        stopDeckBgmCafe();
+      }
 
-  
+      btn?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (enabled) off();
+        else await on();
+      });
+
+      document.addEventListener("visibilitychange", async () => {
+        if (document.hidden) {
+          stopDeckBgmCafe();
+        } else if (enabled) {
+          await startDeckBgmCafe({ volume: BGM_VOL, playbackRate: BGM_RATE });
+        }
+      });
+
+      window.addEventListener("beforeunload", () => stopDeckBgmCafe());
+    </script>
+
+    <!-- 笘・DETAIL縺ｮ髢峨§迥ｶ諷九ｒ險俶・ + 譖ｴ譁ｰ縺ｧ閾ｪ蜍輔が繝ｼ繝励Φ -->
+    <script>
+      (() => {
+        const KEY = "tcg_detail_hidden";
+        const wrap = document.getElementById("detailWrap");
+        const btn = document.getElementById("detailClose");
+        if (!wrap || !btn) return;
+
+        try {
+          if (localStorage.getItem(KEY) === "1") wrap.classList.add("isHidden");
+        } catch {}
+
+        btn.addEventListener(
+          "click",
+          (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            wrap.classList.add("isHidden");
+            try {
+              localStorage.setItem(KEY, "1");
+            } catch {}
+          },
+          { capture: true },
+        );
+
+        const detail = document.getElementById("detail");
+        if (detail) {
+          const mo = new MutationObserver(() => {
+            wrap.classList.remove("isHidden");
+            try {
+              localStorage.setItem(KEY, "0");
+            } catch {}
+          });
+          mo.observe(detail, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+          });
+        }
+      })();
+    </script>
+
+    <!-- 笘・30/30驕疲・縺ｧ蜿ｳ繝代ロ繝ｫ繧堤匱蜈・+ 菴懈・/蜿ょ刈繝懊ち繝ｳ繧る｣蜍・-->
+    <script>
+      (() => {
+        const panel = document.getElementById("deckPanel");
+        const countEl = document.getElementById("deckCount");
+        const createBtn = document.getElementById("createBtn");
+        const joinBtn = document.getElementById("joinBtn");
+        const joinRoomId = document.getElementById("joinRoomId");
+        const playToggle = document.getElementById("roomDrawerToggle");
+
+        if (!panel || !countEl) return;
+
+        const apply = () => {
+          const n = Number(String(countEl.textContent || "").trim()) || 0;
+          const isReady = n === 30;
+          const need = Math.max(0, 30 - n);
+
+          panel.classList.toggle("deckReadyGlow", isReady);
+          playToggle?.classList.toggle("deckReady", isReady);
+          playToggle?.setAttribute(
+            "aria-label",
+            isReady
+              ? "プレイメニューを開く。デッキ30枚で開始できます。"
+              : `プレイメニューを開く。あと${need}枚で開始できます。`,
+          );
+          if (playToggle && !document.getElementById("roomDrawer")?.classList.contains("open")) {
+            playToggle.textContent = isReady ? "開始 ▶" : "プレイ ▶";
+          }
+
+          if (createBtn) createBtn.disabled = !isReady;
+
+          if (joinBtn) {
+            const hasRoomId = !!String(joinRoomId?.value || "").trim();
+            joinBtn.disabled = !(isReady && hasRoomId);
+          }
+        };
+
+        apply();
+
+        const mo = new MutationObserver(apply);
+        mo.observe(countEl, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        joinRoomId?.addEventListener("input", apply);
+      })();
+    </script>
+
+    <script type="application/json" id="legacyFilterDisabled">
+      (() => {
+        const cardList = document.getElementById("cardList");
+        const filterBar = document.getElementById("cardFilters");
+        const kindTabs = document.getElementById("kindTabs");
+        const attrTabs = document.getElementById("attrTabs");
+        const ownedTabs = document.getElementById("ownedTabs");
+        if (!cardList || !filterBar || !kindTabs || !attrTabs) return;
+
+        const FILTER_KIND_KEY = "tcg_filter_kind";
+        const FILTER_ATTR_KEY = "tcg_filter_attr";
+        const FILTER_OWNED_KEY = "tcg_filter_owned";
+
+        const attrHintTitle = document.getElementById("attrHintTitle");
+        const attrHintText = document.getElementById("attrHintText");
+
+        let currentKind = localStorage.getItem(FILTER_KIND_KEY) || "all";
+        let currentAttr = localStorage.getItem(FILTER_ATTR_KEY) || "all";
+        let currentOwned = localStorage.getItem(FILTER_OWNED_KEY) || "all";
+
+        const TYPE_LIST = ["火", "水", "雷", "草", "風", "鋼", "光", "闇", "幻", "呪"];
+        const ATTR_FEATURES = {
+          all: { title: "全属性の見方", text: "属性を選ぶと、その属性の強みと弱みがここに表示されます。" },
+          火: { title: "火属性の特徴", text: "+火力 +安定感 -SP最大値 -逆転力" },
+          水: { title: "水属性の特徴", text: "+耐久力 +SP攻撃 -火力 -展開力" },
+          雷: { title: "雷属性の特徴", text: "++安定感 +展開力 -逆転力 -SP最大値" },
+          草: { title: "草属性の特徴", text: "++回復 +安定感 -耐久力 --火力" },
+          風: { title: "風属性の特徴", text: "++移動 +奇襲 -耐久力 -火力" },
+          鋼: { title: "鋼属性の特徴", text: "+++耐久力 -展開力 -火力 -SP最大値" },
+          光: { title: "光属性の特徴", text: "+支援 +安定 -火力" },
+          闇: { title: "闇属性の特徴", text: "++妨害 ++リスク -安定感" },
+          呪: { title: "呪属性の特徴", text: "++SP攻撃 +呪圧 -耐久力 -火力" },
+          幻: { title: "幻属性の特徴", text: "++変則 +干渉 -素直な火力" },
+        };
+
+        function updateAttrHint() {
+          if (!attrHintTitle || !attrHintText) return;
+          const info = ATTR_FEATURES[currentAttr] || ATTR_FEATURES.all;
+          attrHintTitle.textContent = info.title;
+          attrHintText.textContent = info.text;
+        }
+
+        function guessKind(row) {
+          if (row.dataset.kind) return row.dataset.kind;
+          const text = `${row.querySelector(".sub")?.textContent || ""} ${row.querySelector(".name")?.textContent || ""}`.toLowerCase();
+          if (text.includes("サポート") || text.includes("support")) {
+            row.dataset.kind = "support";
+            return "support";
+          }
+          row.dataset.kind = "unit";
+          return "unit";
+        }
+
+        function guessAttr(row) {
+          const dataType = row.dataset.type;
+          if (dataType) return dataType;
+          const text = `${row.querySelector(".name")?.textContent || ""} ${row.querySelector(".sub")?.textContent || ""}`;
+          for (const t of TYPE_LIST) {
+            if (text.includes(`属性:${t}`) || text.includes(`属性：${t}`) || text.includes(t)) return t;
+          }
+          return "";
+        }
+
+        function guessOwned(row) {
+          if (row.classList.contains("notOwned") || row.querySelector(".ownedBadge.isZero")) return "unowned";
+          return "owned";
+        }
+
+        function applyFilterToRow(row) {
+          const kind = guessKind(row);
+          const attr = guessAttr(row);
+          const owned = guessOwned(row);
+          const kindOk = currentKind === "all" || currentKind === kind;
+          const ownedOk = currentOwned === "all" || currentOwned === owned;
+          const attrOk = currentKind === "support" || currentAttr === "all" || currentAttr === attr;
+          row.classList.toggle("isFilteredOut", !(kindOk && attrOk && ownedOk));
+        }
+
+        function applyAllFilters() {
+          cardList.querySelectorAll(".cardRow").forEach(applyFilterToRow);
+        }
+
+        function applyOwnedVisual(btn, selected) {
+          const palettes = {
+            all: ["rgba(105,180,255,.98)", "rgba(105,180,255,.22)"],
+            owned: ["rgba(120,255,175,1)", "rgba(120,255,175,.22)"],
+            unowned: ["rgba(255,125,145,1)", "rgba(255,125,145,.22)"],
+          };
+          if (!selected) {
+            btn.style.removeProperty("border-color");
+            btn.style.removeProperty("background");
+            btn.style.removeProperty("box-shadow");
+            btn.style.removeProperty("color");
+            btn.style.removeProperty("text-shadow");
+            return;
+          }
+          const [border, bg] = palettes[btn.dataset.owned] || palettes.all;
+          btn.style.borderColor = border;
+          btn.style.background = `linear-gradient(180deg, ${bg}, rgba(255,255,255,.06))`;
+          btn.style.boxShadow = `0 0 0 3px ${bg}, 0 0 22px ${bg}`;
+          btn.style.color = "rgba(255,255,255,1)";
+          btn.style.textShadow = "0 0 10px currentColor";
+        }
+
+        function setActiveButtons(container, selector, activeValue, dataKey) {
+          container.querySelectorAll(selector).forEach((btn) => {
+            const selected = btn.dataset[dataKey] === activeValue;
+            btn.classList.toggle("active", selected);
+            btn.classList.toggle("isSelected", selected);
+            btn.setAttribute("aria-pressed", selected ? "true" : "false");
+            if (selector === ".ownedFilter") applyOwnedVisual(btn, selected);
+          });
+        }
+
+        kindTabs.addEventListener("click", (e) => {
+          const btn = e.target.closest(".filterTab");
+          if (!btn) return;
+          currentKind = btn.dataset.kind || "all";
+          localStorage.setItem(FILTER_KIND_KEY, currentKind);
+          setActiveButtons(kindTabs, ".filterTab", currentKind, "kind");
+          applyAllFilters();
+        });
+
+        attrTabs.addEventListener("click", (e) => {
+          const btn = e.target.closest(".filterChip");
+          if (!btn || btn.classList.contains("ownedFilter") || !btn.dataset.attr) return;
+          currentAttr = btn.dataset.attr || "all";
+          localStorage.setItem(FILTER_ATTR_KEY, currentAttr);
+          setActiveButtons(attrTabs, ".filterChip:not(.ownedFilter)", currentAttr, "attr");
+          applyAllFilters();
+          updateAttrHint();
+        });
+
+        ownedTabs?.addEventListener("click", (e) => {
+          const btn = e.target.closest(".ownedFilter");
+          if (!btn) return;
+          currentOwned = btn.dataset.owned || "all";
+          localStorage.setItem(FILTER_OWNED_KEY, currentOwned);
+          setActiveButtons(ownedTabs, ".ownedFilter", currentOwned, "owned");
+          applyAllFilters();
+        });
+
+        setActiveButtons(kindTabs, ".filterTab", currentKind, "kind");
+        setActiveButtons(attrTabs, ".filterChip:not(.ownedFilter)", currentAttr, "attr");
+        if (ownedTabs) setActiveButtons(ownedTabs, ".ownedFilter", currentOwned, "owned");
+        updateAttrHint();
+        applyAllFilters();
+
+        new MutationObserver(applyAllFilters).observe(cardList, { childList: true, subtree: true });
+      })();
+    </script>
+
+    <script>
+      (() => {
+        const cardList = document.getElementById("cardList");
+        const filterBar = document.getElementById("cardFilters");
+        const kindTabs = document.getElementById("kindTabs");
+        const attrTabs = document.getElementById("attrTabs");
+        if (!cardList || !filterBar || !kindTabs || !attrTabs) return;
+
+        const K_KIND = "tcg_filter_kind";
+        const K_ATTR = "tcg_filter_attr";
+        const K_OWNED = "tcg_filter_owned";
+        const attrs = ["火", "水", "雷", "草", "風", "鋼", "光", "闇", "幻", "呪"];
+        const attrInfo = {
+          all: ["全属性の特徴", "属性を選ぶと、その属性の強みと弱みがここに出ます。"],
+          火: ["火属性の特徴", "火力と突破力が高い。安定感とSP最大値はやや低め。"],
+          水: ["水属性の特徴", "耐久力とSP攻撃に強み。火力と展開力は控えめ。"],
+          雷: ["雷属性の特徴", "安定感と展開力が高い。逆転力とSP最大値は低め。"],
+          草: ["草属性の特徴", "回復と安定が得意。耐久戦に強いが瞬間火力は控えめ。"],
+          風: ["風属性の特徴", "移動と奇襲が得意。耐久力はやや低い。"],
+          鋼: ["鋼属性の特徴", "耐久と制圧が強い。展開力とSP最大値は控えめ。"],
+          光: ["光属性の特徴", "支援と安定が得意。味方を整えて勝ち筋を作る。"],
+          闇: ["闇属性の特徴", "妨害とリスク技が得意。安定感は低め。"],
+          幻: ["幻属性の特徴", "変則と干渉が得意。素直な火力は控えめ。"],
+          呪: ["呪属性の特徴", "SP攻撃と呪圧が得意。耐久と火力は控えめ。"],
+        };
+
+        let searchInput = document.getElementById("search");
+        if (!searchInput) {
+          searchInput = document.createElement("input");
+          searchInput.id = "search";
+          searchInput.type = "search";
+          searchInput.className = "cardSearchInput";
+          searchInput.placeholder = "カード名 / ID / シリーズで検索";
+          filterBar.insertBefore(searchInput, filterBar.firstChild);
+        }
+
+        let typeSelect = document.getElementById("typeSelect");
+        if (!typeSelect) {
+          typeSelect = document.createElement("select");
+          typeSelect.id = "typeSelect";
+          typeSelect.hidden = true;
+          typeSelect.setAttribute("aria-hidden", "true");
+          typeSelect.innerHTML = `<option value="ALL">ALL</option>${attrs.map((a) => `<option value="${a}">${a}</option>`).join("")}`;
+          filterBar.appendChild(typeSelect);
+        }
+
+        if (!document.getElementById("indexFilterRepairStyle")) {
+          const style = document.createElement("style");
+          style.id = "indexFilterRepairStyle";
+          style.textContent = `
+            #cardFilters .cardSearchInput{
+              width:min(100%, 420px);
+              min-height:42px;
+              padding:0 16px;
+              border-radius:14px;
+              border:1px solid rgba(255,255,255,.16);
+              background:rgba(0,0,0,.28);
+              color:#fff;
+              font:inherit;
+              outline:none;
+              box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+            }
+            #cardFilters .cardSearchInput:focus{
+              border-color:rgba(100,190,255,.75);
+              box-shadow:0 0 0 3px rgba(100,190,255,.14), inset 0 0 0 1px rgba(255,255,255,.05);
+            }
+            #cardFilters .filterTab.active,
+            #cardFilters .filterChip.active,
+            #cardFilters .ownedFilter.isSelected{
+              color:#fff;
+              border-color:rgba(105,180,255,.95);
+              background:linear-gradient(180deg, rgba(105,180,255,.24), rgba(105,180,255,.08));
+              box-shadow:0 0 0 3px rgba(105,180,255,.12), 0 0 22px rgba(105,180,255,.22);
+              text-shadow:0 0 10px currentColor;
+            }
+            #cardFilters .ownedFilter[data-owned="owned"].isSelected{
+              border-color:rgba(120,255,175,.95);
+              background:linear-gradient(180deg, rgba(120,255,175,.22), rgba(120,255,175,.07));
+              box-shadow:0 0 0 3px rgba(120,255,175,.12), 0 0 22px rgba(120,255,175,.22);
+            }
+            #cardFilters .ownedFilter[data-owned="unowned"].isSelected{
+              border-color:rgba(255,125,145,.95);
+              background:linear-gradient(180deg, rgba(255,125,145,.20), rgba(255,125,145,.06));
+              box-shadow:0 0 0 3px rgba(255,125,145,.12), 0 0 22px rgba(255,125,145,.20);
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        kindTabs.innerHTML = `
+          <button class="filterTab" data-kind="all" data-kind-filter="all" type="button">全部</button>
+          <button class="filterTab" data-kind="unit" data-kind-filter="unit" type="button">キャラ</button>
+          <button class="filterTab" data-kind="support" data-kind-filter="support" type="button">サポート</button>
+        `;
+        attrTabs.innerHTML = `
+          <button class="filterChip" data-attr="all" type="button">全属性</button>
+          ${attrs.map((attr) => `<button class="filterChip" data-attr="${attr}" type="button">${attr}</button>`).join("")}
+          <span class="filterSpacer" aria-hidden="true"></span>
+          <span id="ownedTabs" class="ownedFilterGroup" aria-label="所持状態フィルタ">
+            <button class="filterChip ownedFilter" data-owned="all" data-owned-filter="all" type="button" aria-pressed="false">すべて</button>
+            <button class="filterChip ownedFilter" data-owned="owned" data-owned-filter="owned" type="button" aria-pressed="false">所持済み</button>
+            <button class="filterChip ownedFilter" data-owned="unowned" data-owned-filter="missing" type="button" aria-pressed="false">未所持</button>
+          </span>
+        `;
+
+        let kind = localStorage.getItem(K_KIND) || "all";
+        let attr = localStorage.getItem(K_ATTR) || "all";
+        let owned = localStorage.getItem(K_OWNED) || "all";
+
+        const normalize = (text) => String(text || "").normalize("NFKC").toLowerCase();
+        const kindOf = (row) => {
+          const raw = normalize(row.dataset.kind || row.dataset.cardKind || "");
+          if (raw === "support" || raw === "ex_support" || raw === "exsupport" || raw === "ex") return "support";
+          if (raw === "unit" || raw === "character" || raw === "char" || raw === "card") return "unit";
+          const text = normalize(row.textContent);
+          if (text.includes("サポ") || text.includes("support") || text.includes("効果:")) return "support";
+          return "unit";
+        };
+        const attrOf = (row) => String(row.dataset.type || row.dataset.attr || "").trim();
+        const ownedOf = (row) => {
+          if (row.classList.contains("notOwned") || row.querySelector(".ownedBadge.isZero")) return "unowned";
+          const text = normalize(row.textContent);
+          if (text.includes("×0") || text.includes("x0")) return "unowned";
+          return "owned";
+        };
+        const searchOf = (row) => normalize([
+          row.dataset.cardId,
+          row.dataset.search,
+          row.querySelector(".name")?.textContent,
+          row.querySelector(".sub")?.textContent,
+          row.textContent,
+        ].filter(Boolean).join(" "));
+
+        function syncDeckCoreFilters(triggerChange = false) {
+          document.body.dataset.kindFilter = kind;
+          document.body.dataset.ownedFilter = owned === "unowned" ? "missing" : owned;
+          if (typeSelect) {
+            typeSelect.value = attr === "all" ? "ALL" : attr;
+            if (triggerChange) typeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+
+        function setActive(triggerChange = false) {
+          syncDeckCoreFilters(triggerChange);
+          kindTabs.querySelectorAll("[data-kind]").forEach((btn) => {
+            const active = btn.dataset.kind === kind;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+          });
+          attrTabs.querySelectorAll("[data-attr]").forEach((btn) => {
+            const active = btn.dataset.attr === attr;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+          });
+          attrTabs.querySelectorAll("[data-owned]").forEach((btn) => {
+            const active = btn.dataset.owned === owned;
+            btn.classList.toggle("active", active);
+            btn.classList.toggle("isSelected", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+          });
+
+          const title = document.getElementById("attrHintTitle");
+          const text = document.getElementById("attrHintText");
+          const info = attrInfo[attr] || attrInfo.all;
+          if (title) title.textContent = info[0];
+          if (text) text.textContent = info[1];
+        }
+
+        function apply() {
+          const q = normalize(searchInput.value).trim();
+          cardList.querySelectorAll(".cardRow").forEach((row) => {
+            const rowKind = kindOf(row);
+            const rowAttr = attrOf(row);
+            const rowOwned = ownedOf(row);
+            row.dataset.kind = rowKind;
+            if (rowAttr) row.dataset.type = rowAttr;
+
+            const okKind = kind === "all" || rowKind === kind;
+            const okAttr = kind === "support" || attr === "all" || rowAttr === attr;
+            const okOwned = owned === "all" || rowOwned === owned;
+            const okSearch = !q || searchOf(row).includes(q);
+            const visible = okKind && okAttr && okOwned && okSearch;
+            row.classList.toggle("isFilteredOut", !visible);
+            row.hidden = !visible;
+          });
+        }
+
+        kindTabs.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-kind]");
+          if (!btn) return;
+          kind = btn.dataset.kind || "all";
+          localStorage.setItem(K_KIND, kind);
+          setActive(false);
+          apply();
+        });
+        attrTabs.addEventListener("click", (e) => {
+          const ownedBtn = e.target.closest("[data-owned]");
+          if (ownedBtn) {
+            owned = ownedBtn.dataset.owned || "all";
+            localStorage.setItem(K_OWNED, owned);
+            setActive(false);
+            apply();
+            return;
+          }
+          const attrBtn = e.target.closest("[data-attr]");
+          if (!attrBtn) return;
+          attr = attrBtn.dataset.attr || "all";
+          localStorage.setItem(K_ATTR, attr);
+          setActive(true);
+          apply();
+        });
+        searchInput.addEventListener("input", apply);
+
+        setActive(false);
+        apply();
+        window.addEventListener("DOMContentLoaded", () => {
+          syncDeckCoreFilters(true);
+          apply();
+        }, { once: true });
+        window.addEventListener("load", () => {
+          syncDeckCoreFilters(true);
+          apply();
+        }, { once: true });
+        setTimeout(() => {
+          syncDeckCoreFilters(true);
+          apply();
+        }, 800);
+        new MutationObserver(apply).observe(cardList, { childList: true, subtree: true });
+      })();
+    </script>
+
+    <div id="guideOverlay" aria-hidden="true">
+      <div id="guideDim"></div>
+      <div id="guideFocus" class="guideFocus"></div>
+
+      <div id="guideCard">
+        <div id="guideBadge">はじめての人向け</div>
+        <div id="guideStep">STEP 1 / 3</div>
+        <div id="guideTitle">画面の見方</div>
+        <div id="guideText">ここに説明が入ります。</div>
+
+        <div id="guideActions">
+          <button id="guideSkip" type="button" class="guideBtn">閉じる</button>
+          <button id="guidePrev" type="button" class="guideBtn">戻る</button>
+          <button id="guideNext" type="button" class="guideBtn primary">
+            次へ
+          </button>
+        </div>
+      </div>
+    </div>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+<script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+<script src="./deck_layout_guard.js?v=20260821_readable_ui1"></script>
+  <script src="./visual_upgrade_20260805.js?v=20260808_deck_flow2"></script>
+  <script src="./dopagaki_mode.js?v=20260912_dopa_tools_fix1"></script>
+  <script src="./mobile_deck_ui.js?v=20260906_curse_nav1"></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+
+    <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+    <script src="./mobile_home_deck_ui_20260926.js?v=20260926_device_switch4" defer></script>
+<script src="./mobile_deck_block_final_20260927.js?v=20260930_mobile_deck_stable3" defer></script>
 </body>
-
 </html>
 

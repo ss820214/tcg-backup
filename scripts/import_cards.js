@@ -19,8 +19,20 @@ const serviceAccount = require(serviceAccountPath);
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
+function stripCsvCommentLines(csvText) {
+  return String(csvText || "")
+    .split(/\r?\n/)
+    .filter((line) => {
+      const t = line.trim();
+      return !t.startsWith("//");
+    })
+    .join("\n");
+}
+
 function readCsv(filePath) {
-  const csvText = fs.readFileSync(filePath, "utf8");
+  const rawText = fs.readFileSync(filePath, "utf8");
+  const csvText = stripCsvCommentLines(rawText);
+
   return parse(csvText, {
     columns: true,
     skip_empty_lines: true,

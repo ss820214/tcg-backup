@@ -1,4 +1,4 @@
-<!-- public/match_intro.html -->
+﻿<!-- public/match_intro.html -->
 <!doctype html>
 <html lang="ja">
   <head>
@@ -49,6 +49,22 @@
         opacity:0;
         animation: pop .42s ease forwards;
       }
+      .panel::after{
+        content:"";
+        position:absolute;
+        right:-28px;
+        bottom:-34px;
+        width:260px;
+        height:176px;
+        background:
+          linear-gradient(90deg, rgba(0,0,0,.32), transparent 44%),
+          url("./assets/home/menu-room.webp") center/cover no-repeat;
+        opacity:.28;
+        filter:saturate(1.18) contrast(1.05);
+        pointer-events:none;
+        mix-blend-mode:screen;
+        border-radius:54px 0 22px 0;
+      }
       @keyframes pop{ to { transform: translateY(0); opacity:1; } }
 
       .glow{
@@ -62,7 +78,7 @@
         pointer-events:none;
       }
 
-      .row{ display:grid; grid-template-columns: 1fr; gap:14px; padding:18px; }
+      .row{ position:relative; z-index:1; display:grid; grid-template-columns: 1fr; gap:14px; padding:18px; }
 
       .top{
         display:flex; align-items:center; justify-content:space-between;
@@ -171,6 +187,85 @@
         transition: .18s ease;
       }
       .youTag.on{ opacity:1; transform: translateY(0); }
+      .matchDeckProfile{
+        margin-top:12px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.11);
+        background:
+          radial-gradient(220px 90px at 10% 0%, rgba(255,255,255,.08), transparent 62%),
+          rgba(0,0,0,.18);
+        padding:10px;
+      }
+      .matchDeckTitle{
+        font-size:10px;
+        color:rgba(255,255,255,.58);
+        letter-spacing:.16em;
+        font-weight:900;
+      }
+      .matchDeckMeta{
+        margin-top:5px;
+        color:rgba(255,255,255,.84);
+        font-size:12px;
+        line-height:1.45;
+        font-weight:850;
+      }
+      .matchAttrRail{
+        display:flex;
+        gap:5px;
+        flex-wrap:wrap;
+        margin-top:8px;
+      }
+      .matchAttrDot{
+        min-width:26px;
+        height:26px;
+        display:grid;
+        place-items:center;
+        border-radius:999px;
+        border:1px solid color-mix(in srgb, var(--attr-c, #7dd3fc) 65%, rgba(255,255,255,.18));
+        background:color-mix(in srgb, var(--attr-c, #7dd3fc) 18%, rgba(0,0,0,.35));
+        box-shadow:0 0 16px color-mix(in srgb, var(--attr-c, #7dd3fc) 18%, transparent);
+        font-size:11px;
+        font-weight:1000;
+      }
+      .matchFeaturedCards{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:6px;
+        margin-top:9px;
+      }
+      .matchFeaturedCard{
+        min-width:0;
+        display:grid;
+        gap:2px;
+        padding:7px 8px;
+        border-radius:11px;
+        border:1px solid color-mix(in srgb, var(--attr-c, #7dd3fc) 42%, rgba(255,255,255,.12));
+        background:
+          radial-gradient(70px 40px at 12% 0%, color-mix(in srgb, var(--attr-c, #7dd3fc) 18%, transparent), transparent 72%),
+          rgba(0,0,0,.18);
+        box-shadow:inset 0 0 16px rgba(255,255,255,.025);
+      }
+      .matchFeaturedCard b{
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        font-size:11px;
+      }
+      .matchFeaturedCard em{
+        color:color-mix(in srgb, var(--attr-c, #7dd3fc) 78%, white);
+        font-style:normal;
+        font-size:10px;
+        font-weight:1000;
+      }
+      .matchFeaturedEmpty{
+        grid-column:1/-1;
+        padding:7px 8px;
+        border-radius:10px;
+        color:rgba(255,255,255,.52);
+        background:rgba(0,0,0,.14);
+        font-size:11px;
+        font-weight:800;
+      }
 
       .pCard.win{
       box-shadow: 0 0 0 2px rgba(255,255,255,0.25), var(--shadow);
@@ -207,6 +302,19 @@
         text-align:center;
       }
       .sub{ font-size:12px; color: var(--muted); }
+      .fieldPlate{
+        min-width:118px;
+        padding:8px 10px;
+        border-radius:14px;
+        border:1px solid rgba(255,255,255,.14);
+        background:
+          linear-gradient(135deg, rgba(105,180,255,.14), rgba(120,227,173,.10)),
+          rgba(0,0,0,.20);
+        text-align:center;
+        box-shadow:inset 0 0 20px rgba(255,255,255,.04);
+      }
+      .fieldPlate b{display:block;font-size:12px;letter-spacing:.12em;}
+      .fieldPlate span{display:block;margin-top:4px;color:rgba(255,255,255,.66);font-size:11px;}
 
       .bar{
         margin-top:4px;
@@ -255,7 +363,9 @@
       .pCard.b .pill{ border-color: rgba(255,108,135,0.25); }
       }
     </style>
-  </head>
+    <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260808_deck_flow1" />
+    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
   <body>
     <canvas id="bgFx" class="fx"></canvas>
 
@@ -279,17 +389,27 @@
 
               <div class="mini">
                 <span class="pill" id="fieldATxt">FIELD: ---</span>
-                <span class="pill">🎲 <span id="diceATxt">--</span></span>
+                <span class="pill">軸 <span id="diceATxt">--</span></span>
               </div>
 
               <div class="youTag" id="youA">YOU</div>
+              <div class="matchDeckProfile" id="deckProfileA">
+                <div class="matchDeckTitle">DECK</div>
+                <div class="matchDeckMeta">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ</div>
+                <div class="matchAttrRail"></div>
+                <div class="matchFeaturedCards"></div>
+              </div>
             </div>
 
             <div class="vsMid">
               <div class="vsText">VS</div>
               <div class="count" id="countTxt">3</div>
-              <div class="sub" id="subTxt">対戦準備中…</div>
+              <div class="sub" id="subTxt">蟇ｾ謌ｦ貅門ｙ荳ｭ窶ｦ</div>
               <div class="sub" id="finalFieldTxt">FIELD: ---</div>
+              <div class="fieldPlate" id="fieldPlate">
+                <b>FIELD</b>
+                <span>謚ｽ驕ｸ荳ｭ</span>
+              </div>
             </div>
 
             <div class="pCard b">
@@ -298,23 +418,37 @@
 
               <div class="mini">
                 <span class="pill" id="fieldBTxt">FIELD: ---</span>
-                <span class="pill">🎲 <span id="diceBTxt">--</span></span>
+                <span class="pill">軸 <span id="diceBTxt">--</span></span>
               </div>
 
               <div class="youTag" id="youB">YOU</div>
+              <div class="matchDeckProfile" id="deckProfileB">
+                <div class="matchDeckTitle">DECK</div>
+                <div class="matchDeckMeta">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ</div>
+                <div class="matchAttrRail"></div>
+                <div class="matchFeaturedCards"></div>
+              </div>
             </div>
           </div>
 
           <div class="bar"><i id="barFill"></i></div>
 
           <div class="foot">
-            <div class="hint" id="hintTxt">マッチ情報を確認しています…</div>
+            <div class="hint" id="hintTxt">繝槭ャ繝∵ュ蝣ｱ繧堤｢ｺ隱阪＠縺ｦ縺・∪縺吮ｦ</div>
             <div class="badge" id="badgeTxt">CONNECT</div>
           </div>
         </div>
       </div>
     </div>
 
-    <script type="module" src="./match_intro.js?v=20260209_2"></script>
-  </body>
+    <script type="module" src="./match_intro.js?v=20260808_deck_flow1"></script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./visual_upgrade_20260805.js?v=20260808_deck_flow1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+    <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
 </html>
+

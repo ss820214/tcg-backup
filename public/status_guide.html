@@ -1,0 +1,515 @@
+﻿<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OBATO - 迥ｶ諷狗焚蟶ｸ霎槫・</title>
+    <link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070b10;
+        --panel: rgba(18, 25, 31, 0.92);
+        --panel2: rgba(11, 16, 22, 0.96);
+        --line: rgba(255, 255, 255, 0.14);
+        --text: rgba(255, 255, 255, 0.94);
+        --muted: rgba(255, 255, 255, 0.64);
+        --blue: #6ee7ff;
+        --green: #74f2a7;
+        --yellow: #ffd95a;
+      }
+
+      * { box-sizing: border-box; }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at 12% 16%, rgba(110, 231, 255, 0.16), transparent 28rem),
+          radial-gradient(circle at 82% 10%, rgba(190, 130, 255, 0.16), transparent 32rem),
+          linear-gradient(135deg, #070b10, #101711 55%, #08070c);
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.22;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: linear-gradient(180deg, #000, transparent 92%);
+      }
+
+      a,
+      button { font: inherit; }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 24px 0 44px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        background:
+          radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.72), transparent 0 13%),
+          radial-gradient(circle at 68% 68%, rgba(116, 242, 167, 0.78), transparent 0 20%),
+          linear-gradient(135deg, #8b7cff, #4fbf93);
+        box-shadow: 0 0 24px rgba(110, 231, 255, 0.22);
+      }
+
+      h1,
+      h2,
+      h3,
+      p { margin: 0; }
+
+      h1 {
+        font-size: clamp(1.55rem, 4.4vw, 2.55rem);
+        letter-spacing: 0;
+      }
+
+      .lead {
+        color: var(--muted);
+        margin-top: 4px;
+        line-height: 1.75;
+      }
+
+      .back {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.08);
+        padding: 12px 18px;
+        text-decoration: none;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.92fr) minmax(360px, 1.08fr);
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 34%),
+          var(--panel);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+        overflow: hidden;
+      }
+
+      .intro {
+        padding: 24px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(116, 242, 167, 0.45);
+        border-radius: 999px;
+        color: #bdff8c;
+        background: rgba(116, 242, 167, 0.1);
+        padding: 7px 12px;
+        font-weight: 900;
+        font-size: 0.82rem;
+      }
+
+      .intro h2 {
+        margin-top: 16px;
+        font-size: clamp(1.35rem, 4.2vw, 2.4rem);
+        line-height: 1.12;
+      }
+
+      .intro p {
+        margin-top: 14px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .orbit {
+        position: relative;
+        min-height: 360px;
+        padding: 24px;
+        display: grid;
+        place-items: center;
+      }
+
+      .orbitRing {
+        position: relative;
+        width: min(420px, 82vw);
+        aspect-ratio: 1;
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle, rgba(116, 242, 167, 0.14), transparent 0 28%, rgba(110, 231, 255, 0.06) 29%, transparent 67%),
+          radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.32), transparent 62%);
+      }
+
+      .orbitCenter {
+        position: absolute;
+        inset: 50%;
+        width: 140px;
+        height: 140px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        font-weight: 900;
+        color: #bdff8c;
+        border: 1px solid rgba(189, 255, 140, 0.42);
+        background: rgba(35, 48, 30, 0.78);
+        box-shadow: 0 0 38px rgba(189, 255, 140, 0.18);
+      }
+
+      .orbitItem {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 72px;
+        height: 72px;
+        margin: -36px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--tone);
+        transform:
+          rotate(var(--angle))
+          translateX(min(180px, 36vw))
+          rotate(calc(var(--angle) * -1));
+      }
+
+      .orbitItem .statusDoodle {
+        font-size: 62px;
+        background-color: rgba(255, 255, 255, 0.09);
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(8, 12, 17, 0.76);
+      }
+
+      .filter {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+        padding: 9px 14px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .filter.active {
+        color: #07110c;
+        border-color: rgba(116, 242, 167, 0.82);
+        background: linear-gradient(135deg, #77f0b0, #6ee7ff);
+        box-shadow: 0 0 20px rgba(116, 242, 167, 0.2);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        gap: 14px;
+        min-height: 184px;
+        padding: 18px;
+        border: 1px solid color-mix(in srgb, var(--tone), transparent 58%);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 18% 14%, color-mix(in srgb, var(--tone), transparent 82%), transparent 12rem),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 48%),
+          var(--panel2);
+      }
+
+      .statusMark {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+        color: var(--tone);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .statusMark .statusDoodle { font-size: 54px; }
+
+      .card h3 {
+        font-size: 1.15rem;
+        margin-top: 2px;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin: 9px 0 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 3px 9px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .card p {
+        color: rgba(255, 255, 255, 0.82);
+        line-height: 1.7;
+      }
+
+      .note {
+        margin-top: 12px;
+        padding-top: 11px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: color-mix(in srgb, var(--tone), white 28%);
+        line-height: 1.65;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 920px) {
+        .hero { grid-template-columns: 1fr; }
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(100% - 20px, 540px);
+          padding-top: 14px;
+        }
+
+        .topbar {
+          align-items: flex-start;
+        }
+
+        .brand {
+          align-items: flex-start;
+        }
+
+        .mark {
+          width: 42px;
+          height: 42px;
+          border-radius: 13px;
+        }
+
+        .back {
+          padding: 10px 13px;
+          font-size: 0.88rem;
+        }
+
+        .intro,
+        .orbit {
+          padding: 18px;
+        }
+
+        .orbit { min-height: 300px; }
+        .orbitItem {
+          transform:
+            rotate(var(--angle))
+            translateX(min(132px, 34vw))
+            rotate(calc(var(--angle) * -1));
+        }
+        .orbitItem .statusDoodle { font-size: 48px; }
+
+        .orbitCenter {
+          width: 108px;
+          height: 108px;
+          font-size: 0.9rem;
+        }
+
+        .grid { grid-template-columns: 1fr; }
+
+        .card {
+          grid-template-columns: 58px 1fr;
+          min-height: 0;
+          padding: 14px;
+        }
+
+        .statusMark {
+          width: 54px;
+          height: 54px;
+          border-radius: 16px;
+        }
+
+        .statusMark .statusDoodle { font-size: 42px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"></div>
+          <div>
+            <h1>迥ｶ諷狗焚蟶ｸ霎槫・</h1>
+            <p class="lead">逶､髱｢繧貞ｴｩ縺吶∝ｮ医ｋ縲∬ｪｭ縺ｿ蜷医≧縲ら憾諷狗焚蟶ｸ縺ｮ蜉ｹ譫懊→蟇ｾ遲悶ｒ縺ｾ縺ｨ繧√※縺・∪縺吶・/p>
+          </div>
+        </div>
+        <a class="back" href="./index.html">蛻晄悄逕ｻ髱｢縺ｸ</a>
+      </header>
+
+      <section class="hero">
+        <div class="panel intro">
+          <span class="tag">STATUS GUIDE</span>
+          <h2>繝槭・繧ｯ繧定ｦ九◆迸ｬ髢薙↓縲∵ｬ｡縺ｮ荳謇九′豎ｺ縺ｾ繧九・/h2>
+          <p>
+            OBATO縺ｮ迥ｶ諷狗焚蟶ｸ縺ｯ縲√◆縺縺ｮ霑ｽ蜉蜉ｹ譫懊〒縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・P繧貞炎繧九ヾP繧堤ｸ帙ｋ縲・            謚縺ｮ謌仙粥邇・ｒ謠ｺ繧峨☆縲∵焔譛ｭ繧貞ｦｨ螳ｳ縺吶ｋ縲ょｰ上＆縺ｪ繧｢繧､繧ｳ繝ｳ縺ｲ縺ｨ縺､縺ｧ逶､髱｢縺ｮ蜊ｱ髯ｺ蠎ｦ縺悟､峨ｏ繧翫∪縺吶・          </p>
+          <p>
+            謇区緒縺阪・荳ｸ縺・・繝ｼ繧ｯ繧偵・繝ｼ繧ｹ縺ｫ縲∵姶髣倡判髱｢縺ｧ繧りｪｭ繧√ｋ繧医≧縺ｫ謨ｴ逅・＠縺ｾ縺励◆縲・            繝舌ヨ繝ｫ荳ｭ縺ｮ繝√ャ繝励→縺薙・霎槫・縺ｯ蜷後§險伜捷繧剃ｽｿ縺・∪縺吶・          </p>
+        </div>
+
+        <div class="panel orbit" aria-label="迥ｶ諷狗焚蟶ｸ繝槭・繧ｯ縺ｮ荳隕ｧ">
+          <div class="orbitRing" id="orbitRing">
+            <div class="orbitCenter">迥ｶ諷狗焚蟶ｸ<br />繝槭・繧ｯ</div>
+          </div>
+        </div>
+      </section>
+
+      <nav class="filters" aria-label="繧ｫ繝・ざ繝ｪ縺ｧ邨槭ｊ霎ｼ縺ｿ">
+        <button class="filter active" type="button" data-filter="all">蜈ｨ驛ｨ</button>
+        <button class="filter" type="button" data-filter="damage">繝繝｡繝ｼ繧ｸ</button>
+        <button class="filter" type="button" data-filter="control">陦悟虚螯ｨ螳ｳ</button>
+        <button class="filter" type="button" data-filter="hand">謇区惆螯ｨ螳ｳ</button>
+        <button class="filter" type="button" data-filter="guard">髦ｲ蠕｡</button>
+        <button class="filter" type="button" data-filter="buff">蠑ｷ蛹・/button>
+        <button class="filter" type="button" data-filter="special">迚ｹ谿・/button>
+      </nav>
+
+      <section class="grid" id="statusGrid" aria-live="polite"></section>
+    </main>
+
+    <script>
+      const statuses = [
+      { key: "blind", name: "逶ｲ逶ｮ", cat: "control", tone: "#d4d7dc", timing: "謚蛻､螳・, effect: "縺薙・繧ｫ繝ｼ繝峨′菴ｿ縺・橿縺ｮ謌仙粥邇・ｒ蜊雁・縺ｫ縺励∪縺吶ょ多荳ｭ蠅怜刈繧・ｫ伜多荳ｭ謚縺ｧ縺ゅｋ遞句ｺｦ繧ｱ繧｢縺ｧ縺阪∪縺吶・, tip: "鬮倥さ繧ｹ繝域橿繧・享雋謚繧呈茶縺､蜑阪・逶ｸ謇九↓蜈･繧九→螟ｧ縺阪￥蟠ｩ縺帙∪縺吶・ },
+      { key: "smell", name: "縺ｫ縺翫＞", cat: "control", tone: "#9ca3af", timing: "繧ｿ繝ｼ繝ｳ邨ゆｺ・凾", effect: "繧ｿ繝ｼ繝ｳ邨ゆｺ・凾縺ｫSP-10縲ょ､莉倥″縺ｪ繧峨◎縺ｮ蛟､縺縺全P繧貞炎繧翫∪縺吶・, tip: "逶ｸ謇九・谺｡繧ｿ繝ｼ繝ｳ縺ｮ謚繧ｳ繧ｹ繝医ｒ邵帙ｋ縲ヾP螯ｨ螳ｳ逕ｨ縺ｮ迥ｶ諷九〒縺吶・ },
+      { key: "seal", name: "蟆∝魂", cat: "control", tone: "#8fb4ff", timing: "謚菴ｿ逕ｨ", effect: "謾ｻ謦・橿繧剃ｽｿ逕ｨ荳榊庄縺ｫ縺励∪縺吶・P/SP繝繝｡繝ｼ繧ｸ縲√ョ繝舌ヵ莉倅ｸ弱√ヮ繝・け繝舌ャ繧ｯ縺ｪ縺ｩ謾ｻ謦・桶縺・・謚繧呈ｭ｢繧√∪縺吶・, tip: "蠑ｷ縺・判謦・橿繧呈戟縺､繧ｫ繝ｼ繝峨∈蠖薙※繧九→縲∫嶌謇九・繧ｿ繝ｼ繝ｳ繧堤ｴｰ縺上〒縺阪∪縺吶・ },
+      { key: "lostSoul", name: "螟ｱ鬲・, cat: "special", tone: "#b889ff", timing: "莉倅ｸ惹ｸｭ", effect: "繧ｵ繝昴・繝医ｄ謚縺ｫ繧医ｋ蝗槫ｾｩ縲∝多荳ｭ蠅怜刈縲∵判謦・｢怜刈縲∬｣・抜縲∝屓驕ｿ縲∝ｱ樊ｧ螟画峩縺ｪ縺ｩ縺ｮ陬懷勧繧貞女縺代ｉ繧後∪縺帙ｓ縲ゅム繝｡繝ｼ繧ｸ繧・ｦｨ螳ｳ縺ｯ騾壼ｸｸ騾壹ｊ蜿励￠縺ｾ縺吶・, tip: "蜻ｳ譁ｹ縺九ｉ螳医ｌ縺ｪ縺上↑繧九◆繧√∝屓蠕ｩ繧・ｼｷ蛹悶↓鬆ｼ繧九き繝ｼ繝峨⊇縺ｩ逞帙＞螯ｨ螳ｳ縺ｧ縺吶・ },
+        { key: "rage", name: "豼諤・, cat: "special", tone: "#ff8b4a", timing: "謚螟ｱ謨玲凾", effect: "謚縺悟､ｱ謨励＠縺溘→縺阪∽ｽｿ逕ｨ閠・′HP20繝繝｡繝ｼ繧ｸ繧貞女縺代∪縺吶・, tip: "蜻ｽ荳ｭ縺ｮ菴弱＞螟ｧ謚繧・∫┌逅・↓謖ｯ繧翫◆縺・橿繧呈戟縺､繧ｫ繝ｼ繝峨↓譛牙柑縲・ },
+        { key: "brainwash", name: "豢苓┻", cat: "hand", tone: "#ff7fe5", timing: "謚驕ｸ謚・, effect: "50%縺ｧ謌仙粥縲よ・蜉溘☆繧九→縲√◎縺ｮ繧ｭ繝｣繝ｩ縺梧戟縺､謚繧剃ｽｿ逕ｨ縺ｧ縺阪∪縺吶ゆｽｿ縺・↓縺ｯ縺昴・謚縺ｮ繝槭リ繧呈髪謇輔＞縺ｾ縺吶・, tip: "逶ｸ謇九・蛻・ｊ譛ｭ繧貞･ｪ縺医ｋ縺後∵・蜉溽紫縺ｨ繝槭リ邂｡逅・′蜍晁ｲ縺ｫ縺ｪ繧翫∪縺吶・ },
+        { key: "sludge", name: "繝倥ラ繝ｭ", cat: "control", tone: "#9b8a62", timing: "謚菴ｿ逕ｨ", effect: "菴ｿ逕ｨ縺吶ｋ謚縺ｮ繝槭リ繧ｳ繧ｹ繝医′+1縺輔ｌ縺ｾ縺吶よ焔謨ｰ繧貞炎繧句ｦｨ螳ｳ縺ｧ縺吶・, tip: "菴弱さ繧ｹ繝磯｣謇薙ｄ縲√℃繧翫℃繧翫・繝槭リ驕狗畑繧偵＠縺ｦ縺・ｋ逶ｸ謇九↓蠑ｷ縺・・ },
+      { key: "evade", name: "蝗樣∩", cat: "guard", tone: "#6ee7ff", timing: "陲ｫ謾ｻ謦・凾", effect: "陦ｨ遉ｺ縺輔ｌ縺溽｢ｺ邇・〒謾ｻ謦・ｒ蝗樣∩縺励∵判謦・ｒ螟ｱ謨玲桶縺・↓縺励∪縺吶・, tip: "蜻ｽ荳ｭ繧剃ｸ翫￡繧九√∪縺溘・隍・焚蝗樊判謦・＠縺ｦ遯∫ｴ縺励◆縺・憾諷九〒縺吶・ },
+        { key: "counter", name: "繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ", cat: "guard", tone: "#74f2a7", timing: "陲ｫ繝繝｡繝ｼ繧ｸ譎・, effect: "陦ｨ遉ｺ遒ｺ邇・〒蜿励￠繧九≠繧峨ｆ繧九ム繝｡繝ｼ繧ｸ繧・縺ｫ縺励・0繝繝｡繝ｼ繧ｸ繧定ｿ斐＠縺ｾ縺吶・, tip: "逶ｸ謇九↓謾ｻ謦・ｒ縺溘ａ繧峨ｏ縺帙ｋ螳医ｊ縲ら憾諷狗焚蟶ｸ繧・ｽ咲ｽｮ謫堺ｽ懊〒蟠ｩ縺輔ｌ繧・☆縺・・ },
+      { key: "armor", name: "陬・抜", cat: "guard", tone: "#d4d7dc", timing: "陲ｫHP繝繝｡繝ｼ繧ｸ譎・, effect: "蜿励￠繧稀P繝繝｡繝ｼ繧ｸ繧貞､縺ｮ縺ｶ繧灘精蜿弱＠縺ｾ縺吶ょ精蜿弱＠縺溘・繧楢｣・抜縺ｯ貂帙ｊ縺ｾ縺吶４P繝繝｡繝ｼ繧ｸ縺ｯ髦ｲ縺弱∪縺帙ｓ縲・, tip: "蟆上＆縺ｪHP繝繝｡繝ｼ繧ｸ縺ｫ蠑ｷ縺・４P謾ｻ謦・ｄ陬・抜繧定ｶ・∴繧句､ｧ謚縺ｧ遯∫ｴ縺励◆縺・・ },
+        { key: "bleed", name: "蜃ｺ陦", cat: "damage", tone: "#ff6b7a", timing: "遘ｻ蜍墓凾", effect: "遘ｻ蜍輔＠縺溘→縺阪↓HP繝繝｡繝ｼ繧ｸ繧貞女縺代∪縺吶らｧｻ蜍輔〒謌ｦ髣倅ｸ崎・縺ｫ縺ｪ縺｣縺溷ｴ蜷医ｂ遐ｴ螢翫→縺励※謇ｱ縺・∪縺吶・, tip: "逶ｸ謇九ｒ蜍輔°縺呎橿繧・∫ｧｻ蜍輔ｒ蠑ｷ隕√☆繧狗乢髱｢縺ｨ逶ｸ諤ｧ縺瑚憶縺・・ },
+      { key: "powerUp", name: "謾ｻ謦・｢怜刈", cat: "buff", tone: "#ffd95a", timing: "HP繝繝｡繝ｼ繧ｸ譎・, effect: "縺薙・繧ｫ繝ｼ繝峨′荳弱∴繧稀P繝繝｡繝ｼ繧ｸ繧貞､縺ｮ縺ｶ繧灘｢励ｄ縺励∪縺吶４P繝繝｡繝ｼ繧ｸ縺ｯ蠅励∴縺ｾ縺帙ｓ縲・, tip: "HP繧貞炎繧雁・繧句ｽｹ縺ｸ驥阪・繧九→遐ｴ螢雁享縺｡繧堤漁縺・ｄ縺吶￥縺ｪ繧翫∪縺吶・ },
+      { key: "fracture", name: "鬪ｨ謚・, cat: "control", tone: "#f2c56b", timing: "遘ｻ蜍墓凾", effect: "遘ｻ蜍穂ｸ榊庄縺ｫ縺ｪ繧翫∪縺吶らｧｻ蜍輔〒蟆・ｨ九ｒ蜷医ｏ縺帙◆縺・き繝ｼ繝峨ｄ萓ｵ蜈･迢吶＞繧呈ｭ｢繧√∪縺吶・, tip: "蜑阪↓蜃ｺ縺溘＞逶ｸ謇九・・￡縺溘＞逶ｸ謇九∝ｰ・ｨ玖ｪｿ謨ｴ縺悟ｿ・ｦ√↑逶ｸ謇九↓蛻ｺ縺輔ｊ縺ｾ縺吶・ },
+      { key: "poison", name: "豈・, cat: "damage", tone: "#a78bfa", timing: "繧ｿ繝ｼ繝ｳ髢句ｧ区凾", effect: "閾ｪ蛻・・繧ｿ繝ｼ繝ｳ髢句ｧ区凾縺ｫ繝繧､繧ｹ繝ｭ繝ｼ繝ｫ縲・0%縺ｧ隗｣髯､縺輔ｌ縲∝､ｱ謨励☆繧九→HP-10繧貞女縺代∪縺吶・, tip: "髟ｷ蠑輔￥縺ｻ縺ｩ蜊ｱ髯ｺ縺ｧ縺吶′縲・°繧医￥閾ｪ辟ｶ隗｣髯､縺吶ｋ縺薙→繧ゅ≠繧翫∪縺吶・ },
+      { key: "taiman", name: "繧ｿ繧､繝槭Φ", cat: "special", tone: "#f2c56b", timing: "陲ｫ繝繝｡繝ｼ繧ｸ譎・, effect: "豁｣髱｢縺九ｉ蜷代″蜷医≧謨ｵ縺九ｉ縺励°繝繝｡繝ｼ繧ｸ繧貞女縺代∪縺帙ｓ縲よｨｪ繧・万繧√∬レ蠕後°繧峨・繝繝｡繝ｼ繧ｸ繧貞女縺第ｵ√＠縺ｾ縺吶・, tip: "菴咲ｽｮ蜿悶ｊ縺ｧ蟠ｩ縺吶°縲∵ｭ｣髱｢縺九ｉ鬮倡↓蜉帙ｒ騾壹☆蠢・ｦ√′縺ゅｊ縺ｾ縺吶・ },
+      { key: "aim", name: "蜻ｽ荳ｭ蠅怜刈", cat: "buff", tone: "#6ee7ff", timing: "謚蛻､螳・, effect: "謚縺ｮ謌仙粥邇・ｒ蛟､縺ｮ縺ｶ繧謎ｸ翫￡縺ｾ縺吶よ怙螟ｧ95%縺ｾ縺ｧ縺ｧ縺吶・, tip: "螟ｧ謚縺ｮ蜑阪↓驥阪・繧九→蠑ｷ縺・ら峇逶ｮ繧・多荳ｭ菴惹ｸ九∈縺ｮ蟇ｾ遲悶↓繧ゅ↑繧翫∪縺吶・ },
+      { key: "hitUp", name: "蜻ｽ荳ｭ蠅怜刈", cat: "buff", tone: "#a7f3d0", timing: "謚蛻､螳・, effect: "謚縺ｮ謌仙粥邇・ｒ蛟､縺ｮ縺ｶ繧謎ｸ翫￡縺ｾ縺吶Ｂim邉ｻ縺ｨ蜷後§蜻ｽ荳ｭ陬懷勧縺ｨ縺励※蜃ｦ逅・＆繧後∪縺吶・, tip: "菴取・蜉溽紫縺ｮ蠑ｷ蜉帙↑謚縺ｻ縺ｩ諱ｩ諱ｵ縺悟､ｧ縺阪＞縲・ },
+      { key: "jinx", name: "蜻ｽ荳ｭ菴惹ｸ・, cat: "control", tone: "#a78bfa", timing: "謚蛻､螳・, effect: "謚縺ｮ謌仙粥邇・ｒ蛟､縺ｮ縺ｶ繧謎ｸ九￡縺ｾ縺吶・, tip: "鬮倥さ繧ｹ繝域橿縺ｮ蜑阪↓鄂ｮ縺上→縲∫嶌謇九・繝・Φ繝昴ｒ蟠ｩ縺帙∪縺吶・ },
+      { key: "power", name: "謾ｻ謦・｢怜刈", cat: "buff", tone: "#ffca5f", timing: "HP繝繝｡繝ｼ繧ｸ譎・, effect: "謾ｻ謦・｢怜刈縺ｨ蜷後§縺上？P繝繝｡繝ｼ繧ｸ繧貞､縺ｮ縺ｶ繧灘｢励ｄ縺吝ｼｷ蛹悶→縺励※謇ｱ縺・∪縺吶・, tip: "轣ｫ螻樊ｧ繧・ｫ伜多荳ｭ謚縺ｨ蜷医ｏ縺帙ｋ縺ｨ謚ｼ縺怜・繧翫ｄ縺吶＞縲・ },
+        { key: "panic", name: "PANIC", cat: "special", tone: "#ff6b7a", timing: "謌ｦ髣倅ｸ崎・譎・, effect: "謌ｦ髣倅ｸ崎・繧・享蛻ｩ譚｡莉ｶ縺ｫ髢｢繧上ｋ迚ｹ谿翫↑迥ｶ諷九〒縺吶ら乢髱｢縺ｮ謳榊､ｱ縺悟､ｧ縺阪￥縺ｪ繧翫∪縺吶・, tip: "蜊ｱ髯ｺ蝨ｰ蟶ｯ縺ｫ蜈･繧句燕縺ｫ隗｣髯､縺吶ｋ縺九∝ｮ医ｊ繧貞字縺上☆繧九・ },
+        { key: "fatigue", name: "逍ｲ蜉ｴ", cat: "control", tone: "#ffd95a", timing: "陦悟虚蠕・, effect: "縺薙・繧ｿ繝ｼ繝ｳ陦悟虚貂医∩縺ｮ迥ｶ諷九〒縺吶るｲ蛹悶〒蜀崎｡悟虚縺ｧ縺阪ｋ蝣ｴ蜷医′縺ゅｊ縺ｾ縺吶′縲∫ｧｻ蜍募屓謨ｰ縺ｯ謌ｻ繧翫∪縺帙ｓ縲・, tip: "蜍輔￥蜑阪↓謚繧剃ｽｿ縺・°縲∵橿繧剃ｽｿ縺・燕縺ｫ遘ｻ蜍輔☆繧九°縺ｧ蟾ｮ縺悟・繧九・ },
+      ];
+
+      const catLabel = {
+        damage: "繝繝｡繝ｼ繧ｸ",
+        control: "陦悟虚螯ｨ螳ｳ",
+        hand: "謇区惆螯ｨ螳ｳ",
+        guard: "髦ｲ蠕｡",
+        buff: "蠑ｷ蛹・,
+        special: "迚ｹ谿・,
+      };
+
+      function safeKey(key) {
+        return String(key || "").replace(/[^a-zA-Z0-9_-]/g, "") || "fallback";
+      }
+
+      function iconHtml(key, fallback) {
+        const cls = safeKey(key);
+        return `<span class="statusDoodle statusDoodle-${cls}" aria-hidden="true"><i></i><b></b><em></em><strong></strong><span>${fallback || "!"}</span></span>`;
+      }
+
+      const orbitRing = document.getElementById("orbitRing");
+      const orbitItems = statuses.slice(0, 12);
+      orbitItems.forEach((s, index) => {
+        const item = document.createElement("div");
+        item.className = "orbitItem";
+        item.style.setProperty("--angle", `${(360 / orbitItems.length) * index}deg`);
+        item.style.setProperty("--tone", s.tone);
+        item.title = s.name;
+        item.innerHTML = iconHtml(s.key, s.name[0]);
+        orbitRing.appendChild(item);
+      });
+
+      const grid = document.getElementById("statusGrid");
+      const buttons = [...document.querySelectorAll("[data-filter]")];
+
+      function render(filter = "all") {
+        grid.innerHTML = statuses
+          .filter((s) => filter === "all" || s.cat === filter)
+          .map((s) => `
+            <article class="card" style="--tone:${s.tone}">
+              <div class="statusMark">${iconHtml(s.key, s.name[0])}</div>
+              <div>
+                <h3>${s.name}</h3>
+                <div class="meta">
+                  <span class="pill">${catLabel[s.cat]}</span>
+                  <span class="pill">${s.timing}</span>
+                </div>
+                <p>${s.effect}</p>
+                <div class="note">蟇ｾ遲・ ${s.tip}</div>
+              </div>
+            </article>
+          `)
+          .join("");
+      }
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          buttons.forEach((b) => b.classList.toggle("active", b === btn));
+          render(btn.dataset.filter);
+        });
+      });
+
+      render();
+    </script>
+  </body>
+</html>
+

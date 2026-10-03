@@ -33,7 +33,7 @@ function beep(freq = 880, ms = 70, gain = 0.04) {
 }
 
 
-
+import { ensureSignedIn } from "./auth.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore,
@@ -43,12 +43,16 @@ import {
   updateDoc, // ← 使わなくなるなら消してOK
   setDoc, // ★追加
   getDoc,
+  query,
+  where,
+  limit,
   runTransaction,
   serverTimestamp,
   getDocs,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { renderDeckRadar } from "./deck_radar.js";
+import { renderDeckRadar } from "./deck_radar.js?v=20260914_radar_readable1";
+import { grantGems } from "./user_store.js?v=20260730_user_support30";
 
 // =====================
 // Firebase
@@ -61,19 +65,55 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const authUser = await ensureSignedIn();
+const authUid = authUser?.uid || "";
+console.log("[battle] auth ok", authUid);
 // =====================
 // URL params
 // =====================
 const qs = new URLSearchParams(location.search);
 
-const roomId = qs.get("room");
-const playerId = qs.get("player");
+function newRoomCode4() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+function newPlayerId() {
+  return crypto.randomUUID?.() ?? "p" + Math.random().toString(16).slice(2);
+}
+function isValidRoomCode4(v) {
+  const s = String(v || "").trim();
+  return /^\d{4}$/.test(s) && s !== "0000";
+}
+function sanitizeRoomId(v) {
+  const s = String(v || "").trim();
+  return isValidRoomCode4(s) ? s : newRoomCode4();
+}
+function normalizeFieldId(f, opts = {}) {
+  const fallback = opts.fallback ?? "grass";
+  const raw = String(f ?? "").trim();
+  const t = raw.toLowerCase().replace(/[\s_-]/g, "");
+  if (t === "danger" || t === "dangerzone" || raw.includes("危険")) return "danger";
+  if (t === "swamp" || raw.includes("沼")) return "swamp";
+  if (t === "grass" || raw.includes("草")) return "grass";
+  return fallback;
+}
+
+const rawRoomId = qs.get("room");
+const rawPlayerId = qs.get("player");
+let roomId = sanitizeRoomId(rawRoomId);
+let playerId = rawPlayerId || newPlayerId();
 const action = (qs.get("action") || "join").toLowerCase();
 
 const isSolo =
   qs.get("solo") === "1" || (qs.get("mode") || "").toLowerCase() === "solo";
 
-const fieldIdParam = (qs.get("field") || "").trim().toLowerCase();
+const fieldIdParam = normalizeFieldId(qs.get("field"), { fallback: "" });
+
+if (roomId !== rawRoomId || playerId !== rawPlayerId) {
+  const fixedUrl = new URL(location.href);
+  fixedUrl.searchParams.set("room", roomId);
+  fixedUrl.searchParams.set("player", playerId);
+  history.replaceState(null, "", fixedUrl.toString());
+}
 
 if (!roomId || !playerId) {
   alert("URLに room / player がありません");
@@ -110,6 +150,8 @@ const attrDistEl = document.getElementById("attrDist");
 
 const fieldPickEl = document.getElementById("fieldPick");
 const fieldPickNoteEl = document.getElementById("fieldPickNote");
+let selectedFieldId = fieldIdParam || "";
+let lastDeckVisualSignature = null;
 
 roomIdEl.textContent = roomId;
 
@@ -129,7 +171,12 @@ const matchRef = doc(db, "rooms", roomId, "game", "match");
 // =====================
 // Field pick helpers（A/B希望 → matchで確定）
 // =====================
-const FIELD_LIST = ["grass", "danger", "swamp"];
+const FIELD_META = {
+  grass: { label: "草原", code: "grass" },
+  danger: { label: "危険地帯", code: "danger" },
+  swamp: { label: "沼地", code: "swamp" },
+};
+const FIELD_LIST = Object.keys(FIELD_META);
 
 function randField() {
   return FIELD_LIST[Math.floor(Math.random() * FIELD_LIST.length)];
@@ -142,7 +189,8 @@ function dice1to6() {
 // - URLに field があればそれを優先
 // - 無ければランダム
 function myDesiredField() {
-  if (fieldIdParam) return fieldIdParam;
+  if (selectedFieldId) return normalizeFieldId(selectedFieldId);
+  if (fieldIdParam) return normalizeFieldId(fieldIdParam);
   return randField();
 }
 
@@ -150,20 +198,15 @@ function myDesiredField() {
 // FieldPick UI（トップレベル）
 // =====================
 function prettyFieldJP(f) {
-  const t = String(f || "")
-    .trim()
-    .toLowerCase();
-  if (t === "grass") return "草原";
-  if (t === "danger") return "危険地帯";
-  if (t === "swamp") return "沼地";
-  return t || "---";
+  const t = normalizeFieldId(f, { fallback: "" });
+  return FIELD_META[t]?.label || t || "---";
 }
 
 function renderFieldPick(current) {
   if (!fieldPickEl) return;
-  const cur = String(current || "")
-    .trim()
-    .toLowerCase();
+  const cur = normalizeFieldId(current, { fallback: "" });
+  if (cur) selectedFieldId = cur;
+  fieldPickEl.dataset.field = cur || "";
 
   fieldPickEl.querySelectorAll("button[data-field]").forEach((btn) => {
     const f = String(btn.dataset.field || "").toLowerCase();
@@ -172,16 +215,15 @@ function renderFieldPick(current) {
 
   if (fieldPickNoteEl) {
     fieldPickNoteEl.textContent = cur
-      ? `希望：${prettyFieldJP(cur)} (${cur})`
+      ? `希望：${prettyFieldJP(cur)} (${FIELD_META[cur]?.code || cur})`
       : "未選択";
   }
 }
 
 async function setDesiredField(f) {
-  const v = String(f || "")
-    .trim()
-    .toLowerCase();
+  const v = normalizeFieldId(f, { fallback: "" });
   if (!v) return;
+  selectedFieldId = v;
 
   try {
     await setDoc(
@@ -226,17 +268,18 @@ wireFieldPickButtons();
 // Match intro (between lobby -> game)
 // =====================
 function goToMatchIntro() {
-  const url = new URL("./match_intro.html", location.href);
+  const url = new URL("./match_intro.html?v=20260727_room_field_fix1", location.href);
   url.searchParams.set("room", roomId);
   url.searchParams.set("player", playerId);
+  url.searchParams.set("field", normalizeFieldId(selectedFieldId || fieldIdParam, { fallback: "grass" }));
 
   // ソロ時は URL を人間がいじらなくて済むように solo=1 を引き回す
   if (isSolo) {
     url.searchParams.set("solo", "1");
     url.searchParams.set("mode", "solo");
-    url.searchParams.set("next", "game.html?solo=1");
+    url.searchParams.set("next", "game.html?v=20260727_evolve_inline_btn_off1&solo=1");
   } else {
-    url.searchParams.set("next", "game.html");
+    url.searchParams.set("next", "game.html?v=20260727_evolve_inline_btn_off1");
   }
 
   location.href = url.toString();
@@ -250,16 +293,13 @@ async function ensureCpuPlayerDocFromMe() {
   if (!meSnap.exists()) return;
   const me = meSnap.data() || {};
 
-  // CPUがすでに居ればOK（ただしdeckは同期しておく）
   const cpuSnap = await getDoc(cpuRef);
   const patch = {
     name: "CPU",
     ready: true,
     isCpu: true,
-    // 人間のデッキをコピー（事故りにくい）
     deck: safeObj(me.deck),
-    exCardId: me.exCardId || null,
-    // フィールド希望もとりあえず合わせる（不要なら消してOK）
+    exSupport: me.exSupport || "",
     desiredField: me.desiredField || myDesiredField(),
     updatedAt: serverTimestamp(),
     joinedAt: serverTimestamp(),
@@ -272,6 +312,57 @@ async function ensureCpuPlayerDocFromMe() {
   }
 }
 
+async function loadRandomPublicDeck() {
+  const decksCol = collection(db, "decks");
+
+  const q1 = query(
+    decksCol,
+    where("visibility", "==", "public"),
+    limit(100),
+  );
+
+  const snap = await getDocs(q1);
+  const items = [];
+
+  snap.forEach((d) => {
+    const v = d.data() || {};
+    if (v.deck && typeof v.deck === "object" && !Array.isArray(v.deck)) {
+      items.push({
+        id: d.id,
+        ...v,
+      });
+    }
+  });
+
+  if (!items.length) return null;
+  return items[Math.floor(Math.random() * items.length)] || null;
+}
+
+async function ensureCpuPlayerDocFromPublicDeck({ db, cpuRef }) {
+  const picked = await loadRandomPublicDeck();
+
+  // 公開デッキが1件も無い時だけ、自分のデッキコピーにフォールバック
+  if (!picked) {
+    await ensureCpuPlayerDocFromMe();
+    return;
+  }
+
+  const patch = {
+    name: picked?.title
+      ? `CPU:${picked.title}${picked?.ownerName ? ` (${picked.ownerName})` : ""}`
+      : "CPU",
+    ready: true,
+    isCpu: true,
+    deck: safeObj(picked?.deck),
+    exSupport: picked?.exSupport || "",
+    desiredField: picked?.desiredField || myDesiredField(),
+    updatedAt: serverTimestamp(),
+    joinedAt: serverTimestamp(),
+  };
+
+  await setDoc(cpuRef, patch, { merge: true });
+}
+
 async function bootCpuIfEnabled() {
   // ソロ以外は何もしない
   if (!isSolo) return;
@@ -282,7 +373,7 @@ async function bootCpuIfEnabled() {
   cpuBooted = true;
 
   try {
-    await ensureCpuPlayerDocFromMe();
+    await ensureCpuPlayerDocFromPublicDeck({ db, cpuRef });
   } catch (e) {
     console.warn("[cpu] boot failed", e);
   }
@@ -292,13 +383,42 @@ function safeObj(o) {
   return o && typeof o === "object" && !Array.isArray(o) ? o : {};
 }
 
+function deckVisualSignature(deckObj) {
+  const dObj = safeObj(deckObj);
+  return Object.keys(dObj)
+    .filter((id) => Number(dObj[id] || 0) > 0)
+    .sort((a, b) => a.localeCompare(b))
+    .map((id) => `${id}:${Number(dObj[id] || 0)}`)
+    .join("|");
+}
+
+function renderDeckAnalysisIfChanged(deckObj) {
+  const sig = deckVisualSignature(deckObj);
+  if (sig === lastDeckVisualSignature) return;
+  lastDeckVisualSignature = sig;
+  renderDeckRadar(
+    "battleDeckRadar",
+    "battleDeckRadarText",
+    deckObj || {},
+    cardDefs,
+  );
+  renderAttrDist(deckObj || {});
+}
+
 function autoName(pid) {
   const s = String(pid || "");
   return "Player-" + s.slice(0, 4);
 }
 
 function isSupportCard(def) {
-  return String(def?.kind || "").toLowerCase() === "support";
+  if (!def) return false;
+  const kind = String(def?.kind || "").toLowerCase();
+  if (kind === "support" || kind === "ex_support" || kind === "exsupport") return true;
+  const type = String(def?.type || "").toLowerCase();
+  if (type === "support" || type === "サポート") return true;
+  const hasEffect = def.effect != null;
+  const acts = Array.isArray(def.actions) ? def.actions : [];
+  return hasEffect && acts.length === 0;
 }
 
 function displayType(def) {
@@ -382,6 +502,8 @@ function renderVs(players) {
   const ids = players.map((p) => p.id).sort();
   const p1 = players.find((p) => p.id === ids[0]);
   const p2 = players.find((p) => p.id === ids[1]);
+  const readyAll = !!p1?.ready && !!p2?.ready;
+  document.body.classList.toggle("lobbyReadyAll", readyAll);
 
   if (!p1 && !p2) {
     p1NameEl.textContent = "---";
@@ -390,6 +512,7 @@ function renderVs(players) {
     setReadyBadge(p2ReadyEl, false);
     p1YouEl.textContent = "";
     p2YouEl.textContent = "";
+    document.body.classList.remove("lobbyReadyAll");
     return;
   }
 
@@ -437,9 +560,17 @@ function renderAttrDist(deckObj) {
   }
 
   const map = new Map();
+  let supportCount = 0;
+  let unitTotal = 0;
   for (const it of entries) {
     const def = cardDefs[it.id];
+    if (isSupportCard(def)) {
+      supportCount += it.count;
+      continue;
+    }
     const type = displayType(def);
+    if (!type || type === "unknown") continue;
+    unitTotal += it.count;
     map.set(type, (map.get(type) || 0) + it.count);
   }
 
@@ -448,8 +579,12 @@ function renderAttrDist(deckObj) {
     .sort((a, b) => b.cnt - a.cnt);
 
   attrDistEl.innerHTML = "";
+  if (!unitTotal) {
+    attrDistEl.innerHTML = `<div class="muted">キャラカードの属性がありません（サポート${supportCount}枚）</div>`;
+    return;
+  }
   for (const r of rows) {
-    const pct = Math.round((r.cnt / total) * 100);
+    const pct = Math.round((r.cnt / unitTotal) * 100);
     const row = document.createElement("div");
     row.className = "attrRow";
 
@@ -476,6 +611,13 @@ function renderAttrDist(deckObj) {
     row.appendChild(pctEl);
 
     attrDistEl.appendChild(row);
+  }
+  if (supportCount > 0) {
+    const note = document.createElement("div");
+    note.className = "muted small";
+    note.style.marginTop = "8px";
+    note.textContent = `サポート ${supportCount}枚は属性分布から除外して評価しています。`;
+    attrDistEl.appendChild(note);
   }
 }
 
@@ -575,19 +717,15 @@ async function ensureMyPlayerDoc() {
     const meSnap = await tx.get(myRef);
 
     if (!meSnap.exists()) {
-      // battle.js: ensureMyPlayerDoc transaction内
-tx.set(myRef, {
-  name: autoName(playerId),
-  ready: false,
-  deck: Object.keys(localDeck).length ? localDeck : {},
-  exSupport: localEx || "",              // ← exCardId じゃなく exSupport
-  desiredField: myDesiredField(),
-  joinedAt: serverTimestamp(),
-  updatedAt: serverTimestamp(),
-});
-
-// onSnapshot(myRef) 側
-renderMyDeck(me.deck, me.exSupport || null);
+      tx.set(myRef, {
+        name: autoName(playerId),
+        ready: false,
+        deck: Object.keys(localDeck).length ? localDeck : {},
+        exSupport: localEx || "",
+        desiredField: myDesiredField(),
+        joinedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
       return;
     }
 
@@ -597,9 +735,13 @@ renderMyDeck(me.deck, me.exSupport || null);
 
     const patch = { updatedAt: serverTimestamp() };
 
-    if (!me.desiredField) patch.desiredField = myDesiredField();
+    const normalizedDesired = normalizeFieldId(me.desiredField, { fallback: "" });
+    if (!normalizedDesired) patch.desiredField = myDesiredField();
+    else if (normalizedDesired !== String(me.desiredField || "").trim().toLowerCase()) {
+      patch.desiredField = normalizedDesired;
+    }
     if (!hasDeck && Object.keys(localDeck).length) patch.deck = localDeck;
-    if (!me.exCardId && localEx) patch.exCardId = localEx;
+    if (!me.exSupport && localEx) patch.exSupport = localEx;
 
     tx.set(myRef, patch, { merge: true });
   });
@@ -624,10 +766,10 @@ onSnapshot(myRef, (snap) => {
     return;
   }
   
-  // ソロ＆AI ONならCPUを用意（deck/ex/ready同期）
-  if (isSolo && aiToggle?.checked) {
-    ensureCpuPlayerDocFromMe().catch(() => {});
-  }
+  /// ソロ＆AI ONならCPUを用意（公開デッキから取得）
+if (isSolo && aiToggle?.checked) {
+    bootCpuIfEnabled().catch(() => {});
+}
 
   renderFieldPick(me.desiredField || "");
 
@@ -640,14 +782,8 @@ onSnapshot(myRef, (snap) => {
     ? "準備OK！相手の準備を待っています…"
     : "相手の入室を待っています…";
 
-  renderMyDeck(me.deck, me.exCardId || null);
-  renderDeckRadar(
-    "battleDeckRadar",
-    "battleDeckRadarText",
-    me.deck || {},
-    cardDefs,
-  );
-  renderAttrDist(me.deck || {});
+  renderMyDeck(me.deck, me.exSupport || null);
+  renderDeckAnalysisIfChanged(me.deck || {});
 });
 
 // =====================
@@ -742,14 +878,8 @@ onSnapshot(playersRef, async (snap) => {
       const aData = aSnap.exists() ? aSnap.data() || {} : {};
       const bData = bSnap.exists() ? bSnap.data() || {} : {};
 
-      const fieldA =
-        String(aData.desiredField || "")
-          .trim()
-          .toLowerCase() || randField();
-      const fieldB =
-        String(bData.desiredField || "")
-          .trim()
-          .toLowerCase() || randField();
+      const fieldA = normalizeFieldId(aData.desiredField, { fallback: randField() });
+      const fieldB = normalizeFieldId(bData.desiredField, { fallback: randField() });
 
       let diceA = 0;
       let diceB = 0;
@@ -805,46 +935,128 @@ const ball = document.getElementById("ball");
 const pingBtn = document.getElementById("pingBtn");
 const pingResetBtn = document.getElementById("pingResetBtn");
 const pingStatus = document.getElementById("pingStatus");
+const pongPanel = document.querySelector(".pongPanel");
+const pongStage = document.querySelector(".pong");
+const pongPaddle = document.querySelector(".paddle");
+const pongScoreEl = document.getElementById("pongScore");
+const pongComboEl = document.getElementById("pongCombo");
+const pongRewardEl = document.getElementById("pongReward");
 
-let x = 320;
+let x = 0;
 let vx = -3.8;
 let score = 0;
+let combo = 0;
 let miss = 0;
+let rewardTotal = 0;
+let lastRewardCombo = 0;
+let rewardQueue = Promise.resolve();
+
+function pongMaxX() {
+  const stageW = pongStage?.clientWidth || 340;
+  const ballW = ball?.offsetWidth || 18;
+  return Math.max(70, stageW - ballW - 8);
+}
+
+function setPongText(text) {
+  if (pingStatus) pingStatus.textContent = text;
+}
+
+function renderPongHud() {
+  if (pongScoreEl) pongScoreEl.textContent = String(score);
+  if (pongComboEl) pongComboEl.textContent = String(combo);
+  if (pongRewardEl) pongRewardEl.textContent = `+${rewardTotal}`;
+}
 
 function resetPong() {
-  x = 320;
+  x = pongMaxX();
   vx = -3.8;
   score = 0;
+  combo = 0;
   miss = 0;
-  pingStatus.textContent = "スタート！ 左端付近で「打ち返す！」";
+  rewardTotal = 0;
+  lastRewardCombo = 0;
+  setPongText("スタート！ 左端の光るラインで打ち返す！");
+  renderPongHud();
 }
 resetPong();
 
+function flashPongHit() {
+  ball?.classList.remove("hitFlash");
+  pongPaddle?.classList.remove("hitFlash");
+  void ball?.offsetWidth;
+  ball?.classList.add("hitFlash");
+  pongPaddle?.classList.add("hitFlash");
+  setTimeout(() => {
+    ball?.classList.remove("hitFlash");
+    pongPaddle?.classList.remove("hitFlash");
+  }, 320);
+}
+
+function flashPongReward() {
+  pongPanel?.classList.remove("rewardFlash");
+  void pongPanel?.offsetWidth;
+  pongPanel?.classList.add("rewardFlash");
+  setTimeout(() => pongPanel?.classList.remove("rewardFlash"), 950);
+}
+
+function maybeRewardPongCombo() {
+  if (!authUid || combo < 20 || combo % 20 !== 0 || combo === lastRewardCombo) return;
+  lastRewardCombo = combo;
+  rewardTotal += 10;
+  renderPongHud();
+  flashPongReward();
+  setPongText(`${combo}コンボ！ +10 Gems 付与中...`);
+  rewardQueue = rewardQueue
+    .then(() => grantGems(authUid, 10, `pong_combo_${combo}`))
+    .then(() => {
+      setPongText(`${combo}コンボ達成！ +10 Gems を受け取りました`);
+    })
+    .catch((e) => {
+      console.warn("[pong] gem reward failed", e);
+      setPongText(`${combo}コンボ達成！ ジェム付与は通信後に再挑戦してね`);
+    });
+}
+
 function tick() {
+  if (!ball || !pongStage) return;
   x += vx;
+  const maxX = pongMaxX();
 
   if (x <= 0) {
     miss++;
-    pingStatus.textContent = `ミス！ score=${score} / miss=${miss}`;
+    combo = 0;
+    setPongText(`ミス！ score=${score} / miss=${miss}`);
+    renderPongHud();
     vx = Math.abs(vx);
   }
 
-  if (x >= 320) {
+  if (x >= maxX) {
+    x = maxX;
     vx = -Math.abs(vx);
   }
 
   ball.style.left = `${x}px`;
+  pongStage.style.setProperty("--ball-x", `${Math.round((x / Math.max(maxX, 1)) * 100)}%`);
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 
-pingBtn.onclick = () => {
-  if (x <= 45) {
+if (pingBtn) pingBtn.onclick = () => {
+  ensureAudio();
+  const hitZone = 54;
+  const canHit = vx < 0 && x <= hitZone;
+  if (canHit) {
     score++;
-    vx = Math.abs(vx) * 1.06;
-    pingStatus.textContent = `ナイス！ score=${score} / miss=${miss}`;
+    combo++;
+    vx = Math.min(Math.abs(vx) * 1.055, 11);
+    beep(720 + Math.min(combo, 30) * 16, 48, 0.035);
+    flashPongHit();
+    setPongText(`ナイス！ ${combo}コンボ / score=${score} / miss=${miss}`);
+    renderPongHud();
+    maybeRewardPongCombo();
   } else {
-    pingStatus.textContent = `早押し！ score=${score} / miss=${miss}`;
+    beep(180, 60, 0.025);
+    setPongText(`早押し！ 光るラインまで引きつけてね / score=${score}`);
   }
 };
-pingResetBtn.onclick = resetPong;
+if (pingResetBtn) pingResetBtn.onclick = resetPong;

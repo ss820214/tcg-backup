@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="giant electric fan thunder pencil illustration">
+  <defs><linearGradient id="p" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffef5"/><stop offset=".62" stop-color="#f4f2e8"/><stop offset="1" stop-color="#e7e4d6"/></linearGradient><filter id="gl"><feGaussianBlur stdDeviation="2.4"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#p)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12" stroke-width="1"><path d="M28 58c58 13 113-15 199 3M29 298c67-11 126 11 199-4"/><path d="M42 38l172 280M218 38L39 317"/></g>
+    <g stroke="#ffd13b" stroke-width="6" opacity=".52" filter="url(#gl)"><path d="M128 50l-20 43h30l-25 52M205 102l-45 22 27 15-58 14M50 120l50 12-24 20 58-2"/></g>
+    <g stroke="#202020">
+      <g stroke-width="4"><circle cx="128" cy="148" r="77"/><circle cx="128" cy="148" r="22"/><path d="M128 225v48M83 310h90M98 273h60"/></g>
+      <g stroke-width="2.5"><path d="M130 125c29-47 69-31 61 3-8 31-42 22-50 43"/><path d="M105 157c-54 2-62-42-31-57 29-13 41 19 65 25"/><path d="M137 169c24 49-12 73-40 54-25-17-4-43-2-67"/><path d="M67 148h122M128 87v122"/><path d="M73 110c29-31 79-39 116-15M67 188c31 33 82 41 124 15"/></g>
+      <g stroke-width="1.1" opacity=".35"><circle cx="128" cy="148" r="62"/><circle cx="128" cy="148" r="46"/><path d="M52 244c48-15 97-11 149 3M60 258c42 11 88 11 137 0"/></g>
+    </g>
+  </g>
+</svg>

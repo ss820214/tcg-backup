@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="豆の木の火竜 illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff2a8"/>
+      <stop offset=".52" stop-color="#201b08"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".50" cy=".34" r=".60">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".78"/>
+      <stop offset=".42" stop-color="#fff2a8" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#201b08" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figure" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".62" stop-color="#fff2a8"/>
+      <stop offset="1" stop-color="#10131a"/>
+    </linearGradient>
+    <radialGradient id="core" cx=".38" cy=".22" r=".7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".32" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fff2a8"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity=".45"/>
+    </linearGradient>
+    <filter id="ft_fire_dragon_beanstalk_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="356" rx="26" fill="#080b12"/>
+  <rect x="7" y="7" width="242" height="342" rx="22" fill="url(#bg)"/>
+  <rect x="10" y="10" width="236" height="336" rx="19" fill="url(#halo)"/>
+  <path d="M-20 92 C64 44 132 48 276 12" stroke="white" stroke-opacity=".10" stroke-width="42"/>
+  <path d="M-18 286 C72 222 178 282 274 216" stroke="#ffffff" stroke-opacity=".16" stroke-width="38"/>
+  <g transform="rotate(284 128 176)" opacity=".36">
+    <ellipse cx="128" cy="176" rx="83" ry="118" fill="none" stroke="white" stroke-opacity=".15" stroke-width="2"/>
+    <ellipse cx="128" cy="176" rx="54" ry="104" fill="none" stroke="#ffffff" stroke-opacity=".26" stroke-width="4"/>
+  </g>
+  <path d="M20 252 L236 84" stroke="white" stroke-opacity=".12" stroke-width="2"/>
+  <path d="M54 306 L222 72" stroke="#ffffff" stroke-opacity=".18" stroke-width="7" transform="rotate(-4 128 178)"/>
+  <g opacity=".82"><path d="M44 98h50M162 238h46" stroke="white" stroke-opacity=".20" stroke-width="7" stroke-linecap="round"/><path d="M202 118l17 13-17 13-17-13Z" fill="url(#core)" opacity=".46"/></g>
+  <g filter="url(#ft_fire_dragon_beanstalk_glow)"><path d="M92 268c8-80 4-130 74-188" fill="none" stroke="url(#figure)" stroke-width="17" stroke-linecap="round"/><path d="M130 146c34-40 70-12 58 28l-32-4 28 26c-48 14-75-3-54-50Z" fill="url(#core)" opacity=".9"/><path d="M98 199c-31-12-41-36-20-57 27 8 43 28 20 57Z" fill="url(#paper)" opacity=".58"/></g>
+  <circle cx="142" cy="267" r="1.5" fill="white" opacity="0.43"/><circle cx="204" cy="213" r="3.6" fill="white" opacity="0.39"/><circle cx="95" cy="176" r="1.6" fill="white" opacity="0.43"/><circle cx="72" cy="156" r="2.8" fill="white" opacity="0.32"/><circle cx="34" cy="30" r="1.5" fill="white" opacity="0.43"/><circle cx="146" cy="95" r="3.1" fill="white" opacity="0.16"/><circle cx="119" cy="273" r="2.8" fill="white" opacity="0.15"/><circle cx="148" cy="105" r="2.6" fill="white" opacity="0.16"/><circle cx="38" cy="87" r="3.4" fill="white" opacity="0.29"/>
+  <rect x="18" y="18" width="42" height="42" rx="14" fill="rgba(0,0,0,.38)" stroke="white" stroke-opacity=".22"/>
+  <text x="39" y="46" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="white">6</text>
+  <rect x="190" y="18" width="48" height="30" rx="15" fill="rgba(0,0,0,.34)" stroke="white" stroke-opacity=".22"/>
+  <text x="214" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="white">SR</text>
+  <rect x="21" y="264" width="42" height="24" rx="12" fill="rgba(0,0,0,.32)" stroke="white" stroke-opacity=".14"/>
+  <text x="42" y="281" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="900" fill="white" opacity=".66">豆</text>
+  <rect x="18" y="292" width="220" height="44" rx="14" fill="rgba(0,0,0,.44)" stroke="white" stroke-opacity=".16"/>
+  <text x="128" y="319" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="white">豆の木の火竜</text>
+</svg>

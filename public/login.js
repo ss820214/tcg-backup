@@ -1,8 +1,7 @@
-// login.js の一番上
-document.getElementById("msg").textContent = "login.js loaded";
-console.log("login.js loaded");
+// public/login.js
+// v20260627_login1
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore,
   doc,
@@ -18,52 +17,128 @@ import {
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// ✅ ここは game.js と同じ firebaseConfig をコピペして揃えてください
 const firebaseConfig = {
   apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
   authDomain: "tcg-0bato.firebaseapp.com",
   projectId: "tcg-0bato",
 };
 
-const app = initializeApp(firebaseConfig);
+const ADMIN_NAME = "admin0217";
+const ADMIN_PIN = "0745";
+
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ---- DOM
-const $name = document.getElementById("name");
-const $pin = document.getElementById("pin");
-const $btn = document.getElementById("btn");
-const $msg = document.getElementById("msg");
+const $ = (id) => document.getElementById(id);
+const el = {
+  form: $("loginForm"),
+  name: $("name"),
+  pin: $("pin"),
+  msg: $("msg"),
+  authState: $("authState"),
+  uidView: $("uidView"),
+  savedName: $("savedName"),
+  tabLogin: $("tabLogin"),
+  tabRegister: $("tabRegister"),
+  btnSubmit: $("btnSubmit"),
+  btnSuggest: $("btnSuggest"),
+  btnUseSaved: $("btnUseSaved"),
+  btnBack: $("btnBack"),
+};
 
-function show(msg) {
-  $msg.textContent = msg || "";
+let mode = "login";
+
+function setMessage(msg, kind = "") {
+  if (!el.msg) return;
+  el.msg.textContent = msg || "";
+  el.msg.className = `message ${kind}`.trim();
 }
+
+function setBusy(busy) {
+  [el.btnSubmit, el.btnSuggest, el.btnUseSaved, el.tabLogin, el.tabRegister].forEach((b) => {
+    if (b) b.disabled = !!busy;
+  });
+}
+
 function normName(s) {
   const t = String(s ?? "").trim();
-  // 例：英数/_ 3〜16（必要なら日本語OKに変えて）
   if (!/^[a-zA-Z0-9_]{3,16}$/.test(t)) return null;
   return t;
 }
+
 function normPin(s) {
   const t = String(s ?? "").trim();
   if (!/^\d{4,8}$/.test(t)) return null;
   return t;
 }
 
-// ---- Crypto helpers (PBKDF2-SHA256)
+function setMode(next) {
+  mode = next === "register" ? "register" : "login";
+  el.tabLogin?.setAttribute("aria-selected", mode === "login" ? "true" : "false");
+  el.tabRegister?.setAttribute("aria-selected", mode === "register" ? "true" : "false");
+  if (el.btnSubmit) el.btnSubmit.textContent = mode === "register" ? "IDを登録する" : "ログインする";
+  setMessage(
+    mode === "register"
+      ? "新しいプレイヤーIDをこの端末に登録します。既にIDがある場合はログインを使ってください。"
+      : "登録済みのプレイヤーIDとPINで入ります。未登録IDは自動作成しません。",
+  );
+}
+
+function refreshSavedView() {
+  const saved = localStorage.getItem("playerName") || "";
+  const uid = localStorage.getItem("uid") || localStorage.getItem("anonUid") || auth.currentUser?.uid || "";
+  if (el.savedName) el.savedName.textContent = saved || "なし";
+  if (el.uidView) el.uidView.textContent = uid ? uid.slice(0, 12) : "未接続";
+}
+
+function suggestId() {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  const candidates = [
+    `player_${n}`,
+    `obato_${n}`,
+    `duelist_${n}`,
+  ];
+  el.name.value = candidates[Math.floor(Math.random() * candidates.length)];
+  el.name.focus();
+}
+
+function useSavedId() {
+  const saved = localStorage.getItem("playerName") || "";
+  if (!saved) {
+    setMessage("保存済みIDがありません。新規登録から作成してください。", "bad");
+    return;
+  }
+  el.name.value = saved;
+  setMode("login");
+  el.pin.focus();
+}
+
+function moveNext(uid) {
+  const ret = new URLSearchParams(location.search).get("return");
+  if (ret) {
+    location.href = decodeURIComponent(ret);
+    return;
+  }
+  location.href = `./index.html?uid=${encodeURIComponent(uid)}`;
+}
+
 const te = new TextEncoder();
+
 function b64(bytes) {
   let bin = "";
   const arr = new Uint8Array(bytes);
-  for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+  for (let i = 0; i < arr.length; i += 1) bin += String.fromCharCode(arr[i]);
   return btoa(bin);
 }
+
 function b64ToBytes(s) {
   const bin = atob(s);
   const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  for (let i = 0; i < bin.length; i += 1) arr[i] = bin.charCodeAt(i);
   return arr;
 }
+
 async function pbkdf2Hash(pin, saltBytes) {
   const keyMat = await crypto.subtle.importKey(
     "raw",
@@ -73,15 +148,20 @@ async function pbkdf2Hash(pin, saltBytes) {
     ["deriveBits"],
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: saltBytes, iterations: 120000 },
+    {
+      name: "PBKDF2",
+      hash: "SHA-256",
+      salt: saltBytes,
+      iterations: 120000,
+    },
     keyMat,
     256,
   );
   return b64(bits);
 }
+
 function newSaltB64() {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  return b64(salt);
+  return b64(crypto.getRandomValues(new Uint8Array(16)));
 }
 
 async function ensureAnonSignedIn() {
@@ -91,101 +171,167 @@ async function ensureAnonSignedIn() {
   return auth.currentUser;
 }
 
-async function upsertProfile(uid, name, pin) {
+async function writeProfile(uid, name, pin, isAdmin) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
+  const saltB64 = newSaltB64();
+  const pinHash = await pbkdf2Hash(pin, b64ToBytes(saltB64));
+  await setDoc(
+    ref,
+    {
+      uid,
+      name,
+      salt: saltB64,
+      pinHash,
+      isAdmin: !!isAdmin,
+      updatedAt: serverTimestamp(),
+      ...(snap.exists() ? {} : {
+        gems: 2400,
+        pity: 0,
+        stats: { matches: 0, wins: 0, losses: 0 },
+        createdAt: serverTimestamp(),
+      }),
+    },
+    { merge: true },
+  );
+}
+
+async function loginProfile(uid, name, pin) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  const isAdmin = name === ADMIN_NAME && pin === ADMIN_PIN;
+
+  if (isAdmin) {
+    await writeProfile(uid, name, pin, true);
+    return { ok: true, mode: snap.exists() ? "admin-login" : "admin-register", isAdmin: true };
+  }
 
   if (!snap.exists()) {
-    // 初回登録
-    const saltB64 = newSaltB64();
-    const saltBytes = b64ToBytes(saltB64);
-    const pinHash = await pbkdf2Hash(pin, saltBytes);
-
-    await setDoc(
-      ref,
-      {
-        name,
-        salt: saltB64,
-        pinHash,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    return { ok: true, mode: "register" };
+    return {
+      ok: false,
+      reason: "この端末にはまだIDが登録されていません。新規登録タブから作成してください。",
+    };
   }
 
-  // 既存：PIN照合
   const data = snap.data() || {};
-  const saltB64 = data.salt;
-  const stored = data.pinHash;
-
-  if (!saltB64 || !stored) {
-    // 旧データ救済：salt無しなら再登録扱い
-    const newSalt = newSaltB64();
-    const pinHash = await pbkdf2Hash(pin, b64ToBytes(newSalt));
-    await setDoc(
-      ref,
-      { name, salt: newSalt, pinHash, updatedAt: serverTimestamp() },
-      { merge: true },
-    );
-    return { ok: true, mode: "repair" };
+  if (!data.salt || !data.pinHash) {
+    return {
+      ok: false,
+      reason: "登録データが古い形式です。新規登録でPINを設定し直してください。",
+    };
   }
 
-  const nowHash = await pbkdf2Hash(pin, b64ToBytes(saltB64));
-  if (nowHash !== stored) return { ok: false, reason: "PINが違います" };
+  if (String(data.name || "") !== name) {
+    return { ok: false, reason: "プレイヤーIDが一致しません。" };
+  }
 
-  // OK：名前だけ更新（必要なら固定にしてもいい）
-  await setDoc(ref, { name, updatedAt: serverTimestamp() }, { merge: true });
-  return { ok: true, mode: "login" };
+  const nowHash = await pbkdf2Hash(pin, b64ToBytes(data.salt));
+  if (nowHash !== data.pinHash) {
+    return { ok: false, reason: "PINが違います。" };
+  }
+
+  await setDoc(ref, { name, isAdmin: false, updatedAt: serverTimestamp() }, { merge: true });
+  return { ok: true, mode: "login", isAdmin: false };
 }
 
-async function onSubmit(){
-  try {
-    show("サインイン中…");
-    $btn.disabled = true;
+async function registerProfile(uid, name, pin) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  const isAdmin = name === ADMIN_NAME && pin === ADMIN_PIN;
 
-    const name = normName($name.value);
-    const pin = normPin($pin.value);
-    if (!name) throw new Error("名前は英数/_ の3〜16文字にしてください");
-    if (!pin) throw new Error("PINは数字4〜8桁にしてください");
+  if (isAdmin) {
+    await writeProfile(uid, name, pin, true);
+    return { ok: true, mode: snap.exists() ? "admin-overwrite" : "admin-register", isAdmin: true };
+  }
+
+  if (snap.exists()) {
+    const data = snap.data() || {};
+    const hasLogin = !!data.salt && !!data.pinHash && !!data.name;
+    if (!hasLogin) {
+      await writeProfile(uid, name, pin, false);
+      return { ok: true, mode: "register-upgrade", isAdmin: false };
+    }
+    return {
+      ok: false,
+      reason: `この端末には既にIDがあります: ${data.name || "unknown"}\n別IDに変える場合は、確認してから登録し直してください。`,
+    };
+  }
+
+  await writeProfile(uid, name, pin, false);
+  return { ok: true, mode: "register", isAdmin: false };
+}
+
+function saveLocalProfile(uid, name, isAdmin) {
+  localStorage.setItem("playerName", name);
+  localStorage.setItem("uid", uid);
+  localStorage.setItem("anonUid", uid);
+  localStorage.setItem("profileLinked", "1");
+  localStorage.setItem("isAdmin", isAdmin ? "1" : "0");
+  if (isAdmin) localStorage.setItem("tcg_admin_ok_v1", "1");
+}
+
+async function runAuth() {
+  try {
+    setBusy(true);
+    setMessage(mode === "register" ? "IDを登録しています..." : "ログインしています...");
+
+    const name = normName(el.name?.value);
+    const pin = normPin(el.pin?.value);
+    if (!name) throw new Error("プレイヤーIDは英数字と _ の3〜16文字にしてください。");
+    if (!pin) throw new Error("PINは数字4〜8桁にしてください。");
 
     const user = await ensureAnonSignedIn();
-    const uid = user.uid;
+    const uid = user?.uid;
+    if (!uid) throw new Error("UIDの取得に失敗しました。");
 
-    show("照合中…");
-    const res = await upsertProfile(uid, name, pin);
-    if (!res.ok) throw new Error(res.reason || "ログイン失敗");
+    const res = mode === "register"
+      ? await registerProfile(uid, name, pin)
+      : await loginProfile(uid, name, pin);
 
-    localStorage.setItem("playerName", name);
-    localStorage.setItem("uid", uid);
-    localStorage.setItem("profileLinked", "1");
+    if (!res.ok) throw new Error(res.reason || "認証に失敗しました。");
 
-    show(`OK (${res.mode})\nuid=${uid}\n移動します…`);
-
-    const ret = new URLSearchParams(location.search).get("return");
-    if (ret) location.href = decodeURIComponent(ret);
-    else location.href = `./index.html?uid=${encodeURIComponent(uid)}`; // ★相対に（/index.html だと環境で死ぬ）
+    saveLocalProfile(uid, name, res.isAdmin);
+    refreshSavedView();
+    setMessage(
+      `OK: ${res.mode}\nID: ${name}\nRole: ${res.isAdmin ? "admin" : "user"}\nデッキ画面へ移動します...`,
+      "ok",
+    );
+    setTimeout(() => moveNext(uid), 350);
   } catch (e) {
-    show(String(e?.message || e));
-    $btn.disabled = false;
+    setMessage(String(e?.message || e), "bad");
+    setBusy(false);
   }
 }
 
-// クリック＋iOS向け
-$btn.addEventListener("click", (e)=>{ e.preventDefault(); onSubmit(); });
-$btn.addEventListener("pointerup", (e)=>{ e.preventDefault(); onSubmit(); });
-
-// Enterキー（最初から有効にする）
-[$name, $pin].forEach((el) => {
-  el?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") onSubmit();
+function wire() {
+  el.tabLogin?.addEventListener("click", () => setMode("login"));
+  el.tabRegister?.addEventListener("click", () => setMode("register"));
+  el.btnSuggest?.addEventListener("click", suggestId);
+  el.btnUseSaved?.addEventListener("click", useSavedId);
+  el.btnBack?.addEventListener("click", () => {
+    const ret = new URLSearchParams(location.search).get("return");
+    location.href = ret ? decodeURIComponent(ret) : "./index.html";
   });
+  el.form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runAuth();
+  });
+}
+
+wire();
+setMode("login");
+refreshSavedView();
+
+onAuthStateChanged(auth, (u) => {
+  if (el.authState) el.authState.textContent = u?.uid ? `uid:${u.uid.slice(0, 8)}` : "未接続";
+  refreshSavedView();
 });
 
-// 起動時：匿名ログインだけ先に準備
-onAuthStateChanged(auth, (u) => {
-  if (u) show("匿名サインインOK。名前/PINを入力してください。");
-});
-ensureAnonSignedIn().catch((err) => show("Auth失敗: " + err));
+ensureAnonSignedIn()
+  .then(() => {
+    if (el.authState && auth.currentUser?.uid) el.authState.textContent = `uid:${auth.currentUser.uid.slice(0, 8)}`;
+    refreshSavedView();
+  })
+  .catch((err) => {
+    setMessage(`Auth接続に失敗しました: ${err?.message || err}`, "bad");
+  });

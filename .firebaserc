@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "tcg-0bato"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

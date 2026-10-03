@@ -406,16 +406,17 @@ export function stopDeckBgmCafe(){
 }
 
 // ===== Battle BGM (MP3 asset) =====
-// public/battle_bgm.mp3（midtempo採用）をループ再生
+// public/ratbeat_style_original_2min.wav を通常戦闘BGMとしてループ再生
 let battleBgmAudio = null;
 
 export async function startBattleBgmMp3(opts = {}){
+  if (battleBgmAudio && !battleBgmAudio.paused) return;
   try{
     const volume = clamp01(opts.volume ?? 0.55);
     const rate   = Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? 1.00)));
 
     if (!battleBgmAudio){
-      battleBgmAudio = new Audio("./battle_bgm.mp3");
+      battleBgmAudio = new Audio("./ratbeat_style_original_2min.wav");
       battleBgmAudio.loop = true;
       battleBgmAudio.preload = "auto";
     }
@@ -499,9 +500,20 @@ export function stopAlert2Mp3(){
 }
 
 // ===== BGM mode controller =====
+// ===== BGM mode controller =====
 let _bgmEnabled = true;
 let _bgmMode = "battle"; // "battle" | "alert1" | "alert2"
 let _bgmOpts = { volume: 0.35, playbackRate: 1.0 };
+
+function isPlaying(a){
+  return !!(a && !a.paused && a.currentTime > 0 && !a.ended);
+}
+
+function applyOpts(a, opts){
+  if (!a) return;
+  a.volume = clamp01(opts.volume ?? a.volume);
+  a.playbackRate = Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? a.playbackRate)));
+}
 
 function stopAll(){
   stopBattleBgmMp3();
@@ -509,39 +521,102 @@ function stopAll(){
   stopAlert2Mp3();
 }
 
-async function playByMode(){
-  stopAll();
-  if (!_bgmEnabled) return;
+// ★ いまの mode で鳴るべき Audio を返す
+function targetAudioByMode(mode){
+  if (mode === "alert2") return alert2Audio;
+  if (mode === "alert1") return alert1Audio;
+  return battleBgmAudio;
+}
 
-  if (_bgmMode === "alert2") return startAlert2Mp3(_bgmOpts);
-  if (_bgmMode === "alert1") return startAlert1Mp3(_bgmOpts);
-  return startBattleBgmMp3(_bgmOpts);
+// ★ “必要な時だけ” 切り替える
+async function playByMode(force = false){
+  if (!_bgmEnabled) { stopAll(); return; }
+
+  // 先に生成だけはしておく（targetAudioByMode が null を返しうるので）
+  if (_bgmMode === "alert2"){
+    if (!alert2Audio){
+      alert2Audio = new Audio("./alert2.mp3");
+      alert2Audio.loop = true;
+      alert2Audio.preload = "auto";
+    }
+    applyOpts(alert2Audio, _bgmOpts);
+
+    if (!force && isPlaying(alert2Audio)) return; // ✅ もう鳴ってるなら何もしない
+    stopAll();
+    await alert2Audio.play().catch(e=>console.warn("[Alert2 MP3] play blocked or failed", e));
+    return;
+  }
+
+  if (_bgmMode === "alert1"){
+    if (!alert1Audio){
+      alert1Audio = new Audio("./alert1.mp3");
+      alert1Audio.loop = true;
+      alert1Audio.preload = "auto";
+    }
+    applyOpts(alert1Audio, _bgmOpts);
+
+    if (!force && isPlaying(alert1Audio)) return;
+    stopAll();
+    await alert1Audio.play().catch(e=>console.warn("[Alert1 MP3] play blocked or failed", e));
+    return;
+  }
+
+  // battle
+  if (!battleBgmAudio){
+    battleBgmAudio = new Audio("./ratbeat_style_original_2min.wav");
+    battleBgmAudio.loop = true;
+    battleBgmAudio.preload = "auto";
+  }
+  applyOpts(battleBgmAudio, _bgmOpts);
+
+  if (!force && isPlaying(battleBgmAudio)) return;
+  stopAll();
+  await battleBgmAudio.play().catch(e=>console.warn("[BattleBGM MP3] play blocked or failed", e));
 }
 
 export function setBgmEnabled(on, opts = null){
-  _bgmEnabled = !!on;
+  const next = !!on;
+  const prev = _bgmEnabled;
+
   if (opts && typeof opts === "object"){
     _bgmOpts = {
       volume: clamp01(opts.volume ?? _bgmOpts.volume),
       playbackRate: Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? _bgmOpts.playbackRate))),
     };
   }
-  if (!_bgmEnabled) stopAll();
-  else playByMode();
+
+  _bgmEnabled = next;
+
+  if (!next){
+    stopAll();
+    return;
+  }
+
+  // ✅ OFF→ON の時だけ “強制再生”。ONのままなら巻き戻さない
+  if (!prev && next){
+    playByMode(true);
+  }
 }
 
 export function setBgmMode(mode, opts = null){
   const m = String(mode || "battle");
   if (m !== "battle" && m !== "alert1" && m !== "alert2") return;
 
-  _bgmMode = m;
+  const prevMode = _bgmMode;
+
   if (opts && typeof opts === "object"){
     _bgmOpts = {
       volume: clamp01(opts.volume ?? _bgmOpts.volume),
       playbackRate: Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? _bgmOpts.playbackRate))),
     };
   }
-  // ✅ ここが肝：OFF中は鳴らさない（でもモードは保持する）
+
+  _bgmMode = m;
+
+  // ✅ OFF中は鳴らさない（モードだけ保持）
   if (!_bgmEnabled) return;
-  playByMode();
+
+  // ✅ 同じモード指定が何度来ても巻き戻さない
+  const force = (prevMode !== _bgmMode);
+  playByMode(force);
 }

@@ -1,8 +1,8 @@
 // public/match_intro.js
-// v20260209_2_match_intro_plus_dice_view
+// v20260724_vs_profile1
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -13,6 +13,7 @@ const roomId   = params.get("room")   || "";
 const playerId = params.get("player") || "";
 const nextPage = params.get("next")   || "game.html";
 const forceSkip = params.get("force") === "1";
+const isSolo = params.get("solo") === "1";
 
 let seat = (params.get("seat") || "").toUpperCase(); // A/B (optional)
 let seatAPlayerId = null;
@@ -28,10 +29,86 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const matchRef  = doc(db, "rooms", roomId, "game", "match");
+const stateRef  = doc(db, "rooms", roomId, "state", "main");
+const playersRef = collection(db, "rooms", roomId, "players");
 const playerRef = (pid) => doc(db, "rooms", roomId, "players", pid);
 
 function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
 function safeText(s) { return String(s ?? "").slice(0, 48); }
+function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+function normalizeFieldId(f) {
+  const raw = String(f || "").trim();
+  const t = raw.toLowerCase().replace(/[\s_-]/g, "");
+  if (t === "danger" || t === "dangerzone" || raw.includes("危険")) return "danger";
+  if (t === "swamp" || raw.includes("沼")) return "swamp";
+  if (t === "grass" || raw.includes("草")) return "grass";
+  return "grass";
+}
+
+function hashString(s) {
+  let h = 2166136261;
+  const text = String(s || "");
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function diceFromSeed(seed) {
+  return (hashString(seed) % 6) + 1;
+}
+
+function decideFieldDeterministic(fieldA, fieldB, seed) {
+  const a = normalizeFieldId(fieldA);
+  const b = normalizeFieldId(fieldB);
+  if (a === b) return { field: a, diceA: 0, diceB: 0 };
+
+  let diceA = 1;
+  let diceB = 1;
+  for (let i = 0; i < 10; i++) {
+    diceA = diceFromSeed(`${seed}|A|${i}`);
+    diceB = diceFromSeed(`${seed}|B|${i}`);
+    if (diceA !== diceB) break;
+  }
+  return { field: diceA >= diceB ? a : b, diceA, diceB };
+}
+
+async function buildMatchMetaFromPlayers() {
+  const snap = await getDocs(playersRef);
+  const players = [];
+  snap.forEach((d) => players.push({ id: d.id, data: d.data() || {} }));
+  players.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+
+  if (!players.length) return null;
+
+  const a = players[0];
+  const b = players[1] || players[0];
+  const fieldA = normalizeFieldId(a.data.desiredField || params.get("field") || "grass");
+  const fieldB = normalizeFieldId(b.data.desiredField || fieldA);
+  const decided = decideFieldDeterministic(fieldA, fieldB, `${roomId}|${a.id}|${b.id}`);
+
+  return {
+    seatA: a.id,
+    seatB: b.id,
+    fieldA,
+    fieldB,
+    diceA: decided.diceA,
+    diceB: decided.diceB,
+    field: decided.field,
+    fieldRule: "fallback_players",
+  };
+}
+
+async function getDocWithRetry(ref, tries = 5, delayMs = 180) {
+  let lastSnap = null;
+  for (let i = 0; i < tries; i++) {
+    lastSnap = await getDoc(ref);
+    if (lastSnap.exists()) return lastSnap;
+    if (i < tries - 1) await sleep(delayMs);
+  }
+  return lastSnap;
+}
 
 function setBadge(txt) {
   const el = $("badgeTxt");
@@ -54,19 +131,116 @@ function goGame() {
 }
 
 function prettyField(f) {
-  const t = String(f || "").trim().toLowerCase();
+  const t = normalizeFieldId(f);
   if (!t) return "---";
+  if (t === "grass") return "草原";
+  if (t === "danger") return "危険地帯";
+  if (t === "swamp") return "沼地";
   if (t === "grass") return "草原";
   if (t === "danger") return "危険地帯";
   if (t === "swamp") return "沼地";
   return t.toUpperCase();
 }
 
+const ATTR_COLOR = {
+  火: "#ff6b6b",
+  水: "#7dd3fc",
+  雷: "#facc15",
+  草: "#78e3ad",
+  風: "#9de7c5",
+  鋼: "#b8c0cc",
+  光: "#ffe29b",
+  闇: "#b889ff",
+  幻: "#f0abfc",
+};
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[c]));
+}
+
+function inferAttrFromCardId(id) {
+  const s = String(id || "").toLowerCase();
+  if (/fire|_hi|火/.test(s)) return "火";
+  if (/water|mizu|水/.test(s)) return "水";
+  if (/thunder|lightning|rai|雷|plug/.test(s)) return "雷";
+  if (/grass|kusa|heal|drug|草/.test(s)) return "草";
+  if (/wind|kaze|ninja|風/.test(s)) return "風";
+  if (/steel|rock|hagane|鋼/.test(s)) return "鋼";
+  if (/light|hikari|光/.test(s)) return "光";
+  if (/dark|yami|闇/.test(s)) return "闇";
+  if (/phantom|illusion|gen|幻/.test(s)) return "幻";
+  return "";
+}
+
+function prettyCardId(id) {
+  return String(id || "")
+    .replace(/^ft_/, "")
+    .replace(/^s0+/, "S")
+    .replace(/_/g, " ")
+    .slice(0, 18);
+}
+
+function deckProfileFromPlayerData(p = {}) {
+  const deck = p.deck && typeof p.deck === "object" ? p.deck : {};
+  const total = Object.values(deck).reduce((a, b) => a + Math.max(0, Number(b) || 0), 0);
+  const attrs = {};
+  for (const [id, n] of Object.entries(deck)) {
+    const attr = inferAttrFromCardId(id);
+    if (!attr) continue;
+    attrs[attr] = (attrs[attr] || 0) + Math.max(0, Number(n) || 0);
+  }
+  const top = Object.entries(attrs).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const featured = Object.entries(deck)
+    .map(([id, n]) => ({ id, count: Math.max(0, Number(n) || 0), attr: inferAttrFromCardId(id) || "混" }))
+    .filter((x) => x.count > 0)
+    .sort((a, b) => b.count - a.count || String(a.id).localeCompare(String(b.id), "ja"))
+    .slice(0, 3);
+  return {
+    title: safeText(p.deckTitle || p.title || "未保存デッキ"),
+    total,
+    field: prettyField(p.desiredField || p.field || ""),
+    attrs: top,
+    featured,
+  };
+}
+
+function renderDeckProfile(slot, data) {
+  const el = $(`deckProfile${slot}`);
+  if (!el) return;
+  const profile = deckProfileFromPlayerData(data || {});
+  const meta = el.querySelector(".matchDeckMeta");
+  const rail = el.querySelector(".matchAttrRail");
+  const featured = el.querySelector(".matchFeaturedCards");
+  if (meta) {
+    meta.innerHTML = `${esc(profile.title)}<br><span style="color:rgba(255,255,255,.58)">枚数 ${esc(profile.total || "--")} / 希望 ${esc(profile.field || "---")}</span>`;
+  }
+  if (rail) {
+    rail.innerHTML = profile.attrs.length
+      ? profile.attrs.map(([a, c]) => `<span class="matchAttrDot" style="--attr-c:${ATTR_COLOR[a] || "#7dd3fc"}">${esc(a)}${esc(c)}</span>`).join("")
+      : `<span class="matchAttrDot">混</span>`;
+  }
+  if (featured) {
+    featured.innerHTML = profile.featured.length
+      ? profile.featured.map((c) => `
+          <span class="matchFeaturedCard" style="--attr-c:${ATTR_COLOR[c.attr] || "#7dd3fc"}">
+            <b>${esc(prettyCardId(c.id))}</b><em>x${esc(c.count)}</em>
+          </span>
+        `).join("")
+      : `<span class="matchFeaturedEmpty">主力カード未設定</span>`;
+  }
+}
+
 // ★追加：フィールド/ダイス表示
 function renderMatchMeta(m){
-  const fieldA = String(m?.fieldA || "").trim().toLowerCase();
-  const fieldB = String(m?.fieldB || "").trim().toLowerCase();
-  const finalField = String(m?.field || "").trim().toLowerCase();
+  const fieldA = m?.fieldA ? normalizeFieldId(m.fieldA) : "";
+  const fieldB = m?.fieldB ? normalizeFieldId(m.fieldB) : "";
+  const finalField = m?.field ? normalizeFieldId(m.field) : "";
 
   const cardA = document.querySelector(".pCard.a");
   const cardB = document.querySelector(".pCard.b");
@@ -90,6 +264,10 @@ function renderMatchMeta(m){
 
   if ($("finalFieldTxt")) $("finalFieldTxt").textContent =
     `FIELD: ${prettyField(finalField)} (${finalField || "--"})`;
+  const plate = $("fieldPlate");
+  if (plate) {
+    plate.innerHTML = `<b>${esc(prettyField(finalField))}</b><span>${esc(finalField || "--")}</span>`;
+  }
 }
 
 /* =========================
@@ -192,7 +370,7 @@ async function resolveSeatAndNames(){
   let matchData = null;
 
   try{
-    const ms = await getDoc(matchRef);
+    const ms = await getDocWithRetry(matchRef);
     if (ms.exists()){
       const m = ms.data() || {};
       matchData = m;
@@ -200,7 +378,7 @@ async function resolveSeatAndNames(){
       seatAPlayerId = m.seatA || null;
       seatBPlayerId = m.seatB || null;
 
-      matchFieldId = String(m.field || "").trim().toLowerCase();
+      matchFieldId = m.field ? normalizeFieldId(m.field) : "";
 
       // ★追加：表示反映
       renderMatchMeta(m);
@@ -210,27 +388,98 @@ async function resolveSeatAndNames(){
         else if (seatBPlayerId === playerId) seat = "B";
       }
     }
-  }catch(e){
+    }catch(e){
     console.warn("[intro] match fetch failed", e);
+    setBadge("SYNC");
+    setHint("フィールド情報を補完中…");
   }
 
-  async function loadName(pid){
-    if (!pid) return "---";
-    try{
-      const ps = await getDoc(playerRef(pid));
-      if (!ps.exists()) return "---";
-      const p = ps.data() || {};
-      return safeText(p.name || p.playerName || pid);
-    }catch{
-      return "---";
+  if (!matchData) {
+    try {
+      const ss = await getDoc(stateRef);
+      if (ss.exists()) {
+        const s = ss.data() || {};
+        const field = normalizeFieldId(s.fieldId ?? s.field?.id ?? params.get("field") ?? "grass");
+        matchFieldId = field;
+        matchData = {
+          seatA: s.seatA || s.seatAPlayerId || null,
+          seatB: s.seatB || s.seatBPlayerId || null,
+          fieldA: field,
+          fieldB: field,
+          field,
+          diceA: 0,
+          diceB: 0,
+        };
+        seatAPlayerId = matchData.seatA;
+        seatBPlayerId = matchData.seatB;
+        renderMatchMeta(matchData);
+      }
+    } catch (e) {
+      console.warn("[intro] state fallback failed", e);
     }
   }
 
-  const nameA = await loadName(seatAPlayerId);
-  const nameB = await loadName(seatBPlayerId);
+  if (!matchData && params.get("field")) {
+    matchFieldId = normalizeFieldId(params.get("field"));
+    matchData = {
+      fieldA: matchFieldId,
+      fieldB: matchFieldId,
+      field: matchFieldId,
+      diceA: 0,
+      diceB: 0,
+    };
+    renderMatchMeta(matchData);
+  }
 
-  if ($("nameA")) $("nameA").textContent = nameA || "---";
-  if ($("nameB")) $("nameB").textContent = nameB || "---";
+  if (!matchData) {
+    try {
+      matchData = await buildMatchMetaFromPlayers();
+      if (matchData) {
+        seatAPlayerId = matchData.seatA || null;
+        seatBPlayerId = matchData.seatB || null;
+        matchFieldId = normalizeFieldId(matchData.field);
+        renderMatchMeta(matchData);
+      }
+    } catch (e) {
+      console.warn("[intro] players fallback failed", e);
+    }
+  }
+
+  if (!matchData) {
+    matchFieldId = normalizeFieldId(params.get("field") || "grass");
+    matchData = {
+      seatA: playerId || null,
+      seatB: null,
+      fieldA: matchFieldId,
+      fieldB: matchFieldId,
+      field: matchFieldId,
+      diceA: 0,
+      diceB: 0,
+      fieldRule: "fallback_default",
+    };
+    seatAPlayerId = matchData.seatA;
+    renderMatchMeta(matchData);
+  }
+
+  async function loadPlayer(pid){
+    if (!pid) return { name: "---", data: {} };
+    try{
+      const ps = await getDoc(playerRef(pid));
+      if (!ps.exists()) return { name: "---", data: {} };
+      const p = ps.data() || {};
+      return { name: safeText(p.name || p.playerName || pid), data: p };
+    }catch{
+      return { name: "---", data: {} };
+    }
+  }
+
+  const playerA = await loadPlayer(seatAPlayerId);
+  const playerB = await loadPlayer(seatBPlayerId);
+
+  if ($("nameA")) $("nameA").textContent = playerA.name || "---";
+  if ($("nameB")) $("nameB").textContent = playerB.name || "---";
+  renderDeckProfile("A", playerA.data);
+  renderDeckProfile("B", playerB.data);
 
   if (seat === "A") $("youA")?.classList.add("on");
   if (seat === "B") $("youB")?.classList.add("on");
@@ -308,13 +557,29 @@ function playCountdown(){
 startBg();
 $("skipBtn")?.addEventListener("click", () => goGame());
 
-if (forceSkip) goGame();
-else {
+if (forceSkip) {
+  goGame();
+} else if (isSolo) {
+  setBadge("SOLO");
+  setHint("ソロモード開始準備中…");
+  matchFieldId = matchFieldId || "grass";
+  setTimeout(() => playCountdown(), 120);
+} else {
   await resolveSeatAndNames();
+
   if (!matchFieldId) {
-    setBadge("WAIT");
-    setHint("マッチ確定待ち…（相手の準備を待っています）");
-    // ここで止める（または setTimeout で再取得）
+    // 対人なら少し待ってもいいが、完全停止は避ける
+    matchFieldId = "grass";
+    renderMatchMeta({
+      fieldA: matchFieldId,
+      fieldB: matchFieldId,
+      field: matchFieldId,
+      diceA: 0,
+      diceB: 0,
+    });
+    setBadge("READY");
+    setHint("準備中…");
+    setTimeout(() => playCountdown(), 300);
   } else {
     playCountdown();
   }

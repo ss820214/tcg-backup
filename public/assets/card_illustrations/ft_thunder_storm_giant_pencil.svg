@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="storm giant thunder drum pencil illustration">
+  <defs><radialGradient id="bg" cx=".52" cy=".32" r=".82"><stop stop-color="#fff4aa"/><stop offset=".42" stop-color="#f7f6ef"/><stop offset="1" stop-color="#e8e3d4"/></radialGradient><filter id="gl"><feGaussianBlur stdDeviation="2.4"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M29 59c59 13 116-14 199 4M29 299c67-13 126 11 199-4"/><path d="M41 38l174 279M220 40L36 318"/><path d="M35 116c43-32 87-30 132-2 25 16 45 18 62 4"/></g>
+    <g stroke="#ffd53a" stroke-width="7" opacity=".58" filter="url(#gl)"><path d="M184 35l-39 75h45l-66 120M66 64l34 57H73l49 91"/><path d="M42 274c42-27 72-8 99 5 30 15 62 11 84-12"/></g>
+    <g stroke="#202020">
+      <g stroke-width="4"><circle cx="128" cy="70" r="26"/><path d="M84 121c26-37 64-39 91 0"/><path d="M83 121c-22 57-12 112 45 155 57-43 67-98 46-155"/><ellipse cx="128" cy="202" rx="71" ry="40"/></g>
+      <g stroke-width="2.5"><path d="M69 194c33 29 85 31 119 0M58 207c40 43 101 45 141 0"/><path d="M97 149c22 12 41 13 63 0M128 119v157"/><path d="M78 155c-28 6-50 24-66 55M178 155c28 6 52 25 68 56"/><path d="M97 276c-12 20-18 41-16 67M159 276c12 20 18 42 16 67"/><path d="M103 69h50M101 49c19-15 38-15 55 0"/><path d="M168 69l-35 70h39l-51 99"/></g>
+      <g stroke-width="1.1" opacity=".35"><path d="M90 136c25 10 50 10 76 0M83 171c30 15 61 15 91 0M62 219c41 27 92 29 133 0"/><path d="M73 260c37 18 74 18 111-1"/></g>
+    </g>
+  </g>
+</svg>

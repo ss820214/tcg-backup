@@ -77,13 +77,20 @@ export function goToDeck(roomId, playerId){
 // ===== 状態異常 =====
 export function getStatus(u){
   if (!u) return {};
-  if (!u.status || typeof u.status !== "object") u.status = {};
+  if (!u.status || typeof u.status !== "object") {
+    if (u.statuses && typeof u.statuses === "object") {
+      u.status = { ...u.statuses };
+    } else {
+      u.status = {};
+    }
+  }
   return u.status;
 }
 
 export function clearStatuses(u){
   if (!u) return;
   u.status = {};
+  if (u.statuses && typeof u.statuses === "object") u.statuses = {};
 }
 
 // =========================
@@ -158,6 +165,112 @@ export function parseAddStatus(addStatus){
   const s = String(addStatus).trim();
   if (!s) return [];
   return s.split(/[,\|\+\s]+/).map(x=>x.trim()).filter(Boolean);
+}
+
+export function normalizeStatusKey(name){
+  const raw = String(name ?? "").trim();
+  if (!raw) return "";
+  const key = raw.toLowerCase();
+  const aliases = {
+    blind: "blind",
+    "盲目": "blind",
+    poison: "poison",
+    "毒": "poison",
+    smell: "smell",
+    odor: "smell",
+    stink: "smell",
+    "におい": "smell",
+    "匂い": "smell",
+    "臭い": "smell",
+    seal: "seal",
+    silence: "seal",
+    "封印": "seal",
+    "沈黙": "seal",
+    evade: "evade",
+    dodge: "evade",
+    "回避": "evade",
+    armor: "armor",
+    guard: "armor",
+    "装甲": "armor",
+    powerup: "powerUp",
+    powerUp: "powerUp",
+    power: "powerUp",
+    "攻撃増加": "powerUp",
+    hitup: "hitUp",
+    hitUp: "hitUp",
+    aim: "hitUp",
+    "命中増加": "hitUp",
+    angry: "rage",
+    fury: "rage",
+    "激怒": "rage",
+    mindcontrol: "brainwash",
+    mindControl: "brainwash",
+    charm: "brainwash",
+    control: "brainwash",
+    "洗脳": "brainwash",
+    mud: "sludge",
+    mire: "sludge",
+    slime: "sludge",
+    "ヘドロ": "sludge",
+    counterattack: "counter",
+    counterAtk: "counter",
+    reflect: "counter",
+    "カウンター": "counter",
+    broken: "fracture",
+    fracture: "fracture",
+    "膝根": "fracture",
+    "骨折": "fracture",
+    lostsoul: "lostSoul",
+    lostSoul: "lostSoul",
+    "失魂": "lostSoul",
+    taiman: "taiman",
+    duel: "taiman",
+    "タイマン": "taiman",
+  };
+  return aliases[raw] || aliases[key] || raw;
+}
+
+// ===== Turn-buff rules =====
+// 「次のターンに消える」バフ群（必要なら増減してOK）
+export const TURN_BUFF_KEYS = new Set([
+  "hitUp",
+  "powerUp",
+  "armor",
+  "evade",
+  "combo",
+  "followUp",
+]);
+
+export function applyTurnScopedStatus(unit, name, v, turnSeq, opts = {}) {
+  if (!unit) return { applied: false };
+
+  const st = getStatus(unit);
+  const prev = st?.[name];
+
+  const num = Number(v ?? 0);
+  const isNum = Number.isFinite(num);
+
+  const stackSameTurn = !!opts.stackSameTurn;
+
+  // turnSeq が無い場合は「ターン管理なし」扱い：上書きだけ（安全側）
+  if (turnSeq == null) {
+    st[name] = { v: isNum ? num : (v ?? 1) };
+    return { applied: true, stacked: false, total: st[name]?.v };
+  }
+
+  const prevTurn = prev?.turnSeq;
+  const prevV = Number(prev?.v ?? 0);
+
+  // ★同ターンだけ加算、それ以外は上書き
+  if (stackSameTurn && prev && prevTurn === turnSeq && isNum) {
+    const base = Number.isFinite(prevV) ? prevV : 0;
+    const total = base + num;
+    st[name] = { v: total, turnSeq };
+    return { applied: true, stacked: true, total };
+  } else {
+    st[name] = { v: isNum ? num : (v ?? 1), turnSeq };
+    return { applied: true, stacked: false, total: st[name]?.v };
+  }
 }
 
 // =====================
@@ -268,7 +381,8 @@ export function applyKnockback(st, attackerUnit, targetUnit, dist){
 /**
  * 成功時に target に状態付与
  */
-export function applyStatusesOnHit(targetUnit, act){
+// ✅ 変更：turnSeq を第3引数に追加（省略OK）
+export function applyStatusesOnHit(targetUnit, act, currentTurnSeq = null){
   if (!targetUnit || !act) return [];
   const added = [];
 
@@ -278,61 +392,55 @@ export function applyStatusesOnHit(targetUnit, act){
   const tagMap = parseTags(act.tags);
   const st = getStatus(targetUnit);
 
-    const NON_STATUS = new Set([
-  "draw",
-  "recoverMove",
-  "recoverFatigue",
-  "cleanse",
-]);
+  const NON_STATUS = new Set(["draw","recoverMove","recoverFatigue","cleanse"]);
+
   for (const nameRaw of list){
     let name = String(nameRaw).trim();
     if (!name) continue;
 
     if (name.startsWith("self.")) continue;
     if (name.startsWith("target.")) name = name.slice("target.".length);
+    name = normalizeStatusKey(name);
 
-    // ✅ ここで弾く（ループ内だから continue OK）
     if (NON_STATUS.has(name)) continue;
-    
-    // public/game_state.js の applyStatusesOnHit 内
-// ★攻撃属性（付与しない）
-if (name === "pierce" || name === "aoe" || name === "all" || name === "knockback") continue;
-if (name === "貫通" || name === "全体" || name === "ノックバック") continue;
 
-// ✅ 追加：状態ではない（game.js側で直接処理する）ので付与しない
-if (name === "draw") continue;
-if (name === "recoverFatigue" || name === "recoverMove" || name === "cleanse") continue;
+    // ★攻撃属性（付与しない）
+    if (name === "pierce" || name === "aoe" || name === "all" || name === "knockback" || name === "swapTarget" || name === "swapPos" || name === "positionSwap") continue;
+    if (name === "貫通" || name === "全体" || name === "ノックバック" || name === "位置入替") continue;
+
+    // ★game.js側で直接処理する系（付与しない）
+    if (name === "draw") continue;
+    if (name === "recoverFatigue" || name === "recoverMove" || name === "cleanse") continue;
+
     let v = tagMap?.[name];
 
     if (name === "bleed") v = Number.isFinite(v) ? v : 10;
     else if (name === "smell") v = Number.isFinite(v) ? v : 10;
+    else if (name === "poison") v = Number.isFinite(v) ? v : 10;
     else if (name === "evade") v = Number.isFinite(v) ? v : 20;
-
     else if (name === "hitUp") v = Number.isFinite(v) ? v : 10;
     else if (name === "powerUp") v = Number.isFinite(v) ? v : 10;
     else if (name === "armor") v = Number.isFinite(v) ? v : 10;
+    else if (name === "rage") v = Number.isFinite(v) ? v : 20;
+    else if (name === "sludge") v = Number.isFinite(v) ? v : 1;
+    else if (name === "counter") v = Number.isFinite(v) ? v : 30;
+    else if (name === "brainwash") v = Number.isFinite(v) ? v : 50;
+    else if (name === "lostSoul") v = Number.isFinite(v) ? v : 1;
+    else if (name === "taiman") v = Number.isFinite(v) ? v : 1;
     else v = (v === undefined) ? 1 : v;
 
-    // ===== stacking rules =====
-    // Buff系は「重ね掛け」できる方が面白いので、既存があれば加算。
-    // ※状態の設計によっては上書きしたい物もあるので、ここで明示的に制御する。
-    const STACKABLE = new Set(["hitUp", "powerUp", "armor", "evade", "bleed", "smell"]);
-
-    const prev = st?.[name];
-    const prevV = Number(prev?.v ?? 0);
-    const nextV = Number(v ?? 0);
-
-    if (STACKABLE.has(name) && Number.isFinite(nextV)) {
-      // 既存が数値なら加算、それ以外は次の値で初期化
-      const base = Number.isFinite(prevV) ? prevV : 0;
-      st[name] = { v: base + nextV };
-      added.push({ name, v: nextV, total: base + nextV, stacked: true });
+    // ✅ 「同ターン重ね掛け」対象は TURN_BUFF_KEYS のみ
+    // （bleed/smell等はバフじゃないので、ここでは従来どおり上書き推奨）
+    if (TURN_BUFF_KEYS.has(name)) {
+      const r = applyTurnScopedStatus(targetUnit, name, v, currentTurnSeq, { stackSameTurn: true });
+      added.push({ name, v, total: r.total, stacked: r.stacked, turnSeq: currentTurnSeq });
     } else {
-      // 非stack対象は従来通り上書き
+      // デバフ/DoT 等は通常上書き（必要なら別途設計）
       st[name] = { v };
       added.push({ name, v });
     }
   }
+
   return added;
 }
 
@@ -346,12 +454,14 @@ export function calcHitRateWithStatus(attacker, baseRate){
 
   const st = getStatus(attacker);
 
-  if (st.hitUp) {
-    const up = Number(st.hitUp?.v ?? 0);
-    if (Number.isFinite(up)) rate += up;
-  }
+  const hitUp = Number(st.hitUp?.v ?? 0);
+  const aim = Number(st.aim?.v ?? 0);
+  const jinx = Number(st.jinx?.v ?? 0);
 
-  // stackingで上がりすぎないよう、素の命中は上限95%（blind補正はこの後）
+  if (Number.isFinite(hitUp)) rate += hitUp;
+  if (Number.isFinite(aim)) rate += aim;
+  if (Number.isFinite(jinx)) rate -= jinx;
+
   rate = Math.max(0, Math.min(95, Math.trunc(rate)));
 
   if (st.blind) rate = Math.floor(rate / 2);
@@ -418,6 +528,47 @@ export function applyArmorToHpDamage(defender, incomingHpDmg){
   return { taken, absorbed, remainArmor: Math.max(0, remain) };
 }
 
+export function getActionCostWithStatus(unit, act){
+  const base = Math.max(0, Math.trunc(Number(act?.cost ?? 0)));
+  const st = getStatus(unit);
+  const sludge = Number(st.sludge?.v ?? 0);
+  const extra = Number.isFinite(sludge) ? Math.max(0, Math.trunc(sludge)) : 0;
+  return base + extra;
+}
+
+export function applyRageFailurePenalty(unit){
+  const st = getStatus(unit);
+  if (!st.rage) return 0;
+  const raw = Number(st.rage?.v ?? 20);
+  const dmg = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 20;
+  if (dmg <= 0) return 0;
+  unit.hp = Math.max(0, Number(unit.hp ?? 0) - dmg);
+  return dmg;
+}
+
+export function checkCounter(defender, rng01){
+  const st = getStatus(defender);
+  if (!st.counter) return false;
+  const p = Number(st.counter?.v ?? 30);
+  if (!Number.isFinite(p) || p <= 0) return false;
+  const roll = typeof rng01 === "function" ? rng01() : Math.random();
+  return (roll * 100) < Math.max(0, Math.min(100, p));
+}
+
+export function hasBrainwash(unit){
+  const st = getStatus(unit);
+  return !!st.brainwash;
+}
+
+export function checkBrainwashSuccess(unit, rng01){
+  const st = getStatus(unit);
+  if (!st.brainwash) return true;
+  const pRaw = Number(st.brainwash?.rate ?? st.brainwash?.p ?? st.brainwash?.v ?? 50);
+  const p = Number.isFinite(pRaw) && pRaw > 1 ? pRaw : 50;
+  const roll = typeof rng01 === "function" ? rng01() : Math.random();
+  return (roll * 100) < Math.max(0, Math.min(100, p));
+}
+
 export function canCombo(attacker, act){
   if (!attacker || !act) return false;
   const st = getStatus(attacker);
@@ -470,6 +621,72 @@ export function hasLostSoul(unit){
   return !!st.lostSoul;
 }
 
+export function applyPoisonOnTurnStart(unit, rng01){
+  if (!unit || typeof unit !== "object") return { active: false, cleared: false, damage: 0 };
+  const st = getStatus(unit);
+  if (!st.poison) return { active: false, cleared: false, damage: 0 };
+
+  const roll = typeof rng01 === "function" ? rng01() : Math.random();
+  if (roll < 0.5) {
+    delete st.poison;
+    return { active: true, cleared: true, damage: 0 };
+  }
+
+  const raw = Number(st.poison?.v ?? 10);
+  const damage = Number.isFinite(raw) ? Math.max(0, Math.trunc(raw)) : 10;
+  unit.hp = Math.max(0, Number(unit.hp ?? 0) - damage);
+  return { active: true, cleared: false, damage };
+}
+
+export function isTaimanDamageAllowed(defender, attacker){
+  const st = getStatus(defender);
+  if (!st.taiman) return true;
+  if (!defender || !attacker || defender.id === attacker.id) return true;
+  if (String(defender.owner || "") === String(attacker.owner || "")) return true;
+
+  const dx = Number(attacker.x) - Number(defender.x);
+  const dy = Number(attacker.y) - Number(defender.y);
+  if (dx !== 0) return false;
+
+  const owner = String(defender.owner || "").toUpperCase();
+  if (owner === "A") return dy === -1;
+  if (owner === "B") return dy === 1;
+  return Math.abs(dy) === 1;
+}
+
+export const ASSIST_STATUS_KEYS = new Set([
+  "armor",
+  "evade",
+  "hitUp",
+  "aim",
+  "powerUp",
+  "power",
+  "counter",
+  "taiman",
+]);
+
+export function isAssistStatusKey(key){
+  const k = normalizeStatusKey(key);
+  return ASSIST_STATUS_KEYS.has(k);
+}
+
+export function blocksAssist(unit){
+  return hasLostSoul(unit);
+}
+
+export function isAssistAction(act){
+  if (!act) return false;
+  const hp = Number(act.hpDelta ?? 0);
+  const sp = Number(act.spDelta ?? 0);
+  if ((Number.isFinite(hp) && hp > 0) || (Number.isFinite(sp) && sp > 0)) return true;
+  if (act.changeAttr || act.attr || act.nextAttr) return true;
+  const list = parseAddStatus(act.addStatus).map((s)=>normalizeStatusKey(String(s || "").replace(/^self\./i, "")));
+  if (list.some((k)=>isAssistStatusKey(k))) return true;
+  const tagMap = parseTags(act.tags);
+  const tagKeys = Object.keys(tagMap || {}).map((k)=>normalizeStatusKey(k));
+  return tagKeys.some((k)=>isAssistStatusKey(k));
+}
+
 // =====================
 // ★追加：疲労回復 / 移動制限回復（安全ヘルパ）
 // =====================
@@ -518,17 +735,25 @@ export function statusLabelMap(){
   return {
     bleed: "出血",
     fracture: "骨折",
-    smell: "匂い",
+    smell: "におい",
+    poison: "毒",
     lostSoul: "失魂",
     blind: "盲目",
     evade: "回避",
     combo: "コンボ",
     followUp: "追撃",
-
-    hitUp: "命中強化",
-    powerUp: "攻撃強化",
+    aim: "命中増加",
+    hitUp: "命中増加",
+    jinx: "命中低下",
+    rage: "激怒",
+    brainwash: "洗脳",
+    sludge: "ヘドロ",
+    counter: "カウンター",
+    seal: "封印",
+    powerUp: "攻撃増加",
+    power: "攻撃増加",
     armor: "装甲",
-
+    taiman: "タイマン",
     pierce: "貫通",
     aoe: "全体",
     knockback: "ノックバック",
@@ -542,20 +767,30 @@ export function formatStatusList(u){
   if (!keys.length) return "なし";
 
   return keys.map(k=>{
-    const v = st[k]?.v;
-    const name = m[k] || k;
+    const nk = normalizeStatusKey(k);
+    const entry = st[k] || st[nk] || {};
+    const v = entry?.v;
+    const name = m[nk] || m[k] || k;
 
-    if (k === "evade") return `${name}(${Number(v ?? 0)}%)`;
-    if (k === "hitUp") return `${name}(命中+${Number(v ?? 10)}%)`;
-    if (k === "powerUp") return `${name}(HPダメ+${Number(v ?? 10)})`;
-    if (k === "armor") return `${name}(吸収${Number(v ?? 10)})`;
-
-    if (k === "bleed") return `${name}(移動時HP-${Number(v ?? 10)})`;
-    if (k === "smell") return `${name}(終了時SP-${Number(v ?? 10)})`;
+    if (nk === "evade") return `${name}(${Number(v ?? 20)}%)`;
+    if (nk === "hitUp" || nk === "aim") return `${name}(命中+${Number(v ?? 10)}%)`;
+    if (nk === "powerUp" || nk === "power") return `${name}(HPダメ+${Number(v ?? 10)})`;
+    if (nk === "armor") return `${name}(吸収${Number(v ?? 10)})`;
+    if (nk === "jinx") return `${name}(命中-${Number(v ?? 10)}%)`;
+    if (nk === "rage") return `${name}(失敗時HP-${Number(v ?? 20)})`;
+    if (nk === "brainwash") return `${name}(50%)`;
+    if (nk === "sludge") return `${name}(技コスト+${Number(v ?? 1)})`;
+    if (nk === "counter") return `${name}(${Number(v ?? 30)}%/反撃10)`;
+    if (nk === "seal") return `${name}`;
+    if (nk === "bleed") return `${name}(移動時HP-${Number(v ?? 10)})`;
+    if (nk === "smell") return `${name}(終了時SP-${Number(v ?? 10)})`;
+    if (nk === "poison") return `${name}(開始時50%解除/失敗HP-${Number(v ?? 10)})`;
+    if (nk === "fracture") return `${name}(移動不可)`;
+    if (nk === "lostSoul") return `${name}(補助無効)`;
+    if (nk === "taiman") return `${name}(正面限定)`;
     return v != null && v !== true ? `${name}(${v})` : `${name}`;
   }).join(" / ");
 }
-
 // game_state.js
 export function isAllySupportAction(act){
   if (!act) return false;
@@ -616,8 +851,8 @@ export function isOffensiveAction(act){
   // ② デバフ付与（ここがあなたの「デバフは攻撃扱い」）
   // ここに“攻撃扱いにしたい状態”を列挙
   const DEBUFF = new Set([
-    "jinx", "bleed", "fracture", "blind", "smell", "lostsoul",
-    "knockback",
+    "jinx", "bleed", "fracture", "blind", "smell", "poison", "lostsoul",
+    "knockback", "rage", "brainwash", "sludge",
   ]);
 
   const { list, tagKeys } = _lowerKeysFromAct(act);
@@ -638,4 +873,31 @@ export function isOffensiveAction(act){
 export function canUseActionByStatus(unit, act){
   if (!hasSeal(unit)) return true;
   return !isOffensiveAction(act);
+}
+
+export function expireTurnBuffsAll(st, currentTurnSeq){
+  if (!st) return 0;
+  const units = st.units || [];
+  let removed = 0;
+
+  for (const u of units){
+    if (!u || typeof u !== "object") continue;
+    const s = getStatus(u);
+
+    for (const key of TURN_BUFF_KEYS){
+      const ent = s?.[key];
+      if (!ent) continue;
+
+      // ★付与ターンと違うなら削除（= 次ターン開始で消える）
+      if (ent.turnSeq != null && currentTurnSeq != null && ent.turnSeq !== currentTurnSeq) {
+        delete s[key];
+        removed++;
+      } else {
+        // turnSeq が無い古いデータは「安全側」で消す（好みで）
+        // 「次ターンで必ず消える」を厳密にしたいなら消す：
+        // delete s[key]; removed++;
+      }
+    }
+  }
+  return removed;
 }

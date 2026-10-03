@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="magnetic inverter thunder pencil illustration">
+  <defs><radialGradient id="r" cx=".55" cy=".35" r=".7"><stop stop-color="#fff9c9"/><stop offset=".42" stop-color="#f7f6ee"/><stop offset="1" stop-color="#ece8d9"/></radialGradient><filter id="b"><feGaussianBlur stdDeviation="2"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#r)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M31 61c58-13 111 16 195-2M30 291c64 16 120-13 197 1"/><path d="M47 35l162 285M214 38L42 314"/></g>
+    <g stroke="#f7c500" stroke-width="6" opacity=".5" filter="url(#b)"><path d="M74 118c36-52 103-52 139 0M60 242c44 45 111 46 157 0"/><path d="M128 53v48M128 254v57"/></g>
+    <g stroke="#202020">
+      <g stroke-width="4"><rect x="69" y="106" width="118" height="141" rx="18"/><path d="M91 106V74h74v32M92 247v36h73v-36"/><circle cx="128" cy="176" r="38"/></g>
+      <g stroke-width="2.5"><path d="M128 138v76M96 176h64"/><path d="M111 151l34 50M145 151l-34 50"/><path d="M78 124c33 13 66 13 100 0M78 228c35-14 69-14 101 0"/><path d="M55 154c-18 21-18 45 1 66M200 154c18 21 18 45-1 66"/></g>
+      <g stroke-width="1.2" opacity=".35"><path d="M81 140c33 8 63 8 94 0M82 158c32 7 62 7 92 0M84 194c31 8 61 8 89 0M84 212c31 7 61 7 89 0"/><path d="M67 94c38-31 83-30 122 0M68 262c39 31 84 31 121 0"/></g>
+    </g>
+  </g>
+</svg>

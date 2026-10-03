@@ -9,7 +9,7 @@
 // - effect が object / JSON文字列 / 既に説明文の文字列 のどれでも動く
 // - table（確率テーブル）にも対応（rate重み型＋min/max/label型）
 // - 既存の呼び出し：supportEffectTextJa(def.effect) を維持
-console.log("[support_text] loaded v20260218");
+console.log("[support_text] loaded v20260728_priority123");
 
 function isPlainObject(x){
   return !!x && typeof x === "object" && !Array.isArray(x);
@@ -54,6 +54,20 @@ function clamp01to100(v, def=100){
 function fmtSigned(n){
   const x = nInt(n, 0);
   return (x >= 0) ? `+${x}` : `${x}`;
+}
+function fmtVital(kind, delta){
+  const n = nInt(delta, 0);
+  if (!n) return "";
+  const upper = String(kind).toUpperCase();
+  const icon =
+    upper === "SP"
+      ? n > 0
+        ? "🩵"
+        : "💙"
+      : n > 0
+        ? "💚"
+        : "❤️";
+  return `${icon}${n > 0 ? "+" : ""}${n}`;
 }
 function joinNonEmpty(...xs){
   return xs.filter(Boolean).join(" / ");
@@ -178,8 +192,8 @@ function fmtDrawback(drawback){
   const parts = [];
 
   // 自傷/自SP消費
-  if (drawback.selfHp != null) parts.push(`自分HP-${Math.abs(nInt(drawback.selfHp, 0))}`);
-  if (drawback.selfSp != null) parts.push(`自分SP-${Math.abs(nInt(drawback.selfSp, 0))}`);
+  if (drawback.selfHp != null) parts.push(`自分${fmtVital("HP", -Math.abs(nInt(drawback.selfHp, 0)))}`);
+  if (drawback.selfSp != null) parts.push(`自分${fmtVital("SP", -Math.abs(nInt(drawback.selfSp, 0)))}`);
 
   // 捨てる/ミル
   if (drawback.discard != null) parts.push(`手札${nInt(drawback.discard, 0)}枚捨てる`);
@@ -220,6 +234,17 @@ function typeLabel(t){
     swapPos: "位置入替",
     moveTo: "強制移動",
     bounce: "バウンス",
+    shiftGroup: "隊列移動",   // ←追加
+    search: "サーチ",
+    deckSearch: "サーチ",
+    tutor: "サーチ",
+    discardHand: "手札墓地送り",
+    handDiscard: "手札墓地送り",
+    setCard: "カードふせ",
+    setHand: "カードふせ",
+    faceDown: "カードふせ",
+    facedown: "カードふせ",
+    cardLock: "カードふせ",
   };
   return m[s] ?? s;
 }
@@ -252,13 +277,64 @@ function describeSingleEffect(eff){
     return joinNonEmpty(`${label}：+${n}枚`, suffix);
   }
 
+  if (type === "search" || type === "deckSearch" || type === "decksearch" || type === "tutor"){
+    const cardId = String(core.cardId ?? core.id ?? core.searchId ?? "").trim();
+    const kind = String(core.kind ?? core.cardKind ?? "").trim();
+    const attr = String(core.attr ?? "").trim();
+    const parts = [];
+    if (cardId) parts.push(cardId);
+    if (kind) parts.push(kind === "unit" ? "キャラ" : kind === "support" ? "サポート" : kind);
+    if (attr) parts.push(`属性:${attr}`);
+    return joinNonEmpty(`${label}：デッキから${parts.length ? parts.join(" / ") : "選んだカード"}を手札へ`, suffix);
+  }
+
+  if (
+    type === "discardHand" ||
+    type === "handDiscard" ||
+    type === "discard" ||
+    type === "graveHand" ||
+    type === "trashHand" ||
+    type === "手札を墓地へ"
+  ){
+    const count = Math.max(1, nInt(core.count ?? core.n ?? 1, 1));
+    const target = String(core.targetSeat ?? core.seat ?? "enemy").toLowerCase();
+    const who = target === "self" || target === "caster" ? "自分" : "相手";
+    return joinNonEmpty(`${label}：${who}の手札${count}枚を墓地へ`, suffix);
+  }
+
+  if (
+    type === "setCard" ||
+    type === "setHand" ||
+    type === "faceDown" ||
+    type === "facedown" ||
+    type === "cardSet" ||
+    type === "cardLock" ||
+    type === "hideCard" ||
+    type === "カードふせ"
+  ){
+    const count = Math.max(1, nInt(core.count ?? core.n ?? 1, 1));
+    const target = String(core.targetSeat ?? core.seat ?? "enemy").toLowerCase();
+    const who = target === "self" || target === "caster" ? "自分" : "相手";
+    return joinNonEmpty(`${label}：${who}の手札${count}枚を伏せる`, suffix);
+  }
+
+  if (
+    type === "changeAttr" ||
+    type === "setAttr" ||
+    type === "attrChange" ||
+    type === "attributeChange"
+  ){
+    const attr = String(core.attr ?? core.to ?? core.value ?? core.targetAttr ?? "").trim();
+    return joinNonEmpty(`属性変更${attr ? `:${attr}` : ""}`, suffix);
+  }
+
   if (type === "heal"){
     const hp = nInt(core.hp ?? core.heal ?? core.amount ?? 0, 0);
     const sp = nInt(core.sp ?? 0, 0);
     const parts = [];
-    if (hp) parts.push(`HP${fmtSigned(hp)}`);
-    if (sp) parts.push(`SP${fmtSigned(sp)}`);
-    if (!parts.length) parts.push("HP+10");
+    if (hp) parts.push(fmtVital("HP", hp));
+    if (sp) parts.push(fmtVital("SP", sp));
+    if (!parts.length) parts.push(fmtVital("HP", 10));
     return joinNonEmpty(`${label}：${parts.join(" / ")}`, suffix);
   }
 
@@ -266,9 +342,9 @@ function describeSingleEffect(eff){
     const hp = nInt(core.hp ?? core.dmg ?? core.damage ?? 0, 0);
     const sp = nInt(core.sp ?? core.spDmg ?? 0, 0);
     const parts = [];
-    if (hp) parts.push(`HP-${Math.abs(hp)}`);
-    if (sp) parts.push(`SP-${Math.abs(sp)}`);
-    if (!parts.length) parts.push("HP-10");
+    if (hp) parts.push(fmtVital("HP", -Math.abs(hp)));
+    if (sp) parts.push(fmtVital("SP", -Math.abs(sp)));
+    if (!parts.length) parts.push(fmtVital("HP", -10));
     return joinNonEmpty(`${label}：${parts.join(" / ")}`, suffix);
   }
 
@@ -324,6 +400,31 @@ function describeSingleEffect(eff){
 
   if (type === "bounce"){
     return joinNonEmpty(`${label}：対象を手札に戻す`, suffix);
+  }
+
+    if (type === "shiftGroup"){
+    const targetGroup = String(core.targetGroup ?? "").trim();
+    const mode = String(core.mode ?? "").trim();
+    const dist = Math.max(1, nInt(core.dist ?? 1, 1));
+    const count = Math.max(1, nInt(core.count ?? 1, 1));
+
+    const targetJa =
+      targetGroup === "enemy" ? "敵" :
+      targetGroup === "ally" ? "味方" :
+      targetGroup === "all" ? "全体" :
+      targetGroup || "対象";
+
+    const modeJa =
+      mode === "retreat" ? "後退" :
+      mode === "advance" ? "前進" :
+      mode === "push" ? "押し出し" :
+      mode === "pull" ? "引き寄せ" :
+      mode || "移動";
+
+    return joinNonEmpty(
+      `${label}：${targetJa}${count}体を${modeJa}${dist}マス`,
+      suffix
+    );
   }
 
   // 未知：壊さず表示（ただし短縮）

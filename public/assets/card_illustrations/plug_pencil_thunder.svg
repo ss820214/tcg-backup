@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="plug person thunder pencil illustration">
+  <defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf3"/><stop offset=".55" stop-color="#f7f5ec"/><stop offset="1" stop-color="#ece8d7"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#a)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12" stroke-width="1"><path d="M29 55c59 13 114-15 199 3M28 298c67-12 126 11 200-3"/><path d="M40 40l176 274M222 39L36 316"/><path d="M26 111c62-28 112 25 204-8"/></g>
+    <g stroke="#ffd44d" stroke-width="7" opacity=".55" filter="url(#g)"><path d="M185 52l-31 60h36l-48 89M65 92l35 50H75l43 62"/><path d="M46 260c35-24 66-23 95-2 31 22 54 19 83-4"/></g>
+    <g stroke="#1d1d1d">
+      <g stroke-width="4"><circle cx="125" cy="82" r="27"/><path d="M88 134c27-30 61-31 83 0M93 134c-16 45-10 91 33 128 43-37 50-83 35-128"/><path d="M91 180c-27 4-49 23-64 51M166 178c24 4 47 21 64 49"/><path d="M96 265c-12 17-18 38-18 61M157 265c14 18 21 39 21 61"/></g>
+      <g stroke-width="2.4"><path d="M102 82h46M105 65v-26M147 65v-26"/><path d="M104 156c17 10 32 10 48 0M94 192c22 15 48 16 70 0"/><path d="M118 134v118M74 226c38 21 74 21 110 0"/><path d="M190 77l-18 34h27l-31 48M55 112l24 35H62l29 41"/></g>
+      <g stroke-width="1.1" opacity=".35"><path d="M101 103c16 8 35 8 52 0M92 146c23 7 50 7 74 0M88 208c30 10 57 11 83 0"/><path d="M48 245c35-16 62-11 89 9 29 21 56 23 85 0"/></g>
+    </g>
+  </g>
+</svg>

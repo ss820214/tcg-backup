@@ -1,0 +1,450 @@
+﻿<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OBATO - Tactical TCG</title>
+    <style>
+      :root {
+        --bg: #07090d;
+        --panel: rgba(255, 255, 255, 0.07);
+        --panel2: rgba(0, 0, 0, 0.28);
+        --line: rgba(255, 255, 255, 0.14);
+        --text: #f8fbff;
+        --muted: rgba(248, 251, 255, 0.72);
+        --muted2: rgba(248, 251, 255, 0.55);
+        --lime: #baff2c;
+        --blue: #69b4ff;
+        --green: #76ffba;
+      }
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(900px 520px at 78% 12%, rgba(160, 90, 255, 0.24), transparent 62%),
+          radial-gradient(760px 420px at 18% 0%, rgba(105, 180, 255, 0.18), transparent 62%),
+          radial-gradient(740px 520px at 55% 106%, rgba(186, 255, 44, 0.10), transparent 58%),
+          linear-gradient(180deg, #081018, var(--bg));
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.22;
+        background:
+          linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.030) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: radial-gradient(circle at 52% 18%, #000 0 42%, transparent 78%);
+      }
+      .page {
+        width: min(1180px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 18px 0 44px;
+      }
+      header {
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .brand b {
+        font-size: 18px;
+        letter-spacing: .06em;
+      }
+      .brand span {
+        color: var(--muted2);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .12em;
+      }
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      button, a.btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.28);
+        color: var(--text);
+        text-decoration: none;
+        padding: 9px 14px;
+        font-weight: 950;
+        cursor: pointer;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+      }
+      a.btn.primary {
+        border-color: rgba(186, 255, 44, .58);
+        color: #172107;
+        background:
+          linear-gradient(90deg, rgba(186, 255, 44, .98), rgba(105, 180, 255, .76)),
+          repeating-linear-gradient(90deg, rgba(255,255,255,.24) 0 8px, transparent 8px 16px);
+        box-shadow: 0 0 32px rgba(186, 255, 44, .22);
+      }
+      .hero {
+        min-height: min(690px, calc(100vh - 112px));
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+        gap: 22px;
+        align-items: stretch;
+      }
+      .heroCopy {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(24px, 5vw, 58px);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 24px;
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035)),
+          rgba(0,0,0,.18);
+        box-shadow: 0 24px 80px rgba(0,0,0,.48);
+        overflow: hidden;
+      }
+      .heroCopy::after {
+        content: "";
+        position: absolute;
+        inset: auto -20% 0 -20%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--lime), var(--blue), transparent);
+        box-shadow: 0 0 24px rgba(186,255,44,.45);
+      }
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        gap: 8px;
+        align-items: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        color: rgba(186,255,44,.96);
+        border: 1px solid rgba(186,255,44,.28);
+        background: rgba(186,255,44,.08);
+        font-weight: 1000;
+        letter-spacing: .12em;
+        font-size: 12px;
+      }
+      h1 {
+        margin: 22px 0 0;
+        font-size: clamp(46px, 8vw, 108px);
+        line-height: .92;
+        letter-spacing: 0;
+      }
+      .lead {
+        margin: 22px 0 0;
+        max-width: 690px;
+        color: var(--muted);
+        font-size: clamp(16px, 2vw, 22px);
+        line-height: 1.75;
+        font-weight: 700;
+      }
+      .tagline {
+        margin-top: 18px;
+        font-size: clamp(18px, 2.5vw, 30px);
+        line-height: 1.4;
+        font-weight: 1000;
+        color: #fff;
+      }
+      .heroArt {
+        position: relative;
+        min-height: 520px;
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.20)),
+          url("./assets/home/menu-concept.svg") center / cover no-repeat;
+        box-shadow: 0 24px 80px rgba(0,0,0,.48), inset 0 0 60px rgba(105,180,255,.08);
+        overflow: hidden;
+      }
+      .heroArt::after {
+        content: "TTCG";
+        position: absolute;
+        right: 22px;
+        bottom: 18px;
+        font-size: clamp(44px, 8vw, 96px);
+        line-height: .8;
+        font-weight: 1000;
+        color: rgba(255,255,255,.10);
+        letter-spacing: .08em;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 22px;
+      }
+      .feature {
+        min-height: 210px;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.03)),
+          var(--panel2);
+        overflow: hidden;
+      }
+      .featureIcon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,.18);
+        background: rgba(105,180,255,.14);
+        box-shadow: 0 0 24px rgba(105,180,255,.16);
+        font-size: 22px;
+        font-weight: 1000;
+      }
+      .feature h2 {
+        margin: 16px 0 8px;
+        font-size: 18px;
+        line-height: 1.25;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+        font-size: 14px;
+      }
+      .attrStory {
+        margin-top: 18px;
+        padding: 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(105,180,255,.22);
+        background:
+          radial-gradient(520px 220px at 86% 20%, rgba(105,180,255,.16), transparent 68%),
+          linear-gradient(135deg, rgba(255,255,255,.075), rgba(0,0,0,.22));
+      }
+      .attrStory h2 {
+        margin: 0;
+        font-size: clamp(20px, 3vw, 32px);
+        line-height: 1.25;
+      }
+      .attrStory p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        line-height: 1.75;
+        font-weight: 680;
+      }
+      .attrGrid {
+        display: grid;
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .attrChip {
+        min-height: 50px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(0,0,0,.26);
+        color: rgba(255,255,255,.86);
+        font-size: 13px;
+        font-weight: 1000;
+      }
+      .compare {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .compareBox {
+        padding: 18px;
+        min-height: 190px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(0,0,0,.24);
+      }
+      .compareBox.good {
+        border-color: rgba(186,255,44,.28);
+        background: linear-gradient(135deg, rgba(186,255,44,.12), rgba(0,0,0,.24));
+      }
+      .compareBox h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+      .compareBox ul {
+        margin: 0;
+        padding-left: 1.2em;
+        color: var(--muted);
+        line-height: 1.8;
+        font-weight: 650;
+      }
+      .cta {
+        margin-top: 22px;
+        padding: 22px;
+        border-radius: 22px;
+        border: 1px solid rgba(186,255,44,.24);
+        background:
+          radial-gradient(520px 220px at 78% 20%, rgba(186,255,44,.14), transparent 70%),
+          linear-gradient(135deg, rgba(105,180,255,.10), rgba(0,0,0,.26));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .cta b {
+        display: block;
+        font-size: clamp(20px, 3vw, 34px);
+        line-height: 1.25;
+      }
+      .cta span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      @media (max-width: 900px) {
+        .hero { grid-template-columns: 1fr; min-height: 0; }
+        .heroArt { min-height: 360px; }
+        .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .attrGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .compare { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        .page { width: min(100% - 20px, 1180px); padding-top: 12px; }
+        header, .cta { align-items: stretch; flex-direction: column; }
+        .nav { justify-content: stretch; }
+        .nav .btn { flex: 1; }
+        .heroCopy { padding: 24px 18px; border-radius: 18px; }
+        .heroArt { min-height: 280px; border-radius: 18px; }
+        .cards { grid-template-columns: 1fr; }
+        .attrGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+    </style>
+    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="brand">
+          <b>OBATO</b>
+          <span>TACTICAL / TRPG x TCG</span>
+        </div>
+        <nav class="nav" aria-label="navigation">
+          <a class="btn" id="homeBtn" href="./index.html">&#21021;&#26399;&#30011;&#38754;</a>
+          <a class="btn primary" id="deckBtn" href="./index.html?skipIntro=1">&#12487;&#12483;&#12461;&#12434;&#32068;&#12416;</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="heroCopy">
+            <span class="kicker">TTCG / TACTICAL TCG</span>
+            <h1>&#33075;&#27515;&#12391;<br />&#12459;&#12540;&#12489;&#12466;&#12540;&#12512;&#12289;<br />&#12375;&#12390;&#12414;&#12379;&#12435;&#12363;&#12290;</h1>
+            <p class="lead">
+              OBATO縺ｯ縲・°縺ｧ謠ｺ繧後ｋ繧ｫ繝ｼ繝峨ヰ繝医Ν縺ｫ縲√ヵ繧｣繝ｼ繝ｫ繝峨→蟆・ｨ九ｒ雜ｳ縺励◆TTCG縲ょｼ輔″繧・多荳ｭ縺ｮ驕九ｒ谿九＠縺ｪ縺後ｉ縲∽ｽ咲ｽｮ蜿悶ｊ繝ｻ螻樊ｧ繝ｻ繝・ャ繧ｭ讒狗ｯ峨〒蜍昴■遲九ｒ菴懊ｋ繧ｲ繝ｼ繝縺ｧ縺吶・            </p>
+            <div class="tagline">
+              驕九□縺代〒邨ゅｏ繧峨○縺ｪ縺・・br />
+              隱ｭ縺ｿ縺ｨ驟咲ｽｮ縺ｧ縲∫｢ｺ邇・ｒ謌ｦ逡･縺ｫ螟峨∴繧九・            </div>
+          </div>
+          <div class="heroArt" aria-hidden="true"></div>
+        </section>
+
+        <section class="cards" aria-label="features">
+          <article class="feature">
+            <div class="featureIcon">&#9670;</div>
+            <h2>驕九ｒ謌ｦ逡･縺ｫ螟峨∴繧・/h2>
+            <p>1vs1縺ｮ繧ｫ繝ｼ繝峨ヰ繝医Ν縺ｯ縲∝ｼ輔″縺ｨ謌仙粥邇・↓蟇・ｊ縺後■縲０BATO縺ｯ繝輔ぅ繝ｼ繝ｫ繝我ｸ翫・霍晞屬縲∫ｧｻ蜍募・縲∝ｰ・ｨ九〒驕ｸ謚櫁い繧貞｢励ｄ縺励・°縺ｮ繝悶Ξ繧偵・繝ｬ繧､縺ｧ蜿励￠豁｢繧√ｋ縲・/p>
+          </article>
+          <article class="feature">
+            <div class="featureIcon">%</div>
+            <h2>螻樊ｧ縺斐→縺ｮ蟆悶ｊ</h2>
+            <p>轣ｫ縺ｯ轣ｫ蜉帙∵ｰｴ縺ｯ閠蝉ｹ・・峭縺ｯ螻暮幕縺ｪ縺ｩ縲∝ｱ樊ｧ縺斐→縺ｫ蠕玲э荳榊ｾ玲э縺後≠繧九ょ酔螻樊ｧ縺ｧ蝗ｺ繧√ｋ縺ｻ縺ｩ蠑ｷ縺ｿ縺ｯ莨ｸ縺ｳ繧九′縲∝ｼｱ轤ｹ繧ゅ・縺｣縺阪ｊ蜃ｺ繧九・/p>
+          </article>
+          <article class="feature">
+            <div class="featureIcon">#</div>
+            <h2>逶､髱｢縺後ョ繝・く繧貞､峨∴繧・/h2>
+            <p>蠑ｷ縺・き繝ｼ繝峨ｒ隧ｰ繧√ｋ縺縺代〒縺ｯ螻翫°縺ｪ縺・∝ｮ医ｌ縺ｪ縺・∝虚縺代↑縺・ょｰ・ｨ九・繧ｳ繧ｹ繝医・遘ｻ蜍輔ｒ閠・∴繧九°繧峨∵ｧ狗ｯ峨→繝励Ξ繧､縺後▽縺ｪ縺後ｋ縲・/p>
+          </article>
+          <article class="feature">
+            <div class="featureIcon">Y</div>
+            <h2>閾ｪ蛻・□縺代・YOU</h2>
+            <p>閧ｲ謌舌き繝ｼ繝浦OU縲∫憾諷狗焚蟶ｸ縲√し繝昴・繝医〒縲√・繝ｬ繧､繝､繝ｼ縺斐→縺ｮ逋悶′蜃ｺ繧九ょ享縺｡譁ｹ縺御ｸ縺､縺ｫ蝗ｺ螳壹＆繧後↑縺・・/p>
+          </article>
+        </section>
+
+        <section class="attrStory" aria-label="attribute strategy">
+          <h2>螻樊ｧ縺ｧ繝・ャ繧ｭ縺ｮ諤ｧ譬ｼ縺悟､峨ｏ繧・/h2>
+          <p>蜷後§螻樊ｧ縺ｧ蝗ｺ繧√ｋ縺ｨ縲∵姶縺・婿縺碁強縺上↑繧九ょ渚髱｢縲∝ｼｱ轤ｹ繧りｦ九∴繧・☆縺上↑繧九°繧峨∝腰濶ｲ縺ｧ蟆悶ｉ縺帙ｋ縺九∵ｷｷ濶ｲ縺ｧ遨ｴ繧貞沂繧√ｋ縺九′讒狗ｯ峨・隱ｭ縺ｿ縺ｩ縺薙ｍ縲・/p>
+          <div class="attrGrid" aria-hidden="true">
+            <span class="attrChip">轣ｫ蜉・/span>
+            <span class="attrChip">閠蝉ｹ・/span>
+            <span class="attrChip">螻暮幕</span>
+            <span class="attrChip">蝗槫ｾｩ</span>
+            <span class="attrChip">遘ｻ蜍・/span>
+            <span class="attrChip">蛻ｶ蝨ｧ</span>
+            <span class="attrChip">螯ｨ螳ｳ</span>
+            <span class="attrChip">騾・ｻ｢</span>
+            <span class="attrChip">謚蟾ｧ</span>
+          </div>
+        </section>
+
+        <section class="compare" aria-label="comparison">
+          <div class="compareBox">
+            <h2>譎ｮ騾壹・1vs1繧ｫ繝ｼ繝峨ヰ繝医Ν縺縺ｨ</h2>
+            <ul>
+              <li>蠑輔＞縺溘き繝ｼ繝峨・蠑ｷ縺輔↓蟇・ｊ繧・☆縺・/li>
+              <li>謌仙粥邇・・驕九□縺代〒蜍晄風縺悟だ縺阪ｄ縺吶＞</li>
+              <li>繝・ャ繧ｭ逶ｸ諤ｧ縺後◎縺ｮ縺ｾ縺ｾ蜃ｺ繧・☆縺・/li>
+            </ul>
+          </div>
+          <div class="compareBox good">
+            <h2>OBATO&#12391;&#12399;</h2>
+            <ul>
+              <li>繝輔ぅ繝ｼ繝ｫ繝峨′縺ゅｋ縺九ｉ菴咲ｽｮ縺ｧ騾・ｻ｢縺ｧ縺阪ｋ</li>
+              <li>螻樊ｧ讒狗ｯ峨〒蠑ｷ縺ｿ縺ｨ蠑ｱ縺ｿ繧定ｨｭ險医〒縺阪ｋ</li>
+              <li>驕九ｒ隱ｭ繧縲√★繧峨☆縲∝女縺代ｋ驕ｸ謚槭′縺ゅｋ</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="cta">
+          <div>
+            <b>TTCG&#12434;&#12289;&#12371;&#12371;&#12363;&#12425;&#22987;&#12417;&#12427;&#12290;</b>
+            <span>&#12414;&#12378;&#12399;30&#26522;&#12398;&#12487;&#12483;&#12461;&#12434;&#32068;&#12435;&#12391;&#12289;&#12459;&#12540;&#12489;&#12434;&#30436;&#38754;&#12395;&#32622;&#12356;&#12390;&#12415;&#12424;&#12358;&#12290;</span>
+          </div>
+          <a class="btn primary" id="ctaDeckBtn" href="./index.html?skipIntro=1">PLAY / DECK BUILD</a>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      params.delete("skipIntro");
+      const keep = params.toString();
+      const home = document.getElementById("homeBtn");
+      const deck = document.getElementById("deckBtn");
+      const cta = document.getElementById("ctaDeckBtn");
+      if (home) home.href = "./index.html" + (keep ? `?${keep}` : "");
+      params.set("skipIntro", "1");
+      const deckUrl = "./index.html?" + params.toString();
+      if (deck) deck.href = deckUrl;
+      if (cta) cta.href = deckUrl;
+    </script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+    <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>
+

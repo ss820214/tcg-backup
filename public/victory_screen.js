@@ -1,12 +1,11 @@
-// public/victory_screen.js
-// v1.10.2 - COMPLETE
+﻿// public/victory_screen.js
+// v20260723_starter_series1
 // - FIX: win/lose judgment uses seat/winner (result param is fallback)  [kept]
-// - FIX: btnDeck fallback to index.html if goToDeck fails              [kept]
+// - NEW: Safe return button uses fixed internal URLs instead of browser history
 // - NEW: If turnSeq/kills/infil params are missing/0, fetch from Firestore game/state and compute infil
 //
 // v1.10.0 - Victory/Defeat screen + Winner deck radar/recipe (no libs) : confetti + fireworks + stats + buttons
-// NOTE: game.js から URL パラメータを渡して使う
-//
+// NOTE: game.js passes URL parameters to this screen.
 // Added:
 // - Fetch winner player's deck from Firestore
 // - Evaluate deck (deck_radar.js) + show radar
@@ -16,13 +15,13 @@
 // Keep:
 // - Original layout/FX/buttons intact as much as possible
 
-import { goToDeck, computeInfil } from "./game_state.js?v=20260228_5";
-import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20260129c";
+import { computeInfil } from "./game_state.js?v=20260228_5";
+import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20260801_radar_clamp1";
+import { db } from "./auth.js?v=20260627_perm1";
+import { recordMatchResult } from "./user_store.js?v=20260723_starter_series1";
 
 // Firebase (same style as game.js)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
-  getFirestore,
   doc,
   collection,
   getDocs,
@@ -35,13 +34,40 @@ const params = new URLSearchParams(location.search);
 const roomId = params.get("room") || "";
 const playerId = params.get("player") || "";
 
-// ===== 勝敗は seat/winner で確定（resultはfallback） =====
+function buildDeckUrl(){
+  const qs = new URLSearchParams();
+  if (roomId) qs.set("room", roomId);
+  if (playerId) qs.set("player", playerId);
+  const s = qs.toString();
+  return `deck.html${s ? `?${s}` : ""}`;
+}
+
+function safeReturnUrl(){
+  const raw = params.get("returnTo") || params.get("backTo") || "";
+  if (raw) {
+    try {
+      const u = new URL(raw, location.href);
+      const file = (u.pathname.split("/").pop() || "index.html").toLowerCase();
+      const allowed = new Set(["index.html", "deck.html", "profile.html", "gacha.html", "arcade.html"]);
+      if (u.origin === location.origin && allowed.has(file)) {
+        return `${file}${u.search || ""}${u.hash || ""}`;
+      }
+    } catch {}
+  }
+  return buildDeckUrl();
+}
+
+function safeNavigate(url){
+  location.replace(url || buildDeckUrl());
+}
+
+// ===== Win/loss is decided by seat/winner; result is fallback =====
 const seat = (params.get("seat") || "").toUpperCase();          // A/B
 const winner = (params.get("winner") || "").toUpperCase();      // A/B
 const resultParam = (params.get("result") || "").toLowerCase(); // win/lose (fallback)
 const reason = params.get("reason") || "";
 
-// seat/winner が揃ってるならそれを正として勝敗を決める
+// If seat/winner are present, trust them for the final result.
 const seatOK = (seat === "A" || seat === "B");
 const winnerOK = (winner === "A" || winner === "B");
 const result = (seatOK && winnerOK)
@@ -67,18 +93,6 @@ function escapeHtml(s){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
-
-// =====================
-// Firebase init
-// =====================
-const firebaseConfig = {
-  apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
-  authDomain: "tcg-0bato.firebaseapp.com",
-  projectId: "tcg-0bato",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const matchRef = doc(db, "rooms", roomId, "game", "match");
 const stateRef = doc(db, "rooms", roomId, "game", "state");
@@ -224,6 +238,55 @@ function injectBaseStyles() {
   .k{ font-size:12px; color: var(--muted); }
   .v{ font-size:20px; font-weight:800; margin-top:4px; }
   .mini{ font-size:12px; color: rgba(255,255,255,0.76); margin-top:4px; }
+
+  .resultReport{
+    margin-top:14px;
+    padding:14px;
+    border-radius: 18px;
+    background:
+      radial-gradient(420px 180px at 12% 0%, rgba(145,255,214,0.12), transparent 65%),
+      linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.045));
+    border:1px solid ${isWin ? "rgba(167,255,88,0.28)" : "rgba(255,114,140,0.26)"};
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.035), 0 14px 40px rgba(0,0,0,0.22);
+  }
+  .reportHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:12px;
+    letter-spacing:.12em;
+    color:rgba(255,255,255,0.70);
+  }
+  .reportHead b{
+    color:${isWin ? "var(--good)" : "var(--bad)"};
+    letter-spacing:.04em;
+  }
+  .reportGrid{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap:10px;
+    margin-top:10px;
+  }
+  .reportItem{
+    min-height:64px;
+    padding:10px;
+    border-radius:14px;
+    background:rgba(0,0,0,0.22);
+    border:1px solid rgba(255,255,255,0.10);
+  }
+  .reportItem .label{ font-size:11px; color:rgba(255,255,255,0.62); }
+  .reportItem .num{ margin-top:4px; font-size:22px; font-weight:900; }
+  .reportItem .cap{ margin-top:2px; font-size:11px; color:rgba(255,255,255,0.58); }
+  .reportNote{
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:14px;
+    background:rgba(0,0,0,0.24);
+    color:rgba(255,255,255,0.82);
+    font-size:13px;
+    line-height:1.55;
+  }
 
   .right{
     padding:16px;
@@ -398,7 +461,7 @@ function mountLayout() {
             </div>
 
             <div class="sub">
-              ${isWin ? "勝利おめでとう。派手に祝うぞ。" : "次は勝てる。リベンジしよう。"}
+              ${isWin ? "勝利おめでとう。派手に祝おう。" : "次は勝てる。リベンジしよう。"}
             </div>
 
             <div class="reason">${escapeHtml(reason || "")}</div>
@@ -422,14 +485,16 @@ function mountLayout() {
               <div class="card">
                 <div class="k">結果</div>
                 <div class="v">${isWin ? "WIN" : "LOSE"}</div>
-                <div class="mini">${isWin ? "🎉" : "💥"}</div>
+                <div class="mini">${isWin ? "Good Game" : "Try Again"}</div>
               </div>
             </div>
+
+            <div id="resultReport" class="resultReport"></div>
           </div>
 
           <div class="right">
             <div class="trophy">
-              <div class="emoji">${isWin ? "🏆" : "☔"}</div>
+              <div class="emoji">${isWin ? "🏆" : "✦"}</div>
             </div>
 
             <div class="deckBox" id="winnerDeckBox">
@@ -446,22 +511,23 @@ function mountLayout() {
               <div class="deckGrid">
                 <div class="radarWrap">
                   <canvas id="winnerRadar" class="radarCanvas" width="260" height="260"></canvas>
-                  <div class="deckText" id="winnerDeckText">（評価を取得中）</div>
+                  <div class="deckText" id="winnerDeckText">評価を取得中...</div>
                 </div>
-                <div class="recipe" id="winnerRecipe">（レシピを取得中）</div>
+                <div class="recipe" id="winnerRecipe">レシピを取得中...</div>
               </div>
             </div>
 
             <div class="buttons">
-            <button class="primary" id="btnBackDeck">編成に戻る</button>
+              <button class="primary" id="btnSafeBack">安全に戻る</button>
+              <button class="primary" id="btnBackDeck">編成に戻る</button>
               <button class="primary" id="btnDeck">デッキへ戻る</button>
-              <button id="btnRematch">もう一戦（待機へ）</button>
+              <button id="btnRematch">もう一戦</button>
               <button id="btnCopy">URLコピー</button>
               <button class="danger" id="btnTop">トップへ</button>
             </div>
 
             <div class="hint">
-              ※音は端末によって自動再生できないことがあります（タップ後に鳴ります）
+              ※音は端末設定やブラウザ制限で鳴らないことがあります。
             </div>
           </div>
         </div>
@@ -641,13 +707,13 @@ function startConfettiAndFireworks() {
   }
   requestAnimationFrame(step);
 
-  // 勝利なら自動演出
+  // Winning side gets a bigger celebration.
   if (isWin) {
     spawnConfettiBurst(innerWidth*0.5, innerHeight*0.28, 160);
     spawnFirework(innerWidth*0.25, innerHeight*0.25);
     spawnFirework(innerWidth*0.75, innerHeight*0.22);
 
-    // 追い花火
+    // Extra fireworks.
     let t = 0;
     const timer = setInterval(()=>{
       t++;
@@ -658,11 +724,11 @@ function startConfettiAndFireworks() {
       if (t >= 9) clearInterval(timer);
     }, 320);
   } else {
-    // 敗北でも控えめに一発
+    // Defeat still gets one quiet burst.
     spawnFirework(innerWidth*0.5, innerHeight*0.22);
   }
 
-  // タップで追い演出
+  // Tap/click for extra effects.
   window.addEventListener("pointerdown", (e)=>{
     if (isWin) spawnConfettiBurst(e.clientX, e.clientY, 80);
     spawnFirework(e.clientX, e.clientY);
@@ -702,55 +768,36 @@ function tryBeep(freq=660, sec=0.06){
    Buttons
 ========================= */
 function wireButtons(){
-  $("#btnDeck")?.addEventListener("click", ()=>{
-    // ★修正: goToDeckが壊れてても必ずデッキに戻る
-    if (!roomId || !playerId) { location.href = "index.html"; return; }
-
-    const url = `index.html?room=${encodeURIComponent(roomId)}&player=${encodeURIComponent(playerId)}`;
-
-    if (typeof goToDeck === "function") {
-      try {
-        goToDeck(roomId, playerId);
-        return;
-      } catch (e) {
-        console.warn("goToDeck failed, fallback to url", e);
-      }
-    }
-    location.href = url;
+  $("#btnSafeBack")?.addEventListener("click", ()=>{
+    safeNavigate(safeReturnUrl());
   });
 
-    $("#btnBackDeck")?.addEventListener("click", ()=>{
-    // ルームとプレイヤーがあるなら「デッキ編成画面」へ
-    if (roomId && playerId) {
-      // goToDeck は RETURN_URL(=deck.html) に戻す想定なのでそれを使う
-      if (typeof goToDeck === "function") {
-        try { goToDeck(roomId, playerId); return; } catch (e) { console.warn(e); }
-      }
-      location.href = `deck.html?room=${encodeURIComponent(roomId)}&player=${encodeURIComponent(playerId)}`;
-      return;
-    }
-    // 無い場合は最低限 deck.html へ
-    location.href = "deck.html";
+  $("#btnDeck")?.addEventListener("click", ()=>{
+    if (!roomId || !playerId) { safeNavigate("index.html"); return; }
+    safeNavigate(buildDeckUrl());
+  });
+
+  $("#btnBackDeck")?.addEventListener("click", ()=>{
+    safeNavigate(buildDeckUrl());
   });
 
   $("#btnRematch")?.addEventListener("click", ()=>{
     if (!roomId || !playerId) { location.href = "index.html"; return; }
-    // battleへ戻す（今までの導線を壊さない）
     location.href = `battle.html?room=${encodeURIComponent(roomId)}&player=${encodeURIComponent(playerId)}&action=join`;
   });
 
   $("#btnTop")?.addEventListener("click", ()=>{
-    location.href = "index.html";
+    safeNavigate("index.html");
   });
 
   $("#btnCopy")?.addEventListener("click", async ()=>{
     try{
       await navigator.clipboard.writeText(location.href);
       tryBeep(988, 0.06);
-      $("#btnCopy").textContent = "コピーした！";
+      $("#btnCopy").textContent = "コピーしました";
       setTimeout(()=> $("#btnCopy").textContent = "URLコピー", 900);
     } catch {
-      alert("コピーできませんでした（端末設定）");
+      alert("コピーできませんでした。ブラウザや端末の権限設定を確認してください。");
     }
   });
 
@@ -763,10 +810,10 @@ function wireButtons(){
     try{
       await navigator.clipboard.writeText(txt.trim());
       tryBeep(988, 0.06);
-      $("#btnCopyWinnerDeck").textContent = "コピーした！";
+      $("#btnCopyWinnerDeck").textContent = "コピーしました";
       setTimeout(()=> $("#btnCopyWinnerDeck").textContent = "レシピコピー", 900);
     } catch {
-      alert("コピーできませんでした（端末設定）");
+      alert("コピーできませんでした。ブラウザや端末の権限設定を確認してください。");
     }
   });
 }
@@ -779,8 +826,8 @@ function formatRecipeLine(cardId, cnt){
   const type = d.type ?? "?";
   const cost = (d.cost ?? "?");
   const name = cardName(cardId);
-  const sup = isSupportCardLike(d) ? "（サポ）" : "";
-  return `x${cnt}  [${type}]  【${cost}】 ${name}${sup}`;
+  const sup = isSupportCardLike(d) ? "（サポート）" : "";
+  return `x${cnt}  [${type}]  【${cost}】${name}${sup}`;
 }
 
 function deckObjToLines(deckObj){
@@ -821,9 +868,9 @@ async function loadWinnerDeckAndRender(){
   const radar = $("#winnerRadar");
 
   if (!roomId || !winner) {
-    if (subEl) subEl.textContent = "（room/winnerが無くて取得できない）";
-    if (textEl) textEl.textContent = "—";
-    if (recEl) recEl.textContent = "—";
+    if (subEl) subEl.textContent = "room / winner がないため取得できません";
+    if (textEl) textEl.textContent = "-";
+    if (recEl) recEl.textContent = "-";
     return;
   }
 
@@ -831,7 +878,7 @@ async function loadWinnerDeckAndRender(){
     // load card defs first (needed for recipe + evaluation)
     await loadCards();
 
-    // match → winner playerId を引く
+    // Resolve winner playerId from match seats.
     const ms = await getDoc(matchRef);
     if (!ms.exists()) throw new Error("match missing");
     const m = ms.data() || {};
@@ -849,8 +896,9 @@ async function loadWinnerDeckAndRender(){
 
     const { lines, total } = deckObjToLines(deckObj);
 
-    // EX行（あれば）
-    const exLine = exId ? `EX  [${cardDefs?.[exId]?.type ?? "?"}]  【${cardDefs?.[exId]?.cost ?? "?"}】 ${cardName(exId)}（サポ）` : "";
+    const exLine = exId
+      ? `EX  [${cardDefs?.[exId]?.type ?? "?"}]  【${cardDefs?.[exId]?.cost ?? "?"}】${cardName(exId)}（サポート）`
+      : "";
 
     if (subEl) {
       subEl.textContent = `WINNER:${winner} / 枚数:${total}${exId ? " / EXあり" : ""}`;
@@ -863,17 +911,17 @@ async function loadWinnerDeckAndRender(){
       out.push("----");
     }
     out.push(...lines);
-    if (!lines.length) out.push("（デッキが空 or 取得できません）");
+    if (!lines.length) out.push("（デッキが空、または取得できません）");
     if (recEl) recEl.textContent = out.join("\n");
 
     // evaluate + radar
     if (radar && radar.getContext) {
       const res = evaluateDeck(deckObj, cardDefs);
 
-      // drawRadar は白背景で描くのでそのままOK
+      // drawRadar paints on a white canvas internally.
       drawRadar(radar, res.scores);
 
-      const axes = ["攻撃","耐久","安定","展開","扱い","制圧"];
+      const axes = ["攻撃", "耐久", "安定", "展開", "扱い", "制圧"];
       const nums = res.scores.map(x=>Math.round(Number(x)||0));
       const line = axes.map((k,i)=>`${k}:${nums[i]}`).join(" / ");
 
@@ -881,10 +929,10 @@ async function loadWinnerDeckAndRender(){
         textEl.textContent =
           `${res.note}\n${line}\n` +
           `${exId ? `EX: ${cardName(exId)}\n` : ""}` +
-          `※勝者デッキの指標（ざっくり）`;
+          `※勝者デッキの指標です`;
       }
     } else {
-      if (textEl) textEl.textContent = "（レーダー描画不可：canvas）";
+      if (textEl) textEl.textContent = "（レーダー描画不可: canvas）";
     }
   } catch (e){
     console.warn("[winnerDeck] failed", e);
@@ -932,6 +980,78 @@ async function initAndAnimateCounts(){
   animateCount($("#turnV"), Math.max(0, tSeq), 700);
   animateCount($("#killV"), Math.max(0, myKills), 700);
   animateCount($("#infilV"), Math.max(0, myInfil), 700);
+  renderResultReport({ turnSeq: tSeq, killsA: kA, killsB: kB, infilA: iA, infilB: iB });
+  return { turnSeq: tSeq, kills: myKills, infil: myInfil };
+}
+
+function renderResultReport(stats = {}) {
+  const el = $("#resultReport");
+  if (!el) return;
+
+  const tSeq = Number(stats.turnSeq ?? turnSeq ?? 0);
+  const kA = Number(stats.killsA ?? killsA ?? 0);
+  const kB = Number(stats.killsB ?? killsB ?? 0);
+  const iA = Number(stats.infilA ?? infilA ?? 0);
+  const iB = Number(stats.infilB ?? infilB ?? 0);
+  const myK = seat === "B" ? kB : kA;
+  const enemyK = seat === "B" ? kA : kB;
+  const myI = seat === "B" ? iB : iA;
+  const enemyI = seat === "B" ? iA : iB;
+  const killDiff = myK - enemyK;
+  const infilDiff = myI - enemyI;
+  const lead = Math.abs(killDiff) >= Math.abs(infilDiff)
+    ? (killDiff >= 0 ? "撃破で優勢" : "撃破で押された")
+    : (infilDiff >= 0 ? "侵入で優勢" : "侵入で押された");
+  const tip = isWin
+    ? "勝ち筋が見えた試合。次は同じ勝ち筋をより短いターンで再現できるかを見よう。"
+    : "負け筋が見えた試合。撃破差と侵入差のどちらで崩れたかを見て、採用カードを少し入れ替えよう。";
+
+  el.innerHTML = `
+    <div class="reportHead">
+      <span>BATTLE REPORT</span>
+      <b>${escapeHtml(lead)}</b>
+    </div>
+    <div class="reportGrid">
+      <div class="reportItem">
+        <div class="label">自分の撃破</div>
+        <div class="num">${myK}</div>
+        <div class="cap">相手 ${enemyK}</div>
+      </div>
+      <div class="reportItem">
+        <div class="label">自分の侵入</div>
+        <div class="num">${myI}</div>
+        <div class="cap">相手 ${enemyI}</div>
+      </div>
+      <div class="reportItem">
+        <div class="label">ターン</div>
+        <div class="num">${Math.max(0, tSeq)}</div>
+        <div class="cap">${isWin ? "勝利到達" : "決着"}</div>
+      </div>
+    </div>
+    <div class="reportNote">${escapeHtml(tip)}</div>
+  `;
+}
+
+async function recordUserResultOnce(stats = {}) {
+  if (!isWin && !isLose) return;
+  try {
+    const rec = await recordMatchResult({
+      roomId,
+      playerId,
+      seat,
+      winner,
+      result,
+      reason,
+      ...stats,
+    });
+    if (rec?.alreadyRecorded) {
+      console.info("[user] match reward already recorded");
+    } else if (rec?.reward) {
+      console.info(`[user] match reward +${rec.reward} gems`);
+    }
+  } catch (e) {
+    console.warn("[user] match result record failed", e);
+  }
 }
 
 /* =========================
@@ -939,15 +1059,19 @@ async function initAndAnimateCounts(){
 ========================= */
 injectBaseStyles();
 mountLayout();
+renderResultReport();
 wireButtons();
 startBg();
 startConfettiAndFireworks();
 
-// 初回ちょい音（失敗してもOK）
+// First tiny sound; it is okay if the browser blocks autoplay.
 setTimeout(()=> tryBeep(isWin ? 784 : 196, 0.05), 30);
 
-// counts (URL -> state fallback)
-initAndAnimateCounts();
+// counts (URL -> state fallback) + user history/reward
+initAndAnimateCounts().then(recordUserResultOnce).catch((e) => {
+  console.warn("[victory] counts failed", e);
+  recordUserResultOnce();
+});
 
 // Winner deck load (non-blocking)
 loadWinnerDeckAndRender();

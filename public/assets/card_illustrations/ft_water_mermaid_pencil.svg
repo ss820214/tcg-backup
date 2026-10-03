@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="mermaid wave song pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#202020" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".14" stroke-width="1">
+      <path d="M20 250c42-22 75 20 116-2 41-21 69 14 100-4M23 278c43-18 78 15 119-5 38-18 62 13 94-3"/>
+      <path d="M49 41l158 265M211 45L41 315"/>
+    </g>
+    <g stroke-width="3.8">
+      <circle cx="127" cy="70" r="24"/>
+      <path d="M103 59c16-20 45-19 61 2M104 92c-16 32-14 62 11 88"/>
+      <path d="M151 93c19 31 17 62-8 89"/>
+      <path d="M114 181c-19 31-36 56-65 63"/>
+      <path d="M142 181c18 30 36 55 66 62"/>
+      <path d="M83 227c16 3 32 12 46 31 14-20 31-29 49-32"/>
+    </g>
+    <g stroke-width="2.3">
+      <path d="M95 109c-24 2-43 13-58 32M160 109c25 2 45 14 60 34"/>
+      <path d="M91 144c27 13 51 13 75 0"/>
+      <path d="M108 204c12 7 27 7 41 0"/>
+      <path d="M70 59c-8-17 8-26 20-13M183 55c10-17 27-6 18 11"/>
+    </g>
+    <g opacity=".35" stroke-width="1.2">
+      <path d="M110 55c15-6 32-5 44 2M103 73c14 8 32 9 49 1"/>
+      <path d="M67 242c29-6 52 6 73 25M188 240c-27-5-48 8-67 28"/>
+    </g>
+  </g>
+</svg>

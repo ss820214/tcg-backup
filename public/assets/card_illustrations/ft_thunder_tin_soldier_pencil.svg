@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="tin soldier electric order pencil illustration">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf1"/><stop offset=".5" stop-color="#f5f5ef"/><stop offset="1" stop-color="#e8e5d8"/></linearGradient><filter id="z"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M30 56c55 13 112-12 197 4M28 297c66-11 126 11 200-4"/><path d="M41 39l174 277M219 40L37 317"/></g>
+    <g stroke="#fbd12d" stroke-width="6" opacity=".5" filter="url(#z)"><path d="M191 69l-25 45h31l-45 72M62 66l30 43H69l39 62"/><path d="M45 269c48-21 99 19 168-8"/></g>
+    <g stroke="#1f1f1f">
+      <g stroke-width="3.8"><circle cx="128" cy="70" r="23"/><path d="M96 103h65l13 39-21 104H103L82 142z"/><path d="M96 103c7-20 58-20 65 0"/><path d="M88 145c-24 10-41 28-53 52M168 145c25 10 44 28 56 53"/></g>
+      <g stroke-width="2.5"><path d="M104 132h49M99 164h58M100 198h55"/><path d="M128 103v143"/><path d="M105 246c-13 21-19 42-18 68M151 246c13 21 19 42 18 68"/><path d="M90 314h45M146 314h45"/><path d="M102 70h52M102 49h52"/><path d="M181 130l24-14 5 52-25-16"/></g>
+      <g stroke-width="1.1" opacity=".34"><path d="M101 87c18 7 36 7 54 0M93 117c23 7 48 7 70 0M98 179c23 9 52 8 58 0"/></g>
+    </g>
+  </g>
+</svg>

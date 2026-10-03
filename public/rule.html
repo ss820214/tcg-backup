@@ -1,0 +1,1180 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OBATo - 繝ｫ繝ｼ繝ｫ</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b10;
+      --panel: rgba(19, 26, 34, .88);
+      --panel2: rgba(26, 38, 47, .78);
+      --line: rgba(180, 230, 255, .16);
+      --text: #f4f8ff;
+      --muted: rgba(244, 248, 255, .68);
+      --cyan: #6ed7ff;
+      --green: #9dff7a;
+      --gold: #ffd86e;
+      --red: #ff6c7b;
+      --blue: #70b8ff;
+      --radius: 18px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 82% 12%, rgba(130, 88, 255, .22), transparent 62%),
+        radial-gradient(780px 460px at 8% 0%, rgba(66, 210, 255, .13), transparent 58%),
+        linear-gradient(180deg, #09111a, var(--bg) 52%, #05070b);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .2;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(180deg, #000, transparent 78%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(7, 11, 16, .84);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand b {
+      font-size: clamp(20px, 2.4vw, 30px);
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.22);
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      border-color: rgba(157,255,122,.45);
+      background: linear-gradient(135deg, rgba(157,255,122,.26), rgba(76,190,255,.18));
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 26px 0 56px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+      gap: 22px;
+      padding: clamp(22px, 4vw, 42px);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background:
+        radial-gradient(620px 360px at 80% 12%, rgba(157,255,122,.12), transparent 64%),
+        linear-gradient(135deg, rgba(25, 36, 50, .92), rgba(13, 17, 26, .92));
+      box-shadow: 0 26px 100px rgba(0,0,0,.36);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -8% -18% 38%;
+      height: 230px;
+      background: radial-gradient(closest-side, rgba(110,215,255,.18), transparent 72%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 12px;
+      border: 1px solid rgba(157,255,122,.36);
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(157,255,122,.08);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    h1 {
+      margin: 18px 0 12px;
+      font-size: clamp(34px, 7vw, 76px);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 720px;
+      color: rgba(244,248,255,.82);
+      font-size: 16px;
+      line-height: 1.9;
+    }
+
+    .heroCard {
+      position: relative;
+      z-index: 1;
+      padding: 18px;
+      border: 1px solid rgba(157,255,122,.22);
+      border-radius: 20px;
+      background: rgba(8, 14, 18, .42);
+    }
+
+    .heroCard h2 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+
+    .heroCard p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .ruleVisual {
+      position: relative;
+      overflow: hidden;
+      min-height: 230px;
+      border: 1px solid rgba(110,215,255,.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025)),
+        #081018;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 18px 46px rgba(0,0,0,.3);
+    }
+
+    .ruleVisual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(7,11,16,.64), transparent 28%, transparent 72%, rgba(7,11,16,.62)),
+        linear-gradient(180deg, transparent 58%, rgba(7,11,16,.72));
+    }
+
+    .ruleVisual img {
+      width: 100%;
+      height: 100%;
+      min-height: 230px;
+      display: block;
+      object-fit: cover;
+    }
+
+    .visualCaption {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 14px;
+      z-index: 1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .visualPill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      background: rgba(5, 9, 14, .66);
+      color: rgba(244,248,255,.86);
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+    }
+
+    .quickGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .quick {
+      padding: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .quick b { display: block; margin-bottom: 4px; }
+    .quick span { color: var(--muted); font-size: 13px; }
+
+    .section {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+      box-shadow: 0 18px 70px rgba(0,0,0,.22);
+    }
+
+    .sectionHeader {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .sectionTitle {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .sectionSub {
+      margin: 5px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .ruleSwitch {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ruleTab {
+      text-align: left;
+      min-height: 86px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .ruleTab:hover { transform: translateY(-2px); }
+
+    .ruleTab[aria-selected="true"] {
+      border-color: rgba(110,215,255,.68);
+      box-shadow: 0 0 0 1px rgba(110,215,255,.28), 0 0 34px rgba(110,215,255,.18);
+      background:
+        radial-gradient(260px 120px at 12% 0%, rgba(110,215,255,.22), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+    }
+
+    .ruleTab b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+
+    .ruleTab span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .rulePanel[hidden] { display: none; }
+
+    .panelIntro {
+      margin: 0 0 14px;
+      color: rgba(244,248,255,.78);
+      line-height: 1.75;
+    }
+
+    .panelShowcase {
+      display: grid;
+      grid-template-columns: minmax(260px, .82fr) 1fr;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 14px;
+    }
+
+    .panelArt {
+      position: relative;
+      overflow: hidden;
+      min-height: 210px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px;
+      background-image:
+        linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.46)),
+        url("./assets/rule/rule_modes_banner.webp");
+      background-repeat: no-repeat;
+      background-size: 300% 100%;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 18px 46px rgba(0,0,0,.28);
+    }
+
+    .panelArt.basic { background-position: 0% 50%; }
+    .panelArt.advanced { background-position: 50% 50%; }
+    .panelArt.judgement { background-position: 100% 50%; }
+
+    .panelArtLabel {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      display: inline-flex;
+      min-height: 32px;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid rgba(157,255,122,.36);
+      border-radius: 999px;
+      background: rgba(5, 9, 14, .72);
+      color: var(--green);
+      font-weight: 800;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+    }
+
+    .panelSummary {
+      display: grid;
+      align-content: center;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 16px;
+      background:
+        radial-gradient(260px 160px at 100% 0%, rgba(157,255,122,.1), transparent 64%),
+        rgba(255,255,255,.035);
+    }
+
+    .panelSummary h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .panelSummary p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .topicGrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .topic,
+    .judgeNote,
+    .term {
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      background:
+        radial-gradient(240px 120px at 100% 0%, rgba(110,215,255,.10), transparent 64%),
+        rgba(8, 12, 18, .46);
+    }
+
+    .topic h3,
+    .judgeNote h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .topic p,
+    .judgeNote p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .topic ul,
+    .judgeNote ul {
+      margin: 0;
+      padding-left: 1.2em;
+      color: rgba(244,248,255,.78);
+      line-height: 1.75;
+    }
+
+    .topic li + li,
+    .judgeNote li + li {
+      margin-top: 5px;
+    }
+
+    .callout {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,216,110,.28);
+      border-radius: 16px;
+      color: rgba(255,244,205,.92);
+      background: rgba(255,216,110,.08);
+      line-height: 1.75;
+    }
+
+    .judgeGrid {
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 12px;
+    }
+
+    .termGrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .term b {
+      display: block;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .term span {
+      display: block;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .ruleCards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .mini {
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .mini h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .mini p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tagRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      font-size: 13px;
+    }
+
+    .detailArea.hidden { display: none; }
+
+    .attributeStrategy {
+      margin-top: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(185,255,55,.12), transparent 40%),
+        radial-gradient(circle at 88% 20%, rgba(125,211,252,.11), transparent 46%),
+        rgba(255,255,255,.035);
+      box-shadow: inset 0 0 30px rgba(255,255,255,.035);
+    }
+
+    .attributeStrategyHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .attributeStrategyHead h3 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .attributeStrategyHead p {
+      max-width: 520px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .attrBattleBoard {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .attrOrbMap {
+      position: relative;
+      min-height: 320px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(185,255,55,.14), transparent 18%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.08), transparent 62%),
+        rgba(0,0,0,.22);
+    }
+
+    .attrOrbMap::after {
+      content: "";
+      position: absolute;
+      inset: 34px;
+      border: 1px dashed rgba(255,255,255,.14);
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .attrOrbLines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 8px rgba(125,211,252,.18));
+      opacity: .95;
+      z-index: 1;
+    }
+
+    .attrOrbLines path {
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .attrOrbLines .good { stroke: rgba(128,255,170,.72); }
+    .attrOrbLines .bad { stroke: rgba(255,105,125,.62); stroke-dasharray: 3 3; }
+
+    .attrOrbCenter {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 96px;
+      height: 96px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(185,255,55,.34);
+      background: radial-gradient(circle at 50% 30%, rgba(255,255,255,.16), rgba(0,0,0,.54) 68%);
+      box-shadow: 0 0 24px rgba(185,255,55,.15), inset 0 0 18px rgba(255,255,255,.05);
+      text-align: center;
+      z-index: 3;
+    }
+
+    .attrOrbCenter b {
+      color: #edffd1;
+      font-size: 14px;
+    }
+
+    .attrOrbCenter span {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+
+    .attrOrb {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: 50px;
+      height: 50px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--c), white 22%);
+      background:
+        radial-gradient(circle at 30% 22%, rgba(255,255,255,.72), transparent 16%),
+        radial-gradient(circle at 62% 70%, color-mix(in srgb, var(--c), white 10%), color-mix(in srgb, var(--c), black 44%) 68%);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 1000;
+      box-shadow: 0 0 20px color-mix(in srgb, var(--c), transparent 45%), inset 0 -10px 18px rgba(0,0,0,.24);
+      z-index: 4;
+    }
+
+    .attrOrb small {
+      position: absolute;
+      top: 37px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      background: rgba(0,0,0,.55);
+      color: rgba(255,255,255,.82);
+      font-size: 10px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .attrLegend {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 5;
+    }
+
+    .attrLegend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .attrLegend i {
+      width: 28px;
+      height: 3px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .attrLegend .good { background: #80ffaa; box-shadow: 0 0 10px rgba(128,255,170,.45); }
+    .attrLegend .bad { background: #ff697d; box-shadow: 0 0 10px rgba(255,105,125,.40); }
+
+    .attrProfileGrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .attrProfile {
+      min-height: 124px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.11);
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--c), transparent 84%), rgba(255,255,255,.025));
+    }
+
+    .attrProfile h4 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 8px;
+      font-size: 15px;
+    }
+
+    .attrProfile h4 i {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--c), white 22%);
+      background: color-mix(in srgb, var(--c), black 45%);
+      font-style: normal;
+      box-shadow: 0 0 14px color-mix(in srgb, var(--c), transparent 56%);
+    }
+
+    .attrProfile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .attrProfile .match {
+      margin-top: 8px;
+      color: rgba(255,255,255,.78);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .footerNav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .judgeGrid,
+      .panelShowcase,
+      .attrBattleBoard {
+        grid-template-columns: 1fr;
+      }
+      .topicGrid,
+      .ruleCards,
+      .attrProfileGrid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .page {
+        width: min(100% - 18px, 720px);
+        padding-top: 14px;
+      }
+      .hero,
+      .section {
+        border-radius: 18px;
+        padding: 16px;
+      }
+      .ruleSwitch,
+      .quickGrid,
+      .termGrid,
+      .attributeStrategyHead {
+        grid-template-columns: 1fr;
+      }
+      .attributeStrategyHead {
+        display: block;
+      }
+      .attributeStrategyHead p {
+        margin-top: 8px;
+      }
+      .attrOrbMap {
+        min-height: 290px;
+      }
+      .btn {
+        min-height: 38px;
+        padding: 0 14px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html">
+      <b>OBATo Rulebook</b>
+      <span>TTCG / TRPG x TCG</span>
+    </a>
+    <nav class="nav" aria-label="繝壹・繧ｸ遘ｻ蜍・>
+      <a class="btn" href="./index.html">蛻晄悄逕ｻ髱｢</a>
+      <a class="btn" href="./deck.html">繝・ャ繧ｭ縺ｸ</a>
+      <a class="btn primary" href="./tutorial.html">繝√Η繝ｼ繝医Μ繧｢繝ｫ</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">TTCG RULE</span>
+        <h1>驕九□縺代〒邨ゅｏ繧峨○縺ｪ縺・き繝ｼ繝峨ヰ繝医Ν縲・/h1>
+        <p class="lead">
+          OBATo縺ｯ縲√き繝ｼ繝峨・蠑輔″縺縺代〒縺ｪ縺上∫乢髱｢遘ｻ蜍輔∝ｰ・ｨ九∝ｱ樊ｧ縲・ｲ蛹悶∫憾諷狗焚蟶ｸ繧定ｪｭ縺ｿ蜷医≧謌ｦ陦薙き繝ｼ繝峨ご繝ｼ繝縺ｧ縺吶・          縺ｾ縺壹・蝓ｺ譛ｬ縲∵・繧後※縺阪◆繧牙ｿ懃畑縲∬ｿｷ縺｣縺溘ｉ陬∝ｮ壹ｒ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲・        </p>
+        <div class="tagRow">
+          <a class="btn primary" href="#ruleModes">繝ｫ繝ｼ繝ｫ繧帝∈縺ｶ</a>
+          <button class="btn" id="btnDetail" type="button">隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧偵・繧峨￥</button>
+        </div>
+      </div>
+      <aside class="heroCard">
+        <h2>蜍晏茜譚｡莉ｶ</h2>
+        <p>
+          逶ｸ謇九・繧ｭ繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縺九∫嶌謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺吶ｋ縺ｨ蜍晏茜縺ｧ縺吶・          KILL縺ｨINFIL縲√←縺｡繧峨ｒ迢吶≧縺九〒繝・ャ繧ｭ讒狗ｯ峨→逶､髱｢縺ｮ蜍輔°縺玲婿縺悟､峨ｏ繧翫∪縺吶・        </p>
+        <div class="quickGrid">
+          <div class="quick"><b>KILL</b><span>逶ｸ謇九く繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縲・/span></div>
+          <div class="quick"><b>INFIL</b><span>逶ｸ謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺吶ｋ縲・/span></div>
+          <div class="quick"><b>Mana</b><span>蛻晄悄繝槭リ縺ｯ2縲ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ+2縲・/span></div>
+          <div class="quick"><b>Deck</b><span>30譫壹ょ酔蜷阪き繝ｼ繝峨・譛螟ｧ4譫壹・/span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" aria-label="繝ｫ繝ｼ繝ｫ蜈ｨ菴薙・繝薙ず繝･繧｢繝ｫ">
+      <div class="ruleVisual">
+        <img src="./assets/rule/rule_modes_banner.webp" alt="蝓ｺ譛ｬ繝ｫ繝ｼ繝ｫ縲∝ｿ懃畑謌ｦ逡･縲∬｣∝ｮ壹ｒ3縺､縺ｮ邨ｵ縺ｧ陦ｨ縺励◆繝ｫ繝ｼ繝ｫ繧ｬ繧､繝・ loading="eager" decoding="async" />
+        <div class="visualCaption" aria-hidden="true">
+          <span class="visualPill">逶､髱｢縺ｧ謌ｦ縺・/span>
+          <span class="visualPill">騾ｲ蛹悶→驟咲ｽｮ縺ｧ隱ｭ繧</span>
+          <span class="visualPill">霑ｷ縺｣縺溘ｉ陬∝ｮ壹ｒ隕九ｋ</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ruleModes">
+      <div class="sectionHeader">
+        <div>
+          <h2 class="sectionTitle">隱ｭ縺ｿ縺溘＞繝ｫ繝ｼ繝ｫ繧帝∈縺ｶ</h2>
+          <p class="sectionSub">蝓ｺ譛ｬ縲∝ｿ懃畑縲∬｣∝ｮ壹ｒ蛻・ｊ譖ｿ縺医※遒ｺ隱阪〒縺阪∪縺吶・/p>
+        </div>
+      </div>
+
+      <div class="ruleSwitch" role="tablist" aria-label="繝ｫ繝ｼ繝ｫ繧ｫ繝・ざ繝ｪ">
+        <button class="ruleTab" id="ruleTabBasic" type="button" role="tab" aria-selected="true" aria-controls="rulePanelBasic" data-rule-tab="basic">
+          <b>蝓ｺ譛ｬ逧・↑繝ｫ繝ｼ繝ｫ</b>
+          <span>蜍晏茜譚｡莉ｶ縲∝渕譛ｬ蜍穂ｽ懊∵橿縺ｮ隕区婿</span>
+        </button>
+        <button class="ruleTab" id="ruleTabAdvanced" type="button" role="tab" aria-selected="false" aria-controls="rulePanelAdvanced" data-rule-tab="advanced">
+          <b>蠢懃畑逧・↑繝ｫ繝ｼ繝ｫ</b>
+          <span>騾ｲ蛹門・陦悟虚縲√ョ繝・く縺ｮ菴懊ｊ譁ｹ</span>
+        </button>
+        <button class="ruleTab" id="ruleTabJudgement" type="button" role="tab" aria-selected="false" aria-controls="rulePanelJudgement" data-rule-tab="judgement">
+          <b>陬∝ｮ・/b>
+          <span>髮ｻ蟄千沿縲∫ｴ咏沿縲∬｡ｨ險倥・謇ｱ縺・/span>
+        </button>
+      </div>
+
+      <div class="rulePanel" id="rulePanelBasic" role="tabpanel" aria-labelledby="ruleTabBasic" data-rule-panel="basic">
+        <p class="panelIntro">縺ｾ縺壼ｯｾ謌ｦ荳ｭ縺ｫ豈主屓菴ｿ縺・Ν繝ｼ繝ｫ縺ｧ縺吶ゅ％縺薙□縺題ｪｭ繧√・縲√→繧翫≠縺医★驕翫∋縺ｾ縺吶・/p>
+        <div class="panelShowcase">
+          <div class="panelArt basic" role="img" aria-label="逶､髱｢縲√き繝ｼ繝峨√・繝翫ｒ菴ｿ縺｣縺溷渕譛ｬ繝ｫ繝ｼ繝ｫ縺ｮ繧､繝ｩ繧ｹ繝・>
+            <span class="panelArtLabel">BASIC</span>
+          </div>
+          <div class="panelSummary">
+            <h3>縺ｾ縺夊ｦ九ｋ縺ｨ縺薙ｍ縺ｯ逶､髱｢縲√・繝翫∝享蛻ｩ繧ｫ繧ｦ繝ｳ繝医・/h3>
+            <p>髮｣縺励＞隱ｬ譏弱ｈ繧雁・縺ｫ縲√←縺ｮ繧ｫ繝ｼ繝峨′縺ｩ縺薙↓縺・※縲√←繧後□縺代・繝翫ｒ菴ｿ縺医ｋ縺九ｒ隕九∪縺吶・ILL縺ｨINFIL縺ｮ縺ｩ縺｡繧峨′霑代＞縺九ｒ遒ｺ隱阪☆繧九→縲∵ｬ｡縺ｮ荳謇九′豎ｺ繧√ｄ縺吶￥縺ｪ繧翫∪縺吶・/p>
+          </div>
+        </div>
+        <div class="topicGrid">
+          <article class="topic">
+            <h3>蜍晏茜譚｡莉ｶ</h3>
+            <ul>
+              <li>逶ｸ謇九く繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縺ｨKILL蜍晏茜縲・/li>
+              <li>閾ｪ蛻・・繧ｭ繝｣繝ｩ繧堤嶌謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺輔○繧九→INFIL蜍晏茜縲・/li>
+              <li>逶､髱｢縺ｧ縺ｯKILL縺ｨINFIL縺ｮ繧ｫ繧ｦ繝ｳ繝医ｒ蟶ｸ縺ｫ遒ｺ隱阪＠縺ｾ縺吶・/li>
+            </ul>
+          </article>
+          <article class="topic">
+            <h3>蝓ｺ譛ｬ蜍穂ｽ・/h3>
+            <ul>
+              <li>蜿ｬ蝟壹∫ｧｻ蜍輔∵橿縲・ｲ蛹悶↓縺ｯ繝槭リ繧剃ｽｿ縺・∪縺吶・/li>
+              <li>蛻晄悄繝槭リ縺ｯ2縲ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ隧ｲ蠖薙・繝ｬ繧､繝､繝ｼ縺ｮ繝槭リ縺・蠅励∴縺ｾ縺吶・/li>
+              <li>遘ｻ蜍輔・蝓ｺ譛ｬ1繝槭リ縲らｧｻ蜍輔□縺代〒縺ｯ逍ｲ蜉ｴ縺励∪縺帙ｓ縲・/li>
+              <li>謾ｻ謦・ｄ謾ｯ謠ｴ縺ｮ謚繧剃ｽｿ縺・→縲∝渕譛ｬ逧・↓縺昴・繧ｭ繝｣繝ｩ縺ｯ逍ｲ蜉ｴ縺励∪縺吶・/li>
+            </ul>
+          </article>
+          <article class="topic">
+            <h3>謚縺ｫ縺､縺・※</h3>
+            <ul>
+              <li>謚縺ｫ縺ｯ豸郁ｲｻ繝槭リ縲∝ｰ・ｨ九∵・蜉溽紫縺後≠繧翫∪縺吶・/li>
+              <li>謌仙粥縺吶ｋ縺ｨHP/SP繝繝｡繝ｼ繧ｸ縲∝屓蠕ｩ縲∫憾諷倶ｻ倅ｸ弱∫ｧｻ蜍輔↑縺ｩ縺檎匱逕溘＠縺ｾ縺吶・/li>
+              <li>蟆・ｨ九・繧ｫ繝ｼ繝峨°繧芽ｦ九◆譁ｹ蜷代→霍晞屬縺ｧ縺吶ょｱ翫￥繝槭せ繧帝∈繧薙〒螳溯｡後＠縺ｾ縺吶・/li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <div class="rulePanel" id="rulePanelAdvanced" role="tabpanel" aria-labelledby="ruleTabAdvanced" data-rule-panel="advanced" hidden>
+        <p class="panelIntro">蝓ｺ譛ｬ謫堺ｽ懊↓諷｣繧後◆繧峨・ｲ蛹悶→繝・ャ繧ｭ險ｭ險医〒蜍昴■遲九ｒ菴懊ｊ縺ｾ縺吶・/p>
+        <div class="panelShowcase">
+          <div class="panelArt advanced" role="img" aria-label="騾ｲ蛹悶・・鄂ｮ縲√ョ繝・く讒狗ｯ峨ｒ陦ｨ縺吝ｿ懃畑謌ｦ逡･縺ｮ繧､繝ｩ繧ｹ繝・>
+            <span class="panelArtLabel">ADVANCED</span>
+          </div>
+          <div class="panelSummary">
+            <h3>蠑ｷ縺・き繝ｼ繝峨ｒ荳ｦ縺ｹ繧九□縺代〒縺ｯ縺ｪ縺上・ｲ蛹門・縺ｨ菴咲ｽｮ繧呈ｮ九☆縲・/h3>
+            <p>逍ｲ蜉ｴ縺励◆繧ｭ繝｣繝ｩ繧帝ｲ蛹悶〒蜀崎｡悟虚縺輔○繧九∽ｾｵ蜈･繝ｫ繝ｼ繝医ｒ菴懊ｋ縲√し繝昴・繝医〒逶ｸ謇九・險育判繧偵★繧峨☆縲ょｿ懃畑繝ｫ繝ｼ繝ｫ縺ｯ縲梧ｬ｡縺ｮ繧ｿ繝ｼ繝ｳ繧剃ｽ懊ｋ縲阪◆繧√・繝ｫ繝ｼ繝ｫ縺ｧ縺吶・/p>
+          </div>
+        </div>
+        <section class="attributeStrategy" aria-label="螻樊ｧ縺斐→縺ｮ譛牙茜荳榊茜">
+          <div class="attributeStrategyHead">
+            <h3>螻樊ｧ縺斐→縺ｮ蠑ｷ縺ｿ縺ｨ蠑ｱ縺ｿ繧定ｪｭ繧</h3>
+            <p>螻樊ｧ逶ｸ諤ｧ縺ｯ蝗ｺ螳壹・蠑ｱ轤ｹ陦ｨ縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・P縲ヾP縲∵橿縺ｮ蟆・ｨ九√し繝昴・繝医・邨・∩蜷医ｏ縺帙〒縲梧款縺励ｄ縺吶＞逶ｸ謇九阪→縲悟ｯｾ遲悶′蠢・ｦ√↑逶ｸ謇九阪′逕溘∪繧後∪縺吶・/p>
+          </div>
+          <div class="attrBattleBoard">
+            <div class="attrOrbMap" role="img" aria-label="螻樊ｧ縺斐→縺ｮ譛牙茜荳榊茜縺ｮ蛯ｾ蜷大峙">
+              <svg class="attrOrbLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <marker id="ruleAttrArrowGood" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M0 0 L8 4 L0 8 Z" fill="rgba(128,255,170,.86)"></path>
+                  </marker>
+                  <marker id="ruleAttrArrowBad" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M0 0 L8 4 L0 8 Z" fill="rgba(255,105,125,.82)"></path>
+                  </marker>
+                </defs>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 10 C35 18 20 34 11 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 10 C68 18 84 34 89 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 24 C30 16 40 11 50 10"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 24 C34 45 27 62 23 76"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 24 C62 21 42 22 23 24"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 24 C65 34 56 42 50 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M11 50 C28 38 55 27 78 24"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M11 50 C14 35 18 27 23 24"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M89 50 C72 58 45 68 23 76"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M89 50 C87 62 83 71 78 76"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 76 C43 62 61 44 78 24"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 76 C32 86 41 91 50 90"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 76 C68 86 59 91 50 90"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 76 C68 63 58 54 50 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 90 C50 62 50 35 50 10"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 90 C34 76 20 62 11 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 50 C36 48 23 49 11 50"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 50 C40 62 31 71 23 76"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M58 90 C47 65 34 39 23 24"></path>
+                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M58 90 C66 86 73 81 78 76"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M48 12 C39 15 31 19 23 24"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M52 12 C55 36 53 64 50 90"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M24 26 C45 23 63 23 78 24"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M76 28 C54 35 31 44 11 50"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M13 48 C25 32 37 18 50 10"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M87 48 C80 37 67 21 50 10"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M25 74 C22 56 22 38 23 24"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M76 74 C66 64 58 56 50 50"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M48 88 C39 80 28 63 11 50"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M58 88 C56 55 53 23 50 10"></path>
+                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M58 88 C67 72 78 58 89 50"></path>
+              </svg>
+              <div class="attrOrbCenter"><b>螻樊ｧ謌ｦ逡･</b><span>蠑ｷ縺ｿ縺ｧ謚ｼ縺・br>蠑ｱ縺ｿ繧定｣懊≧</span></div>
+              <span class="attrOrb" style="--x:50%;--y:10%;--c:#ff6b6b;">轣ｫ<small>謾ｻ謦・/small></span>
+              <span class="attrOrb" style="--x:23%;--y:24%;--c:#7dd3fc;">豌ｴ<small>閠蝉ｹ・/small></span>
+              <span class="attrOrb" style="--x:78%;--y:24%;--c:#facc15;">髮ｷ<small>SP</small></span>
+              <span class="attrOrb" style="--x:11%;--y:50%;--c:#78e3ad;">闕・small>蝗槫ｾｩ</small></span>
+              <span class="attrOrb" style="--x:89%;--y:50%;--c:#9de7c5;">鬚ｨ<small>遘ｻ蜍・/small></span>
+              <span class="attrOrb" style="--x:23%;--y:76%;--c:#b8c0cc;">驪ｼ<small>蛻ｶ蝨ｧ</small></span>
+              <span class="attrOrb" style="--x:78%;--y:76%;--c:#ffe29b;">蜈・small>謾ｯ謠ｴ</small></span>
+              <span class="attrOrb" style="--x:42%;--y:90%;--c:#b889ff;">髣・small>螯ｨ螳ｳ</small></span>
+              <span class="attrOrb" style="--x:58%;--y:90%;--c:#c084fc;">蜻ｪ<small>SP</small></span>
+              <span class="attrOrb" style="--x:50%;--y:50%;--c:#f0abfc;">蟷ｻ<small>螟牙援</small></span>
+              <div class="attrLegend" aria-hidden="true">
+                <span><i class="good"></i>謚ｼ縺励ｄ縺吶＞</span>
+                <span><i class="bad"></i>闍ｦ謇九↓縺ｪ繧翫ｄ縺吶＞</span>
+              </div>
+            </div>
+            <div class="attrProfileGrid">
+              <article class="attrProfile" style="--c:#ff6b6b;"><h4><i>轣ｫ</i>轣ｫ蜉帙→螳牙ｮ・/h4><p>HP繧貞炎繧句鴨縺碁ｫ倥￥縲∽ｽ惹ｽ灘鴨逶ｸ謇九↓蠑ｷ縺・・/p><div class="match">譛牙茜: 闕峨・鬚ｨ / 闍ｦ謇・ 豌ｴ繝ｻ髣・/div></article>
+              <article class="attrProfile" style="--c:#7dd3fc;"><h4><i>豌ｴ</i>閠蝉ｹ・→蝗槫ｾｩ</h4><p>蜿励￠縺ｨ遶九※逶ｴ縺励′蠕玲э縲る聞譛滓姶縺ｧ蠑ｷ縺・・/p><div class="match">譛牙茜: 轣ｫ繝ｻ驪ｼ / 闍ｦ謇・ 髮ｷ繝ｻ闕・/div></article>
+              <article class="attrProfile" style="--c:#facc15;"><h4><i>髮ｷ</i>螻暮幕縺ｨSP蝨ｧ</h4><p>SP繧貞炎繧翫↑縺後ｉ繝・Φ繝昴〒謚ｼ縺吶・/p><div class="match">譛牙茜: 豌ｴ繝ｻ蟷ｻ / 闍ｦ謇・ 驪ｼ繝ｻ闕・/div></article>
+              <article class="attrProfile" style="--c:#78e3ad;"><h4><i>闕・/i>蝗槫ｾｩ縺ｨ螳牙ｮ・/h4><p>蝗槫ｾｩ縺ｨ莠区腐蝗樣∩縺ｧ豸郁玲姶縺ｫ蠑ｷ縺・・/p><div class="match">譛牙茜: 髮ｷ繝ｻ豌ｴ / 闍ｦ謇・ 轣ｫ繝ｻ髣・/div></article>
+              <article class="attrProfile" style="--c:#9de7c5;"><h4><i>鬚ｨ</i>遘ｻ蜍輔→螂・･ｲ</h4><p>菴咲ｽｮ蜿悶ｊ縺ｧ逶ｸ謇九・蟆・ｨ玖ｨ育ｮ励ｒ蟠ｩ縺吶・/p><div class="match">譛牙茜: 驪ｼ繝ｻ蜈・/ 闍ｦ謇・ 轣ｫ繝ｻ髮ｷ</div></article>
+              <article class="attrProfile" style="--c:#b8c0cc;"><h4><i>驪ｼ</i>閠蝉ｹ・→蛻ｶ蝨ｧ</h4><p>蜑咲ｷ壹ｒ蝗ｺ螳壹＠縲∫乢髱｢繧呈款縺輔∴繧九・/p><div class="match">譛牙茜: 髮ｷ繝ｻ髣・/ 闍ｦ謇・ 豌ｴ繝ｻ鬚ｨ</div></article>
+              <article class="attrProfile" style="--c:#ffe29b;"><h4><i>蜈・/i>謾ｯ謠ｴ縺ｨ螳牙ｮ・/h4><p>蜻ｳ譁ｹ繧呈紛縺医∝ｱ樊ｧ螟画峩縺ｧ蟇ｾ蠢懷ｹ・ｒ菴懊ｋ縲・/p><div class="match">譛牙茜: 髣・・蟷ｻ / 闍ｦ謇・ 鬚ｨ繝ｻ轣ｫ</div></article>
+              <article class="attrProfile" style="--c:#b889ff;"><h4><i>髣・/i>螯ｨ螳ｳ縺ｨ繝ｪ繧ｹ繧ｯ</h4><p>SP謾ｻ謦・→迥ｶ諷狗焚蟶ｸ縺ｧ逶ｸ謇九・險育判繧貞ｴｩ縺吶・/p><div class="match">譛牙茜: 轣ｫ繝ｻ闕・/ 闍ｦ謇・ 蜈峨・驪ｼ</div></article>
+              <article class="attrProfile" style="--c:#f0abfc;"><h4><i>蟷ｻ</i>螟牙援縺ｨ蟷ｲ貂・/h4><p>莨上○縲∝・繧梧崛縺医∫音谿雁・逅・〒逶､髱｢繧呈昭繧峨☆縲・/p><div class="match">譛牙茜: 闕峨・驪ｼ / 闍ｦ謇・ 髮ｷ繝ｻ蜈・/div></article>
+              <article class="attrProfile" style="--c:#c084fc;"><h4><i>蜻ｪ</i>SP謾ｻ謦・→蜻ｪ蝨ｧ</h4><p>SP繧貞炎縺｣縺ｦ陦悟虚繧帝・繧峨○繧九ら↓蜉帙→閠蝉ｹ・・謗ｧ縺医ａ縲・/p><div class="match">譛牙茜: 豌ｴ繝ｻ蜈・/ 闍ｦ謇・ 轣ｫ繝ｻ鬚ｨ</div></article>
+            </div>
+          </div>
+        </section>
+        <div class="topicGrid">
+          <article class="topic">
+            <h3>騾ｲ蛹悶〒蜀崎｡悟虚</h3>
+            <ul>
+              <li>逍ｲ蜉ｴ縺励※縺・ｋ繧ｭ繝｣繝ｩ縺ｧ繧ゅ∵擅莉ｶ繧呈ｺ縺溘○縺ｰ騾ｲ蛹悶〒縺阪∪縺吶・/li>
+              <li>騾ｲ蛹門ｾ後・謚繧剃ｽｿ縺医ｋ迥ｶ諷九↓縺ｪ繧翫∪縺吶・/li>
+              <li>縺溘□縺礼ｧｻ蜍募屓謨ｰ縺ｯ繝ｪ繧ｻ繝・ヨ縺輔ｌ縺ｾ縺帙ｓ縲るｲ蛹悶〒蜀崎｡悟虚縺ｧ縺阪※繧ゅ∫ｧｻ蜍輔・縺ｧ縺阪∪縺帙ｓ縲・/li>
+              <li>騾ｲ蛹門ｾ後ｂ菴咲ｽｮ縺ｯ縺昴・縺ｾ縺ｾ縺ｧ縺吶・/li>
+            </ul>
+          </article>
+          <article class="topic">
+            <h3>繝・ャ繧ｭ讒狗ｯ峨・蠢懃畑</h3>
+            <ul>
+              <li>30譫壹■繧・≧縺ｩ縺ｧ讒狗ｯ峨＠縺ｾ縺吶ょ酔蜷阪き繝ｼ繝峨・譛螟ｧ4譫壹〒縺吶・/li>
+              <li>繧ｭ繝｣繝ｩ縺悟ｰ代↑縺吶℃繧九→逶､髱｢縺御ｽ懊ｌ縺壹√し繝昴・繝医′蟆代↑縺吶℃繧九→騾・ｻ｢蜉帙′關ｽ縺｡縺ｾ縺吶・/li>
+              <li>蜊伜ｱ樊ｧ縺ｯ蠑ｷ縺ｿ縺碁強縺上∝ｼｱ轤ｹ繧ゅ・縺｣縺阪ｊ縺励∪縺吶よｷｷ濶ｲ縺ｯ蟇ｾ蠢懷鴨縺御ｸ翫′繧翫∪縺吶・/li>
+              <li>蠎冗乢縺ｮ菴弱さ繧ｹ繝医∽ｸｭ逶､縺ｮ荳ｻ蜉帙∫ｵら乢縺ｮ騾ｲ蛹門・繧呈э隴倥＠縺ｾ縺吶・/li>
+            </ul>
+          </article>
+          <article class="topic">
+            <h3>蜍昴■遲九・險ｭ險・/h3>
+            <ul>
+              <li>KILL迢吶＞縺ｯ轣ｫ蜉帙∝宛蝨ｧ縲ヾP蜑翫ｊ縺碁㍾隕√〒縺吶・/li>
+              <li>INFIL迢吶＞縺ｯ遘ｻ蜍輔∝ｦｨ螳ｳ縲∬蝉ｹ・∽ｽ咲ｽｮ蜈･繧梧崛縺医′驥崎ｦ√〒縺吶・/li>
+              <li>SP繝繝｡繝ｼ繧ｸ縺ｯHP繝繝｡繝ｼ繧ｸ縺ｮ邏・蛟阪・萓｡蛟､縺ｨ縺励※隧穂ｾ｡縺励∪縺吶・/li>
+              <li>迥ｶ諷狗焚蟶ｸ縺ｯ蜊ｳ蜉ｹ諤ｧ繧医ｊ縲∵ｬ｡縺ｮ繧ｿ繝ｼ繝ｳ縺ｮ驕ｸ謚櫁い繧貞炎繧九◆繧√↓菴ｿ縺・∪縺吶・/li>
+            </ul>
+          </article>
+        </div>
+        <div class="callout">
+          騾ｲ蛹悶・縲檎夢蜉ｴ繧貞・繧願ｿ斐☆謇区ｮｵ縲阪〒縺吶′縲∫ｧｻ蜍輔∪縺ｧ縺ｯ謌ｻ繧翫∪縺帙ｓ縲ゆｾｵ蜈･繝ｫ繝ｼ繝医ｒ菴懊ｋ縺ｪ繧峨・ｲ蛹門燕縺ｮ菴咲ｽｮ蜿悶ｊ縺悟､ｧ莠九〒縺吶・        </div>
+      </div>
+
+      <div class="rulePanel" id="rulePanelJudgement" role="tabpanel" aria-labelledby="ruleTabJudgement" data-rule-panel="judgement" hidden>
+        <p class="panelIntro">髮ｻ蟄千沿縺ｨ邏咏沿縺ｧ霑ｷ縺・ｄ縺吶＞蜃ｦ逅・√き繝ｼ繝峨ユ繧ｭ繧ｹ繝医・隱ｭ縺ｿ譁ｹ繧偵∪縺ｨ繧√∪縺吶・/p>
+        <div class="panelShowcase">
+          <div class="panelArt judgement" role="img" aria-label="繝ｫ繝ｼ繝ｫ繝悶ャ繧ｯ縲∝､ｩ遘､縲∝・逅・Ο繧ｰ繧定｡ｨ縺呵｣∝ｮ壹・繧､繝ｩ繧ｹ繝・>
+            <span class="panelArtLabel">JUDGEMENT</span>
+          </div>
+          <div class="panelSummary">
+            <h3>霑ｷ縺｣縺溘ｉ縲・崕蟄千沿縺ｯ繝ｭ繧ｰ縲らｴ咏沿縺ｯ繧ｫ繝ｼ繝画悽譁・・/h3>
+            <p>閾ｪ蜍募・逅・′縺ゅｋ髮ｻ蟄千沿縺ｯ繝ｭ繧ｰ繧貞━蜈医＠縲∫ｴ咏沿縺ｧ縺ｯ繧ｫ繝ｼ繝画悽譁・→蜈ｱ騾壹Ν繝ｼ繝ｫ縺ｧ蛻､譁ｭ縺励∪縺吶ょ・驛ｨ繧ｿ繧ｰ縺ｯ繝励Ξ繧､繝､繝ｼ蜷代￠陦ｨ險倥〒縺ｯ縺ｪ縺上∵律譛ｬ隱槭・蜉ｹ譫懊→縺励※隱ｭ縺ｿ譖ｿ縺医∪縺吶・/p>
+          </div>
+        </div>
+        <div class="judgeGrid">
+          <article class="judgeNote">
+            <h3>髮ｻ蟄千沿縺ｨ邏咏沿</h3>
+            <ul>
+              <li>髮ｻ蟄千沿縺ｧ縺ｯ縲∫判髱｢縺ｮ蜃ｦ逅・・→繝ｭ繧ｰ繧貞━蜈医＠縺ｾ縺吶り・蜍募・逅・＆繧後◆蜀・ｮｹ繧貞・蠑丞・逅・→縺励※謇ｱ縺・∪縺吶・/li>
+              <li>邏咏沿縺ｧ縺ｯ縲√き繝ｼ繝画悽譁・∝・騾壹Ν繝ｼ繝ｫ縲√ち繝ｼ繝ｳ繝励Ξ繧､繝､繝ｼ縺ｮ鬆・↓遒ｺ隱阪＠縺ｾ縺吶・/li>
+              <li>蜷梧凾縺ｫ隍・焚縺ｮ蜉ｹ譫懊′隕九∴繧句ｴ蜷医・縲√ち繝ｼ繝ｳ繝励Ξ繧､繝､繝ｼ蛛ｴ縺ｮ蜃ｦ逅・ｒ蜈医↓隗｣豎ｺ縺励∪縺吶・/li>
+              <li>繧ｫ繝ｼ繝画悽譁・′蜈ｱ騾壹Ν繝ｼ繝ｫ縺ｨ遏帷崟縺吶ｋ蝣ｴ蜷医・縲√き繝ｼ繝画悽譁・ｒ蜆ｪ蜈医＠縺ｾ縺吶・/li>
+            </ul>
+          </article>
+          <div class="termGrid">
+            <div class="term">
+              <b>蟆・ｨ玖｡ｨ險・/b>
+              <span>front1縺ｯ蜑・繝槭せ縲《ide1縺ｯ讓ｪ1繝槭せ縲〉f1縺ｯ蜿ｳ蜑・繝槭せ縲∥ll縺ｯ蜈ｨ菴薙｝ierce縺ｯ雋ｫ騾壹ｒ陦ｨ縺励∪縺吶・/span>
+            </div>
+            <div class="term">
+              <b>繝繝｡繝ｼ繧ｸ/蝗槫ｾｩ</b>
+              <span>襍､縺・ワ繝ｼ繝医・HP螟牙喧縲・搨縺・ワ繝ｼ繝医・SP螟牙喧縲∫ｷ代・繝上・繝医・蝗槫ｾｩ繧定｡ｨ縺励∪縺吶・/span>
+            </div>
+            <div class="term">
+              <b>迥ｶ諷倶ｻ倅ｸ・/b>
+              <span>迥ｶ諷句錐縲∝､縲√ち繝ｼ繝ｳ謨ｰ縺後≠繧句ｴ蜷医・繧ｫ繝ｼ繝画悽譁・ｒ蜆ｪ蜈医＠縺ｾ縺吶ょ､縺後↑縺・憾諷九・騾壼ｸｸ縺ｮ譌｢螳壼､縺ｧ蜃ｦ逅・＠縺ｾ縺吶・/span>
+            </div>
+            <div class="term">
+              <b>蜀・Κ繧ｿ繧ｰ</b>
+              <span>attr縲〉ole縲｝ower縺ｪ縺ｩ縺ｯ蜀・Κ蜃ｦ逅・畑縺ｧ縺吶ょ・髢九ユ繧ｭ繧ｹ繝医〒縺ｯ譌･譛ｬ隱槭・蜉ｹ譫懆ｪｬ譏弱↓鄂ｮ縺肴鋤縺医∪縺吶・/span>
+            </div>
+          </div>
+        </div>
+        <div class="callout">
+          陬∝ｮ壹・繧ｫ繝ｼ繝芽ｿｽ蜉縺ｫ蜷医ｏ縺帙※譖ｴ譁ｰ縺励∪縺吶ょ・縺九ｊ縺ｫ縺上＞繝・く繧ｹ繝医・縲・崕蟄千沿縺ｮ螳滄圀縺ｮ繝ｭ繧ｰ縺ｨ縺薙・陬∝ｮ夊｡ｨ繧貞粋繧上○縺ｦ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲・        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ruleGuideMount">
+      <div class="sectionHeader">
+        <div>
+          <h2 class="sectionTitle">繝ｫ繝ｼ繝ｫ讀懃ｴ｢</h2>
+          <p class="sectionSub">繧ｭ繝ｼ繝ｯ繝ｼ繝峨°繧臥｢ｺ隱阪＠縺溘＞鬆・岼繧呈爾縺帙∪縺吶・/p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section detailArea hidden" id="detailArea">
+      <div class="sectionHeader">
+        <div>
+          <h2 class="sectionTitle">隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ</h2>
+          <p class="sectionSub">繧ｲ繝ｼ繝荳ｭ縺ｮ蛻､譁ｭ縺ｫ菴ｿ縺・｣懆ｶｳ縺ｧ縺吶・/p>
+        </div>
+      </div>
+      <div class="ruleCards">
+        <article class="mini">
+          <h3>繧ｿ繝ｼ繝ｳ縺ｮ豬√ｌ</h3>
+          <p>髢句ｧ句・逅・∝小蝟・遘ｻ蜍・謚/騾ｲ蛹悶√し繝昴・繝井ｽｿ逕ｨ縲√お繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｮ鬆・〒陦後＞縺ｾ縺吶ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ隧ｲ蠖薙・繝ｬ繧､繝､繝ｼ縺ｮ繝槭リ縺・蠅励∴縺ｾ縺吶・/p>
+        </article>
+        <article class="mini">
+          <h3>蠅灘慍</h3>
+          <p>菴ｿ逕ｨ貂医∩繧ｵ繝昴・繝医∫ｴ螢翫＆繧後◆繧ｫ繝ｼ繝峨∵昏縺ｦ縺溘き繝ｼ繝峨′蜈･繧翫∪縺吶ょ｢灘慍繝懊ち繝ｳ縺九ｉ荳ｭ霄ｫ繧堤｢ｺ隱阪〒縺阪∪縺吶・/p>
+        </article>
+        <article class="mini">
+          <h3>迥ｶ諷狗焚蟶ｸ</h3>
+          <p>蜃ｺ陦縲√↓縺翫＞縲∫峇逶ｮ縲∝ｰ∝魂縲・ｪｨ謚倥∵ｯ偵∝､ｱ鬲ゅ√ち繧､繝槭Φ縲∵ｿ諤偵∵ｴ苓┻縲√・繝峨Ο縲√き繧ｦ繝ｳ繧ｿ繝ｼ縲∝屓驕ｿ縲∬｣・抜縲∝多荳ｭ蠅怜刈縲∵判謦・｢怜刈縺ｪ縺ｩ縺後≠繧翫∪縺吶ゅ↓縺翫＞縺ｯ繧ｿ繝ｼ繝ｳ邨ゆｺ・凾縺ｫSP-10縲∵ｯ偵・繧ｿ繝ｼ繝ｳ髢句ｧ区凾縺ｫ50%隗｣髯､/螟ｱ謨励〒HP-10縲∫峇逶ｮ縺ｯ謚謌仙粥邇・濠貂帙・ｪｨ謚倥・遘ｻ蜍穂ｸ榊庄縲ょ､ｱ鬲ゅ・陬懷勧繧貞女縺代★縲√ち繧､繝槭Φ縺ｯ豁｣髱｢縺ｮ謨ｵ縺九ｉ縺励°繝繝｡繝ｼ繧ｸ繧貞女縺代∪縺帙ｓ縲りｩｳ縺励￥縺ｯ迥ｶ諷狗焚蟶ｸ霎槫・縺ｧ遒ｺ隱阪〒縺阪∪縺吶・/p>
+        </article>
+        <article class="mini">
+          <h3>繧ｫ繝ｼ繝牙柑譫・/h3>
+          <p>蝣ｴ縺ｫ蜃ｺ縺滓凾縲∝小蝟壽凾縲・ｲ蛹匁凾縲∬・髯｣/謨ｵ髯｣縺ｫ縺・ｋ譎ゅ∽ｸｭ螟ｮ邱壹ｒ雜翫∴縺滓凾縺ｪ縺ｩ縲∵擅莉ｶ繧呈ｺ縺溘＠縺滓凾縺ｫ逋ｺ蜍輔＠縺ｾ縺吶・/p>
+        </article>
+      </div>
+    </section>
+
+    <div class="footerNav">
+      <a class="btn primary" href="./tutorial.html">繝√Η繝ｼ繝医Μ繧｢繝ｫ縺ｸ</a>
+      <a class="btn" href="./deck.html">繝・ャ繧ｭ邱ｨ謌舌∈</a>
+      <a class="btn" href="./index.html">蛻晄悄逕ｻ髱｢縺ｸ</a>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const detailBtn = document.getElementById("btnDetail");
+      const detailArea = document.getElementById("detailArea");
+      if (detailBtn && detailArea) {
+        detailBtn.addEventListener("click", () => {
+          const hidden = detailArea.classList.toggle("hidden");
+          detailBtn.textContent = hidden ? "隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧偵・繧峨￥" : "隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧帝哩縺倥ｋ";
+          if (!hidden) detailArea.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      const tabs = Array.from(document.querySelectorAll("[data-rule-tab]"));
+      const panels = Array.from(document.querySelectorAll("[data-rule-panel]"));
+      const selectTab = (name, focus = false) => {
+        tabs.forEach((tab) => {
+          const active = tab.dataset.ruleTab === name;
+          tab.setAttribute("aria-selected", active ? "true" : "false");
+          tab.tabIndex = active ? 0 : -1;
+          if (active && focus) tab.focus();
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.rulePanel !== name;
+        });
+      };
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => selectTab(tab.dataset.ruleTab));
+        tab.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+          event.preventDefault();
+          const dir = event.key === "ArrowRight" ? 1 : -1;
+          const next = (index + dir + tabs.length) % tabs.length;
+          selectTab(tabs[next].dataset.ruleTab, true);
+        });
+      });
+      selectTab("basic");
+    })();
+  </script>
+  <script src="./rule_guide.js?v=20260823_rulebook3"></script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+</body>
+</html>
+

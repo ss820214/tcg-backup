@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="bluebeard water jail pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#202020" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".13" stroke-width="1">
+      <path d="M35 48c61 13 106-9 185 3M30 300c59-11 119 9 191-3"/>
+      <path d="M42 42l174 268M218 39L37 314"/>
+    </g>
+    <g stroke-width="3.8">
+      <circle cx="127" cy="83" r="27"/>
+      <path d="M99 117c20 17 39 18 58 0"/>
+      <path d="M83 132c31-28 62-28 91 0"/>
+      <path d="M81 132c-13 45-10 89 14 133h66c23-45 26-88 13-133"/>
+      <path d="M75 163h106M78 198h101M83 233h91"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M107 103c15 19 31 19 46 0"/>
+      <path d="M101 94c18 6 38 6 55 0"/>
+      <path d="M96 68c22-24 46-26 67-1"/>
+      <path d="M54 111v183M203 111v183"/>
+      <path d="M54 111h149M54 294h149"/>
+      <path d="M91 112v182M128 112v182M166 112v182"/>
+    </g>
+    <g opacity=".35" stroke-width="1.2">
+      <path d="M92 144c25 9 50 9 74 0M88 181c28 7 54 7 82 0M94 218c23 8 46 8 69 0"/>
+    </g>
+  </g>
+</svg>

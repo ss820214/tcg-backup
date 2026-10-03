@@ -1,0 +1,919 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>0BATo - 繧ｫ繝ｼ繝牙ｷ･謌ｿ</title>
+  <style>
+    :root {
+      --bg:#0a0c10;
+      --panel:rgba(255,255,255,.055);
+      --panel2:rgba(255,255,255,.085);
+      --line:rgba(255,255,255,.13);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#7dd3fc;
+      --ok:#78e3ad;
+      --warn:#ffd166;
+      --bad:#ff7a90;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
+      background:
+        radial-gradient(900px 640px at 12% 0%, rgba(125,211,252,.13), transparent 56%),
+        radial-gradient(760px 560px at 88% 4%, rgba(255,209,102,.11), transparent 52%),
+        linear-gradient(180deg,#090b0f,var(--bg) 52%,#08090c);
+    }
+    .wrap{width:min(1240px,calc(100vw - 28px));margin:0 auto;padding:18px 0 34px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    h1{margin:0;font-size:22px;letter-spacing:.02em}
+    .sub{margin-top:4px;color:var(--muted);font-size:12px}
+    .actions,.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    button,.btn{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:9px 13px;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+    button:hover,.btn:hover{background:rgba(255,255,255,.11)}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .primary{border-color:rgba(120,227,173,.36);background:rgba(120,227,173,.16)}
+    .danger{border-color:rgba(255,122,144,.35);background:rgba(255,122,144,.12)}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{border-radius:999px;padding:10px 16px;border:1px solid var(--line);background:rgba(0,0,0,.20);font-weight:1000;cursor:pointer}
+    .tab.active{border-color:rgba(125,211,252,.55);background:rgba(125,211,252,.17);color:#dff5ff}
+    .themeHero{
+      border:1px solid rgba(125,211,252,.22);
+      border-radius:8px;
+      padding:16px;
+      margin-bottom:12px;
+      background:
+        radial-gradient(520px 240px at 15% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 64%),
+        linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.035));
+    }
+    .themeHero h2{margin:0 0 6px;font-size:22px}
+    .themeHero p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+    .metricGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+    .metric{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;
+      padding:10px;
+      background:rgba(0,0,0,.20);
+      min-height:70px;
+    }
+    .metric b{display:block;font-size:18px;line-height:1.1}
+    .metric span{display:block;margin-top:6px;color:var(--muted);font-size:11px;line-height:1.35}
+    .presetGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .presetBtn{
+      border-radius:8px;
+      text-align:left;
+      padding:11px 12px;
+      background:rgba(0,0,0,.20);
+    }
+    .presetBtn b{display:block;margin-bottom:4px}
+    .presetBtn span{display:block;color:var(--muted);font-size:12px;line-height:1.35}
+    .themeTemplateBox{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;
+      background:rgba(0,0,0,.18);
+      padding:10px;
+    }
+    .themeTemplateHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    .themeTemplateHead b{font-size:13px}
+    .themeTemplateHead button{padding:7px 10px;font-size:11px}
+    .themeTemplateList{display:grid;gap:7px}
+    .themeTemplateItem{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:8px;
+      align-items:center;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:8px;
+      background:rgba(255,255,255,.045);
+      padding:8px;
+    }
+    .themeTemplateItem b{display:block;font-size:13px;line-height:1.25}
+    .themeTemplateItem span{display:block;margin-top:4px;color:var(--muted);font-size:11px;line-height:1.35}
+    .themeTemplateActions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+    .themeTemplateActions button{padding:6px 8px;font-size:11px}
+    .notice{
+      border:1px solid rgba(255,209,102,.22);
+      border-radius:8px;
+      padding:10px;
+      background:rgba(255,209,102,.08);
+      color:#ffe29b;
+      font-size:12px;
+      line-height:1.55;
+    }
+    .score.good{color:var(--ok)}
+    .score.warn{color:var(--warn)}
+    .score.bad{color:var(--bad)}
+    .grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr);gap:14px}
+    .panel{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,var(--panel2),var(--panel));
+      border-radius:8px;
+      overflow:hidden;
+      min-width:0;
+    }
+    .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.20)}
+    .hd b{font-size:14px}
+    .bd{padding:14px}
+    .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .wide{grid-column:1 / -1}
+    label{display:block;margin:0 0 5px;color:var(--muted);font-size:12px;font-weight:800}
+    input,select,textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:8px;
+      background:rgba(0,0,0,.24);
+      color:var(--text);
+      padding:10px 11px;
+      outline:none;
+      font:inherit;
+    }
+    textarea{min-height:88px;resize:vertical;line-height:1.45}
+    input:focus,select:focus,textarea:focus{border-color:rgba(125,211,252,.58)}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5}
+    .msg{min-height:20px;margin-top:10px;font-size:12px;color:var(--ok);white-space:pre-wrap}
+    .msg.bad{color:var(--bad)}
+    .syncStatus{border-color:rgba(120,227,173,.25);color:var(--ok)}
+    .syncStatus.warn{border-color:rgba(255,209,102,.30);color:var(--warn);background:rgba(255,209,102,.08)}
+    .syncStatus.ok{color:var(--ok)}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      padding:5px 9px;
+      color:var(--muted);
+      background:rgba(0,0,0,.18);
+      font-size:12px;
+      font-weight:800;
+    }
+    .list{display:grid;gap:8px;max-height:460px;overflow:auto;padding-right:4px}
+    .item{
+      border:1px solid rgba(255,255,255,.11);
+      border-radius:8px;
+      background:rgba(0,0,0,.20);
+      padding:10px;
+      cursor:pointer;
+    }
+    .item:hover{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.22)}
+    .item.active{border-color:rgba(125,211,252,.65);box-shadow:0 0 0 1px rgba(125,211,252,.18)}
+    .itemTitle{font-weight:1000;line-height:1.35}
+    .itemMeta{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.45}
+    .itemTools{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .itemTools button{padding:6px 9px;font-size:11px}
+    .skillsPick{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;max-height:210px;overflow:auto}
+    .skillChip{
+      text-align:left;
+      border-radius:8px;
+      padding:9px 10px;
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(0,0,0,.20);
+    }
+    .skillChip.active{border-color:rgba(255,209,102,.58);background:rgba(255,209,102,.12)}
+    .rangeViz{
+      display:inline-grid;
+      grid-template-columns:repeat(5,18px);
+      grid-template-rows:repeat(5,18px);
+      gap:2px;
+      padding:7px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;
+      background:rgba(0,0,0,.20);
+      vertical-align:middle;
+    }
+    .rangeCell{
+      width:18px;height:18px;
+      display:grid;place-items:center;
+      border-radius:5px;
+      background:rgba(255,255,255,.055);
+      color:rgba(255,255,255,.35);
+      font-size:11px;
+      font-weight:1000;
+      line-height:1;
+    }
+    .rangeCell.self{background:rgba(125,211,252,.20);color:#dff5ff}
+    .rangeCell.hit{background:rgba(255,209,102,.22);color:#ffe29b;border:1px solid rgba(255,209,102,.42)}
+    .rangeCell.line{box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+    .rangeInline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+    .rangeLabel{font-size:11px;color:var(--muted);font-weight:900}
+    .rangeBuilder{
+      margin-top:8px;
+      display:grid;
+      grid-template-columns:auto minmax(160px,1fr);
+      gap:10px;
+      align-items:start;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;
+      padding:10px;
+      background:rgba(0,0,0,.18);
+    }
+    .rangePad{
+      display:grid;
+      grid-template-columns:repeat(3,38px);
+      gap:5px;
+    }
+    .rangeDir{
+      min-width:38px;
+      height:38px;
+      border-radius:8px;
+      padding:0;
+      font-size:18px;
+      line-height:1;
+      background:rgba(255,255,255,.055);
+    }
+    .rangeDir.active{
+      border-color:rgba(255,209,102,.62);
+      background:rgba(255,209,102,.15);
+      color:#ffe29b;
+    }
+    .rangeDir.self{
+      font-size:12px;
+      color:#dff5ff;
+    }
+    .rangeTools{
+      display:grid;
+      gap:8px;
+      min-width:0;
+    }
+    .rangeToolsRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .rangeTools select{width:auto;min-width:86px;padding:8px}
+    .rangeChips{display:flex;gap:6px;flex-wrap:wrap;min-height:28px}
+    .rangeChip{
+      border:1px solid rgba(125,211,252,.26);
+      border-radius:999px;
+      padding:5px 8px;
+      background:rgba(125,211,252,.10);
+      color:#dff5ff;
+      font-size:12px;
+      font-weight:900;
+    }
+    .rangeFlag.active{
+      border-color:rgba(120,227,173,.44);
+      background:rgba(120,227,173,.16);
+      color:#dfffe8;
+    }
+    .cardEffectBox{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;
+      padding:10px;
+      background:rgba(0,0,0,.18);
+      display:grid;
+      gap:8px;
+    }
+    .cardEffectGrid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+    .cardEffectList{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+    .cardEffectChip{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid rgba(120,227,173,.26);
+      border-radius:999px;
+      padding:5px 8px;
+      background:rgba(120,227,173,.09);
+      color:#dfffe8;
+      font-size:12px;
+      font-weight:900;
+    }
+    .preview{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.24);
+      border-radius:8px;
+      padding:12px;
+      min-height:180px;
+      white-space:pre-wrap;
+      overflow:auto;
+      font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+    }
+    .cardFace{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:8px;
+      padding:14px;
+      background:
+        radial-gradient(360px 180px at 20% 0%, rgba(125,211,252,.12), transparent 62%),
+        rgba(0,0,0,.22);
+      min-height:150px;
+      margin-bottom:10px;
+    }
+    .creatorCardFaceTop{
+      display:grid;
+      grid-template-columns:96px minmax(0,1fr);
+      gap:12px;
+      align-items:stretch;
+    }
+    .creatorCardVisual{
+      position:relative;
+      min-height:132px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.22);
+      box-shadow:0 14px 30px rgba(0,0,0,.22), inset 0 0 20px rgba(255,255,255,.04);
+    }
+    .creatorCardArtImg{width:100%;height:100%;display:block;object-fit:cover}
+    .creatorCardCost{
+      position:absolute;
+      top:7px;
+      left:7px;
+      min-width:30px;
+      height:30px;
+      display:grid;
+      place-items:center;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.24);
+      background:rgba(0,0,0,.48);
+      font-weight:1000;
+    }
+    .creatorCardInfo{min-width:0;display:flex;flex-direction:column;gap:7px}
+    .creatorCardBadges{display:flex;gap:6px;flex-wrap:wrap}
+    .creatorCardLines{margin-top:10px}
+    .cardFace h2{margin:6px 0 8px;font-size:20px}
+    .cardFace .meta{color:var(--muted);font-size:12px;line-height:1.6}
+    .cardFace .skillLine{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.10);font-size:13px}
+    .hidden{display:none!important}
+    @media(max-width:880px){
+      .grid{grid-template-columns:1fr}
+      .form{grid-template-columns:1fr}
+      .metricGrid,.presetGrid{grid-template-columns:1fr}
+      .cardEffectGrid{grid-template-columns:1fr 1fr}
+      .creatorCardFaceTop{grid-template-columns:78px minmax(0,1fr)}
+      .creatorCardVisual{min-height:108px}
+      .themeTemplateItem{grid-template-columns:1fr}
+      header{align-items:flex-start;flex-direction:column}
+      .actions{justify-content:flex-start}
+    }
+  </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>繧ｫ繝ｼ繝牙ｷ･謌ｿ</h1>
+        <div class="sub">邂｡逅・・畑縲ゅユ繝ｼ繝槭ｒ豎ｺ繧√※縲∵橿繝・Φ繝励Ξ縺九ｉ繧ｫ繝ｼ繝峨ｒ菴懊ｋ縲・/div>
+      </div>
+      <div class="actions">
+        <span class="pill" id="adminState">遒ｺ隱堺ｸｭ...</span>
+        <span class="pill syncStatus" id="syncStatus">蜷梧悄遒ｺ隱堺ｸｭ...</span>
+        <button id="btnSyncNow" type="button">蜷梧悄</button>
+        <button id="btnDeck" type="button">繝・ャ繧ｭ縺ｸ</button>
+        <button id="btnProfile" type="button">繝ｦ繝ｼ繧ｶ繝ｼ</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab" id="tabTheme" type="button">繝・・繝・/button>
+      <button class="tab active" id="tabCard" type="button">繧ｫ繝ｼ繝・/button>
+      <button class="tab" id="tabSkill" type="button">謚</button>
+    </div>
+
+    <section id="themePanel" class="grid hidden">
+      <div class="panel">
+        <div class="hd">
+          <b>繝・・繝櫁ｨｭ險・/b>
+          <span class="hint">荳也阜隕ｳ繧呈ｱｺ繧√ｋ縺ｨ縲∵橿縺ｨ繧ｫ繝ｼ繝芽拷譯医ｒ縺ｾ縺ｨ繧√※菴懊ｌ縺ｾ縺・/span>
+        </div>
+        <div class="bd">
+          <div class="themeHero" id="themeHero">
+            <h2 id="themeTitle">譁ｰ繝・・繝・/h2>
+            <p id="themePitch">螻樊ｧ繝ｻ蠖ｹ蜑ｲ繝ｻ蠑ｷ縺輔ｒ豎ｺ繧√※縲√き繝ｼ繝牙宛菴懊・闃ｯ繧剃ｽ懊ｋ縲・/p>
+            <div class="metricGrid" id="themeMetrics"></div>
+          </div>
+
+          <div class="form">
+            <div>
+              <label>繝・・繝槫錐</label>
+              <input id="themeName" placeholder="萓具ｼ壽怦蠖ｱ繧ｵ繝ｼ繧ｫ繧ｹ">
+            </div>
+            <div>
+              <label>ID謗･鬆ｭ霎・/label>
+              <input id="themePrefix" placeholder="萓具ｼ嗄oon_circus">
+            </div>
+            <div>
+              <label>荳ｻ螻樊ｧ</label>
+              <select id="themeAttr">
+                <option>轣ｫ</option><option>豌ｴ</option><option>髮ｷ</option><option>闕・/option><option>鬚ｨ</option>
+                <option>驪ｼ</option><option>蜈・/option><option>髣・/option><option>蟷ｻ</option><option>蜻ｪ</option>
+              </select>
+            </div>
+            <div>
+              <label>蠕玲э蠖ｹ蜑ｲ</label>
+              <select id="themeRole">
+                <option value="balanced">繝舌Λ繝ｳ繧ｹ</option>
+                <option value="aggro">騾滓判</option>
+                <option value="control">螯ｨ螳ｳ</option>
+                <option value="sustain">閠蝉ｹ・/option>
+                <option value="combo">繧ｳ繝ｳ繝・/option>
+              </select>
+            </div>
+            <div>
+              <label>繧ｷ繝ｪ繝ｼ繧ｺ陦ｨ遉ｺ</label>
+              <input id="themeSeries" placeholder="萓具ｼ壹ぎ繝√Ε / 遶･隧ｱ / 蛻晄悄">
+            </div>
+            <div>
+              <label>繝代Ρ繝ｼ蟶ｯ</label>
+              <select id="themePower">
+                <option value="standard">讓呎ｺ・/option>
+                <option value="starter">蛻晄悄蜷代￠</option>
+                <option value="premium">繧・ｄ蠑ｷ繧・/option>
+              </select>
+            </div>
+            <div class="wide">
+              <label>繝・・繝槭Γ繝｢</label>
+              <textarea id="themeMemo" placeholder="繧ｫ繝ｼ繝牙錐縺ｮ譁ｹ蜷第ｧ縲∫ｦ√§縺溘＞蜉ｹ譫懊∝享縺｡遲九↑縺ｩ"></textarea>
+            </div>
+            <div class="wide row">
+              <button id="btnApplyTheme" type="button">繝輔か繝ｼ繝縺ｸ蜿肴丐</button>
+              <button id="btnGenerateThemeSkills" class="primary" type="button">謚繧ｻ繝・ヨ逕滓・</button>
+              <button id="btnDraftThemeUnit" type="button">繧ｭ繝｣繝ｩ闕画｡・/button>
+              <button id="btnDraftThemeSupport" type="button">繧ｵ繝昴・繝郁拷譯・/button>
+              <button id="btnCopyThemeJson" type="button">繝・・繝曷SON繧ｳ繝斐・</button>
+            </div>
+          </div>
+          <div id="themeMsg" class="msg"></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="hd">
+          <b>蛻ｶ菴懊リ繝・/b>
+          <span class="hint">繝舌Λ繝ｳ繧ｹ縺ｨ荳崎ｶｳ蠖ｹ蜑ｲ</span>
+        </div>
+        <div class="bd">
+          <div class="notice" id="themeAdvice"></div>
+          <div class="preview" id="themeJson" style="margin-top:12px"></div>
+          <div class="presetGrid" style="margin-top:12px">
+            <button class="presetBtn" type="button" data-theme-preset="balanced"><b>螳牙ｮ壼梛</b><span>讓呎ｺ也↓蜉帙∵桶縺・ｄ縺吶＞2謚讒区・縲・/span></button>
+            <button class="presetBtn" type="button" data-theme-preset="aggro"><b>騾滓判蝙・/b><span>菴弱さ繧ｹ繝磯ｫ伜多荳ｭ縲ら洒譛滓ｱｺ謌ｦ蜷代￠縲・/span></button>
+            <button class="presetBtn" type="button" data-theme-preset="control"><b>螯ｨ螳ｳ蝙・/b><span>SP蜑翫ｊ繝ｻ迥ｶ諷狗焚蟶ｸ繝ｻ繧ｫ繝ｼ繝峨・縺帙・/span></button>
+            <button class="presetBtn" type="button" data-theme-preset="sustain"><b>閠蝉ｹ・梛</b><span>蝗槫ｾｩ繝ｻ髦ｲ蠕｡蟇・ｊ縲らｲ倥▲縺ｦ蜍昴▽縲・/span></button>
+          </div>
+          <div class="themeTemplateBox">
+            <div class="themeTemplateHead">
+              <b>菫晏ｭ俶ｸ医∩繝・・繝・/b>
+              <button id="btnSaveThemeTemplate" type="button">莉翫・繝・・繝槭ｒ菫晏ｭ・/button>
+            </div>
+            <div id="themeTemplateList" class="themeTemplateList"></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="cardPanel" class="grid">
+      <div class="panel">
+        <div class="hd">
+          <b>繧ｫ繝ｼ繝我ｽ懈・</b>
+          <span class="hint">菫晏ｭ倥☆繧九→繝・ャ繧ｭ繝ｻ繧ｬ繝√Ε蛛ｴ縺ｧ隱ｭ縺ｿ霎ｼ繧√∪縺・/span>
+        </div>
+        <div class="bd">
+          <div class="form">
+            <div>
+              <label>繧ｫ繝ｼ繝迂D</label>
+              <input id="cardId" placeholder="theme_fire_001">
+            </div>
+            <div>
+              <label>繧ｫ繝ｼ繝牙錐</label>
+              <input id="cardName" placeholder="萓具ｼ夂ｎ縺ｮ譌・ｺｺ">
+            </div>
+            <div>
+              <label>遞ｮ蛻･</label>
+              <select id="cardKind">
+                <option value="unit">繧ｭ繝｣繝ｩ</option>
+                <option value="support">繧ｵ繝昴・繝・/option>
+                <option value="ex_support">EX繧ｵ繝昴・繝・/option>
+              </select>
+            </div>
+            <div>
+              <label>繝ｬ繧｢蠎ｦ</label>
+              <select id="rarity">
+                <option>R</option>
+                <option>SR</option>
+                <option>SSR</option>
+              </select>
+            </div>
+            <div>
+              <label>螻樊ｧ</label>
+              <select id="attr">
+                <option>轣ｫ</option><option>豌ｴ</option><option>髮ｷ</option><option>闕・/option><option>鬚ｨ</option>
+                <option>驪ｼ</option><option>蜈・/option><option>髣・/option><option>蟷ｻ</option><option>蜻ｪ</option>
+              </select>
+            </div>
+            <div>
+              <label>繧ｳ繧ｹ繝・/label>
+              <input id="cost" type="number" min="0" max="12" value="2">
+            </div>
+            <div class="unitOnly">
+              <label>HP</label>
+              <input id="hp" type="number" min="0" max="200" value="30">
+            </div>
+            <div class="unitOnly">
+              <label>SP</label>
+              <input id="sp" type="number" min="0" max="200" value="20">
+            </div>
+            <div>
+              <label>繝・・繝・/label>
+              <input id="theme" placeholder="萓具ｼ夂ｫ･隧ｱ / 讖滓｢ｰ驛ｽ蟶・/ 豬ｷ雉・>
+            </div>
+            <div>
+              <label>霑ｽ蜉蜈医す繝ｪ繝ｼ繧ｺ</label>
+              <select id="seriesPreset">
+                <option value="繧ｬ繝√Ε">繧ｬ繝√Ε繧ｫ繝ｼ繝・/option>
+                <option value="蛻晄悄">蛻晄悄繧ｫ繝ｼ繝・/option>
+                <option value="譎らｹ・>譎らｹ斐き繝ｼ繝・/option>
+                <option value="遶･隧ｱ">遶･隧ｱ繧ｫ繝ｼ繝・/option>
+                <option value="繧ｫ繧ｹ繧ｿ繝">繧ｫ繧ｹ繧ｿ繝</option>
+              </select>
+            </div>
+            <div>
+              <label>繧ｷ繝ｪ繝ｼ繧ｺ陦ｨ遉ｺ</label>
+              <input id="series" placeholder="萓具ｼ壹ぎ繝√Ε / 蛻晄悄 / 譎らｹ・>
+            </div>
+            <div class="wide">
+              <label>隱ｬ譏・/label>
+              <textarea id="desc" placeholder="繧ｫ繝ｼ繝峨・髮ｰ蝗ｲ豌励ｄ蠖ｹ蜑ｲ"></textarea>
+            </div>
+            <div class="wide unitOnly">
+              <label>繧ｫ繝ｼ繝芽ｪ倡匱蜉ｹ譫懶ｼ医く繝｣繝ｩ逕ｨ・・/label>
+              <div class="cardEffectBox">
+                <div class="cardEffectGrid">
+                  <div>
+                    <label>繧ｿ繧､繝溘Φ繧ｰ</label>
+                    <select id="cardEffectTrigger">
+                      <option value="onSummon">蜿ｬ蝟壽凾</option>
+                      <option value="onEvolve">騾ｲ蛹匁凾</option>
+                      <option value="onEnter">蝣ｴ縺ｫ蜃ｺ縺滓凾</option>
+                      <option value="onTurnStart">閾ｪ蛻・ち繝ｼ繝ｳ髢句ｧ区凾</option>
+                      <option value="onOwnFieldTurnStart">閾ｪ髯｣縺ｫ縺・ｋ譎・/option>
+                      <option value="onEnemyFieldTurnStart">謨ｵ髯｣縺ｫ縺・ｋ譎・/option>
+                      <option value="onCrossCenter">荳ｭ螟ｮ邱夂ｪ∫ｴ譎・/option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>蜉ｹ譫・/label>
+                    <select id="cardEffectType">
+                      <option value="heal">蝗槫ｾｩ</option>
+                      <option value="dmg">繝繝｡繝ｼ繧ｸ</option>
+                      <option value="draw">繝峨Ο繝ｼ</option>
+                      <option value="manaUp">繝槭リ蠅怜刈</option>
+                      <option value="addStatus">迥ｶ諷倶ｻ倅ｸ・/option>
+                      <option value="powerUp">螽∝鴨蠑ｷ蛹・/option>
+                      <option value="modRate">蜻ｽ荳ｭ陬懈ｭ｣</option>
+                      <option value="cleanse">迥ｶ諷狗焚蟶ｸ繧ｯ繝ｪ繧｢</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>蟇ｾ雎｡</label>
+                    <select id="cardEffectTarget">
+                      <option value="self">閾ｪ霄ｫ</option>
+                      <option value="allies">蜻ｳ譁ｹ蜈ｨ菴・/option>
+                      <option value="enemies">謨ｵ蜈ｨ菴・/option>
+                      <option value="randomEnemy">繝ｩ繝ｳ繝繝謨ｵ</option>
+                      <option value="randomAlly">繝ｩ繝ｳ繝繝蜻ｳ譁ｹ</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>謌仙粥邇・/label>
+                    <input id="cardEffectRate" type="number" min="0" max="100" value="100">
+                  </div>
+                  <div>
+                    <label>HP蛟､</label>
+                    <input id="cardEffectHp" type="number" value="0">
+                  </div>
+                  <div>
+                    <label>SP蛟､</label>
+                    <input id="cardEffectSp" type="number" value="0">
+                  </div>
+                  <div>
+                    <label>n / delta</label>
+                    <input id="cardEffectN" type="number" value="1">
+                  </div>
+                  <div>
+                    <label>迥ｶ諷・/label>
+                    <select id="cardEffectStatus">
+                      <option value="">縺ｪ縺・/option>
+                      <option value="bleed">蜃ｺ陦</option>
+                      <option value="poison">豈・/option>
+                      <option value="smell">縺ｫ縺翫＞</option>
+                      <option value="fracture">鬪ｨ謚・/option>
+                      <option value="lostSoul">螟ｱ鬲・/option>
+                      <option value="blind">逶ｲ逶ｮ</option>
+                      <option value="silence">豐磯ｻ呻ｼ域立・・/option>
+                      <option value="evade">蝗樣∩</option>
+                      <option value="rage">豼諤・/option>
+                      <option value="brainwash">豢苓┻</option>
+                      <option value="sludge">繝倥ラ繝ｭ</option>
+                      <option value="counter">繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <button id="btnAddCardEffect" type="button">・句柑譫懆ｿｽ蜉</button>
+                  <button id="btnClearCardEffects" type="button">蜉ｹ譫懊け繝ｪ繧｢</button>
+                  <span class="hint">隍・焚霑ｽ蜉OK縲ゆｿ晏ｭ俶凾縺ｯ cardEffects 縺ｫ蜈･繧翫∪縺吶・/span>
+                </div>
+                <div id="cardEffectList" class="cardEffectList"></div>
+              </div>
+            </div>
+            <div class="wide">
+              <label>謚繝・Φ繝励Ξ繧帝∈謚橸ｼ医く繝｣繝ｩ逕ｨ・・/label>
+              <div class="row" style="margin-bottom:8px">
+                <input id="actionSearch" placeholder="譌｢蟄俶橿繝ｻ菴懈・謚繧呈､懃ｴ｢" style="max-width:260px">
+                <button id="btnLoadPublicActions" type="button">譌｢蟄俶橿繧貞・隱ｭ霎ｼ</button>
+                <span class="pill" id="actionSourceState">譌｢蟄俶橿: 隱ｭ霎ｼ蜑・/span>
+              </div>
+              <div class="skillsPick" id="skillPicker"></div>
+              <div class="hint">驕ｸ謚槭＠縺滄・↓繧ｫ繝ｼ繝峨・謚縺ｫ縺ｪ繧翫∪縺吶よ里蟄俶橿繝ｻ蟾･謌ｿ縺ｧ菴懊▲縺滓橿繝ｻ蜷・き繝ｼ繝峨↓蝓九ａ霎ｼ縺ｾ繧後◆謚繧偵∪縺ｨ繧√※菴ｿ縺医∪縺吶・/div>
+            </div>
+            <div class="supportOnly hidden">
+              <label>繧ｵ繝昴・繝亥柑譫・/label>
+              <select id="effectType">
+                <option value="draw">繝峨Ο繝ｼ</option>
+                <option value="heal">蝗槫ｾｩ</option>
+                <option value="dmg">繝繝｡繝ｼ繧ｸ</option>
+                <option value="modRate">蜻ｽ荳ｭ陬懈ｭ｣</option>
+                <option value="powerUp">螽∝鴨蠑ｷ蛹・/option>
+                <option value="cleanse">迥ｶ諷狗焚蟶ｸ蝗槫ｾｩ</option>
+                <option value="addStatus">迥ｶ諷倶ｻ倅ｸ・/option>
+                <option value="manaUp">繝槭リ蠅怜刈</option>
+                <option value="bounce">謇区惆縺ｫ謌ｻ縺・/option>
+                <option value="swapPos">菴咲ｽｮ蜈･譖ｿ・・wap・・/option>
+                <option value="moveTo">謖・ｮ夂ｧｻ蜍・/option>
+                <option value="search">繧ｵ繝ｼ繝・/option>
+                <option value="discardHand">謇区惆繧貞｢灘慍縺ｸ</option>
+                <option value="setCard">繧ｫ繝ｼ繝峨・縺・/option>
+              </select>
+            </div>
+            <div class="supportOnly hidden">
+              <label>謌仙粥邇・/label>
+              <input id="effectRate" type="number" min="0" max="100" value="80">
+            </div>
+            <div class="supportOnly hidden">
+              <label>HP蛟､</label>
+              <input id="effectHp" type="number" value="0">
+            </div>
+            <div class="supportOnly hidden">
+              <label>SP蛟､</label>
+              <input id="effectSp" type="number" value="0">
+            </div>
+            <div class="supportOnly hidden">
+              <label>n / delta / 霍晞屬</label>
+              <input id="effectN" type="number" value="1">
+            </div>
+            <div class="supportOnly hidden">
+              <label>迥ｶ諷句錐</label>
+              <select id="effectStatus">
+                <option value="">縺ｪ縺・/option>
+                <option value="bleed">蜃ｺ陦</option>
+                <option value="poison">豈・/option>
+                <option value="smell">縺ｫ縺翫＞</option>
+                <option value="fracture">鬪ｨ謚・/option>
+                <option value="lostSoul">螟ｱ鬲・/option>
+                <option value="blind">逶ｲ逶ｮ</option>
+                <option value="silence">豐磯ｻ呻ｼ域立・・/option>
+                <option value="evade">蝗樣∩</option>
+                <option value="rage">豼諤・/option>
+                <option value="brainwash">豢苓┻</option>
+                <option value="sludge">繝倥ラ繝ｭ</option>
+                <option value="counter">繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ</option>
+              </select>
+            </div>
+            <div class="supportOnly hidden">
+              <label>蟇ｾ雎｡繧ｫ繝ｼ繝迂D・井ｻｻ諢擾ｼ・/label>
+              <input id="effectCardId" placeholder="遨ｺ縺ｪ繧画擅莉ｶ縺ｫ蜷医≧繧ｫ繝ｼ繝峨ｒ驕ｸ謚・閾ｪ蜍・>
+            </div>
+            <div class="supportOnly hidden">
+              <label>蟇ｾ雎｡遞ｮ蛻･</label>
+              <select id="effectKind">
+                <option value="">謖・ｮ壹↑縺・/option>
+                <option value="unit">繧ｭ繝｣繝ｩ</option>
+                <option value="support">繧ｵ繝昴・繝・/option>
+              </select>
+            </div>
+            <div class="wide">
+              <label>霑ｽ蜉JSON・井ｸ顔ｴ夊・畑繝ｻ莉ｻ諢擾ｼ・/label>
+              <textarea id="extraJson" placeholder='萓・ {"hidden":true,"pack":"custom_01"}'></textarea>
+            </div>
+            <div class="wide row">
+              <label class="pill"><input id="hidden" type="checkbox" style="width:auto"> 髱槫・髢九〒菫晏ｭ・/label>
+              <label class="pill"><input id="giveSelf" type="checkbox" style="width:auto"> 閾ｪ蛻・↓4譫壻ｻ倅ｸ・/label>
+              <button id="btnAutoCardId" type="button">ID閾ｪ蜍・/button>
+              <button id="btnBalanceCard" type="button">險ｺ譁ｭ</button>
+              <button id="btnNewCard" type="button">譁ｰ隕・/button>
+              <button id="btnDuplicateCard" type="button">隍・｣ｽ</button>
+              <button id="btnSaveCard" class="primary" type="button">繧ｫ繝ｼ繝我ｿ晏ｭ・/button>
+            </div>
+          </div>
+          <div id="cardMsg" class="msg"></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="hd">
+          <b>繝励Ξ繝薙Η繝ｼ / 譌｢蟄倥き繝ｼ繝・/b>
+          <div class="row" style="justify-content:flex-end">
+            <input id="cardSearch" placeholder="讀懃ｴ｢" style="max-width:180px">
+            <button id="btnReloadCards" type="button">蜀崎ｪｭ霎ｼ</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="cardFace" id="cardFace"></div>
+          <div class="preview" id="cardJson"></div>
+          <div class="list" id="cardList" style="margin-top:12px"></div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="skillPanel" class="grid hidden">
+      <div class="panel">
+        <div class="hd">
+          <b>謚繝・Φ繝励Ξ菴懈・</b>
+          <span class="hint">繧ｭ繝｣繝ｩ繧ｫ繝ｼ繝峨↓蝓九ａ霎ｼ繧謚繧剃ｽ懊ｊ縺ｾ縺・/span>
+        </div>
+        <div class="bd">
+          <div class="form">
+            <div>
+              <label>謚ID</label>
+              <input id="skillId" placeholder="theme_slash_01">
+            </div>
+            <div>
+              <label>謚蜷・/label>
+              <input id="skillName" placeholder="萓具ｼ夂ｎ縺ｮ荳髢・>
+            </div>
+            <div>
+              <label>繧ｳ繧ｹ繝・/label>
+              <input id="skillCost" type="number" min="0" max="12" value="1">
+            </div>
+            <div>
+              <label>謌仙粥邇・/label>
+              <input id="skillRate" type="number" min="0" max="100" value="75">
+            </div>
+            <div>
+              <label>蟆・ｨ・/label>
+              <input id="skillRange" placeholder="front1" value="front1">
+              <div class="rangeBuilder">
+                <div class="rangePad" id="rangePad" aria-label="蟆・ｨ区婿蜷・>
+                  <button class="rangeDir" type="button" data-range-dir="lf">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="front">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="rf">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="l">竊・/button>
+                  <button class="rangeDir self" type="button" data-range-dir="self">閾ｪ</button>
+                  <button class="rangeDir" type="button" data-range-dir="r">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="lb">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="back">竊・/button>
+                  <button class="rangeDir" type="button" data-range-dir="rb">竊・/button>
+                </div>
+                <div class="rangeTools">
+                  <div class="rangeToolsRow">
+                    <select id="skillRangeDistance" aria-label="蟆・ｨ区焚蟄・>
+                      <option value="1">蟆・ｨ・1</option>
+                      <option value="2">蟆・ｨ・2</option>
+                      <option value="3">蟆・ｨ・3</option>
+                      <option value="4">蟆・ｨ・4</option>
+                    </select>
+                    <button id="btnAddRangePart" type="button">・句ｰ・ｨ玖ｿｽ蜉</button>
+                    <button id="btnClearRangeParts" type="button">繧ｯ繝ｪ繧｢</button>
+                  </div>
+                  <div class="rangeToolsRow">
+                    <button id="skillFlagAoe" class="rangeFlag" type="button">蜈ｨ菴・/button>
+                    <button id="skillFlagPierce" class="rangeFlag" type="button">雋ｫ騾壽判謦・/button>
+                  </div>
+                  <div id="rangeChips" class="rangeChips"></div>
+                </div>
+              </div>
+              <div class="rangeInline">
+                <div id="skillRangeViz" class="rangeViz" aria-label="蟆・ｨ九・繝ｬ繝薙Η繝ｼ"></div>
+                <span id="skillRangeLabel" class="rangeLabel"></span>
+              </div>
+            </div>
+            <div>
+              <label>繝・・繝・/label>
+              <input id="skillTheme" placeholder="萓具ｼ夂ｫ･隧ｱ">
+            </div>
+            <div>
+              <label>HP螟牙喧・域判謦・・繝槭う繝翫せ・・/label>
+              <input id="skillHpDelta" type="number" value="-10">
+            </div>
+            <div>
+              <label>SP螟牙喧・域判謦・・繝槭う繝翫せ・・/label>
+              <input id="skillSpDelta" type="number" value="0">
+            </div>
+            <div>
+              <label>霑ｽ蜉迥ｶ諷・/label>
+              <select id="skillStatus">
+                <option value="">縺ｪ縺・/option>
+                <option value="bleed">蜃ｺ陦</option>
+                <option value="poison">豈・/option>
+                <option value="smell">縺ｫ縺翫＞</option>
+                <option value="fracture">鬪ｨ謚・/option>
+                <option value="lostSoul">螟ｱ鬲・/option>
+                <option value="blind">逶ｲ逶ｮ</option>
+                <option value="silence">豐磯ｻ呻ｼ域立・・/option>
+                <option value="rage">豼諤・/option>
+                <option value="brainwash">豢苓┻</option>
+                <option value="sludge">繝倥ラ繝ｭ</option>
+                <option value="counter">繧ｫ繧ｦ繝ｳ繧ｿ繝ｼ</option>
+              </select>
+            </div>
+            <div>
+              <label>迥ｶ諷句､ / 繧ｿ繝ｼ繝ｳ</label>
+              <input id="skillStatusValue" placeholder="萓具ｼ・,2">
+            </div>
+            <div>
+              <label>繝峨Ο繝ｼ</label>
+              <input id="skillDraw" type="number" value="0">
+            </div>
+            <div>
+              <label>謇区惆蜉ｹ譫・/label>
+              <select id="skillHandEffect">
+                <option value="">縺ｪ縺・/option>
+                <option value="discardHand">謇区惆繧貞｢灘慍縺ｸ</option>
+                <option value="setHand">謇区惆繧剃ｼ上○繧・/option>
+              </select>
+            </div>
+            <div>
+              <label>謇区惆蜉ｹ譫懊・蟇ｾ雎｡</label>
+              <select id="skillHandTarget">
+                <option value="enemy">逶ｸ謇・/option>
+                <option value="self">閾ｪ蛻・/option>
+              </select>
+            </div>
+            <div>
+              <label>謇区惆蜉ｹ譫懊・譫壽焚</label>
+              <input id="skillHandCount" type="number" min="1" max="10" value="1">
+            </div>
+            <div>
+              <label>逶､髱｢蜉ｹ譫・/label>
+              <select id="skillBoardEffect">
+                <option value="">縺ｪ縺・/option>
+                <option value="swapTarget">逶ｸ謇九→菴咲ｽｮ蜈･譖ｿ・・wap・・/option>
+              </select>
+            </div>
+            <div>
+              <label>繝弱ャ繧ｯ繝舌ャ繧ｯ霍晞屬</label>
+              <input id="skillKnockback" type="number" min="0" max="4" value="0">
+            </div>
+            <div>
+              <label>繧ｿ繧ｰ</label>
+              <input id="skillTags" placeholder="萓具ｼ嘖lash+fire">
+            </div>
+            <div class="wide">
+              <label>霑ｽ蜉JSON・井ｻｻ諢擾ｼ・/label>
+              <textarea id="skillExtraJson" placeholder='萓・ {"power":10}'></textarea>
+            </div>
+            <div class="wide row">
+              <button id="btnAutoSkillId" type="button">ID閾ｪ蜍・/button>
+              <button id="btnNewSkill" type="button">譁ｰ隕・/button>
+              <button id="btnSaveSkill" class="primary" type="button">謚菫晏ｭ・/button>
+              <button id="btnCopySkillCsv" type="button">CSV繧ｳ繝斐・</button>
+              <button id="btnDeleteSkill" class="danger" type="button">謚蜑企勁</button>
+            </div>
+          </div>
+          <div id="skillMsg" class="msg"></div>
+        </div>
+      </div>
+
+      <aside class="panel">
+        <div class="hd">
+          <b>謚繝ｪ繧ｹ繝・/ JSON</b>
+          <input id="skillSearch" placeholder="讀懃ｴ｢" style="max-width:180px">
+        </div>
+        <div class="bd">
+          <div class="preview" id="skillJson"></div>
+          <div class="list" id="skillList" style="margin-top:12px"></div>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+<script type="module" src="./creator.js?v=20260828_jewel_art1"></script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+</body>
+</html>
+

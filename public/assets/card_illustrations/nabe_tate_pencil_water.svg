@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="pot lid shield pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#1d1d1d" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".16" stroke-width="1">
+      <path d="M28 54c46 8 94-18 169 3M36 92c53-9 91 8 178-6M30 298c68 8 113-7 190-2"/>
+      <path d="M42 42l174 258M218 38L32 314"/>
+    </g>
+    <g stroke-width="4">
+      <path d="M66 96c36-32 95-30 130 2"/>
+      <path d="M67 99c-9 49 8 112 62 147 56-37 73-97 61-147"/>
+    </g>
+    <g stroke-width="2.5" opacity=".82">
+      <path d="M92 112c27-14 59-14 84 0M83 142c32 18 65 18 96 0M90 181c27 18 55 18 82 0"/>
+      <path d="M128 96c-3 43-2 90 1 143"/>
+      <circle cx="128" cy="159" r="22"/>
+      <path d="M107 160c12-6 27-6 42 0"/>
+      <path d="M79 224c-16 15-31 31-43 50M174 224c18 15 34 31 47 52"/>
+    </g>
+    <g stroke-width="1.4" opacity=".35">
+      <path d="M73 113c29-6 78-5 112 0M73 128c27 7 75 8 112 0M80 158c31 8 69 8 97 0"/>
+      <path d="M83 199c29 20 61 19 92 0"/>
+    </g>
+  </g>
+</svg>

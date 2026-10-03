@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="golden goose static electricity pencil illustration">
+  <defs><radialGradient id="bg" cx=".48" cy=".4" r=".78"><stop stop-color="#fff4ad"/><stop offset=".48" stop-color="#f7f6ef"/><stop offset="1" stop-color="#ebe6d6"/></radialGradient><filter id="s"><feGaussianBlur stdDeviation="2.3"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M27 60c60 12 117-13 200 3M29 297c67-13 126 11 198-4"/><path d="M40 39l175 278M219 39L37 317"/></g>
+    <g stroke="#ffd84d" stroke-width="6" opacity=".52" filter="url(#s)"><path d="M66 222c28 17 60 20 95 10 33-10 51-3 68 15"/><path d="M194 51l-31 59h36l-49 88"/></g>
+    <g stroke="#202020">
+      <g stroke-width="3.8"><path d="M71 181c2-45 34-75 82-70 35 4 60 30 62 66 3 48-35 82-89 79-35-2-58-30-55-75z"/><path d="M142 112c5-37 38-55 63-34 19 16 10 45-12 53"/><path d="M194 84c16-4 29 5 31 20"/></g>
+      <g stroke-width="2.5"><path d="M89 176c33-22 75-21 110 0M86 214c38 18 78 18 117 0"/><path d="M111 254c-11 16-16 34-15 56M166 254c10 17 14 35 12 56"/><path d="M94 310h36M154 310h37"/><path d="M169 83c10 8 19 8 27 0"/><path d="M54 152c-17 16-25 36-23 60M219 155c18 16 26 37 23 62"/><path d="M159 145l29-43h-26l27-45"/></g>
+      <g stroke-width="1.1" opacity=".35"><path d="M85 157c33-17 78-18 115-1M82 195c42 10 84 10 125 0M94 234c33 10 66 9 100-2"/><path d="M151 124c19 6 37 6 57-1"/></g>
+    </g>
+  </g>
+</svg>

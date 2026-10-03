@@ -36,11 +36,11 @@ export function createCpuAI(options = {}) {
   };
 
   // ====== Public API ======
-  return {
-    pickAction,       // st => action plan
-    scoreAttackPlan,  // (st, plan) => number
-    scoreMovePlan,    // (st, plan) => number
-  };
+ return {
+  pickAction,
+  scoreAttackPlan: scoreAttackCandidate,
+  scoreMovePlan: scoreMoveCandidate,
+};
 
   // ====== Core: choose best action this turn ======
   function pickAction(st, ctx) {
@@ -117,12 +117,12 @@ export function createCpuAI(options = {}) {
     if (!attacker) return -1e18;
 
     // game.js の action 構造が不明なので「それっぽく」取る（必要ならここを合わせる）
-    const action = (attacker.actions || attacker.skills || [])[c.actionIndex];
+    const action = getActionsForUnit(attacker, ctx)[c.actionIndex];
     if (!action) return -1e18;
 
     const hit = clamp01((action.hitRate ?? action.success ?? 100) / 100);
-    const hpD = Number(action.damageHP ?? action.damage ?? 0);
-    const spD = Number(action.damageSP ?? 0);
+    const hpD = Math.abs(Number(action.damageHP ?? action.damage ?? action.hpDelta ?? 0));
+    const spD = Math.abs(Number(action.damageSP ?? action.spDelta ?? 0));
     const status = action.status || action.addStatus || null;
 
     // 対象が複数あるなら総和
@@ -266,8 +266,9 @@ export function createCpuAI(options = {}) {
   function nearestEnemy(enUnits, pos, dist) {
     let best = null;
     for (const e of enUnits) {
-      if (!e?.pos) continue;
-      const d = dist(pos, e.pos);
+      const ePos = normalizePos(e);
+      if (!ePos) continue;
+      const d = dist(pos, ePos);
       if (!best || d < best.d) best = { e, d };
     }
     return best;
@@ -296,10 +297,11 @@ export function createCpuAI(options = {}) {
     // - 無ければ「隣接(1)」
     const dist = ctx?.helpers?.manhattanDist ?? ((a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y));
 
-    const actions = unit.actions || unit.skills || [];
+    const actions = getActionsForUnit(unit, ctx);
     const res = [];
 
-    if (!unit?.pos) return res;
+    const unitPos = normalizePos(unit);
+    if (!unitPos) return res;
 
     for (let i = 0; i < actions.length; i++) {
       const a = actions[i] || {};
@@ -310,8 +312,9 @@ export function createCpuAI(options = {}) {
 
       const targets = [];
       for (const e of enUnits || []) {
-        if (!e?.pos || e.hp <= 0) continue;
-        const d = dist(unit.pos, e.pos);
+        const ePos = normalizePos(e);
+        if (!ePos || e.hp <= 0) continue;
+        const d = dist(unitPos, ePos);
         if (d >= rMin && d <= rMax) targets.push(e.id);
       }
 
@@ -321,8 +324,10 @@ export function createCpuAI(options = {}) {
         targets.sort((id1, id2) => {
           const e1 = (enUnits || []).find(x => x?.id === id1);
           const e2 = (enUnits || []).find(x => x?.id === id2);
-          const d1 = e1?.pos ? dist(unit.pos, e1.pos) : 999;
-          const d2 = e2?.pos ? dist(unit.pos, e2.pos) : 999;
+          const p1 = normalizePos(e1);
+          const p2 = normalizePos(e2);
+          const d1 = p1 ? dist(unitPos, p1) : 999;
+          const d2 = p2 ? dist(unitPos, p2) : 999;
           return d1 - d2;
         });
 
@@ -338,15 +343,17 @@ export function createCpuAI(options = {}) {
     // - 4近傍に1マス移動
     // - 盤外チェックは st.boardW/H, st.width/height, st.board?.w/h があれば使う
     // - 味方/敵の占有マスは避ける
-    if (!unit?.pos) return [];
+    const unitPos = normalizePos(unit);
+    if (!unitPos) return [];
 
     const w = st?.boardW ?? st?.width ?? st?.board?.w ?? st?.board?.width ?? null;
     const h = st?.boardH ?? st?.height ?? st?.board?.h ?? st?.board?.height ?? null;
 
     const occupied = new Set();
     for (const u of (st.units || [])) {
-      if (!u?.pos || u.hp <= 0) continue;
-      occupied.add(`${u.pos.x},${u.pos.y}`);
+      const p = normalizePos(u);
+      if (!p || u.hp <= 0) continue;
+      occupied.add(`${p.x},${p.y}`);
     }
 
     const dirs = [
@@ -358,7 +365,7 @@ export function createCpuAI(options = {}) {
 
     const res = [];
     for (const d of dirs) {
-      const to = { x: unit.pos.x + d.x, y: unit.pos.y + d.y };
+      const to = { x: unitPos.x + d.x, y: unitPos.y + d.y };
 
       if (w != null && (to.x < 0 || to.x >= w)) continue;
       if (h != null && (to.y < 0 || to.y >= h)) continue;
@@ -374,4 +381,21 @@ export function createCpuAI(options = {}) {
   }
 
   function clamp01(x) { return Math.max(0, Math.min(1, x)); }
+
+  function normalizePos(u) {
+    if (!u) return null;
+    if (u.pos && Number.isFinite(Number(u.pos.x)) && Number.isFinite(Number(u.pos.y))) {
+      return { x: Number(u.pos.x), y: Number(u.pos.y) };
+    }
+    if (Number.isFinite(Number(u.x)) && Number.isFinite(Number(u.y))) {
+      return { x: Number(u.x), y: Number(u.y) };
+    }
+    return null;
+  }
+
+  function getActionsForUnit(unit, ctx) {
+    const fromHelper = ctx?.helpers?.getActionsForUnit?.(unit);
+    if (Array.isArray(fromHelper)) return fromHelper;
+    return unit?.actions || unit?.skills || [];
+  }
 }

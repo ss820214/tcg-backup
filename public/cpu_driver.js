@@ -1,10 +1,16 @@
 // public/cpu_driver.js
-import { createCpuAI } from "./cpu_ai.js?v=1";
+import { createCpuAI } from "./cpu_ai.js?v=20260626_deckui_ai2";
 
 export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
-  const ai = createCpuAI({ seat: "B" });
+  const aiBySeat = {};
   let busy = false;
   let lastTurnSeq = null;
+
+  function getAi(seat) {
+    const key = seat === "A" ? "A" : "B";
+    if (!aiBySeat[key]) aiBySeat[key] = createCpuAI({ seat: key });
+    return aiBySeat[key];
+  }
 
   function getUnitById(st, id) {
     return (st.units || []).find(u => u && u.id === id) || null;
@@ -54,11 +60,12 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
     busy = true;
     try {
       // CPU思考
-      const plan = ai.pickAction(st, {
+      const plan = getAi(cpuSeat).pickAction(st, {
         mySeat: cpuSeat,
         enemySeat: cpuSeat === "A" ? "B" : "A",
         helpers: {
           getUnitById: (id) => getUnitById(st, id),
+          getActionsForUnit: (u) => cardDefs?.[u?.cardId]?.actions || [],
           listLegalMoves: (s, u) => listLegalMoves(s, u),
           listLegalAttacks: ctx?.helpers?.listLegalAttacks
             ? (s, u) => ctx.helpers.listLegalAttacks(s, u)

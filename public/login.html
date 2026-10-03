@@ -1,33 +1,369 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>0BATo - Login</title>
   <style>
-    body{font-family:system-ui, sans-serif; margin:24px;}
-    .box{max-width:420px; margin:0 auto; padding:16px; border:1px solid #ddd; border-radius:12px;}
-    input{width:100%; padding:10px; margin:6px 0 12px; font-size:16px;}
-    button{width:100%; padding:12px; font-size:16px;}
-    .msg{margin-top:12px; white-space:pre-wrap;}
-    .small{color:#666; font-size:12px;}
+    :root {
+      --bg: #080a0f;
+      --panel: rgba(255,255,255,.075);
+      --panel2: rgba(255,255,255,.105);
+      --line: rgba(255,255,255,.15);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.64);
+      --soft: rgba(255,255,255,.08);
+      --accent: #8fd0ff;
+      --accent2: #78e3ad;
+      --gold: #ffd166;
+      --bad: #ff7a90;
+      --shadow: 0 24px 80px rgba(0,0,0,.44);
+    }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+      background:
+        linear-gradient(90deg, rgba(143,208,255,.05) 1px, transparent 1px) 0 0 / 42px 42px,
+        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 42px 42px,
+        radial-gradient(960px 680px at 12% 8%, rgba(143,208,255,.20), transparent 58%),
+        radial-gradient(840px 620px at 84% 4%, rgba(120,227,173,.14), transparent 56%),
+        radial-gradient(700px 560px at 52% 100%, rgba(255,209,102,.10), transparent 58%),
+        linear-gradient(180deg, #090b10, var(--bg));
+    }
+    .screen {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
+      gap: 32px;
+      align-items: center;
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 34px 0;
+    }
+    .brand {
+      min-width: 0;
+      padding: 12px 0;
+    }
+    .logo {
+      width: 68px;
+      height: 68px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.22);
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.70), transparent 58%),
+        linear-gradient(135deg, rgba(143,208,255,.88), rgba(120,227,173,.78));
+      box-shadow: 0 16px 50px rgba(0,0,0,.36);
+      margin-bottom: 22px;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 92px);
+      line-height: .92;
+      letter-spacing: 0;
+      font-weight: 950;
+    }
+    .lead {
+      margin: 18px 0 0;
+      color: rgba(255,255,255,.72);
+      font-size: 16px;
+      line-height: 1.8;
+      max-width: 640px;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .brandActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .deckLink {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      border: 1px solid rgba(143,208,255,.40);
+      border-radius: 999px;
+      background:
+        linear-gradient(135deg, rgba(143,208,255,.20), rgba(120,227,173,.13)),
+        rgba(0,0,0,.22);
+      color: white;
+      text-decoration: none;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 950;
+      box-shadow: 0 14px 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .deckLink:hover {
+      transform: translateY(-1px);
+      border-color: rgba(143,208,255,.72);
+      box-shadow: 0 18px 52px rgba(0,0,0,.34), 0 0 24px rgba(143,208,255,.12);
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--panel2), var(--panel));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+    .panelHead {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,.11);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .panelTitle {
+      font-weight: 950;
+      font-size: 18px;
+    }
+    .status {
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: rgba(0,0,0,.20);
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 12px;
+      gap: 8px;
+    }
+    .tab {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 10px 12px;
+      color: var(--muted);
+      background: rgba(0,0,0,.18);
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] {
+      color: white;
+      border-color: rgba(143,208,255,.45);
+      background: rgba(143,208,255,.15);
+    }
+    form {
+      padding: 6px 16px 16px;
+    }
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      padding: 13px 13px;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus {
+      border-color: rgba(143,208,255,.52);
+      box-shadow: 0 0 0 3px rgba(143,208,255,.11);
+    }
+    .hint {
+      margin-top: 7px;
+      color: rgba(255,255,255,.50);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .miniBtn {
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 13px 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .primary {
+      width: 100%;
+      margin-top: 16px;
+      border: 1px solid rgba(120,227,173,.42);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(143,208,255,.20), rgba(120,227,173,.18));
+      color: white;
+      padding: 13px 14px;
+      font-size: 16px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .subActions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .linkBtn {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      padding: 6px 0;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .subActions .deckTextLink {
+      color: var(--accent2);
+      text-decoration: none;
+      padding: 6px 0;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    .subActions .deckTextLink:hover {
+      text-decoration: underline;
+    }
+    .message {
+      min-height: 56px;
+      margin-top: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 8px;
+      background: rgba(0,0,0,.18);
+      padding: 11px;
+      color: var(--muted);
+      white-space: pre-wrap;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+    .message.ok { color: var(--accent2); border-color: rgba(120,227,173,.28); }
+    .message.bad { color: var(--bad); border-color: rgba(255,122,144,.28); }
+    .account {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 0 16px 16px;
+    }
+    .accountCell {
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0,0,0,.16);
+      min-width: 0;
+    }
+    .k { color: var(--muted); font-size: 11px; }
+    .v { margin-top: 4px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    @media (max-width: 860px) {
+      .screen {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        align-items: start;
+      }
+      .brand { padding-top: 10px; }
+      .lead { font-size: 14px; }
+      .panel { max-width: 560px; width: 100%; margin: 0 auto; }
+    }
   </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
 <body>
-  <div class="box">
-    <h2>ログイン</h2>
-    <div class="small">名前 + PIN(4〜8桁) を設定/入力してください（端末内の本人確認用）</div>
+  <main class="screen">
+    <section class="brand" aria-label="0BATo">
+      <div class="logo"></div>
+      <h1>0BATo<br>Player Gate</h1>
+      <p class="lead">
+        繝励Ξ繧､繝､繝ｼID繧堤匳骭ｲ縺励※縲√ョ繝・く縲√ぎ繝√Ε縲∵姶邵ｾ繧貞酔縺倥・繝ｭ繝輔ぅ繝ｼ繝ｫ縺ｫ邏舌▼縺代∪縺吶・        譌｢蟄露D縺ｧ蜈･繧区凾縺ｯ縲後Ο繧ｰ繧､繝ｳ縲阪∝・繧√※菴ｿ縺・D縺ｯ縲梧眠隕冗匳骭ｲ縲阪°繧牙ｧ九ａ縺ｾ縺吶・      </p>
+      <div class="badges">
+        <span class="badge">Deck Sync</span>
+        <span class="badge">Gacha Profile</span>
+        <span class="badge">Match History</span>
+      </div>
+      <div class="brandActions">
+        <a class="deckLink" href="./deck.html">繝・ャ繧ｭ繝薙Ν繝繝ｼ縺ｸ</a>
+      </div>
+    </section>
 
-    <label>プレイヤー名</label>
-    <input id="name" maxlength="16" placeholder="例: terada" />
+    <section class="panel" aria-label="繝ｭ繧ｰ繧､繝ｳ繝輔か繝ｼ繝">
+      <div class="panelHead">
+        <div class="panelTitle">繧｢繧ｫ繧ｦ繝ｳ繝・/div>
+        <div id="authState" class="status">謗･邯夂｢ｺ隱堺ｸｭ</div>
+      </div>
 
-    <label>PIN（数字4〜8桁）</label>
-    <input id="pin" maxlength="8" inputmode="numeric" pattern="[0-9]*" placeholder="例: 1234" />
+      <div class="tabs" role="tablist" aria-label="繝ｭ繧ｰ繧､繝ｳ遞ｮ蛻･">
+        <button id="tabLogin" class="tab" type="button" role="tab" aria-selected="true">繝ｭ繧ｰ繧､繝ｳ</button>
+        <button id="tabRegister" class="tab" type="button" role="tab" aria-selected="false">譁ｰ隕冗匳骭ｲ</button>
+      </div>
 
-    <button id="btn">進む</button>
-    <div id="msg" class="msg"></div>
-  </div>
+      <form id="loginForm">
+        <label for="name">繝励Ξ繧､繝､繝ｼID</label>
+        <div class="row">
+          <input id="name" maxlength="16" autocomplete="username" placeholder="萓・ obato_217">
+          <button id="btnSuggest" class="miniBtn" type="button">蛟呵｣・/button>
+        </div>
+        <div class="hint">闍ｱ謨ｰ蟄励→ `_` 縺ｮ3縲・6譁・ｭ励ゅΟ繧ｰ繧､繝ｳ縺ｧ縺ｯ譛ｪ逋ｻ骭ｲID繧定・蜍穂ｽ懈・縺励∪縺帙ｓ縲・/div>
 
-  <script type="module" src="./login.js?v=20260226_2"></script>
+        <label for="pin">PIN</label>
+        <input id="pin" maxlength="8" inputmode="numeric" autocomplete="current-password" pattern="[0-9]*" placeholder="4縲・譯・>
+        <div class="hint">縺薙・遶ｯ譛ｫ縺ｮ蛹ｿ蜷攻ID縺ｫ繝励Ο繝輔ぅ繝ｼ繝ｫ繧堤ｴ舌▼縺代∪縺吶・/div>
+
+        <button id="btnSubmit" class="primary" type="submit">繝ｭ繧ｰ繧､繝ｳ縺吶ｋ</button>
+
+        <div class="subActions">
+          <button id="btnUseSaved" class="linkBtn" type="button">菫晏ｭ俶ｸ医∩ID繧貞・蜉・/button>
+          <a class="deckTextLink" href="./deck.html">繝・ャ繧ｭ縺ｸ</a>
+          <button id="btnBack" class="linkBtn" type="button">謌ｻ繧・/button>
+        </div>
+
+        <div id="msg" class="message">繝ｭ繧ｰ繧､繝ｳ縲√∪縺溘・譁ｰ隕冗匳骭ｲ繧帝∈繧薙〒縺上□縺輔＞縲・/div>
+      </form>
+
+      <div class="account">
+        <div class="accountCell">
+          <div class="k">菫晏ｭ俶ｸ医∩ID</div>
+          <div id="savedName" class="v">縺ｪ縺・/div>
+        </div>
+        <div class="accountCell">
+          <div class="k">UID</div>
+          <div id="uidView" class="v">譛ｪ謗･邯・/div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./login.js?v=20260627_login1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
 </body>
 </html>
+

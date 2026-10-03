@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="frog prince rain crown pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#202020" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".14" stroke-width="1">
+      <path d="M30 278c38-18 72 15 110-4 37-17 67 13 92-1"/>
+      <path d="M52 42l155 268M213 42L43 311"/>
+    </g>
+    <g stroke-width="3.8">
+      <path d="M73 164c6-43 41-68 82-55 34 10 52 38 45 72-8 43-47 67-91 55-28-8-43-33-36-72z"/>
+      <circle cx="101" cy="133" r="17"/>
+      <circle cx="160" cy="132" r="17"/>
+      <path d="M103 176c17 14 38 14 55 0"/>
+      <path d="M97 90l12-32 20 25 19-26 14 34"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M67 213c-20 15-33 34-40 58M190 213c20 15 34 34 41 58"/>
+      <path d="M93 239c-13 19-20 42-20 68M164 239c14 19 21 42 21 68"/>
+      <path d="M66 63c-6 16-7 29-2 40M188 62c7 18 8 33 2 46M128 38c-4 18-3 34 1 50"/>
+      <path d="M87 124l11 11M151 124l11 11"/>
+    </g>
+    <g opacity=".35" stroke-width="1.2">
+      <path d="M77 167c38-19 83-17 119 3M82 198c31 13 70 13 105-1"/>
+      <path d="M114 91c14-5 31-5 45 1"/>
+    </g>
+  </g>
+</svg>

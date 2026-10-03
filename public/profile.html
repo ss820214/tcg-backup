@@ -1,0 +1,327 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>0BATo - 繝ｦ繝ｼ繧ｶ繝ｼ</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: rgba(255,255,255,.055);
+      --panel2: rgba(255,255,255,.085);
+      --line: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --accent: #78e3ad;
+      --warn: #ffd166;
+      --blue: #8fc7ff;
+      --bad: #ff7a90;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 640px at 12% 0%, rgba(120,227,173,.14), transparent 58%),
+        radial-gradient(820px 620px at 86% 4%, rgba(255,209,102,.10), transparent 52%),
+        linear-gradient(180deg, #090a0e, var(--bg) 48%, #08090c);
+    }
+    .wrap { width: min(1160px, calc(100vw - 28px)); margin: 0 auto; padding: 18px 0 34px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    h1 { margin: 0; font-size: 22px; letter-spacing: .02em; }
+    .sub { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+    button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 13px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:hover { background: rgba(255,255,255,.11); }
+    .grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px; }
+    .panel {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel2), var(--panel));
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 14px; color: rgba(255,255,255,.8); }
+    .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .stat {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0,0,0,.2);
+      min-height: 76px;
+    }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { margin-top: 6px; font-size: 24px; font-weight: 900; letter-spacing: .01em; }
+    .value.gem { color: var(--warn); }
+    .value.good { color: var(--accent); }
+    .uid { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .uidTools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+    .uidTools button { padding: 7px 10px; font-size: 12px; }
+    .uidCopyMsg { font-size: 12px; color: var(--accent); }
+    .uidCopyMsg.bad { color: var(--bad); }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 10px; }
+    .search {
+      width: min(360px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 12px;
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline: none;
+    }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .card {
+      position: relative;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0,0,0,.20);
+      min-height: 104px;
+    }
+    .rar { font-size: 11px; font-weight: 900; color: var(--blue); }
+    .rar.SSR { color: var(--warn); }
+    .rar.SR { color: #d2a8ff; }
+    .name { margin-top: 8px; font-size: 14px; font-weight: 900; line-height: 1.35; }
+    .meta { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .count {
+      position: absolute; right: 10px; top: 10px;
+      min-width: 34px; text-align: center;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 3px 7px;
+      background: rgba(255,255,255,.08);
+      font-weight: 900;
+    }
+    .history { display: grid; gap: 8px; }
+    .youBox {
+      display: grid;
+      gap: 12px;
+    }
+    .youCardHead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px 72px;
+      gap: 10px;
+      align-items: stretch;
+      border: 1px solid rgba(120,227,173,.22);
+      border-radius: 8px;
+      padding: 12px;
+      background:
+        radial-gradient(280px 160px at 0% 0%, rgba(120,227,173,.16), transparent 60%),
+        rgba(0,0,0,.22);
+    }
+    .youName { font-size: 24px; font-weight: 1000; letter-spacing: .04em; }
+    .youMeta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .youStat {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 1000;
+      background: rgba(255,255,255,.06);
+    }
+    .youStat b { display: block; margin-bottom: 4px; color: var(--muted); font-size: 11px; }
+    .youList { display: grid; gap: 6px; }
+    .youLine {
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(0,0,0,.18);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .youLine.muted { color: var(--muted); }
+    .youSkillRow { display: grid; gap: 8px; }
+    .youSkillTop { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .youSkillTop span { min-width: 0; }
+    .perkIconBtn {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      border-color: rgba(255,209,102,.34);
+      background: rgba(255,209,102,.10);
+      font-size: 16px;
+    }
+    .perkIconBtn.active {
+      border-color: rgba(120,227,173,.55);
+      background: rgba(120,227,173,.14);
+      box-shadow: 0 0 0 1px rgba(120,227,173,.08), 0 0 16px rgba(120,227,173,.12);
+    }
+    .youPerkPanel {
+      display: grid;
+      gap: 7px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 8px;
+    }
+    .youPerkCurrent { color: rgba(255,255,255,.78); font-size: 12px; line-height: 1.45; }
+    .youPerkApply { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .youAttrRow, .youPerkRows {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+    .youPerkRows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .youAttrRow label, .youPerkRows label { display: grid; gap: 5px; min-width: 0; }
+    .youAttrRow select, .youPerkRows select, .youPerkApply select {
+      min-width: 0;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: rgba(0,0,0,.28);
+      outline: none;
+    }
+    .youBtns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .youBtns button { border-color: rgba(120,227,173,.28); }
+    .youBtns button:disabled { opacity: .42; cursor: not-allowed; }
+    .youMsg { min-height: 18px; color: var(--accent); font-size: 12px; }
+    .youMsg.bad { color: var(--bad); }
+    .adminGrid { display: grid; grid-template-columns: 1fr 120px; gap: 10px; }
+    .adminWide { grid-column: 1 / -1; }
+    .adminInput {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 11px;
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      outline: none;
+    }
+    .adminBtns { display: flex; gap: 10px; flex-wrap: wrap; }
+    .adminMsg { margin-top: 10px; min-height: 18px; font-size: 12px; color: var(--accent); }
+    .adminMsg.bad { color: var(--bad); }
+    .hidden { display: none !important; }
+    .row {
+      display: grid;
+      grid-template-columns: 82px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0,0,0,.18);
+      font-size: 13px;
+    }
+    .result.win { color: var(--accent); font-weight: 900; }
+    .result.lose { color: var(--bad); font-weight: 900; }
+    .empty { color: var(--muted); padding: 12px 0; }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      header { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .row { grid-template-columns: 68px 1fr; }
+      .row .reward { grid-column: 2; }
+      .youCardHead { grid-template-columns: 1fr 64px 64px; }
+      .youAttrRow, .youPerkRows { grid-template-columns: 1fr; }
+      .youBtns { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>繝ｦ繝ｼ繧ｶ繝ｼ諠・ｱ</h1>
+        <div class="sub">謇謖√き繝ｼ繝峨√ず繧ｧ繝縲∝ｯｾ謌ｦ螻･豁ｴ</div>
+      </div>
+      <div class="actions">
+        <button id="btnDeck" type="button">繝・ャ繧ｭ</button>
+        <button id="btnGacha" type="button">繧ｬ繝√Ε</button>
+        <button id="btnReload" type="button">譖ｴ譁ｰ</button>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>繝励Ο繝輔ぅ繝ｼ繝ｫ</h2>
+        <div class="stats">
+          <div class="stat"><div class="label">UID</div><div id="uid" class="value uid">...</div><div class="uidTools"><button id="btnCopyUid" type="button">UID繧ｳ繝斐・</button><span id="uidCopyMsg" class="uidCopyMsg"></span></div></div>
+          <div class="stat"><div class="label">繧ｸ繧ｧ繝</div><div id="gems" class="value gem">0</div></div>
+          <div class="stat"><div class="label">Growth Pt</div><div id="pity" class="value">0</div></div>
+          <div class="stat"><div class="label">謇謖∫ｨｮ鬘・/div><div id="ownedUnique" class="value good">0</div></div>
+          <div class="stat"><div class="label">邱乗園謖∵椢謨ｰ</div><div id="ownedTotal" class="value">0</div></div>
+          <div class="stat"><div class="label">蟇ｾ謌ｦ</div><div id="matches" class="value">0</div></div>
+          <div class="stat"><div class="label">蜍晏茜</div><div id="wins" class="value good">0</div></div>
+          <div class="stat"><div class="label">謨怜圏</div><div id="losses" class="value">0</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>YOU Card Growth</h2>
+        <div class="youBox">
+          <div id="youCardBox"></div>
+          <div class="youBtns">
+            <button id="btnYouHp" type="button">HP+10</button>
+            <button id="btnYouSp" type="button">SP+10</button>
+            <button id="btnYouSkill1" type="button">謚1繧ｬ繝√Ε</button>
+            <button id="btnYouSkill2" type="button">謚2繧ｬ繝√Ε</button>
+            <button id="btnYouSkill3" type="button">謚3繧ｬ繝√Ε</button>
+            <button id="btnYouAbility" type="button">迚ｹ谿翫ぎ繝√Ε</button>
+          </div>
+          <div id="youMsg" class="youMsg"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <h2>謇謖√き繝ｼ繝・/h2>
+          <input id="search" class="search" type="search" placeholder="繧ｫ繝ｼ繝牙錐 / ID / 繝ｬ繧｢繝ｪ繝・ぅ">
+        </div>
+        <div id="cards" class="cards"></div>
+      </section>
+
+      <section class="panel">
+        <h2>譛霑代・蟇ｾ謌ｦ螻･豁ｴ</h2>
+        <div id="history" class="history"></div>
+      </section>
+
+      <section class="panel hidden" id="adminPanel">
+        <h2>邂｡逅・・Γ繝九Η繝ｼ</h2>
+        <div class="adminGrid">
+          <input id="adminTargetUid" class="adminInput adminWide" type="text" placeholder="UID / 繝励Ξ繧､繝､繝ｼ蜷・>
+          <input id="adminGemAmount" class="adminInput" type="number" step="1" placeholder="繧ｸ繧ｧ繝謨ｰ">
+          <button id="btnGrantGems" type="button">繧ｸ繧ｧ繝驟榊ｸ・/button>
+          <input id="adminPityAmount" class="adminInput" type="number" step="1" placeholder="蠑ｷ蛹鳳t謨ｰ">
+          <button id="btnGrantPity" type="button">蠑ｷ蛹鳳t驟榊ｸ・/button>
+          <input id="adminCardId" class="adminInput" type="text" placeholder="繧ｫ繝ｼ繝迂D">
+          <input id="adminCardCount" class="adminInput" type="number" min="1" step="1" value="1">
+          <input id="adminReason" class="adminInput adminWide" type="text" placeholder="逅・罰 memo">
+          <div class="adminBtns adminWide">
+            <button id="btnGrantCard" type="button">謖・ｮ壹き繝ｼ繝蛾・蟶・/button>
+          </div>
+        </div>
+        <div id="adminMsg" class="adminMsg"></div>
+      </section>
+    </main>
+  </div>
+
+<script type="module" src="./profile.js?v=20260828_jewel_art1"></script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+</body>
+</html>
+

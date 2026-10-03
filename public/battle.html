@@ -1,41 +1,66 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Battle Lobby</title>
 
-    <!-- ★絶対パス + キャッシュバスター（CSSが効かない問題の対策） -->
-    <link rel="stylesheet" href="/battle.css?v=20260209_2" />
-  </head>
+    <!-- 笘・ｵｶ蟇ｾ繝代せ + 繧ｭ繝｣繝・す繝･繝舌せ繧ｿ繝ｼ・・SS縺悟柑縺九↑縺・撫鬘後・蟇ｾ遲厄ｼ・-->
+    <link rel="stylesheet" href="/battle.css?v=20260914_radar_readable1" />
+    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
   <body>
     <div class="page">
       <!-- Top bar -->
-      <header class="topbar">
+      <header class="topbar" aria-label="蟇ｾ謌ｦ蠕・ｩ溘せ繝・・繧ｿ繧ｹ">
         <div class="room">
           <div class="roomLabel">ROOM</div>
           <div class="roomId" id="roomId">----</div>
         </div>
 
         <div class="topStatus">
-          <div class="statusTitle">ステータス</div>
-          <div class="statusText" id="status">読み込み中…</div>
+          <div class="statusTitle">繧ｹ繝・・繧ｿ繧ｹ</div>
+          <div class="statusText" id="status">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ窶ｦ</div>
           <div class="statusSub muted" id="readyNote"></div>
         </div>
 
         <div class="topActions">
-          <button id="readyBtn" class="btnPrimary" disabled>準備完了</button>
-          <div class="hint muted">両者 READY で自動開始</div>
+          <button id="readyBtn" class="btnPrimary" disabled>貅門ｙ螳御ｺ・/button>
+          <div class="hint muted">荳｡閠・READY 縺ｧ閾ｪ蜍暮幕蟋・/div>
         </div>
       </header>
 
-      <!-- フィールド選択（battle.html の好きな場所に） -->
+      <!-- 繝輔ぅ繝ｼ繝ｫ繝蛾∈謚橸ｼ・attle.html 縺ｮ螂ｽ縺阪↑蝣ｴ謇縺ｫ・・-->
       <div id="fieldPick" class="fieldPick">
-        <div class="fieldPickTitle">フィールド</div>
+        <div class="fieldPickHead">
+          <div class="fieldPickTitle"><span class="fieldPickIcon">笳・/span>繝輔ぅ繝ｼ繝ｫ繝蛾∈謚・/div>
+          <div class="fieldPickSub">荳｡閠・・蟶梧悍縺九ｉ髢句ｧ区凾縺ｫ豎ｺ螳・/div>
+        </div>
         <div class="fieldPickBtns">
-          <button type="button" data-field="grass">草原</button>
-          <button type="button" data-field="danger">危険地帯</button>
-          <button type="button" data-field="swamp">沼地</button>
+          <button type="button" data-field="grass" class="fieldGrass">
+            <span class="fieldArt" aria-hidden="true"><span></span></span>
+            <span class="fieldText">
+              <span class="fieldEmoji">闕・/span><span class="fieldName">闕牙次</span>
+              <span class="fieldCode">balance field</span>
+              <span class="fieldCopy">讓呎ｺ也噪縺ｧ謇ｱ縺・ｄ縺吶＞逶､髱｢</span>
+            </span>
+          </button>
+          <button type="button" data-field="danger" class="fieldDanger">
+            <span class="fieldArt" aria-hidden="true"><span></span></span>
+            <span class="fieldText">
+              <span class="fieldEmoji">蜊ｱ</span><span class="fieldName">蜊ｱ髯ｺ蝨ｰ蟶ｯ</span>
+              <span class="fieldCode">high risk zone</span>
+              <span class="fieldCopy">荳豌励↓蜍晄風縺悟虚縺剰穀繧悟ｴ</span>
+            </span>
+          </button>
+          <button type="button" data-field="swamp" class="fieldSwamp">
+            <span class="fieldArt" aria-hidden="true"><span></span></span>
+            <span class="fieldText">
+              <span class="fieldEmoji">豐ｼ</span><span class="fieldName">豐ｼ蝨ｰ</span>
+              <span class="fieldCode">slow field</span>
+              <span class="fieldCopy">遘ｻ蜍輔→螻暮幕繧帝㍾縺上☆繧倶ｽ朱滓姶</span>
+            </span>
+          </button>
         </div>
         <div id="fieldPickNote" class="fieldPickNote"></div>
       </div>
@@ -46,7 +71,7 @@
           <div class="seatLabel">1P</div>
           <div class="playerName" id="p1Name">---</div>
 
-          <!-- READY表示はここ（電気演出CSSは battle.css 側） -->
+          <!-- READY陦ｨ遉ｺ縺ｯ縺薙％・磯崕豌玲ｼ泌・CSS縺ｯ battle.css 蛛ｴ・・-->
           <div class="readyBadge" id="p1Ready"></div>
 
           <div class="youTag" id="p1You"></div>
@@ -54,7 +79,7 @@
 
         <div class="vsCenter">
           <div class="vsText">VS</div>
-          <div class="muted small">準備が揃うまで待機</div>
+          <div class="muted small">貅門ｙ縺梧純縺・∪縺ｧ蠕・ｩ・/div>
         </div>
 
         <div class="sideCard right" id="p2Card">
@@ -70,26 +95,26 @@
         <!-- Deck (left) -->
         <section class="panel deckPanel">
           <div class="panelHeader">
-            <div class="panelTitle">デッキ（左：カード / 右：詳細）</div>
-            <div class="panelSub muted">クリックでカード詳細</div>
+            <div class="panelTitle">繝・ャ繧ｭ・亥ｷｦ・壹き繝ｼ繝・/ 蜿ｳ・夊ｩｳ邏ｰ・・/div>
+            <div class="panelSub muted">繧ｯ繝ｪ繝・け縺ｧ繧ｫ繝ｼ繝芽ｩｳ邏ｰ</div>
           </div>
 
           <div class="deckWrap">
             <div class="deckLeft">
-              <div class="subTitle">カード一覧</div>
+              <div class="subTitle">繧ｫ繝ｼ繝我ｸ隕ｧ</div>
               <div id="myDeck" class="deckList"></div>
             </div>
 
             <div class="deckDetail panelInner">
-              <div class="subTitle">カード詳細</div>
+              <div class="subTitle">繧ｫ繝ｼ繝芽ｩｳ邏ｰ</div>
               <div id="deckDetail" class="deckDetailBody muted">
-                カードを選択してください
+                繧ｫ繝ｼ繝峨ｒ驕ｸ謚槭＠縺ｦ縺上□縺輔＞
               </div>
             </div>
           </div>
 
           <details class="compatBox">
-            <summary>（互換）参加者一覧 / デバッグ</summary>
+            <summary>・井ｺ呈鋤・牙盾蜉閠・ｸ隕ｧ / 繝・ヰ繝・げ</summary>
             <ul id="players" class="playersList"></ul>
           </details>
         </section>
@@ -97,8 +122,8 @@
         <!-- Deck Evaluation (right) -->
         <section class="panel evalPanel">
           <div class="panelHeader">
-            <div class="panelTitle">デッキ評価</div>
-            <div class="panelSub muted">レーダー＋属性分布</div>
+            <div class="panelTitle">繝・ャ繧ｭ隧穂ｾ｡</div>
+            <div class="panelSub muted">繝ｬ繝ｼ繝繝ｼ・句ｱ樊ｧ蛻・ｸ・/div>
           </div>
 
           <div class="radarWrap">
@@ -107,9 +132,9 @@
           </div>
 
           <div class="attrWrap">
-            <div class="subTitle">属性の分布</div>
+            <div class="subTitle">螻樊ｧ縺ｮ蛻・ｸ・/div>
             <div id="attrDist" class="attrDist">
-              <div class="muted">デッキが読み込まれると表示されます</div>
+              <div class="muted">繝・ャ繧ｭ縺瑚ｪｭ縺ｿ霎ｼ縺ｾ繧後ｋ縺ｨ陦ｨ遉ｺ縺輔ｌ縺ｾ縺・/div>
             </div>
           </div>
         </section>
@@ -119,34 +144,49 @@
         style="display: flex; gap: 8px; align-items: center; margin: 8px 0"
       >
         <input id="aiToggle" type="checkbox" />
-        <span>AI対戦（CPU）</span>
+        <span>AI蟇ｾ謌ｦ・・PU・・/span>
       </label>
 
       <!-- Pong -->
       <section class="panel pongPanel">
         <div class="panelHeader">
-          <div class="panelTitle">ピンポン（待ち時間用）</div>
-          <div class="panelSub muted">左端付近で「打ち返す！」</div>
+          <div>
+            <div class="panelTitle">繝斐Φ繝昴Φ繝ｻ繝懊・繝翫せ</div>
+            <div class="panelSub muted">蟾ｦ遶ｯ縺ｮ蛻､螳壹Λ繧､繝ｳ縺ｧ謇薙■霑斐☆縲・0繧ｳ繝ｳ繝懊＃縺ｨ縺ｫ10繧ｸ繧ｧ繝縲・/div>
+          </div>
+          <div class="pongRewardPill" id="pongRewardPill">20 COMBO = +10 Gems</div>
         </div>
 
         <div class="pongRow">
           <div class="pong">
             <div class="wall wallL"></div>
             <div class="wall wallR"></div>
+            <div class="pongLane"></div>
+            <div class="pongJudgeLine"></div>
             <div class="paddle"></div>
             <div class="ball" id="ball"></div>
           </div>
 
           <div class="pongControls">
-            <button id="pingBtn" class="btnGhost">打ち返す！</button>
-            <button id="pingResetBtn" class="btnGhost">リセット</button>
-            <div id="pingStatus" class="muted">スタート！</div>
+            <div class="pongStats">
+              <div><span>SCORE</span><b id="pongScore">0</b></div>
+              <div><span>COMBO</span><b id="pongCombo">0</b></div>
+              <div><span>GEMS</span><b id="pongReward">+0</b></div>
+            </div>
+            <button id="pingBtn" class="btnGhost">謇薙■霑斐☆・・/button>
+            <button id="pingResetBtn" class="btnGhost">繝ｪ繧ｻ繝・ヨ</button>
+            <div id="pingStatus" class="muted">繧ｹ繧ｿ繝ｼ繝茨ｼ・/div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- ★絶対パス + キャッシュバスター（JSも古いの踏まない） -->
-    <script type="module" src="/battle.js?v=20260227"></script>
-  </body>
+    <!-- 笘・ｵｶ蟇ｾ繝代せ + 繧ｭ繝｣繝・す繝･繝舌せ繧ｿ繝ｼ・・S繧ょ商縺・・雕上∪縺ｪ縺・ｼ・-->
+    <script type="module" src="/battle.js?v=20260914_radar_readable1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+    <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
 </html>
+

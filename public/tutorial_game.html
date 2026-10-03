@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
@@ -8,7 +8,7 @@
   #left { margin-right:20px; padding:10px; }
   #right { width:520px; padding:10px; border-left:1px solid #444; }
 
-  /* 盤面 */
+  /* 逶､髱｢ */
   #board { display:grid; grid-template-columns: repeat(5, 64px); grid-template-rows: repeat(7, 74px); gap:4px; }
   .cell { width:64px; height:74px; background:#444; position:relative; cursor:pointer; font-size:12px; user-select:none; }
   .cell.summon { background:#2a5; }
@@ -48,13 +48,13 @@
   }
   body.myTurnGlow { box-shadow: inset 0 0 0 3px rgba(255,215,0,0.55); }
 
-  /* ===== マナゲージ ===== */
+  /* ===== 繝槭リ繧ｲ繝ｼ繧ｸ ===== */
   #manaGauge { margin-top:4px; display:flex; gap:4px; flex-wrap:wrap; }
   .manaPip { width:12px; height:10px; border-radius:3px; background:#444; border:1px solid #666; }
   .manaPip.on { background:#ffd700; border-color:#caa400; }
   .manaPip.max { background:#2b2b2b; border-color:#555; }
 
-  /* ===== 右ペイン：手札と詳細を横並び ===== */
+  /* ===== 蜿ｳ繝壹う繝ｳ・壽焔譛ｭ縺ｨ隧ｳ邏ｰ繧呈ｨｪ荳ｦ縺ｳ ===== */
   #rightTop { display:flex; gap:10px; }
   #handWrap { flex: 1; min-width: 250px; }
   #detailWrap { width: 240px; }
@@ -93,43 +93,44 @@
     color:#fff;
   }
 </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
 <body>
 
 <div id="tbar">
-  <button id="btnBack">← 戻る</button>
+  <button id="btnBack">竊・謌ｻ繧・/button>
   <div class="small" style="opacity:.9;">Tutorial Battle (local)</div>
 </div>
 
 <div id="fxFlash"></div>
-<div id="turnBanner">あなたのターン！</div>
+<div id="turnBanner">縺ゅ↑縺溘・繧ｿ繝ｼ繝ｳ・・/div>
 
 <div id="left">
-  <h3>フィールド</h3>
+  <h3>繝輔ぅ繝ｼ繝ｫ繝・/h3>
   <div id="board"></div>
 
   <div style="margin-top:8px;">
-    <div>あなた: <span id="you"></span></div>
-    <div>ターン: <span id="turn"></span></div>
-    <div>マナ: <span id="mana"></span></div>
+    <div>縺ゅ↑縺・ <span id="you"></span></div>
+    <div>繧ｿ繝ｼ繝ｳ: <span id="turn"></span></div>
+    <div>繝槭リ: <span id="mana"></span></div>
     <div id="manaGauge"></div>
 
-    <div>撃破(A/B): <span id="kills"></span></div>
-    <div>侵入(A/B): <span id="infil"></span></div>
+    <div>謦・ｴ(A/B): <span id="kills"></span></div>
+    <div>萓ｵ蜈･(A/B): <span id="infil"></span></div>
     <div class="small" id="modeHint"></div>
 
     <div style="margin-top:6px;">
-      <button id="modeSummon">召喚</button>
-      <button id="modeMove">移動</button>
-      <button id="modeAttack">攻撃</button>
-      <button id="modeEvolve">進化</button>
-      <button id="doEvolve" style="display:none;">進化実行</button>
-      <button id="endTurn">ターンエンド</button>
+      <button id="modeSummon">蜿ｬ蝟・/button>
+      <button id="modeMove">遘ｻ蜍・/button>
+      <button id="modeAttack">謾ｻ謦・/button>
+      <button id="modeEvolve">騾ｲ蛹・/button>
+      <button id="doEvolve" style="display:none;">騾ｲ蛹門ｮ溯｡・/button>
+      <button id="endTurn">繧ｿ繝ｼ繝ｳ繧ｨ繝ｳ繝・/button>
     </div>
 
     <div id="quickActions" style="margin-top:8px; display:none;">
-      <button id="quickMove" style="font-size:14px; padding:8px 10px;">🏃 移動</button>
-      <button id="quickAttack" style="font-size:14px; padding:8px 10px;">⚔️ 攻撃</button>
+      <button id="quickMove" style="font-size:14px; padding:8px 10px;">純 遘ｻ蜍・/button>
+      <button id="quickAttack" style="font-size:14px; padding:8px 10px;">笞費ｸ・謾ｻ謦・/button>
       <span class="small" id="quickMsg" style="margin-left:8px;"></span>
     </div>
   </div>
@@ -140,26 +141,29 @@
 </div>
 
 <div id="right">
-  <h3>山札</h3>
+  <h3>螻ｱ譛ｭ</h3>
   <div id="deckCount"></div>
 
   <div id="rightTop">
     <div id="handWrap">
-      <h3>手札</h3>
+      <h3>謇区惆</h3>
       <div id="hand"></div>
     </div>
 
     <div id="detailWrap">
-      <h3>行動</h3>
+      <h3>陦悟虚</h3>
       <div id="actionPicker"></div>
 
-      <h3 style="margin-top:10px;">詳細</h3>
+      <h3 style="margin-top:10px;">隧ｳ邏ｰ</h3>
       <div id="detail"></div>
       <div id="dice"></div>
     </div>
   </div>
 </div>
 
-<script type="module" src="./tutorial_game.js?v=20260127c"></script>
+<script type="module" src="./tutorial_game.js?v=20260626"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
 </body>
 </html>

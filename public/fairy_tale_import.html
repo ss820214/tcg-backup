@@ -1,0 +1,131 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fairy Tale Card Import</title>
+  <style>
+    :root {
+      --bg: #080a0d;
+      --panel: rgba(255,255,255,.055);
+      --line: rgba(255,255,255,.12);
+      --text: #fff;
+      --muted: rgba(255,255,255,.68);
+      --ok: #8cffc1;
+      --bad: #ff8a8a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100svh;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(900px 520px at 15% 0%, rgba(105,180,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 100% 20%, rgba(120,255,170,.11), transparent 60%),
+        var(--bg);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8,10,13,.84);
+      backdrop-filter: blur(12px);
+    }
+    h1 { margin: 0; font-size: 18px; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    button, a.btn {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 12px;
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button.primary, a.btn.primary {
+      border-color: rgba(120,255,190,.42);
+      background: rgba(120,255,190,.14);
+    }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    main { padding: 16px; display: grid; gap: 14px; }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 12px;
+    }
+    .status {
+      white-space: pre-wrap;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .status.good { color: var(--ok); }
+    .status.bad { color: var(--bad); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(0,0,0,.24);
+      padding: 10px;
+    }
+    .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+    .name { font-weight: 950; }
+    .meta, .desc, .id { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .acts { font-size: 12px; margin-top: 8px; line-height: 1.45; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      font-weight: 900;
+    }
+  </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>遶･隧ｱ繧ｫ繝ｼ繝我ｸ諡ｬ謚募・</h1>
+      <div class="status" id="summary">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...</div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="./index.html">繝・ャ繧ｭ縺ｸ謌ｻ繧・/a>
+      <a id="loginBtn" class="btn primary" href="./login.html">邂｡逅・Ο繧ｰ繧､繝ｳ</a>
+      <button id="copyJsonBtn" type="button">JSON繧ｳ繝斐・</button>
+      <button id="uploadBtn" class="primary" type="button">Firestore縺ｸ謚募・</button>
+    </div>
+  </header>
+  <main>
+    <section class="panel">
+      <div id="status" class="status">譛ｪ螳溯｡・/div>
+    </section>
+    <section class="panel">
+      <div class="status">
+        Firestore謚募・縺ｫ縺ｯ縲∫樟蝨ｨ縺ｮFirebase UID縺ｮ users/{uid}.isAdmin 縺・true 縺ｧ縲〉ules蛛ｴ縺ｧ繧・cards 縺ｸ縺ｮ譖ｸ縺崎ｾｼ縺ｿ縺瑚ｨｱ蜿ｯ縺輔ｌ縺ｦ縺・ｋ蠢・ｦ√′縺ゅｊ縺ｾ縺吶・        險ｭ螳夂判髱｢縺ｮ邂｡逅・・ｧ｣髯､縺ｯ縺薙・遶ｯ譛ｫ縺縺代・繝ｭ繝ｼ繧ｫ繝ｫ隗｣髯､縺ｧ縲：irestore謚募・縺ｫ縺ｯ邂｡逅・Ο繧ｰ繧､繝ｳ縺ｧUID縺ｸ邂｡逅・・ｨｩ髯舌ｒ莉倥￠繧句ｿ・ｦ√′縺ゅｊ縺ｾ縺吶・        讓ｩ髯舌′縺ｪ縺・ｴ蜷医〒繧ゅ∫ｫ･隧ｱ繧ｫ繝ｼ繝峨・莉雁屓縺ｮJS譖ｴ譁ｰ縺ｫ繧医ｊ繝・ャ繧ｭ繝ｻ蟇ｾ謌ｦ繝ｻ繧ｬ繝√Ε縺ｸ繝ｭ繝ｼ繧ｫ繝ｫ蜿肴丐貂医∩縺ｧ縺吶・      </div>
+    </section>
+    <section class="grid" id="list"></section>
+  </main>
+  <script type="module" src="./fairy_tale_import.js?v=20260701_unit1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>
+

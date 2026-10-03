@@ -1,0 +1,334 @@
+/* Visual upgrade layer: deck / battle / match / gacha polish. */
+:root {
+  --vu-cyan: #7dd3fc;
+  --vu-mint: #77f2b2;
+  --vu-gold: #ffe36d;
+  --vu-ink: rgba(7, 11, 17, 0.86);
+  --vu-panel: rgba(15, 22, 31, 0.82);
+  --vu-line: rgba(255, 255, 255, 0.13);
+}
+
+body.vu-upgrade {
+  text-rendering: optimizeLegibility;
+}
+
+body.vu-upgrade::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(125, 211, 252, 0.08), transparent 32%),
+    radial-gradient(circle at 82% 12%, rgba(119, 242, 178, 0.07), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 28px);
+}
+
+/* Deck builder: make the actual deck slots read like controlled list items. */
+body.vu-deck #deckPanel,
+body.vu-deck .deckDock,
+body.vu-deck .deckInfoDock,
+body.vu-deck .deckCloudPanel {
+  background:
+    linear-gradient(135deg, rgba(125, 211, 252, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(7, 11, 17, 0.76) !important;
+  border-color: rgba(125, 211, 252, 0.14) !important;
+}
+
+body.vu-deck #deckPanel .deckPanelTop,
+body.vu-deck .deckDockHeader,
+body.vu-deck .deckInfoDockHead,
+body.vu-deck .deckCloudHead {
+  background:
+    linear-gradient(90deg, rgba(125, 211, 252, 0.13), rgba(119, 242, 178, 0.09)),
+    rgba(255, 255, 255, 0.035) !important;
+}
+
+body.vu-deck #deckList .cardRow {
+  --vu-rail: var(--row-attr, var(--vu-cyan));
+  position: relative;
+  isolation: isolate;
+  min-height: 74px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--vu-rail) 16%, transparent), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.018)),
+    rgba(7, 11, 17, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.065),
+    0 8px 20px rgba(0, 0, 0, 0.22) !important;
+}
+
+body.vu-deck #deckList .cardRow[data-kind="support"] {
+  --row-attr: #9ca3af !important;
+}
+
+body.vu-deck #deckList .cardRow:hover,
+body.vu-deck #deckList .cardRow.selected {
+  border-color: color-mix(in srgb, var(--vu-rail) 58%, rgba(255, 255, 255, 0.1)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 0 1px color-mix(in srgb, var(--vu-rail) 34%, transparent),
+    0 12px 28px rgba(0, 0, 0, 0.32) !important;
+}
+
+body.vu-deck #deckList .cardRow .name,
+body.vu-deck #deckList .cardRow b,
+body.vu-deck #deckList .cardRow strong {
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+body.vu-deck #deckList .cardRow .btns,
+body.vu-deck #deckList .cardRow .controls {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.vu-deck #deckList .cardRow .btns {
+  grid-template-columns: 76px 44px minmax(58px, 1fr) 44px !important;
+  grid-template-areas:
+    "detail plus count minus"
+    "ex ex ex ex" !important;
+  width: 268px !important;
+  min-width: 268px !important;
+  max-width: 268px !important;
+  flex-basis: 268px !important;
+}
+
+body.vu-deck #deckList .cardRow button[data-plus],
+body.vu-deck #deckList .cardRow button[data-minus],
+body.vu-deck #deckList .cardRow .count {
+  font-variant-numeric: tabular-nums;
+}
+
+body.vu-deck #deckList .cardRow button[data-plus] {
+  background:
+    radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--vu-rail) 28%, transparent), transparent 62%),
+    rgba(255, 255, 255, 0.035) !important;
+}
+
+body.vu-deck #deckList .cardRow button[data-detail] {
+  grid-area: detail !important;
+  border-color: rgba(125, 211, 252, 0.38) !important;
+  background:
+    linear-gradient(90deg, rgba(125, 211, 252, 0.14), rgba(255, 255, 255, 0.035)),
+    rgba(0, 0, 0, 0.22) !important;
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+body.vu-deck #deckList .cardRow button[data-ex] {
+  grid-area: ex !important;
+}
+
+body.vu-deck .deckStartButton,
+body.vu-deck .deckPlayBtn,
+body.vu-deck #playBtn {
+  box-shadow:
+    0 0 0 1px rgba(177, 255, 66, 0.4),
+    0 0 24px rgba(119, 242, 178, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Battle right pane: add a compact command rail and card-reader styling. */
+body.vu-game #rightPane {
+  background:
+    linear-gradient(180deg, rgba(125, 211, 252, 0.07), transparent 22%),
+    rgba(6, 10, 14, 0.88) !important;
+  border-left-color: rgba(125, 211, 252, 0.14) !important;
+}
+
+body.vu-game .vuBattleTabs {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px 0 10px;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, rgba(6, 10, 14, 0.97), rgba(6, 10, 14, 0.78));
+  backdrop-filter: blur(10px);
+}
+
+body.vu-game .vuBattleTab {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.045);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+body.vu-game .vuBattleTab.active {
+  color: white;
+  border-color: rgba(125, 211, 252, 0.58);
+  background:
+    linear-gradient(90deg, rgba(125, 211, 252, 0.25), rgba(119, 242, 178, 0.13)),
+    rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 18px rgba(125, 211, 252, 0.2);
+}
+
+body.vu-game #cardPreview,
+body.vu-game #hand,
+body.vu-game #actionPicker,
+body.vu-game #detail,
+body.vu-game #log {
+  border-radius: 16px;
+}
+
+body.vu-game #detail,
+body.vu-game #actionPicker,
+body.vu-game #log {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.014)),
+    rgba(0, 0, 0, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.105) !important;
+}
+
+/* Match intro / waiting room: stage it like an entry gate. */
+body.vu-match .panel {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 227, 109, 0.12), transparent 22%),
+    radial-gradient(circle at 15% 70%, rgba(125, 211, 252, 0.14), transparent 26%),
+    linear-gradient(145deg, rgba(18, 28, 43, 0.94), rgba(9, 13, 20, 0.9)) !important;
+}
+
+body.vu-match .panel::before {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  pointer-events: none;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 0 64px rgba(125, 211, 252, 0.08);
+}
+
+body.vu-match .top,
+body.vu-match .foot,
+body.vu-match .pCard,
+body.vu-match .fieldPlate {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
+    rgba(5, 9, 14, 0.46) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
+}
+
+body.vu-match .pCard {
+  position: relative;
+  overflow: hidden;
+}
+
+body.vu-match .vuMatchRail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, var(--vu-mint), var(--vu-cyan));
+  box-shadow: 0 0 22px rgba(125, 211, 252, 0.32);
+}
+
+body.vu-match .pCard.b .vuMatchRail {
+  background: linear-gradient(180deg, #ff6c87, #ffe36d);
+  box-shadow: 0 0 22px rgba(255, 108, 135, 0.28);
+}
+
+body.vu-match .vsText {
+  color: white !important;
+  text-shadow:
+    0 0 18px rgba(255, 227, 109, 0.55),
+    0 0 42px rgba(125, 211, 252, 0.28);
+}
+
+body.vu-match .count {
+  border-color: rgba(255, 227, 109, 0.42) !important;
+  box-shadow: 0 0 30px rgba(255, 227, 109, 0.18) !important;
+}
+
+body.vu-match .bar i {
+  background: linear-gradient(90deg, var(--vu-mint), var(--vu-cyan), var(--vu-gold)) !important;
+}
+
+/* Gacha: make banner choices feel like actual banners, not plain buttons. */
+body.vu-gacha .banner {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 48px rgba(0, 0, 0, 0.34) !important;
+}
+
+body.vu-gacha .themeDeck {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+body.vu-gacha .vuGachaBanner {
+  --vu-banner-color: var(--vu-cyan);
+  position: relative;
+  min-height: 74px;
+  padding: 12px 14px 12px 46px;
+  border: 1px solid color-mix(in srgb, var(--vu-banner-color) 45%, rgba(255, 255, 255, 0.12));
+  border-radius: 18px;
+  color: white;
+  background:
+    radial-gradient(circle at 86% 24%, color-mix(in srgb, var(--vu-banner-color) 22%, transparent), transparent 32%),
+    linear-gradient(135deg, color-mix(in srgb, var(--vu-banner-color) 18%, transparent), rgba(255, 255, 255, 0.035)),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.vu-gacha .vuGachaBanner::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--vu-banner-color);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--vu-banner-color) 65%, transparent);
+}
+
+body.vu-gacha .vuGachaBanner.active,
+body.vu-gacha .vuGachaBanner[aria-pressed="true"] {
+  border-color: var(--vu-banner-color);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--vu-banner-color) 38%, transparent),
+    0 0 26px color-mix(in srgb, var(--vu-banner-color) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+body.vu-gacha .vuGachaBanner[data-vu-banner="dark"] { --vu-banner-color: #b985ff; }
+body.vu-gacha .vuGachaBanner[data-vu-banner="fairy"] { --vu-banner-color: #ff91d1; }
+body.vu-gacha .vuGachaBanner[data-vu-banner="time"] { --vu-banner-color: #77f2b2; }
+body.vu-gacha .vuGachaBanner[data-vu-banner="support"] { --vu-banner-color: #9ca3af; }
+
+@media (max-width: 720px) {
+  body.vu-gacha .themeDeck {
+    grid-template-columns: 1fr;
+  }
+
+  body.vu-game .vuBattleTabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.vu-deck #deckList .cardRow {
+    min-height: 62px;
+  }
+
+  body.vu-deck #deckList .cardRow .btns {
+    grid-template-columns: 58px 36px minmax(46px, 1fr) 36px !important;
+    width: 198px !important;
+    min-width: 198px !important;
+    max-width: 198px !important;
+    flex-basis: 198px !important;
+    gap: 5px !important;
+  }
+}

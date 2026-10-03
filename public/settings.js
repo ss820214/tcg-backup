@@ -149,6 +149,7 @@ function mount(ctx){
               <button class="st_btn" id="ws_savekey">管理キーを保存</button>
 
               <button class="st_btn primary" id="ws_publish">この入力を cards に直接追加</button>
+              <button class="st_btn" id="adminRarity">レア度管理を開く</button>
               <button class="st_btn danger" id="adminLockBack">管理者ロックに戻す</button>
 
               <div id="ws_adminmsg" class="st_small"></div>
@@ -308,6 +309,14 @@ function wireAdmin(ctx, setTab){
     setAdminUnlocked(false);
     setMiniMsg(amsg, "管理者ロックに戻しました", true);
     refreshAdminUI();
+  });
+
+  $id("adminRarity")?.addEventListener("click", ()=>{
+    if (!getAdminUnlocked()) {
+      setMiniMsg(amsg, "管理者ロックを解除してから開いてください", false);
+      return;
+    }
+    location.href = "./rarity_admin.html";
   });
 
   $id("ws_savekey")?.addEventListener("click", ()=>{

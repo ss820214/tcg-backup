@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>0繝舌ヨ 繝・ャ繧ｭ繝・ぅ繧｢陦ｨ</title>
+
+  <link rel="stylesheet" href="./tier.css?v=20260906_curse_nav1" />
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+
+<body>
+  <div class="bg-effect">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+  </div>
+
+  <main class="app">
+    <nav class="page-nav" aria-label="逕ｻ髱｢遘ｻ蜍・>
+      <a class="page-nav-btn" href="./index.html">蛻晄悄逕ｻ髱｢</a>
+      <a class="page-nav-btn" href="./deck.html">繝・ャ繧ｭ</a>
+    </nav>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">0BATO DECK TIER MAKER</p>
+        <h1>0繝舌ヨ 繝・ャ繧ｭ繝・ぅ繧｢陦ｨ</h1>
+        <p class="lead">
+          繝・ャ繧ｭ繝・・繝槭ｒ霑ｽ蜉縺励※縲√ラ繝ｩ繝・げ縺ｧ繝・ぅ繧｢縺ｫ驟咲ｽｮ縲・br />
+          螻樊ｧ繝舌Λ繝ｳ繧ｹ繝ｻ蜿り・・逵溘・縺悶▲縺上ｊ隧穂ｾ｡繧ゅ∪縺ｨ繧√※邂｡逅・〒縺阪∪縺吶・        </p>
+      </div>
+
+      <div class="hero-actions">
+        <button id="addDeckBtn" class="primary-btn">・・繝・ャ繧ｭ繝・・繝櫁ｿｽ蜉</button>
+        <button id="resetBtn" class="danger-btn">蜈ｨ繝ｪ繧ｻ繝・ヨ</button>
+      </div>
+    </header>
+
+    <section class="tier-toolbar" aria-label="繝・ぅ繧｢陦ｨ謫堺ｽ・>
+      <button id="toggleSearchBtn" class="search-toggle-btn" type="button" aria-expanded="true">
+        讀懃ｴ｢繧帝哩縺倥ｋ
+      </button>
+
+      <div class="tier-search">
+        <label for="tierSearchInput">讀懃ｴ｢</label>
+        <input
+          id="tierSearchInput"
+          type="search"
+          placeholder="繝・・繝槫錐繝ｻ讎りｦ√・螻樊ｧ縺ｧ謗｢縺・
+          autocomplete="off"
+        />
+        <button id="clearSearchBtn" type="button">繧ｯ繝ｪ繧｢</button>
+      </div>
+
+      <div class="tier-toolbar-actions">
+        <button id="compactViewBtn" type="button" aria-pressed="false">繧ｳ繝ｳ繝代け繝・/button>
+        <button id="sortByTierBtn" type="button">繝・ぅ繧｢鬆・↓謨ｴ蛻・/button>
+      </div>
+    </section>
+
+    <section class="tier-board" id="tierBoard">
+      <div class="tier-row tier-s" data-tier="S">
+        <div class="tier-label">S</div>
+        <div class="tier-dropzone" data-tier="S"></div>
+      </div>
+
+      <div class="tier-row tier-a" data-tier="A">
+        <div class="tier-label">A</div>
+        <div class="tier-dropzone" data-tier="A"></div>
+      </div>
+
+      <div class="tier-row tier-b" data-tier="B">
+        <div class="tier-label">B</div>
+        <div class="tier-dropzone" data-tier="B"></div>
+      </div>
+
+      <div class="tier-row tier-c" data-tier="C">
+        <div class="tier-label">C</div>
+        <div class="tier-dropzone" data-tier="C"></div>
+      </div>
+
+      <div class="tier-row tier-d" data-tier="D">
+        <div class="tier-label">D</div>
+        <div class="tier-dropzone" data-tier="D"></div>
+      </div>
+    </section>
+
+    <section class="pool-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">DECK THEME POOL</p>
+          <h2>譛ｪ驟咲ｽｮ繝・ャ繧ｭ繝・・繝・<span id="poolCount" class="section-count">0</span></h2>
+        </div>
+        <p class="hint">繝峨Λ繝・げ縺励※荳翫・繝・ぅ繧｢縺ｸ遘ｻ蜍輔〒縺阪∪縺吶・/p>
+      </div>
+
+      <div id="deckPool" class="deck-pool" data-tier="pool"></div>
+    </section>
+  </main>
+
+  <aside id="drawer" class="drawer">
+    <div class="drawer-panel">
+      <button id="closeDrawerBtn" class="close-btn" type="button" aria-label="繝・ャ繧ｭ隧ｳ邏ｰ繧帝哩縺倥ｋ">髢峨§繧・/button>
+
+      <p class="eyebrow">DECK DETAIL</p>
+      <h2 id="drawerTitle">繝・ャ繧ｭ繝・・繝槫錐</h2>
+
+      <!-- 1. 繝・ャ繧ｭ繝・・繝槫錐 -->
+      <label class="field-label">繝・・繝槫錐</label>
+      <input id="deckNameInput" class="text-input" type="text" />
+
+      <!-- 2. 繝・ャ繧ｭ逕ｻ蜒・-->
+      <section class="deck-image-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">DECK IMAGE</p>
+            <h3>繝・ャ繧ｭ逕ｻ蜒・/h3>
+          </div>
+          <p class="mini-note">繧ｫ繝ｼ繝峨・繝ｼ繝ｫ縺ｮ蜿り・・逵・/p>
+        </div>
+
+        <div id="imageDropArea" class="image-drop-area">
+          <div class="drop-icon">萄</div>
+          <strong>繝・ャ繧ｭ逕ｻ蜒上ｒ縺薙％縺ｫ繝峨Λ繝・げ</strong>
+          <span>縺ｾ縺溘・繧ｯ繝ｪ繝・け縺励※逕ｻ蜒上ｒ驕ｸ謚・/span>
+          <input id="imageFileInput" type="file" accept="image/*" hidden />
+        </div>
+
+        <div id="imagePreviewWrap" class="image-preview-wrap">
+          <img id="imagePreview" alt="繝・ャ繧ｭ逕ｻ蜒・ />
+          <button id="deleteImageBtn" class="danger-btn small">逕ｻ蜒上ｒ蜑企勁</button>
+        </div>
+      </section>
+
+      <!-- 3. 讎りｦ・-->
+      <section class="overview-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">OVERVIEW</p>
+            <h3>讎りｦ・/h3>
+          </div>
+        </div>
+
+        <textarea
+          id="deckOverviewInput"
+          class="memo-input"
+          placeholder="縺薙・繝・ャ繧ｭ繝・・繝槭・迚ｹ蠕ｴ繝ｻ蠑ｷ縺ｿ繝ｻ縺ｩ縺・＞縺・ョ繝・く縺九ｒ譖ｸ縺代∪縺吶・
+        ></textarea>
+      </section>
+
+      <!-- 4. 縺翫☆縺吶ａ蠎ｦ / 繧ｲ繝ｼ繝繧ｹ繝斐・繝・-->
+      <section class="tendency-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">DECK TENDENCY</p>
+            <h3>繝・ャ繧ｭ繝・・繝槭・蛯ｾ蜷・/h3>
+          </div>
+          <p class="mini-note">5谿ｵ髫手ｩ穂ｾ｡</p>
+        </div>
+
+        <div class="tendency-layout">
+          <div class="tendency-map-wrap">
+            <div class="tendency-map-inner">
+              <div class="tendency-y-label">蛻晏ｿ・・♀縺吶☆繧∝ｺｦ</div>
+
+              <div id="tendencyGrid" class="tendency-grid">
+                <!-- JS縺ｧ25繝槭せ逕滓・ -->
+              </div>
+            </div>
+
+            <div class="tendency-x-label">繧ｲ繝ｼ繝繧ｹ繝斐・繝・/div>
+          </div>
+
+          <div class="tendency-sliders">
+            <div class="tendency-meter">
+              <div class="tendency-meter-head">
+                <span class="tendency-meter-title">蛻晏ｿ・・♀縺吶☆繧∝ｺｦ</span>
+                <span id="beginnerValueText" class="tendency-meter-value">3 / 5</span>
+              </div>
+
+              <input
+                id="beginnerInput"
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value="3"
+              />
+
+              <div class="tendency-meter-labels">
+                <span>邇・ｺｺ蜷代￠</span>
+                <span>蛻晏ｿ・・髄縺・/span>
+              </div>
+            </div>
+
+            <div class="tendency-meter">
+              <div class="tendency-meter-head">
+                <span class="tendency-meter-title">繧ｲ繝ｼ繝繧ｹ繝斐・繝・/span>
+                <span id="speedValueText" class="tendency-meter-value">3 / 5</span>
+              </div>
+
+              <input
+                id="speedInput"
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value="3"
+              />
+
+              <div class="tendency-meter-labels">
+                <span>菴朱・/span>
+                <span>鬮倬・/span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 繝ｭ繝ｼ繝ｫ -->
+      <section class="role-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">DECK ROLE</p>
+            <h3>繝・ャ繧ｭ繝ｭ繝ｼ繝ｫ</h3>
+          </div>
+          <p class="mini-note">隍・焚驕ｸ謚朧K</p>
+        </div>
+
+        <div id="roleControls" class="role-controls"></div>
+      </section>
+
+      <!-- 6. 蝗槭＠譁ｹ -->
+      <section class="guide-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">HOW TO PLAY</p>
+            <h3>蝗槭＠譁ｹ</h3>
+          </div>
+        </div>
+
+        <textarea
+          id="deckGuideInput"
+          class="memo-input"
+          placeholder="蠎冗乢繝ｻ荳ｭ逶､繝ｻ邨ら乢縺ｮ蜍輔″縲∝享縺｡遲九∵ｳｨ諢冗せ縺ｪ縺ｩ繧呈嶌縺代∪縺吶・
+        ></textarea>
+      </section>
+
+      <!-- 7. 繝｡繝｢ -->
+      <section class="memo-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">MEMO</p>
+            <h3>繝｡繝｢</h3>
+          </div>
+        </div>
+
+        <textarea
+          id="deckMemoInput"
+          class="memo-input"
+          placeholder="迚ｹ蠕ｴ縲∝ｼｷ縺ｿ縲∝ｼｱ縺ｿ縲∵治逕ｨ繧ｫ繝ｼ繝峨↑縺ｩ繧偵Γ繝｢縺ｧ縺阪∪縺吶・
+        ></textarea>
+      </section>
+
+      <!-- 8. 螻樊ｧ -->
+      <section class="attr-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">ATTRIBUTE BALANCE</p>
+            <h3>蜷ｫ縺ｾ繧後※縺・ｋ螻樊ｧ</h3>
+          </div>
+          <p class="mini-note">0縲・谿ｵ髫弱〒縺悶▲縺上ｊ險倬鹸</p>
+        </div>
+
+        <div id="attributeControls" class="attribute-controls"></div>
+      </section>
+
+      <!-- 9. 繝ｬ繝ｼ繝繝ｼ -->
+      <section class="radar-section">
+        <div class="drawer-section-head">
+          <div>
+            <p class="eyebrow">DECK POWER RADAR</p>
+            <h3>縺悶▲縺上ｊ繝・ャ繧ｭ隧穂ｾ｡</h3>
+          </div>
+        </div>
+
+        <div class="radar-card">
+          <canvas id="deckRadarCanvas" width="420" height="360"></canvas>
+          <p id="radarNote" class="radar-note">螻樊ｧ繧定ｨｭ螳壹☆繧九→隧穂ｾ｡縺瑚｡ｨ遉ｺ縺輔ｌ縺ｾ縺吶・/p>
+        </div>
+      </section>
+
+      <div class="drawer-actions">
+        <button id="saveDeckBtn" class="primary-btn">菫晏ｭ・/button>
+        <button id="deleteDeckBtn" class="danger-btn">縺薙・繝・・繝槭ｒ蜑企勁</button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast">菫晏ｭ伜ｮ御ｺ・ｼ・/div>
+
+  <script type="module" src="./tier.js?v=20260906_curse_nav1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>
+

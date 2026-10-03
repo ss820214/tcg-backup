@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="sleeping princess thunder spinning needle pencil illustration">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff9c8"/><stop offset=".55" stop-color="#f6f5ef"/><stop offset="1" stop-color="#e9e4d5"/></linearGradient><filter id="g"><feGaussianBlur stdDeviation="2.1"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M28 59c60 13 114-14 200 3M28 298c67-12 126 11 200-4"/><path d="M41 38l174 278M219 38L37 317"/></g>
+    <g stroke="#ffd33e" stroke-width="5.5" opacity=".54" filter="url(#g)"><path d="M193 45l-31 59h36l-51 95"/><path d="M54 232c37-24 70-18 100 4 29 21 52 18 77-6"/></g>
+    <g stroke="#202020">
+      <g stroke-width="3.8"><circle cx="107" cy="79" r="22"/><path d="M75 115c20-30 50-34 72-6"/><path d="M76 115c-14 41-8 81 31 114 39-33 46-73 34-114"/><circle cx="170" cy="183" r="52"/></g>
+      <g stroke-width="2.5"><path d="M170 100v166M121 181h97"/><path d="M140 112c25 26 49 53 73 84M136 252c26-30 51-58 78-86"/><path d="M84 154c18 10 35 11 54 0M107 115v110"/><path d="M79 229c-12 20-17 40-15 67M133 229c12 20 18 40 16 67"/><path d="M83 296h39M135 296h38"/><path d="M74 68c15-21 37-25 60-10"/><path d="M176 84l-24 49h31l-38 71"/></g>
+      <g stroke-width="1.1" opacity=".34"><circle cx="170" cy="183" r="39"/><circle cx="170" cy="183" r="27"/><path d="M81 135c21 8 43 8 64 0M75 178c26 11 52 11 77 0"/></g>
+    </g>
+  </g>
+</svg>

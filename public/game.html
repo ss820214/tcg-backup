@@ -1,32 +1,37 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#0b0d12" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>TCG Online - Battle</title>
 
-    <!-- Desktop/base battle UI -->
-    <link rel="stylesheet" href="./game.css?v=20260228_9" />
-    <!-- Mobile-only layers. Desktop stays on game.css. -->
-    <link rel="stylesheet" href="./game_mobile.css?v=20261003_1" />
-    <link rel="stylesheet" href="./game_mobile_landscape.css?v=20261003_1" />
-    <link rel="stylesheet" href="./game_mobile_polish.css?v=20261003_1" />
-  </head>
+    <!-- Existing game.css controls the battle layout, effects, panes, log, and mana UI. -->
+    <link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1" />
+    <link rel="stylesheet" href="./game.css?v=20260919_hand_fan3" />
+    <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1" />
+    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+    <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+</head>
   <body>
-    <!-- ===== FX/Overlay (game.js が参照) ===== -->
-    <div id="turnBanner" aria-live="polite">あなたのターン！</div>
-    <div id="fxFlash" aria-hidden="true"></div>
+    <!-- ===== FX / Overlay ===== -->
+    <div id="turnBanner">縺ゅ↑縺溘・繧ｿ繝ｼ繝ｳ・・/div>
+    <div id="fxFlash"></div>
     <div id="pinchFx" aria-hidden="true"></div>
 
+    <div id="enemySupportToast" class="enemySupportToast" aria-hidden="true">
+      <div class="enemySupportToastHead">
+        <b id="enemySupportToastTitle">逶ｸ謇九′繧ｵ繝昴・繝育匱蜍・/b>
+        <button id="enemySupportToastClose" type="button" aria-label="髢峨§繧・>ﾃ・/button>
+      </div>
+      <div id="enemySupportToastBody" class="enemySupportToastBody"></div>
+    </div>
     <!-- ===== App Layout ===== -->
     <div id="app">
-      <!-- LEFT: information + controls -->
+      <!-- ======================
+          LEFT PANE
+         ====================== -->
       <aside id="leftPane">
-        <div class="paneTitle">情報</div>
+        <div class="paneTitle">諠・ｱ</div>
 
         <div class="kv">
           <div class="row small"><b>YOU:</b> <span id="you">?</span></div>
@@ -36,15 +41,15 @@
             <span id="mana">A ?/? | B ?/?</span>
           </div>
 
+          <!-- Mana gauge -->
           <div id="manaGauge"></div>
 
           <div class="row small" style="margin-top: 8px">
-            <div id="deckCount">残り A:? / B:?</div>
+            <div id="deckCount">谿九ｊ A:? / B:?</div>
           </div>
-
           <div id="scoreWrap" class="scoreWrap">
             <div class="scoreRow">
-              <div class="scoreLabel">🏴 KILL</div>
+              <div class="scoreLabel">KILL</div>
 
               <div class="scoreSide">
                 <div class="scoreSideName">A</div>
@@ -60,7 +65,7 @@
             </div>
 
             <div class="scoreRow" style="margin-top: 6px">
-              <div class="scoreLabel">🕳️ INFIL</div>
+              <div class="scoreLabel">INFIL</div>
 
               <div class="scoreSide">
                 <div class="scoreSideName">A</div>
@@ -75,6 +80,7 @@
               </div>
             </div>
 
+            <!-- Hidden legacy spans kept for compatibility. -->
             <span id="kills" style="display: none"></span>
             <span id="infil" style="display: none"></span>
           </div>
@@ -87,109 +93,103 @@
           ></div>
         </div>
 
-        <div class="paneTitle">操作</div>
+        <div class="paneTitle">謫堺ｽ・/div>
         <div class="controls">
-          <button id="modeSummon" type="button">召喚</button>
-          <button id="modeMove" type="button">移動</button>
-          <button id="modeAttack" type="button">行動</button>
-          <button id="modeEvolve" type="button">進化</button>
-          <button id="modeSupport" type="button">サポート</button>
-          <button id="doEvolve" type="button" style="display: none">進化実行</button>
-          <button id="endTurn" type="button">ターン終了</button>
+          <button id="modeSummon">蜿ｬ蝟・/button>
+          <button id="modeMove">遘ｻ蜍・/button>
+          <button id="modeAttack">陦悟虚</button>
+          <button id="modeEvolve">騾ｲ蛹・/button>
+          <button id="modeSupport">繧ｵ繝昴・繝・/button>
+          <button id="doEvolve" style="display: none">騾ｲ蛹門ｮ溯｡・/button>
+          <button id="endTurn">繧ｿ繝ｼ繝ｳ邨ゆｺ・/button>
         </div>
 
         <!-- Quick actions -->
         <div id="quickActions" class="quickActions" style="display: none">
-          <button id="quickMove" type="button">🏃 移動</button>
-          <button id="quickAttack" type="button">⚔️ 行動</button>
+          <button id="quickMove">遘ｻ蜍・/button>
+          <button id="quickAttack">陦悟虚</button>
           <span id="quickMsg" class="small"></span>
         </div>
 
-        <!-- Pinch + EX -->
+        <!-- Pinch + EX UI -->
         <div id="exWrap" class="kv" style="margin-top: 10px">
           <div
             class="row"
             style="justify-content: space-between; align-items: center"
           >
             <b>EX</b>
-            <button id="exBtn" type="button">EX発動</button>
+            <button id="exBtn" type="button">EX逋ｺ蜍・/button>
           </div>
           <div id="exInfo" class="small" style="margin-top: 6px; opacity: 0.9">
-            EXなし
-          </div>
+            EX縺ｪ縺・          </div>
           <div class="small" style="margin-top: 6px; opacity: 0.75">
-            ※ピンチ時のみ / 1回きり
-          </div>
+            窶ｻ繝斐Φ繝∵凾縺ｮ縺ｿ / 1蝗槭″繧・          </div>
         </div>
       </aside>
 
-      <!-- CENTER: 5x7 board -->
+      <!-- ======================
+          CENTER PANE
+         ====================== -->
       <main id="centerPane" aria-label="battle-board">
         <div id="board"></div>
       </main>
 
-      <!-- RIGHT: hand / actions / detail / log -->
+      <!-- ======================
+          RIGHT PANE
+         ====================== -->
       <aside id="rightPane">
-        <div class="paneTitle">手札</div>
+        <div id="cardPreview" class="battleCardPreview" aria-live="polite"></div>
+
+        <div class="paneTitle">謇区惆</div>
         <div id="hand"></div>
 
-        <div class="paneTitle" style="margin-top: 10px">行動</div>
+        <div class="paneTitle" style="margin-top: 10px">陦悟虚</div>
         <div id="actionPicker" class="small">
-          ユニットを選択すると行動が表示されます。
-        </div>
+          繝ｦ繝九ャ繝医ｒ驕ｸ謚槭☆繧九→陦悟虚縺瑚｡ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
 
-        <div class="paneTitle" style="margin-top: 10px">詳細</div>
+        <div class="paneTitle" style="margin-top: 10px">隧ｳ邏ｰ</div>
         <div id="detail" class="small">
-          ユニット/カードの詳細がここに表示されます。
-        </div>
+          繝ｦ繝九ャ繝・繧ｫ繝ｼ繝峨・隧ｳ邏ｰ縺後％縺薙↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
 
-        <div class="paneTitle" style="margin-top: 10px">ログ</div>
+        <div class="paneTitle" style="margin-top: 10px">繝ｭ繧ｰ</div>
         <pre id="log"></pre>
       </aside>
     </div>
 
+    <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="繧ｹ繝槭・逕ｨ繝舌ヨ繝ｫ遘ｻ蜍・>
+      <button type="button" data-jump-target="centerPane">逶､髱｢</button>
+      <button type="button" data-jump-target="leftPane">謫堺ｽ・/button>
+      <button type="button" data-jump-target="rightPane">隧ｳ邏ｰ</button>
+    </nav>
+
     <!-- ===== Game code ===== -->
-    <script type="module" src="./game.js?v=20260228_34"></script>
-    <!-- Presentation-only mobile shell. It moves existing live DOM nodes; no game rules live here. -->
-    <script type="module" src="./game_mobile.js?v=20261003_1"></script>
-    <script type="module" src="./game_mobile_polish.js?v=20261003_1"></script>
+<script type="module" src="./game.js?v=20260919_hand_fan3"></script>
 
     <style>
+      /* Hide old join buttons while keeping existing battle UI intact. */
       #joinGameBtn,
       #btnJoinGame,
-      #gameJoinBtn,
+      #gameJoinBtn {
+        display: none !important;
+      }
+
+      /* Also catch legacy class-based join buttons. */
       .join-game-btn {
         display: none !important;
       }
     </style>
 
-    <!-- BGM UI/controller: use sfx.js public controller only. -->
     <script type="module">
-      import {
-        setBgmEnabled,
-        setBgmMode,
-      } from "./sfx.js?v=20260228_1";
+      import { setBgmEnabled, setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 
       const BGM_KEY = "tcg_bgm_on";
       const VOLUME = 0.35;
       const RATE = 1.0;
-      let bgmOn = (localStorage.getItem(BGM_KEY) ?? "1") === "1";
-      let pinchLevel = 0;
 
-      function modeFromLevel(lv) {
-        if (lv >= 2) return "alert2";
-        if (lv >= 1) return "alert1";
-        return "battle";
-      }
+      let bgmOn = (localStorage.getItem(BGM_KEY) ?? "1") === "1";
 
       function applyBgmState() {
-        setBgmEnabled(bgmOn, { volume: VOLUME, playbackRate: RATE });
-        if (bgmOn) {
-          setBgmMode(modeFromLevel(pinchLevel), {
-            volume: VOLUME,
-            playbackRate: RATE,
-          });
-        }
+        setBgmEnabled(false);
       }
 
       function isSoloUrl() {
@@ -201,35 +201,34 @@
         const btn = document.createElement("button");
         btn.id = "bgmToggleBtn";
         btn.type = "button";
-        btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
         btn.style.marginLeft = "6px";
+        btn.textContent = bgmOn ? "BGM ON" : "BGM OFF";
 
         const solo = isSoloUrl();
+
+        // Console button is only shown in solo mode.
         let cbtn = null;
         if (solo) {
           cbtn = document.createElement("button");
           cbtn.id = "consoleToggleBtn";
           cbtn.type = "button";
-          cbtn.textContent = "🖥 コンソール";
           cbtn.style.marginLeft = "6px";
+          cbtn.textContent = "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
         }
 
         const leftPane = document.querySelector("#leftPane");
         const controlsTitle = leftPane?.querySelectorAll(".paneTitle")?.[1];
         if (controlsTitle && controlsTitle.parentElement) {
           const wrap = document.createElement("div");
-          wrap.className = "controlsTitleRow";
           wrap.style.display = "flex";
           wrap.style.alignItems = "center";
           wrap.style.justifyContent = "space-between";
-          wrap.style.gap = "6px";
 
           const titleClone = controlsTitle.cloneNode(true);
           controlsTitle.replaceWith(wrap);
           wrap.appendChild(titleClone);
 
           const right = document.createElement("div");
-          right.className = "audioControls";
           right.style.display = "flex";
           right.style.gap = "6px";
           right.appendChild(btn);
@@ -240,51 +239,132 @@
           if (cbtn) leftPane?.prepend(cbtn);
         }
 
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           bgmOn = !bgmOn;
           localStorage.setItem(BGM_KEY, bgmOn ? "1" : "0");
-          btn.textContent = bgmOn ? "🔊 BGM ON" : "🔇 BGM OFF";
-          applyBgmState();
+          btn.textContent = bgmOn ? "BGM ON" : "BGM OFF";
+
+          if (bgmOn) {
+            setBgmEnabled(true, { volume: VOLUME, playbackRate: RATE });
+            setBgmMode(modeByLevel(_pinchLevel), {
+              volume: VOLUME,
+              playbackRate: RATE,
+            });
+          } else {
+            setBgmEnabled(false);
+          }
         });
+
+        const waitForSoloConsole = async (timeoutMs = 9000) => {
+          const started = performance.now();
+          while (performance.now() - started < timeoutMs) {
+            if (typeof window.toggleSoloConsole === "function") {
+              return window.toggleSoloConsole;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 120));
+          }
+          return null;
+        };
 
         if (cbtn) {
           cbtn.addEventListener("click", async () => {
-            if (typeof window.toggleSoloConsole === "function") {
-              await window.toggleSoloConsole();
-            } else {
-              alert("console機能がまだ読み込まれていません。");
+            const prevText = cbtn.textContent;
+            window.__soloConsoleOpenRequested = true;
+            cbtn.disabled = true;
+            cbtn.textContent = "隱ｭ霎ｼ荳ｭ...";
+            try {
+              const toggle = await waitForSoloConsole();
+              if (typeof toggle === "function") {
+                window.__soloConsoleOpenRequested = false;
+                await toggle();
+              } else {
+                alert("繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ縺ｮ貅門ｙ縺ｫ譎る俣縺後°縺九▲縺ｦ縺・∪縺吶ょｰ代＠蠕・▲縺ｦ繧ゅ≧荳蠎ｦ謚ｼ縺励※縺ｭ縲・);
+              }
+            } finally {
+              cbtn.disabled = false;
+              cbtn.textContent = prevText || "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
             }
           });
         }
+
+        return btn;
       }
 
-      // game.js can call this without caring how BGM is implemented.
-      window.setPinchBgmLevel = function (lv) {
-        pinchLevel = Math.max(0, Math.min(2, Number(lv) || 0));
-        if (bgmOn) {
-          setBgmMode(modeFromLevel(pinchLevel), {
+      function armAutoStartOnce() {
+        const startOnce = async () => {
+          window.removeEventListener("pointerdown", startOnce);
+          if (!bgmOn) return;
+          setBgmEnabled(true, { volume: VOLUME, playbackRate: RATE });
+          setBgmMode(modeByLevel(_pinchLevel), {
             volume: VOLUME,
             playbackRate: RATE,
           });
-        }
-      };
-
-      function armAutoStartOnce() {
-        const startOnce = () => {
-          if (!bgmOn) return;
-          applyBgmState();
         };
         window.addEventListener("pointerdown", startOnce, { once: true });
       }
 
-      mountBgmToggle();
+      // UI setup.
+      const btn = mountBgmToggle();
+
+      // Initial state.
+      applyBgmState();
+
       if (bgmOn) armAutoStartOnce();
 
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) setBgmEnabled(false);
-        else if (bgmOn) applyBgmState();
       });
       window.addEventListener("beforeunload", () => setBgmEnabled(false));
+
+      // ===== Pinch BGM level controller (called from game.js) =====
+      // lv: 0=normal(battle), 1=alert1, 2=alert2
+      let _pinchLevel = 0;
+
+      function modeByLevel(lv) {
+        if (lv === 2) return "alert2";
+        if (lv === 1) return "alert1";
+        return "battle";
+      }
+
+      window.setPinchBgmLevel = async function (lv) {
+        lv = Number(lv) || 0;
+        lv = Math.max(0, Math.min(2, lv));
+        if (lv === _pinchLevel) return;
+        _pinchLevel = lv;
+
+        if (!bgmOn) return;
+        setBgmMode(modeByLevel(lv), { volume: VOLUME, playbackRate: RATE });
+      };
     </script>
-  </body>
+
+    <script>
+      (() => {
+        const nav = document.getElementById("mobileBattleNav");
+        if (!nav) return;
+        const setActive = (id) => {
+          nav.querySelectorAll("button").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.jumpTarget === id);
+          });
+        };
+        nav.addEventListener("click", (ev) => {
+          const btn = ev.target.closest("button[data-jump-target]");
+          if (!btn) return;
+          const target = document.getElementById(btn.dataset.jumpTarget);
+          if (!target) return;
+          setActive(btn.dataset.jumpTarget);
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        setActive("centerPane");
+      })();
+    </script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./visual_upgrade_20260805.js?v=20260806_deck_controls1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+
+    <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
 </html>
+

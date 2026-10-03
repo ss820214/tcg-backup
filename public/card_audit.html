@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Card Audit</title>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+  <style>
+    body{margin:0;background:#06090d;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif}
+    .auditWrap{max-width:1280px;margin:0 auto;padding:18px}
+    .auditHead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}
+    .auditTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .auditTools input{min-width:260px}
+    .auditStats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:12px 0}
+    .auditStat,.auditRow{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.025));padding:12px}
+    .auditStat b{font-size:24px;display:block}
+    .auditRows{display:grid;gap:8px}
+    .auditRow{display:grid;grid-template-columns:160px minmax(0,1fr) 220px;gap:12px;align-items:center}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 8px;font-size:12px;background:rgba(0,0,0,.23)}
+    .chip.bad{border-color:rgba(255,100,100,.5);color:#ff8a8a}.chip.warn{border-color:rgba(255,216,107,.5);color:#ffd86b}.chip.note{border-color:rgba(120,200,255,.5);color:#9bd5ff}
+    .muted{color:rgba(255,255,255,.62)}
+    @media(max-width:860px){.auditStats{grid-template-columns:1fr 1fr}.auditRow{grid-template-columns:1fr}.auditTools input{min-width:0;width:100%}.auditHead{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="auditWrap">
+    <section class="auditHead">
+      <div>
+        <h1>繧ｫ繝ｼ繝臥屮譟ｻ</h1>
+        <p class="small">繧ｫ繝ｼ繝牙・鬘槭・逕ｻ蜒上・蜀・Κ繧ｿ繧ｰ豺ｷ蜈･繝ｻ驥崎､⑩D繧偵∪縺ｨ繧√※遒ｺ隱阪＠縺ｾ縺吶・/p>
+      </div>
+      <div class="auditTools">
+        <button onclick="location.href='./index.html'">蛻晄悄逕ｻ髱｢縺ｸ</button>
+        <button onclick="location.href='./ui_health.html'">UI險ｺ譁ｭ縺ｸ</button>
+      </div>
+    </section>
+    <section class="auditTools">
+      <input id="q" placeholder="繧ｫ繝ｼ繝牙錐 / ID / 繧ｷ繝ｪ繝ｼ繧ｺ縺ｧ讀懃ｴ｢" />
+      <button data-filter="all" class="isActive">蜈ｨ驛ｨ</button>
+      <button data-filter="unit">繧ｭ繝｣繝ｩ</button>
+      <button data-filter="support">繧ｵ繝昴・繝・/button>
+      <button data-filter="bad">蜊ｱ髯ｺ</button>
+      <button data-filter="warn">豕ｨ諢・/button>
+      <button data-filter="art">逕ｻ蜒上↑縺・/button>
+    </section>
+    <section id="stats" class="auditStats"></section>
+    <section id="rows" class="auditRows"></section>
+  </main>
+  <script type="module" src="./card_audit.js?v=20260825_audit1"></script>
+</body>
+</html>
+

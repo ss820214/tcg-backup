@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>0バト 対戦補助</title>
+  <link rel="stylesheet" href="./style.css?v=20260822_roll_phase1" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="title-wrap">
+        <h1>0バト 対戦コンソール</h1>
+        <p class="sub">紙版対戦用サポートツール</p>
+      </div>
+
+      <div class="top-info">
+        <div class="top-card">
+          <span class="top-label">ターン</span>
+          <strong id="turnDisplay">1</strong>
+        </div>
+        <div class="top-card">
+          <span class="top-label">手番</span>
+          <strong id="activePlayerDisplay">A</strong>
+        </div>
+        <div class="top-card">
+          <span class="top-label">先攻</span>
+          <strong id="firstPlayerDisplay">プレイヤーA</strong>
+        </div>
+        <div class="top-card">
+          <span class="top-label">勝利</span>
+          <strong id="winnerDisplay">進行中</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- PLAYER A -->
+      <section class="player player-a">
+        <div class="player-head">
+          <h2>PLAYER A</h2>
+          <input id="nameA" class="name-input" value="プレイヤーA" maxlength="18" />
+        </div>
+
+        <div class="stat-block mana">
+          <div class="stat-row mana-head-row">
+            <span class="stat-label">マナ</span>
+            <span class="mana-numbers">
+              <span id="manaAValue">2</span>
+              <span class="slash">/</span>
+              <span id="maxManaAValue">2</span>
+            </span>
+          </div>
+
+          <div class="mana-gems" id="manaAGems"></div>
+
+          <div class="btns">
+            <button data-action="changeMana" data-player="a" data-delta="-2">使用 -2</button>
+            <button data-action="changeMana" data-player="a" data-delta="-1">使用 -1</button>
+            <button data-action="changeMana" data-player="a" data-delta="1">回復 +1</button>
+            <button data-action="changeMana" data-player="a" data-delta="2">回復 +2</button>
+          </div>
+        </div>
+
+        <div class="stat-block kill">
+          <div class="stat-row">
+            <span class="stat-label">撃破</span>
+            <span class="stat-value" id="killsAValue">0</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="a" data-key="kills" data-delta="-1">-1</button>
+            <button data-action="change" data-player="a" data-key="kills" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block infil">
+          <div class="stat-row">
+            <span class="stat-label">侵入</span>
+            <span class="stat-value" id="infilAValue">0</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="a" data-key="infil" data-delta="-1">-1</button>
+            <button data-action="change" data-player="a" data-key="infil" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block deck">
+          <div class="stat-row">
+            <span class="stat-label">山札</span>
+            <span class="stat-value" id="deckAValue">20</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="a" data-key="deck" data-delta="-1">-1</button>
+            <button data-action="change" data-player="a" data-key="deck" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block hand">
+          <div class="stat-row">
+            <span class="stat-label">手札</span>
+            <span class="stat-value" id="handAValue">5</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="a" data-key="hand" data-delta="-1">-1</button>
+            <button data-action="change" data-player="a" data-key="hand" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="memo">
+          <label for="memoA">メモ</label>
+          <textarea id="memoA" placeholder="例：状態異常、残り重要札、次ターン予定など"></textarea>
+        </div>
+      </section>
+
+      <!-- CENTER -->
+      <section class="center">
+        <div class="center-top">
+          <div class="turn-banner" id="turnBanner">プレイヤーA のターン</div>
+
+          <div class="setup-row">
+            <button id="setFirstA" class="ghost-btn">A先攻</button>
+            <button id="setFirstB" class="ghost-btn">B先攻</button>
+          </div>
+
+          <div class="control-row">
+            <button id="toggleTurnBtn" class="main-btn">エンドフェイズ</button>
+            <button id="nextTurnBtn" class="sub-btn">ターン+1</button>
+            <button id="resetBtn" class="danger-btn">リセット</button>
+          </div>
+        </div>
+
+        <div class="dice-card">
+          <div class="dice-title">メイン判定</div>
+
+          <button id="roll1d100Btn" class="roll-100-btn">
+            <span class="roll-main">1D100</span>
+            <span class="roll-sub">判定を振る</span>
+          </button>
+
+          <div id="diceDisplay" class="dice-display">?</div>
+          <div id="diceJudge" class="dice-judge">通常判定</div>
+          <div id="diceSubtext" class="dice-subtext">ここに結果が表示されます</div>
+
+          <div class="minor-dice-row">
+            <button data-dice="1d6">1D6</button>
+            <button data-dice="2d6">2D6</button>
+            <button data-dice="1d20">1D20</button>
+            <button data-dice="coin">コイン</button>
+          </div>
+        </div>
+
+        <div class="win-card">
+          <div class="win-title">勝利ゲージ</div>
+
+          <div class="gauge-row">
+            <span>A 撃破</span>
+            <div class="gauge"><div id="killsABar" class="fill red"></div></div>
+            <strong id="killsAText">0 / 3</strong>
+          </div>
+
+          <div class="gauge-row">
+            <span>A 侵入</span>
+            <div class="gauge"><div id="infilABar" class="fill blue"></div></div>
+            <strong id="infilAText">0 / 3</strong>
+          </div>
+
+          <div class="gauge-row">
+            <span>B 撃破</span>
+            <div class="gauge"><div id="killsBBar" class="fill red"></div></div>
+            <strong id="killsBText">0 / 3</strong>
+          </div>
+
+          <div class="gauge-row">
+            <span>B 侵入</span>
+            <div class="gauge"><div id="infilBBar" class="fill blue"></div></div>
+            <strong id="infilBText">0 / 3</strong>
+          </div>
+        </div>
+
+        <div class="log-card">
+          <div class="log-head">
+            <div class="log-title">ログ</div>
+            <button id="clearLogBtn" class="ghost-btn small">ログ消去</button>
+          </div>
+          <div id="logList" class="log-list"></div>
+        </div>
+      </section>
+
+      <!-- PLAYER B -->
+      <section class="player player-b">
+        <div class="player-head">
+          <h2>PLAYER B</h2>
+          <input id="nameB" class="name-input" value="プレイヤーB" maxlength="18" />
+        </div>
+
+        <div class="stat-block mana">
+          <div class="stat-row mana-head-row">
+            <span class="stat-label">マナ</span>
+            <span class="mana-numbers">
+              <span id="manaBValue">2</span>
+              <span class="slash">/</span>
+              <span id="maxManaBValue">2</span>
+            </span>
+          </div>
+
+          <div class="mana-gems" id="manaBGems"></div>
+
+          <div class="btns">
+            <button data-action="changeMana" data-player="b" data-delta="-2">使用 -2</button>
+            <button data-action="changeMana" data-player="b" data-delta="-1">使用 -1</button>
+            <button data-action="changeMana" data-player="b" data-delta="1">回復 +1</button>
+            <button data-action="changeMana" data-player="b" data-delta="2">回復 +2</button>
+          </div>
+        </div>
+
+        <div class="stat-block kill">
+          <div class="stat-row">
+            <span class="stat-label">撃破</span>
+            <span class="stat-value" id="killsBValue">0</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="b" data-key="kills" data-delta="-1">-1</button>
+            <button data-action="change" data-player="b" data-key="kills" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block infil">
+          <div class="stat-row">
+            <span class="stat-label">侵入</span>
+            <span class="stat-value" id="infilBValue">0</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="b" data-key="infil" data-delta="-1">-1</button>
+            <button data-action="change" data-player="b" data-key="infil" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block deck">
+          <div class="stat-row">
+            <span class="stat-label">山札</span>
+            <span class="stat-value" id="deckBValue">20</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="b" data-key="deck" data-delta="-1">-1</button>
+            <button data-action="change" data-player="b" data-key="deck" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="stat-block hand">
+          <div class="stat-row">
+            <span class="stat-label">手札</span>
+            <span class="stat-value" id="handBValue">5</span>
+          </div>
+          <div class="btns">
+            <button data-action="change" data-player="b" data-key="hand" data-delta="-1">-1</button>
+            <button data-action="change" data-player="b" data-key="hand" data-delta="1">+1</button>
+          </div>
+        </div>
+
+        <div class="memo">
+          <label for="memoB">メモ</label>
+          <textarea id="memoB" placeholder="例：状態異常、残り重要札、次ターン予定など"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js?v=20260822_roll_phase1"></script>
+</body>
+</html>

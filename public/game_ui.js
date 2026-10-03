@@ -1,5 +1,5 @@
 // public/game_ui.js
-// v3.0.0 split step-1 (UI renderer)
+// v20260723_stable_restore1
 // - UI描画だけをここに隔離する
 // - 状態/ロジックは game.js 側に残す
 
@@ -30,6 +30,7 @@ export function createGameUI(ctx) {
     setSelectedTargetId,
     getSelectedHandIndex,
     setSelectedHandIndex,
+    isHandCardLocked,
     getSelectedActionIndex,
     setSelectedActionIndex,
 
@@ -62,14 +63,21 @@ export function createGameUI(ctx) {
     // board render helpers
     round10,
     statusIconsText,
+    statusIconsHtml,
     normalizeFieldId,
 
     // evolve hand decorate
     evolveDecorateHandCard,
+    canSelectedHandEvolve,
+    execSelectedHandEvolve,
 
     // detail helpers
     selectedIsSupport,
     showCardDetail,
+
+    // action text helpers
+    actionDetailPartsJa,
+    actionSpecialTextJa,
 
     // action picker deps
     getSelectedUnit,
@@ -84,8 +92,13 @@ export function createGameUI(ctx) {
     supportRateText,
     supportTargetText,
     supportHintText,
+    supportSearchOptions,
+    getSupportSearchCardId,
+    setSupportSearchCardId,
     resetSupportPicks,
     normalizeMana,
+    getActionChoices,
+    getActionCost,
     execAttack,
     execSupport,
     isPanic,
@@ -99,11 +112,447 @@ export function createGameUI(ctx) {
   const actionPickerEl = dom.actionPickerEl;
   const detailEl = dom.detailEl; // 使うなら
 
+  let handDrawerEl = null;
+let handDrawerToggleEl = null;
+let handDrawerOpen = false;
+let handLockCssReady = false;
+
+function ensureHandLockCss() {
+  if (handLockCssReady || typeof document === "undefined") return;
+  handLockCssReady = true;
+  const style = document.createElement("style");
+  style.textContent = `
+    .stackHandCard.locked{
+      filter: grayscale(.55) brightness(.58);
+      border-color: rgba(170,170,190,.34) !important;
+      box-shadow: inset 0 0 0 999px rgba(0,0,0,.34) !important;
+    }
+    .stackHandCard.locked .shcName,
+    .stackHandCard.locked .shcType,
+    .stackHandCard.locked .shcStats{ opacity:.55; }
+    .shcLock{
+      position:absolute;
+      right:10px;
+      top:10px;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(0,0,0,.48);
+      color:rgba(255,255,255,.86);
+      border-radius:999px;
+      padding:4px 8px;
+      font-size:11px;
+      font-weight:1000;
+      letter-spacing:.04em;
+    }
+    .apSelect{
+      width:100%;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:10px;
+      background:rgba(0,0,0,.26);
+      color:#fff;
+      padding:8px 10px;
+      font:inherit;
+      outline:none;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function ensureHandDrawerUI() {
+  if (handDrawerEl && handDrawerToggleEl) return;
+
+  handDrawerToggleEl = document.getElementById("handDrawerToggle");
+  if (!handDrawerToggleEl) {
+    handDrawerToggleEl = document.createElement("button");
+    handDrawerToggleEl.id = "handDrawerToggle";
+    handDrawerToggleEl.type = "button";
+    handDrawerToggleEl.className = "handDrawerToggle";
+    handDrawerToggleEl.innerHTML = `<span class="handDrawerToggleLabel">手札</span><span class="handDrawerToggleArrow">▲</span>`;
+    handDrawerToggleEl.setAttribute("aria-label", "手札を開く");
+    document.body.appendChild(handDrawerToggleEl);
+  }
+
+  handDrawerEl = document.getElementById("handDrawer");
+  if (!handDrawerEl) {
+    handDrawerEl = document.createElement("div");
+    handDrawerEl.id = "handDrawer";
+    handDrawerEl.className = "handDrawer";
+    handDrawerEl.setAttribute("aria-hidden", "true");
+    document.body.appendChild(handDrawerEl);
+  }
+
+  handDrawerToggleEl.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handDrawerOpen = !handDrawerOpen;
+    updateHandDrawerOpenState();
+  });
+
+  window.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!handDrawerOpen) return;
+      if (e.target?.closest?.("#handDrawer")) return;
+      if (e.target?.closest?.("#handDrawerToggle")) return;
+      handDrawerOpen = false;
+      updateHandDrawerOpenState();
+    },
+    { capture: true },
+  );
+}
+
+function updateHandDrawerOpenState() {
+  if (!handDrawerEl || !handDrawerToggleEl) return;
+
+  handDrawerEl.classList.toggle("open", handDrawerOpen);
+  handDrawerEl.setAttribute("aria-hidden", handDrawerOpen ? "false" : "true");
+  handDrawerToggleEl.classList.toggle("open", handDrawerOpen);
+  handDrawerToggleEl.innerHTML = `<span class="handDrawerToggleLabel">手札</span><span class="handDrawerToggleArrow">${handDrawerOpen ? "▼" : "▲"}</span>`;
+  handDrawerToggleEl.setAttribute("aria-label", handDrawerOpen ? "手札を閉じる" : "手札を開く");
+}
+
+function handCardKindLabel(def) {
+  return isSupportCard?.(def) ? "SUPPORT" : "UNIT";
+}
+
+function handCardSymbol(def) {
+  if (isSupportCard?.(def)) return "◆";
+  const t = String(def?.type || def?.attr || "");
+  if (t === "火" || t === "炎") return "火";
+  if (t === "水") return "水";
+  if (t === "雷") return "雷";
+  if (t === "草") return "草";
+  if (t === "風") return "風";
+  if (t === "鋼") return "鋼";
+  if (t === "光") return "光";
+  if (t === "闇") return "闇";
+  if (t === "幻") return "幻";
+  if (t === "呪") return "呪";
+  return "◇";
+}
+
+function vitalDeltaText(kind, delta) {
+  const n = Math.trunc(Number(delta) || 0);
+  if (!n) return "";
+  const upper = String(kind).toUpperCase();
+  const icon =
+    upper === "SP"
+      ? n > 0
+        ? "🩵"
+        : "💙"
+      : n > 0
+        ? "💚"
+        : "❤️";
+  return `${icon}${n > 0 ? "+" : ""}${n}`;
+}
+
+function handCardPrimaryText(def) {
+  if (isSupportCard?.(def)) {
+    const eff = String(def?.effectText || def?.desc || def?.effect || "").trim();
+    return eff || "サポート効果";
+  }
+  const acts = Array.isArray(def?.actions) ? def.actions : [];
+  const a = acts[0] || null;
+  if (!a) return "技なし";
+  const hp = Number(a.hpDelta ?? a.hp ?? 0);
+  const sp = Number(a.spDelta ?? a.sp ?? 0);
+  const bits = [`${a.name || "技"}`];
+  if (hp) bits.push(vitalDeltaText("HP", hp));
+  if (sp) bits.push(vitalDeltaText("SP", sp));
+  if (a.rate != null) bits.push(`${a.rate}%`);
+  return bits.join(" / ");
+}
+
+function updateHandDrawerPosition() {
+  if (!boardEl || !handDrawerToggleEl || !handDrawerEl) return;
+
+  const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
+  const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+  if (isMobile) {
+    handDrawerToggleEl.style.left = "50%";
+    handDrawerToggleEl.style.top = "auto";
+    handDrawerToggleEl.style.bottom = "14px";
+
+    handDrawerEl.style.left = "50%";
+    handDrawerEl.style.top = "auto";
+    handDrawerEl.style.bottom = "62px";
+    handDrawerEl.style.setProperty("--hand-drawer-w", "calc(100vw - 18px)");
+    return;
+  }
+
+  const r = boardEl.getBoundingClientRect();
+  const drawerWidth = Math.min(980, Math.max(340, window.innerWidth - 28));
+  const drawerHalf = drawerWidth / 2;
+  const centerX = clamp(
+    r.left + r.width / 2,
+    drawerHalf + 8,
+    window.innerWidth - drawerHalf - 8,
+  );
+  handDrawerEl.style.setProperty("--hand-drawer-w", `${drawerWidth}px`);
+
+  // 画面外に行かないように補正
+  const safeTop = Math.min(
+    window.innerHeight - 72,
+    Math.max(90, r.bottom - 42),
+  );
+
+  handDrawerToggleEl.style.left = `${centerX}px`;
+  handDrawerToggleEl.style.top = `${safeTop}px`;
+  handDrawerToggleEl.style.bottom = "auto";
+
+  handDrawerEl.style.left = `${centerX}px`;
+  handDrawerEl.style.top = `${safeTop - 12}px`;
+  handDrawerEl.style.bottom = "auto";
+}
+
   // =========================
   // Long-press Quick Menu (3 balls)
   // =========================
   let lastSt = null;
   let quickMenuEl = null;
+
+  let actionOrbitEl = null;
+  let actionTargetingKey = "";
+
+  function actionTargetKey(unitId, index) {
+    return `${String(unitId ?? "")}:${Math.max(0, Number(index ?? 0) || 0)}`;
+  }
+
+  function markActionTargeting(unitId, index) {
+    actionTargetingKey = actionTargetKey(unitId, index);
+  }
+
+  function clearActionTargetingIfIdle() {
+    if (getMode?.() !== "attack") actionTargetingKey = "";
+  }
+
+  function ensureActionOrbit() {
+    if (actionOrbitEl) {
+      if (boardEl && !boardEl.contains(actionOrbitEl))
+        boardEl.appendChild(actionOrbitEl);
+      return actionOrbitEl;
+    }
+    if (!boardEl) return null;
+
+    const el = document.createElement("div");
+    el.className = "actionOrbit";
+    el.style.display = "none";
+
+    el.addEventListener("click", (ev) => {
+  const card = ev.target?.closest?.("button.actionOrbitCard");
+  if (!card || card.disabled) return;
+
+  ev.stopPropagation();
+  ev.preventDefault?.();
+
+  const idx = Number(card.dataset.actionIndex ?? 0);
+  setSelectedActionIndex?.(idx);
+
+  const uid = el.dataset.unitId || "";
+  const stNow = lastSt;
+  const unit = Array.isArray(stNow?.units)
+    ? stNow.units.find((x) => String(x?.id ?? "") === uid)
+    : null;
+
+  if (unit) {
+    markActionTargeting(uid, idx);
+    setMode?.("attack");
+    render(stNow);
+  } else {
+    hideActionOrbit();
+    render(stNow);
+  }
+});
+
+    boardEl.appendChild(el);
+    actionOrbitEl = el;
+    return el;
+  }
+
+  function hideActionOrbit() {
+    if (!actionOrbitEl) return;
+    actionOrbitEl.style.display = "none";
+    actionOrbitEl.innerHTML = "";
+    actionOrbitEl.dataset.unitId = "";
+    actionOrbitEl.classList.remove("isOpen", "isTargeting");
+    actionTargetingKey = "";
+  }
+
+  function getActionSummaryParts(act) {
+    let parts = null;
+    try {
+      parts =
+        typeof actionDetailPartsJa === "function"
+          ? actionDetailPartsJa(act)
+          : null;
+    } catch {}
+
+    const cost = parts?.cost ?? act?.cost ?? "?";
+    const name = parts?.name ?? act?.name ?? "?";
+    const rate = parts?.rate ?? act?.rate ?? "?";
+    const range = parts?.range ?? act?.range ?? "?";
+
+    const hpDmg = Number(
+      parts?.hpDmg ?? Math.max(0, -(Number(act?.hpDelta) || 0)),
+    );
+    const spDmg = Number(
+      parts?.spDmg ?? Math.max(0, -(Number(act?.spDelta) || 0)),
+    );
+    const hpHeal = Number(
+      parts?.hpHeal ?? Math.max(0, Number(act?.hpDelta) || 0),
+    );
+    const spHeal = Number(
+      parts?.spHeal ?? Math.max(0, Number(act?.spDelta) || 0),
+    );
+
+    let effectText = String(parts?.effectText ?? "").trim();
+    if (!effectText) {
+      try {
+        effectText =
+          typeof actionSpecialTextJa === "function"
+            ? String(actionSpecialTextJa(act) || "").trim()
+            : "";
+      } catch {}
+    }
+
+    const dmgBits = [];
+    if (hpDmg) dmgBits.push(vitalDeltaText("HP", -hpDmg));
+    if (spDmg) dmgBits.push(vitalDeltaText("SP", -spDmg));
+    if (hpHeal) dmgBits.push(vitalDeltaText("HP", hpHeal));
+    if (spHeal) dmgBits.push(vitalDeltaText("SP", spHeal));
+
+    return {
+      cost,
+      name,
+      rate,
+      range,
+      dmgText: dmgBits.join(" / "),
+      effectText,
+    };
+  }
+
+  function orbitPositionList(n) {
+    if (n <= 1) return [{ x: 0, y: -132 }];
+
+    if (n === 2) {
+      return [
+        { x: -118, y: -98 },
+        { x: 118, y: -98 },
+      ];
+    }
+
+    if (n === 3) {
+      return [
+        { x: 0, y: -146 },
+        { x: -138, y: -56 },
+        { x: 138, y: -56 },
+      ];
+    }
+
+    if (n === 4) {
+      return [
+        { x: -84, y: -144 },
+        { x: 84, y: -144 },
+        { x: -162, y: -34 },
+        { x: 162, y: -34 },
+      ];
+    }
+
+    return [
+      { x: 0, y: -154 },
+      { x: -118, y: -122 },
+      { x: 118, y: -122 },
+      { x: -178, y: -16 },
+      { x: 178, y: -16 },
+    ];
+  }
+
+  function showActionOrbitForCell(cell, st, u) {
+    const el = ensureActionOrbit();
+    if (!el || !cell || !boardEl || !st || !u) return;
+
+    const def = cardDefsRef()?.[u.cardId] || {};
+    const acts =
+      typeof getActionChoices === "function"
+        ? getActionChoices(u, st)
+        : Array.isArray(def?.actions)
+          ? def.actions
+          : [];
+    if (!acts.length) return;
+
+    const br = boardEl.getBoundingClientRect();
+    const cr = cell.getBoundingClientRect();
+    const cx = cr.left - br.left + cr.width / 2;
+    const cy = cr.top - br.top + cr.height / 2;
+
+    el.innerHTML = "";
+    el.style.display = "block";
+    el.style.left = `${cx}px`;
+    el.style.top = `${cy}px`;
+    el.dataset.unitId = String(u?.id ?? "");
+    const currentIdx = Math.max(
+      0,
+      Number(getSelectedActionIndex?.() ?? 0) || 0,
+    );
+    const isTargeting =
+      getMode?.() === "attack" &&
+      actionTargetingKey === actionTargetKey(u?.id, currentIdx);
+    el.classList.toggle("isTargeting", isTargeting);
+
+    const myTurn = !!canControl(st);
+    const alive = Number(u?.hp ?? 0) > 0;
+    const mine = u?.owner === getSeat();
+    const panic = !!isPanic?.(u);
+    const fatigue = !!u?.fatigue;
+
+    const poses = orbitPositionList(acts.length);
+
+    acts.forEach((act, i) => {
+      const pos = poses[i] || poses[poses.length - 1] || { x: 0, y: -132 };
+      const s = getActionSummaryParts(act);
+
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className =
+        "actionOrbitCard" + (i === currentIdx ? " selected" : "");
+      card.dataset.actionIndex = String(i);
+      card.style.setProperty("--ox", `${pos.x}px`);
+      card.style.setProperty("--oy", `${pos.y}px`);
+
+      const mana = normalizeMana?.(st?.mana);
+      const seatKey = getSeat();
+      const actCost =
+        typeof getActionCost === "function"
+          ? getActionCost(u, act)
+          : Math.max(0, Math.trunc(Number(act?.cost ?? 0)));
+      const canPay = !!mana?.[seatKey] && Number(mana[seatKey].cur) >= actCost;
+
+      card.disabled = !(
+        myTurn &&
+        mine &&
+        alive &&
+        !panic &&
+        !fatigue &&
+        canPay
+      );
+
+      card.innerHTML = `
+        <div class="aocTop">
+          <span class="aocCost">${String(actCost)}</span>
+          <span class="aocRate">命中${String(s.rate)}%</span>
+        </div>
+        <div class="aocName">${String(s.name)}</div>
+        <div class="aocMeta">射程 ${String(s.range)}</div>
+        ${s.dmgText ? `<div class="aocMeta">${String(s.dmgText)}</div>` : ""}
+        ${s.effectText ? `<div class="aocFx">${String(s.effectText)}</div>` : ""}
+      `;
+
+      el.appendChild(card);
+    });
+
+    el.classList.remove("isOpen");
+    void el.offsetWidth;
+    el.classList.add("isOpen");
+  }
 
   // ※ window リスナー重複防止用（1回しか登録しない）
   let quickMenuOutsideListenerInstalled = false;
@@ -135,17 +584,44 @@ export function createGameUI(ctx) {
 
     // メニュークリック
     el.addEventListener("click", (ev) => {
-      const btn = ev.target?.closest?.("button.qmBall");
-      if (!btn || btn.disabled) return;
-      ev.stopPropagation();
-      ev.preventDefault?.();
+  const btn = ev.target?.closest?.("button.qmBall");
+  if (!btn || btn.disabled) return;
 
-      try {
-        setMode?.(btn.dataset.mode);
-      } catch {}
-      hideQuickMenu();
-      if (lastSt) render(lastSt);
-    });
+  ev.stopPropagation();
+  ev.preventDefault?.();
+
+  const modeName = btn.dataset.mode;
+
+  try {
+    setMode?.(modeName);
+  } catch {}
+
+  if (modeName === "attack" && lastSt) {
+    const uid = el.dataset.unitId || "";
+    const stNow = lastSt;
+    const unit = Array.isArray(stNow?.units)
+      ? stNow.units.find((x) => String(x?.id ?? "") === uid)
+      : null;
+
+    const freshCell = unit
+      ? boardEl?.querySelector(`.cell[data-x="${unit.x}"][data-y="${unit.y}"]`)
+      : null;
+
+    hideQuickMenu();
+
+    if (unit && freshCell) {
+      showActionOrbitForCell(freshCell, stNow, unit);
+    } else {
+      hideActionOrbit();
+      render(stNow);
+    }
+    return;
+  }
+
+  hideActionOrbit();
+  hideQuickMenu();
+  if (lastSt) render(lastSt);
+});
 
     // 外側タップで閉じる（1回だけ登録）
     if (!quickMenuOutsideListenerInstalled) {
@@ -154,7 +630,9 @@ export function createGameUI(ctx) {
         "pointerdown",
         (ev) => {
           if (ev.target?.closest?.(".quickMenu")) return;
+          if (ev.target?.closest?.(".actionOrbit")) return;
           hideQuickMenu();
+          hideActionOrbit();
         },
         { capture: true },
       );
@@ -370,6 +848,13 @@ export function createGameUI(ctx) {
         "selUnit",
         "selTarget",
         "hitFlash",
+        "hitFlashHp",
+        "hitFlashSp",
+        "hitFlashMix",
+        "hitFlashHeal",
+        "hitPunch",
+        "killBurst",
+        "moveArrive",
         "bombCell",
         "zoneYou",
         "zoneEnemy",
@@ -556,9 +1041,17 @@ export function createGameUI(ctx) {
       // status icons
       const ic = document.createElement("div");
       ic.className = "uIcons";
-      ic.textContent = statusIconsText ? statusIconsText(u) || "" : "";
-      box.appendChild(ic);
 
+      const icons =
+        typeof statusIconsHtml === "function"
+          ? statusIconsHtml(u, { compact: true }) || ""
+          : statusIconsText
+            ? statusIconsText(u) || ""
+            : "";
+
+      ic.innerHTML = icons;
+      if (icons) ic.title = statusIconsText ? statusIconsText(u) || "" : "";
+      box.appendChild(ic);
       // owner ribbon
       const owner = document.createElement("div");
       owner.className = "uOwner " + (u.owner === seat ? "you" : "enemy");
@@ -579,118 +1072,259 @@ export function createGameUI(ctx) {
 
   // ===== Hand =====
   function renderHand(st) {
-    if (!handEl) return;
+  if (!handEl) return;
 
-    ensureHandCss?.();
-    handEl.innerHTML = "";
+  ensureHandCss?.();
+  ensureHandLockCss();
+  ensureHandDrawerUI();
+  updateHandDrawerPosition();
+  updateHandDrawerOpenState();
 
-    const seat = getSeat();
-    const hand = Array.isArray(st?.hands?.[seat]) ? st.hands[seat] : [];
-    const cardDefs = cardDefsRef() || {};
+  const seat = getSeat();
+  const hand = Array.isArray(st?.hands?.[seat]) ? st.hands[seat] : [];
+  const cardDefs = cardDefsRef() || {};
+  const selectedIndex = getSelectedHandIndex?.();
+  const selectedCid =
+    selectedIndex != null && selectedIndex >= 0 ? hand[selectedIndex] : null;
+  const selectedDef = selectedCid ? cardDefs[selectedCid] || {} : null;
+  const selectedLocked =
+    selectedIndex != null && typeof isHandCardLocked === "function"
+      ? !!isHandCardLocked(st, selectedIndex, seat)
+      : false;
 
-    for (let i = 0; i < hand.length; i++) {
-      const cid = hand[i];
-      const def = cardDefs[cid] || {};
-      const t = def.type || "?";
-      const strong = typeColorStrong(t);
+  // =====================
+  // 右上：選択カードプレビュー
+  // =====================
+  handEl.innerHTML = "";
 
-      const card = document.createElement("div");
-      card.className =
-        "handCard" + (i === getSelectedHandIndex() ? " selected" : "");
-      card.style.setProperty("--accent", hexToRgba(strong, 0.55));
-      card.style.setProperty("--accentSoft", hexToRgba(strong, 0.22));
+  const preview = document.createElement("div");
+  preview.className = "handPreview";
 
-      const bar = document.createElement("div");
-      bar.className = "hcBar";
-      bar.style.background = `linear-gradient(180deg, ${hexToRgba(
-        strong,
-        0.75,
-      )} 0%, rgba(0,0,0,.0) 140%)`;
-      card.appendChild(bar);
+  if (!selectedCid || !selectedDef) {
+    preview.innerHTML = `
+      <div class="hpvEmpty">
+        <div class="hpvIcon">🃏</div>
+        <div class="hpvTitle">カード未選択</div>
+        <div class="hpvText">
+          自陣側の▲ボタンから手札を開いて、カードを選択してね。
+        </div>
+      </div>
+    `;
+    handEl.appendChild(preview);
+  } else if (selectedLocked) {
+    preview.innerHTML = `
+      <div class="hpvEmpty">
+        <div class="hpvIcon">🌑</div>
+        <div class="hpvTitle">伏せカード</div>
+        <div class="hpvText">
+          ${cardName(selectedCid)} は伏せ中。使用者の次ターン開始まで使用できません。
+        </div>
+      </div>
+    `;
+    handEl.appendChild(preview);
+  } else {
+    const t = selectedDef.type || "?";
+    const strong = typeColorStrong(t);
 
-      const r1 = document.createElement("div");
-      r1.className = "hcRow1";
+    preview.style.setProperty("--accent", hexToRgba(strong, 0.65));
+    preview.style.setProperty("--accentSoft", hexToRgba(strong, 0.22));
 
-      const diamond = document.createElement("div");
-      diamond.className = "hcDiamond";
-      const sp = document.createElement("span");
-      sp.textContent = String(def.cost ?? "?");
-      diamond.appendChild(sp);
+    const isSup = isSupportCard(selectedDef);
 
-      const main = document.createElement("div");
-      main.className = "hcMain";
+    preview.innerHTML = `
+      <div class="hpvCard">
+        <div class="hpvCost">${String(selectedDef.cost ?? "?")}</div>
+        <div class="hpvMain">
+          <div class="hpvName">${cardName(selectedCid)}</div>
+          <div class="hpvType">${isSup ? "Support" : String(selectedDef.type ?? "?")}</div>
+        </div>
+        <div class="hpvStats">
+          ${
+            isSup
+              ? `<span class="hpvBadge">SUPPORT</span>`
+              : `HP ${selectedDef.hp ?? "?"} / SP ${selectedDef.sp ?? "?"}`
+          }
+        </div>
+        <button class="hpvDetailBtn" type="button">詳細</button>
+      </div>
+    `;
 
-      const name = document.createElement("div");
-      name.className = "hcName";
-      name.textContent = cardName(cid);
+    preview.querySelector(".hpvDetailBtn")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showCardDetail(selectedCid);
+    });
 
-      const type = document.createElement("div");
-      type.className = "hcType";
-      type.textContent = isSupportCard(def)
-        ? "Support"
-        : String(def.type ?? "?");
+    handEl.appendChild(preview);
+  }
 
-      main.appendChild(name);
-      main.appendChild(type);
+  // =====================
+  // 手札ドロワー
+  // =====================
+  if (!handDrawerEl) return;
+  handDrawerEl.innerHTML = "";
 
-      r1.appendChild(diamond);
-      r1.appendChild(main);
-      card.appendChild(r1);
+  const head = document.createElement("div");
+  head.className = "handDrawerHead";
+  head.innerHTML = `
+    <div>
+      <b>手札</b>
+      <span>${hand.length}枚</span>
+    </div>
+    <div class="handDrawerControls">
+      <button class="handEvolveTopBtn" type="button" disabled>進化</button>
+      <div class="handDrawerHint">クリックで選択 / もう一度盤面へ</div>
+    </div>
+  `;
+  const topEvolveBtn = head.querySelector(".handEvolveTopBtn");
+  const topEvolveReady =
+    selectedIndex != null &&
+    !(typeof isHandCardLocked === "function" && isHandCardLocked(st, selectedIndex, seat)) &&
+    (() => {
+      try {
+        return !!canSelectedHandEvolve?.(st, selectedIndex);
+      } catch {
+        return false;
+      }
+    })();
+  if (topEvolveBtn) {
+    topEvolveBtn.disabled = !topEvolveReady;
+    topEvolveBtn.textContent = topEvolveReady ? "進化 READY" : "進化";
+    topEvolveBtn.classList.toggle("ready", !!topEvolveReady);
+    topEvolveBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!topEvolveReady) return;
+      setMode?.("evolve");
+      try {
+        await execSelectedHandEvolve?.(st, selectedIndex);
+      } catch (err) {
+        console.warn("[hand evolve top] failed", err);
+      }
+    });
+  }
+  handDrawerEl.appendChild(head);
 
-      const r2 = document.createElement("div");
-      r2.className = "hcRow2";
+  const stack = document.createElement("div");
+  stack.className = "handStack mdHandFan";
+  stack.style.setProperty("--hand-count", String(Math.max(1, hand.length)));
 
-      const stats = document.createElement("div");
-      stats.className = "hcStats";
-      if (isSupportCard(def)) {
-        stats.innerHTML = `<span class="badge">SUPPORT</span>`;
-      } else {
-        stats.textContent = `HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}`;
+  for (let i = 0; i < hand.length; i++) {
+    const cid = hand[i];
+    const def = cardDefs[cid] || {};
+    const t = def.type || "?";
+    const strong = typeColorStrong(t);
+    const isSelected = i === selectedIndex;
+    const isLocked =
+      typeof isHandCardLocked === "function" ? !!isHandCardLocked(st, i, seat) : false;
+
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className =
+      "stackHandCard" +
+      (isSelected ? " selected" : "") +
+      (isLocked ? " locked" : "");
+    card.style.setProperty("--i", String(i));
+    card.style.setProperty("--accent", hexToRgba(strong, 0.7));
+    card.style.setProperty("--accentSoft", hexToRgba(strong, 0.22));
+
+    const center = (hand.length - 1) / 2;
+    const offset = i - center;
+    const compactFan = !!window.matchMedia?.("(max-width: 760px)")?.matches;
+    const drawerW =
+      handDrawerEl?.getBoundingClientRect?.().width || window.innerWidth || 720;
+    const cardW = compactFan ? 90 : 116;
+    const safePad = compactFan ? 38 : 56;
+    const spreadSlots = Math.max(1, hand.length - 1);
+    const maxSpread =
+      hand.length <= 1
+        ? 0
+        : Math.floor(Math.max(0, drawerW - cardW - safePad * 2) / spreadSlots);
+    const desiredSpread = compactFan ? 40 : 52;
+    const spread =
+      hand.length <= 1 ? 0 : Math.max(0, Math.min(desiredSpread, maxSpread));
+    const lift = Math.max(0, Math.abs(offset) * -3 + 10);
+    const rot = offset * Math.max(2.4, 5.8 - hand.length * 0.22);
+    card.style.setProperty("--hand-card-w", `${cardW}px`);
+    card.style.setProperty("--rot", `${rot}deg`);
+    card.style.setProperty("--x", `${offset * spread}px`);
+    card.style.setProperty("--y", `${isSelected ? -58 : -lift}px`);
+    card.style.setProperty("--z", String(isSelected ? 200 : 80 + i));
+
+    card.innerHTML = `
+      <div class="shcFrameGlow"></div>
+      <div class="shcTop">
+        <div class="shcCost">${String(def.cost ?? "?")}</div>
+        <div class="shcAttr">${handCardSymbol(def)}</div>
+      </div>
+      <div class="shcArt">
+        <div class="shcArtSymbol">${handCardSymbol(def)}</div>
+      </div>
+      <div class="shcBody">
+        <div class="shcKind">${handCardKindLabel(def)}</div>
+        <div class="shcName">${cardName(cid)}</div>
+        ${
+          isSupportCard(def)
+            ? ""
+            : `<div class="shcVitals">HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}</div>`
+        }
+        <div class="shcType">${isSupportCard(def) ? "Support" : String(def.type ?? "?")}</div>
+        <div class="shcText">${handCardPrimaryText(def)}</div>
+        <div class="shcStats">
+          ${
+            isSupportCard(def)
+              ? "SUPPORT"
+              : `HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}`
+          }
+        </div>
+      </div>
+      ${isSelected ? `<div class="shcPickMarker" aria-hidden="true"><span>☝</span></div>` : ""}
+      ${isLocked ? `<div class="shcLock">伏せ</div>` : ""}
+    `;
+
+    card.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      setSelectedHandIndex(i);
+      showCardDetail(cid);
+
+      if (isLocked) {
+        render(st);
+        return;
       }
 
-      const btn = document.createElement("button");
-      btn.className = "hcDetailBtn";
-      btn.textContent = "詳細";
-      btn.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        showCardDetail(cid);
-      });
+      const modeNow = getMode?.();
+      if (selectedIsSupport(st)) {
+        setMode("support");
+      } else if (canSelectedHandEvolve?.(st, i)) {
+        if (modeNow !== "evolve") setMode("evolve");
+      } else if (modeNow === "evolve") {
+        setMode("evolve");
+      } else {
+        setMode("summon");
+      }
 
-      r2.appendChild(stats);
-      r2.appendChild(btn);
-      card.appendChild(r2);
+      render(st);
+    });
 
-      const ownerBar = document.createElement("div");
-      ownerBar.className = "hcOwnerBar you";
-      ownerBar.textContent = "YOU";
-      card.appendChild(ownerBar);
+    try {
+      if (typeof evolveDecorateHandCard === "function") {
+        evolveDecorateHandCard({
+          cardEl: card,
+          index: i,
+          cardId: cid,
+          st,
+          onShowDetail: (id) => showCardDetail(id),
+        });
+      }
+    } catch {}
 
-      // click select
-      card.addEventListener("click", () => {
-        setSelectedHandIndex(i);
-        showCardDetail(cid);
-
-        if (selectedIsSupport(st)) setMode("support");
-
-        render(st);
-      });
-
-      // evolve decorate
-      try {
-        if (typeof evolveDecorateHandCard === "function") {
-          evolveDecorateHandCard({
-            cardEl: card,
-            index: i,
-            cardId: cid,
-            st,
-            onShowDetail: (id) => showCardDetail(id),
-          });
-        }
-      } catch {}
-
-      handEl.appendChild(card);
-    }
+    stack.appendChild(card);
   }
+
+  handDrawerEl.appendChild(stack);
+}
 
   // ===== Action picker =====
   function renderActionPicker(st) {
@@ -737,6 +1371,45 @@ export function createGameUI(ctx) {
       hint.textContent = String(supportHintText?.(st) ?? "");
       panel.appendChild(hint);
 
+      if (plan.need === "search") {
+        const opts =
+          typeof supportSearchOptions === "function"
+            ? supportSearchOptions(st, handDef) || []
+            : [];
+        const selectWrap = document.createElement("div");
+        selectWrap.className = "hint";
+        selectWrap.style.marginTop = "8px";
+
+        const fixed = String(plan.fixedCardId || "");
+        const selected = String(getSupportSearchCardId?.() || fixed || "");
+        selectWrap.innerHTML = `
+          <label style="display:block;margin-bottom:5px;font-weight:900;">サーチするカード</label>
+          <select class="apSelect" ${fixed ? "disabled" : ""}>
+            ${fixed ? `<option value="${fixed}">${cardName(fixed)}</option>` : ""}
+            ${
+              !fixed
+                ? opts
+                    .map(
+                      (o) =>
+                        `<option value="${o.cardId}" ${selected === o.cardId ? "selected" : ""}>${cardName(o.cardId)} / cost:${o.cost}</option>`,
+                    )
+                    .join("")
+                : ""
+            }
+          </select>
+        `;
+        const sel = selectWrap.querySelector("select");
+        if (!fixed && opts.length && !selected) {
+          setSupportSearchCardId?.(opts[0].cardId);
+          sel.value = opts[0].cardId;
+        }
+        sel?.addEventListener("change", () => {
+          setSupportSearchCardId?.(sel.value);
+          render(st);
+        });
+        panel.appendChild(selectWrap);
+      }
+
       const footer = document.createElement("div");
       footer.className = "apFooter";
 
@@ -767,7 +1440,12 @@ export function createGameUI(ctx) {
     // Attack
     if (mode === "attack" && myTurn && su && su.owner === seat) {
       const def = cardDefsRef()?.[su.cardId] || {};
-      const acts = Array.isArray(def.actions) ? def.actions : [];
+      const acts =
+        typeof getActionChoices === "function"
+          ? getActionChoices(su, st)
+          : Array.isArray(def.actions)
+            ? def.actions
+            : [];
 
       try {
         ensureSelectedActionIndex?.(st);
@@ -785,8 +1463,13 @@ export function createGameUI(ctx) {
         const rate = Math.trunc(Number(calcHitRateAdapter?.(su, act) ?? 100));
         const rng = String(actRangeLabel?.(act, su.owner) ?? "");
 
+        const actionCost =
+          typeof getActionCost === "function"
+            ? getActionCost(su, act)
+            : Math.max(0, Math.trunc(Number(act?.cost ?? 0)));
+
         btn.innerHTML = `<span class="actText">
-          <span class="badge">${act?.cost ?? "?"}</span>
+          <span class="badge">${actionCost}</span>
           ${act?.name ?? "?"}
           <span class="badge">命中${rate}%</span>
           <span class="badge">${rng}</span>
@@ -794,6 +1477,7 @@ export function createGameUI(ctx) {
 
         btn.addEventListener("click", () => {
           setSelectedActionIndex(i);
+          if (getMode?.() === "attack") markActionTargeting(su?.id, i);
           render(st);
         });
 
@@ -818,7 +1502,11 @@ export function createGameUI(ctx) {
 
       hint.textContent =
         `選択ユニット：${cardName(su.cardId)}\n` +
-        `技：${curAct?.name ?? "?"}（コスト:${curAct?.cost ?? "?"}）\n` +
+        `技：${curAct?.name ?? "?"}（コスト:${
+          typeof getActionCost === "function"
+            ? getActionCost(su, curAct)
+            : (curAct?.cost ?? "?")
+        }）\n` +
         `対象：${tgt ? cardName(tgt.cardId) : "未選択"}\n` +
         `手順：対象ユニットをクリック → 「行動実行」\n` +
         (allowAlly ? `※この技は味方も対象OK\n` : "") +
@@ -834,7 +1522,10 @@ export function createGameUI(ctx) {
       execBtn.addEventListener("click", () => execAttack?.(st));
 
       const mana = normalizeMana?.(st.mana);
-      const cost = Math.max(0, Math.trunc(Number(curAct?.cost ?? 0)));
+      const cost =
+        typeof getActionCost === "function"
+          ? getActionCost(su, curAct)
+          : Math.max(0, Math.trunc(Number(curAct?.cost ?? 0)));
       const canPay = !!mana?.[seat] && Number(mana[seat].cur) >= cost;
 
       const flags =
@@ -875,12 +1566,13 @@ export function createGameUI(ctx) {
 
   // ===== Main render =====
   function renderImpl(st) {
+    const prevUnitId = actionOrbitEl?.dataset?.unitId || "";
     lastSt = st;
-    // hideQuickMenu();
 
     if (!st) return;
 
     try {
+      clearActionTargetingIfIdle();
       setTurnUI?.(st);
     } catch {}
 
@@ -897,6 +1589,28 @@ export function createGameUI(ctx) {
 
     try {
       fxOnHit?.(st);
+      // 選択中ユニットの技オーブを描き直し
+      try {
+        if (
+          actionOrbitEl &&
+          actionOrbitEl.style.display !== "none" &&
+          prevUnitId
+        ) {
+          const u = Array.isArray(st?.units)
+            ? st.units.find((x) => String(x?.id ?? "") === String(prevUnitId))
+            : null;
+
+          if (u) {
+            const cell = boardEl?.querySelector(
+              `.cell[data-x="${u.x}"][data-y="${u.y}"]`,
+            );
+            if (cell) showActionOrbitForCell(cell, st, u);
+            else hideActionOrbit();
+          } else {
+            hideActionOrbit();
+          }
+        }
+      } catch {}
     } catch {}
   }
 

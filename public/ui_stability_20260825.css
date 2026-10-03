@@ -1,0 +1,396 @@
+/* public/ui_stability_20260825.css */
+/* Small, removable UI hardening layer. */
+
+.tcgUtilityLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tcgUtilityLinks a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 210, 255, .26);
+  background: rgba(40, 120, 150, .12);
+  color: #eaf8ff;
+  text-decoration: none;
+  font-weight: 850;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tcgUtilityLinks a:hover {
+  border-color: rgba(120, 220, 255, .55);
+  background: rgba(70, 150, 190, .20);
+}
+
+.uiFilteredOut {
+  display: none !important;
+}
+
+#cardList .cardRow[data-kind="support"],
+#deckList .cardRow[data-kind="support"] {
+  --row-attr: #aab0b8;
+}
+
+#deckList .cardRow[data-kind="support"] {
+  background:
+    linear-gradient(90deg, rgba(170, 176, 184, .20), rgba(170, 176, 184, .035)),
+    rgba(10, 12, 15, .88) !important;
+}
+
+.deckMetricStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.deckMetricStrip .deckMetric {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,.18);
+}
+
+.deckMetric b {
+  display: block;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deckMetric span {
+  display: block;
+  color: rgba(255,255,255,.62);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+body:not(.mobileDeckUi) #cmdFab {
+  top: 76px !important;
+  bottom: auto !important;
+  left: 14px !important;
+  right: auto !important;
+  opacity: .55;
+}
+
+body:not(.mobileDeckUi) #cmdFab:hover {
+  opacity: 1;
+}
+
+.battleInfoTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.battleInfoTabs button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  body.mobileDeckUi header,
+  body.mobileDeckUi .topRight {
+    max-width: 100vw;
+  }
+
+  body.mobileDeckUi .topRight {
+    gap: 6px !important;
+    padding-inline: 2px;
+  }
+
+  body.mobileDeckUi .topRight button,
+  body.mobileDeckUi .topRight .pill,
+  body.mobileDeckUi .topRight .versionPill {
+    min-height: 30px !important;
+    max-width: 44vw;
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+
+  body.mobileDeckUi #dopagakiToggle {
+    position: fixed !important;
+    top: max(8px, env(safe-area-inset-top)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 90000 !important;
+    max-width: 42vw;
+  }
+
+  body.mobileDeckUi #cmdFab {
+    display: none !important;
+  }
+
+  body.mobileDeckUi #roomDrawerToggle,
+  body.mobileDeckUi [data-deck-panel-action="play"] {
+    display: none !important;
+  }
+
+  body.mobileDeckUi #mobileDeckNav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1200 !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px !important;
+    padding: 10px !important;
+    background: rgba(7, 12, 15, .88) !important;
+    border-bottom: 1px solid rgba(120, 255, 190, .18);
+    backdrop-filter: blur(14px);
+  }
+
+  body.mobileDeckUi #mobileDeckNav button {
+    min-width: 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  body.mobileDeckUi #cardList,
+  body.mobileDeckUi #deckList {
+    overscroll-behavior: contain;
+  }
+
+  body.mobileDeckUi #cardList .cardRow,
+  body.mobileDeckUi #deckList .cardRow {
+    grid-template-columns: minmax(0, 1fr) minmax(160px, 42vw) !important;
+    min-height: 78px !important;
+    padding: 9px 10px !important;
+    gap: 8px !important;
+  }
+
+  body.mobileDeckUi #cardList .cardName,
+  body.mobileDeckUi #deckList .cardName {
+    font-size: 14px !important;
+    line-height: 1.22 !important;
+  }
+
+  body.mobileDeckUi #cardList .cardMeta,
+  body.mobileDeckUi #deckList .cardMeta {
+    display: block !important;
+    max-height: 34px !important;
+    overflow: hidden !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+
+  body.mobileDeckUi #cardList .cardCtrl,
+  body.mobileDeckUi #deckList .cardCtrl,
+  body.mobileDeckUi #cardList .btns,
+  body.mobileDeckUi #deckList .btns {
+    min-width: 0 !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 52px 34px minmax(44px, 1fr) 34px !important;
+    grid-template-areas:
+      "detail minus count plus"
+      "ex ex ex ex" !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+
+  body.mobileDeckUi #cardList .detailBtn,
+  body.mobileDeckUi #deckList .detailBtn,
+  body.mobileDeckUi #cardList [data-detail],
+  body.mobileDeckUi #deckList [data-detail] {
+    grid-area: detail !important;
+    min-height: 34px !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+  }
+
+  body.mobileDeckUi #cardList .countBox,
+  body.mobileDeckUi #deckList .countBox {
+    min-width: 0 !important;
+    font-size: 12px !important;
+  }
+
+  body.mobileDeckUi .deckMetricStrip {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  body.gameMobileLayout #detailPanel,
+  body.gameMobileLayout #logPanel,
+  body.gameMobileLayout .battleDetailPanel,
+  body.gameMobileLayout .battleLogPanel {
+    max-height: 38vh;
+  }
+
+  body.gameMobileLayout #graveyardOpenBtn {
+    min-height: 36px;
+    border-radius: 999px;
+  }
+}
+
+/* v20260826_deckspace1: keep the deck panel focused on the selected card list. */
+#deckPanel .deckInfoDock {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+#deckPanel .deckInfoBody {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 0 10px 8px !important;
+}
+
+#deckPanel #deckList {
+  flex: 1 1 auto !important;
+  min-height: 260px !important;
+}
+
+#deckPanel .deckSaveDockHead,
+#deckPanel .deckInfoDockHead {
+  padding: 8px 10px !important;
+}
+
+#deckPanel .deckSaveDockHeadMain span,
+#deckPanel .deckInfoDockHeadMain span {
+  display: none !important;
+}
+
+#deckPanel .deckSaveRow {
+  padding: 9px 10px !important;
+}
+
+#deckPanel .listHead {
+  min-height: 0 !important;
+  padding: 7px 9px !important;
+  border-radius: 12px !important;
+}
+
+#deckPanel .listHead span {
+  max-width: 48%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#deckPanel .deckMetricStrip {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  margin: 3px 0 5px !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#deckPanel .deckMetricStrip::-webkit-scrollbar {
+  display: none;
+}
+
+#deckPanel .deckMetricStrip .deckMetric {
+  flex: 0 0 auto;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+}
+
+#deckPanel .deckMetric b {
+  display: inline !important;
+  font-size: 12px !important;
+}
+
+#deckPanel .deckMetric span {
+  display: inline !important;
+  margin: 0 !important;
+  font-size: 10px !important;
+}
+
+#deckPanel .deckProgressMini {
+  margin: 3px 0 5px !important;
+  padding: 6px 8px !important;
+  border-radius: 11px !important;
+}
+
+#deckPanel .deckProgressMiniHead {
+  margin-bottom: 4px !important;
+  font-size: 11px !important;
+}
+
+#deckPanel .deckProgressMiniHead b {
+  font-size: 12px !important;
+}
+
+#deckPanel .deckProgressBar {
+  height: 5px !important;
+}
+
+#deckPanel .deckSortRail {
+  flex-wrap: nowrap !important;
+  gap: 5px !important;
+  margin: 0 0 5px !important;
+  padding: 4px !important;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#deckPanel .deckSortRail::-webkit-scrollbar {
+  display: none;
+}
+
+#deckPanel .deckSortRail button {
+  flex: 0 0 auto;
+  min-height: 28px !important;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+}
+
+#deckPanel .deckSortLabel {
+  flex: 0 0 auto;
+  font-size: 10px !important;
+}
+
+@media (max-width: 900px) {
+  body.mobileDeckUi #deckPanel .deckInfoBody {
+    gap: 5px !important;
+    padding-inline: 8px !important;
+  }
+
+  body.mobileDeckUi #deckPanel #deckList {
+    min-height: 55vh !important;
+    max-height: none !important;
+  }
+
+  body.mobileDeckUi #deckPanel .deckMetricStrip {
+    margin: 2px 0 4px !important;
+  }
+
+  body.mobileDeckUi #deckPanel .deckMetricStrip .deckMetric {
+    padding: 4px 7px !important;
+  }
+
+  body.mobileDeckUi #deckPanel .deckProgressMini {
+    margin: 2px 0 4px !important;
+    padding: 5px 7px !important;
+  }
+
+  body.mobileDeckUi #deckPanel .deckProgressMiniHead span,
+  body.mobileDeckUi #deckPanel .deckInfoDockHeadMain span,
+  body.mobileDeckUi #deckPanel .listHead span {
+    display: none !important;
+  }
+
+  body.mobileDeckUi #deckPanel .deckSortRail {
+    margin-bottom: 4px !important;
+  }
+}

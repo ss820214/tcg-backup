@@ -1,0 +1,887 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG Online - Deck Builder</title>
+  <style>
+    :root{
+      --bg:#070a0d;
+      --panel:#111820;
+      --panel2:#17222b;
+      --line:rgba(255,255,255,.12);
+      --text:#fff;
+      --muted:rgba(255,255,255,.66);
+      --acc:#5aaaff;
+      --ok:#78ffaa;
+      --bad:#ff7878;
+      --gold:#ffd86b;
+      --green:#76f7bd;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif;
+      background:
+        radial-gradient(900px 520px at 12% -8%, rgba(255,216,107,.12), transparent 62%),
+        radial-gradient(880px 560px at 94% 0%, rgba(90,170,255,.13), transparent 58%),
+        radial-gradient(740px 520px at 72% 110%, rgba(120,255,170,.08), transparent 60%),
+        linear-gradient(180deg,#0b1117 0%,#070a0d 48%,#050608 100%);
+      overflow-x:hidden;
+    }
+    button,input,select{
+      font:inherit;
+    }
+    button{
+      min-height:40px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+      color:#fff;
+      padding:8px 12px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .08s ease,border-color .15s ease,filter .15s ease,background .15s ease;
+    }
+    button:hover{ border-color:rgba(255,255,255,.26); filter:brightness(1.06); }
+    button:active{ transform:translateY(1px); }
+    button:disabled{ opacity:.46; cursor:not-allowed; transform:none; }
+    .btn{
+      border-color:rgba(90,170,255,.36);
+      background:linear-gradient(180deg,rgba(90,170,255,.22),rgba(90,170,255,.09));
+    }
+    .btnGhost{
+      background:rgba(0,0,0,.22);
+    }
+    .input,input,select{
+      width:100%;
+      min-height:42px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      background:rgba(0,0,0,.28);
+      color:#fff;
+      padding:9px 12px;
+      outline:none;
+    }
+    .input:focus,input:focus,select:focus{ border-color:rgba(90,170,255,.55); box-shadow:0 0 0 3px rgba(90,170,255,.12); }
+    .small{ color:var(--muted); font-size:12px; line-height:1.45; }
+    .pill,.badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      min-height:28px;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.24);
+      color:rgba(255,255,255,.74);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    header{
+      position:sticky;
+      top:0;
+      z-index:80;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      min-height:62px;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(255,255,255,.13);
+      background:rgba(6,10,13,.86);
+      backdrop-filter:blur(16px);
+    }
+    header .left{ display:flex; align-items:center; gap:10px; min-width:0; }
+    header h1{ margin:0; font-size:17px; letter-spacing:.02em; white-space:nowrap; }
+    header .meta{ color:var(--muted); font-size:12px; }
+    .topRight{ justify-content:flex-end; }
+    .topRight button{ white-space:nowrap; }
+    #versionLabel{ opacity:.86; }
+
+    .deckStart{
+      position:fixed;
+      inset:0;
+      z-index:100000;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(90,170,255,.22), transparent 32%),
+        linear-gradient(180deg, rgba(8,12,18,.96), rgba(4,5,8,.98));
+      cursor:pointer;
+      transition:opacity .42s ease, visibility .42s ease;
+    }
+    .deckStart.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+    .deckStartInner{
+      width:min(520px,92vw);
+      padding:34px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:26px;
+      background:
+        radial-gradient(380px 180px at 25% 10%, rgba(90,170,255,.20), transparent 60%),
+        rgba(12,18,26,.86);
+      box-shadow:0 28px 90px rgba(0,0,0,.55);
+      text-align:center;
+    }
+    .deckStartMark{
+      width:72px;
+      height:72px;
+      margin:0 auto 18px;
+      border-radius:22px;
+      background:linear-gradient(135deg,#7196ff,#74f0aa);
+      box-shadow:0 0 34px rgba(90,170,255,.38);
+    }
+    .deckStartTitle{ margin:0; font-size:36px; letter-spacing:.04em; }
+    .deckStartSub{ margin:12px 0 20px; color:rgba(255,255,255,.72); }
+    .deckStartPrompt{
+      display:inline-flex;
+      padding:10px 18px;
+      border-radius:999px;
+      border:1px solid rgba(180,255,120,.34);
+      background:rgba(160,255,60,.10);
+      color:#dfff8c;
+      font-weight:950;
+    }
+
+    .mobileDeckNav,.mobileDeckDock,.orientationHint{ display:none; }
+    .deckVersionStrip{ display:none; }
+
+    .wrap{
+      display:grid;
+      grid-template-columns:minmax(0,1.35fr) minmax(380px,.82fr);
+      gap:14px;
+      padding:14px;
+      min-height:calc(100vh - 62px);
+    }
+    .panel{
+      min-width:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        radial-gradient(660px 220px at 16% -12%, rgba(90,170,255,.10), transparent 60%),
+        linear-gradient(180deg,rgba(255,255,255,.052),rgba(255,255,255,.02)),
+        rgba(12,16,20,.88);
+      box-shadow:0 20px 58px rgba(0,0,0,.44);
+    }
+    .panel .hd{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-height:56px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+    }
+    .panel .hd b{ font-size:14px; letter-spacing:.02em; }
+    .panel .bd{ padding:12px; }
+    .grid2{
+      display:grid;
+      grid-template-columns:minmax(0,1.16fr) minmax(360px,.84fr);
+      gap:12px;
+      align-items:start;
+    }
+    #deckMainPanel{
+      display:flex;
+      flex-direction:column;
+      min-height:calc(100vh - 92px);
+    }
+    #deckMainPanel > .bd{ flex:1; min-height:0; }
+    #mobileCardSection,#mobileDeckSection{ min-width:0; }
+    .sectionHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:0 0 10px;
+    }
+    .filterBox{
+      margin-bottom:12px;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.11);
+      border-radius:18px;
+      background:rgba(0,0,0,.18);
+    }
+    .typeRow,.attrRow,.ownedRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-top:8px;
+    }
+    #typeSelect{
+      display:none;
+    }
+    .tab,.filterBtn{
+      min-height:36px;
+      border-radius:999px;
+      padding:7px 11px;
+      font-size:12px;
+    }
+    .tab.active,.filterBtn.active{
+      border-color:rgba(90,170,255,.62);
+      background:linear-gradient(180deg,rgba(90,170,255,.24),rgba(90,170,255,.08));
+      box-shadow:0 0 20px rgba(90,170,255,.18);
+    }
+    .attrRow .filterBtn.active{
+      border-color:rgba(120,255,170,.62);
+      background:linear-gradient(180deg,rgba(120,255,170,.22),rgba(120,255,170,.06));
+      box-shadow:0 0 20px rgba(120,255,170,.16);
+    }
+    .ownedRow{ justify-content:flex-end; border-left:1px solid rgba(255,255,255,.10); padding-left:12px; margin-left:auto; }
+    body[data-kind-filter="unit"] #cardList .cardRow:not([data-kind="unit"]){ display:none !important; }
+    body[data-kind-filter="support"] #cardList .cardRow:not([data-kind="support"]):not([data-kind="ex_support"]){ display:none !important; }
+    body[data-owned-filter="owned"] #cardList .cardRow.notOwned{ display:none !important; }
+    body[data-owned-filter="missing"] #cardList .cardRow:not(.notOwned){ display:none !important; }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:calc(100vh - 255px);
+      overflow:auto;
+      padding-right:5px;
+      scrollbar-color:rgba(120,255,190,.45) rgba(255,255,255,.05);
+    }
+    .cardRow{
+      position:relative;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(190px,auto);
+      gap:10px;
+      align-items:center;
+      min-height:88px;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.115);
+      border-radius:16px;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.018)),
+        rgba(0,0,0,.20);
+      box-shadow:inset 4px 0 0 rgba(90,170,255,.38);
+      cursor:pointer;
+    }
+    .cardRow:hover{ border-color:rgba(255,216,107,.34); background-color:rgba(255,255,255,.04); }
+    .cardRow .name{ font-weight:950; line-height:1.3; }
+    .cardRow .sub{
+      margin-top:4px;
+      color:rgba(255,255,255,.67);
+      font-size:12px;
+      line-height:1.35;
+      overflow:hidden;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+    }
+    .cardRow .btns{
+      display:grid;
+      grid-template-columns:42px minmax(58px,1fr) 42px;
+      gap:6px;
+      align-items:center;
+      min-width:190px;
+    }
+    .miniBtn{
+      min-height:34px;
+      padding:6px 9px;
+      border-radius:12px;
+      font-size:12px;
+    }
+    .count,.cnt{
+      min-height:34px;
+      display:grid;
+      place-items:center;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:12px;
+      background:rgba(0,0,0,.22);
+      font-weight:950;
+    }
+    .ownedBadge,.seriesBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:22px;
+      margin-left:6px;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.86);
+      font-size:12px;
+      vertical-align:middle;
+    }
+    .seriesBadge{ color:#b8ffd5; border-color:rgba(120,255,170,.34); background:rgba(80,220,130,.10); }
+
+    #deckPanel{
+      display:flex;
+      flex-direction:column;
+      min-height:calc(100vh - 116px);
+    }
+    #deckPanel > .hd{
+      background:
+        linear-gradient(90deg,rgba(105,180,255,.10),rgba(120,255,170,.06)),
+        rgba(0,0,0,.12);
+    }
+    #deckPanel > .bd{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:0;
+      flex:1;
+    }
+    .deckPanelActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .deckSaveDock,.deckInfoDock{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      background:rgba(0,0,0,.16);
+      overflow:hidden;
+    }
+    .deckSaveDockHead,.deckInfoDockHead,.listHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.035);
+    }
+    .deckSaveDockHeadMain b,.deckInfoDockHeadMain b{ display:block; }
+    .deckSaveDockHeadMain span,.deckInfoDockHeadMain span{ display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+    .deckSaveRow{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      padding:12px;
+    }
+    .deckInfoBody{
+      padding:12px;
+      max-height:360px;
+      overflow:auto;
+    }
+    #deckList{
+      max-height:calc(100vh - 315px);
+    }
+    .msg{ color:var(--muted); font-size:12px; white-space:pre-wrap; line-height:1.45; }
+    .msg.bad{ color:var(--bad); }
+    .msg.ok{ color:var(--ok); }
+
+    #deckRoomPanel{
+      display:none;
+    }
+    #roomDrawerOverlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      z-index:9000;
+      background:rgba(0,0,0,.46);
+      backdrop-filter:blur(8px);
+    }
+    #roomDrawerOverlay.open{ display:block; }
+    #roomDrawer{
+      position:fixed;
+      top:0;
+      right:0;
+      bottom:0;
+      z-index:9010;
+      width:min(520px,calc(100vw - 18px));
+      transform:translateX(104%);
+      transition:transform .24s ease;
+      border-left:1px solid rgba(255,255,255,.14);
+      border-radius:22px 0 0 22px;
+      background:
+        radial-gradient(520px 260px at 0% 0%, rgba(90,170,255,.14), transparent 60%),
+        linear-gradient(180deg,rgba(19,25,32,.98),rgba(8,10,13,.98));
+      box-shadow:-24px 0 70px rgba(0,0,0,.55);
+      overflow:auto;
+    }
+    #roomDrawer.open{ transform:translateX(0); }
+    .drawerHead{
+      position:sticky;
+      top:0;
+      z-index:1;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      background:rgba(8,12,16,.88);
+      backdrop-filter:blur(14px);
+    }
+    .roomCard{
+      margin:12px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      background:rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .roomCard .roomCardHead{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:11px 12px;
+      border-bottom:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.035);
+    }
+    .roomCard .roomCardBody{ padding:12px; }
+    .roomHero{
+      padding:18px;
+      border-radius:20px;
+      border:1px solid rgba(180,255,120,.18);
+      background:
+        radial-gradient(420px 180px at 0% 0%, rgba(180,255,120,.16), transparent 62%),
+        rgba(255,255,255,.035);
+    }
+    .roomHero .kicker{ color:#baff66; font-weight:950; letter-spacing:.08em; font-size:12px; }
+    .roomHero h2{ margin:10px 0 8px; font-size:26px; }
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:10px;
+      border-bottom:1px solid rgba(255,255,255,.09);
+    }
+    .tabBody{ padding:12px; }
+    .tabBody[hidden]{ display:none; }
+    .fieldPickDeck{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .fieldPickDeck label{ color:var(--muted); font-size:12px; }
+    .fieldPickDeck select{ width:auto; min-width:180px; }
+
+    #detailWrap{
+      position:fixed;
+      left:14px;
+      bottom:14px;
+      z-index:5000;
+      display:none;
+      width:min(430px,calc(100vw - 28px));
+      max-height:70vh;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:18px;
+      background:rgba(11,15,20,.96);
+      box-shadow:0 24px 70px rgba(0,0,0,.58);
+    }
+    .detailHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    #detail{
+      max-height:calc(70vh - 54px);
+      overflow:auto;
+      padding:12px;
+      font-size:13px;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+
+    .guideOverlay{
+      position:fixed;
+      inset:0;
+      z-index:9500;
+      display:none;
+      pointer-events:none;
+    }
+    .guideOverlay.open{ display:block; }
+    .guideDim{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.42);
+      pointer-events:auto;
+    }
+    .guideFocus{
+      position:absolute;
+      border:2px solid rgba(120,255,170,.88);
+      border-radius:18px;
+      box-shadow:0 0 0 9999px rgba(0,0,0,.38),0 0 30px rgba(120,255,170,.32);
+      pointer-events:none;
+    }
+    .guideCard{
+      position:absolute;
+      width:min(340px,calc(100vw - 28px));
+      padding:14px;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:18px;
+      background:rgba(12,18,24,.96);
+      box-shadow:0 18px 58px rgba(0,0,0,.55);
+      pointer-events:auto;
+    }
+    .guideBtns{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+
+    @media (max-width:1180px){
+      .wrap{ grid-template-columns:1fr; }
+      #deckMainPanel{ min-height:auto; }
+      #deckPanel{ min-height:auto; }
+      .grid2{ grid-template-columns:1fr; }
+      .list{ max-height:520px; }
+      #deckList{ max-height:520px; }
+    }
+    @media (max-width:720px){
+      body{ padding-bottom:12px; }
+      header{
+        display:grid;
+        grid-template-columns:1fr;
+        align-items:start;
+        gap:8px;
+        padding:9px 10px;
+      }
+      header .left{ justify-content:space-between; }
+      header .meta,#versionLabel{ display:none; }
+      .topRight{
+        width:100%;
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:7px !important;
+      }
+      .topRight > *{ width:100%; min-width:0; font-size:12px; }
+      .wrap{
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        padding:10px;
+        min-height:0;
+      }
+      .panel{ border-radius:18px; }
+      .panel .hd{ min-height:50px; padding:10px 11px; }
+      .panel .bd{ padding:10px; }
+      .grid2{ display:flex; flex-direction:column; gap:10px; }
+      #mobileCardSection{ order:1; }
+      #deckPanel{ order:2; }
+      #mobileDeckSection{ order:2; }
+      #cardList{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:7px;
+        max-height:45vh;
+      }
+      #deckList{
+        max-height:42vh;
+      }
+      .cardRow{
+        min-height:92px;
+        grid-template-columns:minmax(0,1fr);
+        gap:7px;
+        padding:8px;
+      }
+      .cardRow .name{ font-size:12px; }
+      .cardRow .sub{ font-size:10.5px; -webkit-line-clamp:2; }
+      .cardRow .btns{
+        min-width:0;
+        grid-template-columns:34px minmax(42px,1fr) 34px 54px;
+      }
+      .cardRow .btns [data-detail]{ grid-column:4; }
+      .miniBtn,.count,.cnt{ min-height:32px; font-size:11px; }
+      .deckSaveRow{ grid-template-columns:1fr; }
+      .filterBox{ padding:10px; }
+      .ownedRow{
+        justify-content:flex-start;
+        border-left:0;
+        padding-left:0;
+        margin-left:0;
+      }
+      #roomDrawer{
+        width:100vw;
+        border-radius:0;
+      }
+      #detailWrap{
+        left:10px;
+        right:10px;
+        bottom:10px;
+        width:auto;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+
+<body>
+  <div id="deckStart" class="deckStart hide" role="button" tabindex="0" aria-label="繝・ャ繧ｭ邱ｨ髮・ｒ髢句ｧ・>
+    <div class="deckStartInner">
+      <div class="deckStartMark" aria-hidden="true"></div>
+      <h1 class="deckStartTitle">Deck Builder</h1>
+      <p class="deckStartSub">30譫壹ｒ邨・ｓ縺ｧ縲∵姶蝣ｴ縺ｸ謖√■霎ｼ繧貅門ｙ繧偵＠繧医≧縲・/p>
+      <div class="deckStartPrompt">Click / Tap to Start</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const start = document.getElementById("deckStart");
+      if (!start) return;
+      const close = () => {
+        start.classList.add("hide");
+        start.setAttribute("aria-hidden", "true");
+        setTimeout(() => start.remove(), 520);
+      };
+      start.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        close();
+      });
+      start.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        close();
+      });
+    })();
+  </script>
+
+  <header>
+    <div class="left">
+      <h1>Deck Builder</h1>
+      <div class="meta">30譫・/ 蜷悟錐4譫壹∪縺ｧ</div>
+    </div>
+    <div class="row topRight" style="gap:8px;">
+      <button id="btnHome" class="btnGhost" type="button">蛻晄悄逕ｻ髱｢</button>
+      <button id="btnRule" class="btnGhost" type="button">蛻晏ｿ・・・縺薙■繧・/button>
+      <button id="btnGuide" class="btnGhost" type="button">謫堺ｽ懊ぎ繧､繝・/button>
+      <button id="btnSolo" class="btn" type="button">繧ｽ繝ｭ縺ｧ髢句ｧ・/button>
+      <span id="versionLabel" class="badge">v20260802 deck_clean1</span>
+      <button id="btnSettings" class="btnGhost" type="button">繝ｫ繝ｼ繝謫堺ｽ・/button>
+    </div>
+  </header>
+
+  <div class="deckVersionStrip">
+    <span class="pill">v20260802 deck_clean1</span>
+  </div>
+
+  <div class="wrap">
+    <div class="panel" id="deckMainPanel">
+      <div class="hd">
+        <b>繝・ャ繧ｭ邱ｨ髮・/b>
+        <span class="small">繧ｫ繝ｼ繝我ｸ隕ｧ縺九ｉ驕ｸ縺ｳ縲∝承蛛ｴ縺ｧ謗｡逕ｨ繧ｫ繝ｼ繝峨ｒ遒ｺ隱・/span>
+      </div>
+      <div class="bd grid2">
+        <section id="mobileCardSection">
+          <div class="sectionHead">
+            <b>繧ｫ繝ｼ繝我ｸ隕ｧ</b>
+            <span class="small">繧ｯ繝ｪ繝・け縺ｧ隧ｳ邏ｰ / ・九〒霑ｽ蜉</span>
+          </div>
+          <div class="filterBox">
+            <input id="search" class="input" placeholder="讀懃ｴ｢・医き繝ｼ繝牙錐 / ID / 蜉ｹ譫懶ｼ・ />
+            <select id="typeSelect" aria-label="螻樊ｧ繝輔ぅ繝ｫ繧ｿ繝ｼ">
+              <option value="ALL">蜈ｨ螻樊ｧ</option>
+              <option value="轣ｫ">轣ｫ</option>
+              <option value="豌ｴ">豌ｴ</option>
+              <option value="髮ｷ">髮ｷ</option>
+              <option value="闕・>闕・/option>
+              <option value="鬚ｨ">鬚ｨ</option>
+              <option value="驪ｼ">驪ｼ</option>
+              <option value="蜈・>蜈・/option>
+              <option value="髣・>髣・/option>
+              <option value="蟷ｻ">蟷ｻ</option>
+            </select>
+            <div class="row" style="justify-content:space-between; margin-top:10px;">
+              <div class="typeRow" aria-label="繧ｫ繝ｼ繝臥ｨｮ蛻･">
+                <button class="filterBtn active" type="button" data-kind-filter="all">蜈ｨ驛ｨ</button>
+                <button class="filterBtn" type="button" data-kind-filter="unit">繧ｭ繝｣繝ｩ</button>
+                <button class="filterBtn" type="button" data-kind-filter="support">繧ｵ繝昴・繝・/button>
+              </div>
+              <div class="ownedRow" aria-label="謇謖√ヵ繧｣繝ｫ繧ｿ繝ｼ">
+                <button class="filterBtn active" type="button" data-owned-filter="all">縺吶∋縺ｦ</button>
+                <button class="filterBtn" type="button" data-owned-filter="owned">謇謖∵ｸ医∩</button>
+                <button class="filterBtn" type="button" data-owned-filter="missing">譛ｪ謇謖・/button>
+              </div>
+            </div>
+            <div class="attrRow" aria-label="螻樊ｧ繝輔ぅ繝ｫ繧ｿ繝ｼ">
+              <button class="filterBtn active" type="button" data-attr-filter="ALL">蜈ｨ螻樊ｧ</button>
+              <button class="filterBtn" type="button" data-attr-filter="轣ｫ">轣ｫ</button>
+              <button class="filterBtn" type="button" data-attr-filter="豌ｴ">豌ｴ</button>
+              <button class="filterBtn" type="button" data-attr-filter="髮ｷ">髮ｷ</button>
+              <button class="filterBtn" type="button" data-attr-filter="闕・>闕・/button>
+              <button class="filterBtn" type="button" data-attr-filter="鬚ｨ">鬚ｨ</button>
+              <button class="filterBtn" type="button" data-attr-filter="驪ｼ">驪ｼ</button>
+              <button class="filterBtn" type="button" data-attr-filter="蜈・>蜈・/button>
+              <button class="filterBtn" type="button" data-attr-filter="髣・>髣・/button>
+              <button class="filterBtn" type="button" data-attr-filter="蟷ｻ">蟷ｻ</button>
+            </div>
+          </div>
+          <div id="cardList" class="list"></div>
+        </section>
+
+        <section id="deckPanel" class="panel">
+          <div class="hd">
+            <b>繝・ャ繧ｭ</b>
+            <div class="row" style="justify-content:flex-end;">
+              <span class="pill">譫壽焚: <span id="deckCount">0</span>/30</span>
+              <button id="btnClearDeck" class="btnGhost" type="button">蜈ｨ豸医＠</button>
+            </div>
+          </div>
+          <div class="bd">
+            <div class="deckSaveDock" id="deckSaveDock">
+              <div class="deckSaveDockHead">
+                <div class="deckSaveDockHeadMain">
+                  <b>繝・ャ繧ｭ邂｡逅・/b>
+                  <span>蜷榊燕繧呈ｱｺ繧√※菫晏ｭ倥∝ｿ・ｦ√↑譎ゅ□縺台ｸ隕ｧ繧帝幕縺・/span>
+                </div>
+                <button id="deckSaveMinBtn" class="btnGhost" type="button" title="譛蟆丞喧">-</button>
+              </div>
+              <div class="deckSaveRow">
+                <input id="deckTitle" class="input" maxlength="40" placeholder="繝・ャ繧ｭ蜷・ />
+                <button id="btnSave" class="btn" type="button">菫晏ｭ・/button>
+              </div>
+            </div>
+            <div class="deckInfoDock" id="deckInfoDock">
+              <div class="deckInfoDockHead">
+                <div class="deckInfoDockHeadMain">
+                  <b>繝・ャ繧ｭ諠・ｱ</b>
+                  <span>繝ｩ繝懊・謗｡逕ｨ繧ｫ繝ｼ繝峨・EX險ｭ螳・/span>
+                </div>
+                <button id="deckInfoMinBtn" class="btnGhost" type="button" title="譛蟆丞喧">-</button>
+              </div>
+              <div class="deckInfoBody">
+                <div class="listHead">
+                  <b>蜈･繧後◆繧ｫ繝ｼ繝・/b>
+                  <span class="small">30譫壹■繧・≧縺ｩ縺ｧ髢句ｧ九〒縺阪∪縺・/span>
+                </div>
+                <div id="deckList" class="list"></div>
+                <div id="deckMsg" class="msg bad" style="margin-top:8px;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <aside class="panel" id="deckRoomPanel" aria-hidden="true">
+      <div class="hd">
+        <b>繝ｫ繝ｼ繝謫堺ｽ・/b>
+        <span class="small">蟇ｾ謌ｦ髢句ｧ九・蜿ｳ荳九・繝励Ξ繧､縺九ｉ</span>
+      </div>
+    </aside>
+  </div>
+
+  <div id="roomDrawerOverlay" aria-hidden="true"></div>
+  <aside id="roomDrawer" aria-hidden="true">
+    <div class="drawerHead">
+      <b>繝ｫ繝ｼ繝謫堺ｽ・/b>
+      <button id="roomDrawerClose" class="btnGhost" type="button">髢峨§繧・/button>
+    </div>
+    <div class="roomCard">
+      <div class="roomHero">
+        <div class="kicker">BATTLE ENTRY</div>
+        <h2>蟇ｾ謌ｦ繝ｫ繝ｼ繝</h2>
+        <p class="small">繝・ャ繧ｭ繧・0譫壹↓縺励◆繧峨√％縺薙°繧峨た繝ｭ繝ｻ繝ｫ繝ｼ繝菴懈・繝ｻ蜿ょ刈繧帝∈繧薙〒髢句ｧ九〒縺阪∪縺吶・/p>
+      </div>
+    </div>
+    <div class="roomCard">
+      <div class="roomCardHead">
+        <b>繝励Ξ繧､繝､繝ｼ</b>
+        <span class="small">陦ｨ遉ｺ蜷・/span>
+      </div>
+      <div class="roomCardBody">
+        <div class="row" style="margin-bottom:10px;">
+          <input id="playerName" class="input" maxlength="16" placeholder="繝励Ξ繧､繝､繝ｼ蜷・ />
+          <button id="btnSaveName" class="btn" type="button">菫晏ｭ・/button>
+        </div>
+        <div id="nameMsg" class="msg"></div>
+      </div>
+    </div>
+    <div class="roomCard">
+      <div class="roomCardHead">
+        <b>繝槭ャ繝・/b>
+        <span class="small">菴懈・ / 蜿ょ刈譎ゅ↓蜿肴丐</span>
+      </div>
+      <div class="roomCardBody" id="roomFieldMount"></div>
+    </div>
+    <div class="roomCard">
+      <div class="tabs">
+        <button class="tab active" type="button" data-tab="create">繝ｫ繝ｼ繝菴懈・</button>
+        <button class="tab" type="button" data-tab="join">繝ｫ繝ｼ繝蜿ょ刈</button>
+      </div>
+      <div class="tabBody" id="tab-create">
+        <div class="row">
+          <button id="createBtn" class="btn" type="button" disabled>繝ｫ繝ｼ繝菴懈・</button>
+          <span class="small">繝・ャ繧ｭ30譫壹〒譛牙柑</span>
+        </div>
+        <div id="createMsg" class="msg" style="margin-top:8px;"></div>
+      </div>
+      <div class="tabBody" id="tab-join" hidden>
+        <input id="joinRoomId" class="input" placeholder="蜿ょ刈繧ｳ繝ｼ繝・萓・ 1234" />
+        <div class="row" style="margin-top:10px;">
+          <button id="joinBtn" class="btn" type="button" disabled>蜿ょ刈</button>
+        </div>
+        <div id="joinMsg" class="msg" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </aside>
+
+  <button id="roomDrawerToggle" class="btn" type="button" style="position:fixed; right:18px; bottom:18px; z-index:4000; border-radius:999px; box-shadow:0 0 34px rgba(120,255,190,.26);">繝励Ξ繧､ 笆ｶ</button>
+
+  <div id="detailWrap" aria-hidden="true">
+    <div class="detailHead">
+      <b>隧ｳ邏ｰ</b>
+      <button id="detailClose" class="btnGhost" type="button" title="隧ｳ邏ｰ繧帝哩縺倥ｋ">ﾃ・/button>
+    </div>
+    <div id="detail">繧ｫ繝ｼ繝芽ｩｳ邏ｰ縺後％縺薙↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶・/div>
+  </div>
+
+  <div id="guideOverlay" class="guideOverlay" aria-hidden="true">
+    <div id="guideDim" class="guideDim"></div>
+    <div id="guideFocus" class="guideFocus"></div>
+    <div id="guideCard" class="guideCard">
+      <div class="small" id="guideStep"></div>
+      <h3 id="guideTitle" style="margin:6px 0 8px;"></h3>
+      <div id="guideText" class="msg"></div>
+      <div class="guideBtns">
+        <button id="guidePrev" class="btnGhost" type="button">謌ｻ繧・/button>
+        <button id="guideSkip" class="btnGhost" type="button">髢峨§繧・/button>
+        <button id="guideNext" class="btn" type="button">谺｡縺ｸ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const typeSelect = document.getElementById("typeSelect");
+      const kindBtns = Array.from(document.querySelectorAll("[data-kind-filter]"));
+      const attrBtns = Array.from(document.querySelectorAll("[data-attr-filter]"));
+      const ownedBtns = Array.from(document.querySelectorAll("[data-owned-filter]"));
+      const setKind = (kind) => {
+        document.body.dataset.kindFilter = kind;
+        kindBtns.forEach((b) => b.classList.toggle("active", b.dataset.kindFilter === kind));
+      };
+      const setOwned = (owned) => {
+        document.body.dataset.ownedFilter = owned;
+        ownedBtns.forEach((b) => b.classList.toggle("active", b.dataset.ownedFilter === owned));
+      };
+      const setAttr = (attr) => {
+        if (typeSelect) {
+          typeSelect.value = attr;
+          typeSelect.dispatchEvent(new Event("change", { bubbles:true }));
+        }
+        attrBtns.forEach((b) => b.classList.toggle("active", b.dataset.attrFilter === attr));
+      };
+      kindBtns.forEach((b) => b.addEventListener("click", () => setKind(b.dataset.kindFilter || "all")));
+      ownedBtns.forEach((b) => b.addEventListener("click", () => setOwned(b.dataset.ownedFilter || "all")));
+      attrBtns.forEach((b) => b.addEventListener("click", () => setAttr(b.dataset.attrFilter || "ALL")));
+      setKind("all");
+      setOwned("all");
+      setAttr(typeSelect?.value || "ALL");
+    })();
+  </script>
+
+  <script type="module" src="./deck.js?v=20260802_deck_clean1"></script>
+  <script src="./player_journey.js?v=20260801_journey1"></script>
+  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>
+

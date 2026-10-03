@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="moon turtle tide guardian pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#202020" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".14" stroke-width="1">
+      <path d="M23 262c46-18 82 12 124-4 39-15 66 11 87-2M24 290c46-14 82 10 125-5 39-13 65 7 86-1"/>
+      <path d="M45 40l166 270M216 42L41 313"/>
+    </g>
+    <g stroke-width="3.8">
+      <path d="M69 179c5-50 44-81 95-69 41 10 63 42 57 84-7 51-48 79-99 67-39-9-58-41-53-82z"/>
+      <path d="M91 124c-7-36 18-64 52-63 22 1 43 15 52 35"/>
+      <path d="M97 158c35-21 71-20 106 2M86 205c42 19 80 19 121 0"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M124 116c-7 47-6 90 1 137M168 121c-12 44-11 86 4 125"/>
+      <path d="M79 196c-24 1-43 11-57 28M218 195c15 5 26 17 34 35"/>
+      <path d="M88 247c-12 17-18 37-17 60M189 246c13 18 20 38 20 61"/>
+      <path d="M162 64c20-24 45-22 60-3-19-6-39 2-49 22"/>
+    </g>
+    <g opacity=".34" stroke-width="1.2">
+      <path d="M91 141c33-9 70-9 106 0M80 180c43 8 90 8 132 0"/>
+      <path d="M69 231c42 22 95 23 144 0"/>
+    </g>
+  </g>
+</svg>

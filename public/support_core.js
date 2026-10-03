@@ -14,8 +14,15 @@
 //   * restrictions: if not satisfied => ok:false (no consume/pay)
 //   * drawbacks: if playable => ALWAYS applied regardless of hit/fail
 
-import { drawCards, clearStatuses } from "./game_state.js?v=20260228_5";
-import { normalizeMana, spendMana } from "./game_core.js?v=20260223";
+import {
+  drawCards,
+  clearStatuses,
+  normalizeStatusKey,
+  isTaimanDamageAllowed,
+  blocksAssist,
+  isAssistStatusKey,
+} from "./game_state.js?v=20260904_status_rules1";
+import { normalizeMana, spendMana } from "./game_core.js?v=20260627_mana1";
 
 export function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
@@ -53,6 +60,56 @@ export function isSupportCard(def) {
 
 function cardNameFromDefs(cardDefs, cardId) {
   return cardDefs?.[cardId]?.name || cardId;
+}
+
+function statusKeyOf(key) {
+  try {
+    return normalizeStatusKey(key) || String(key ?? "").trim();
+  } catch {
+    return String(key ?? "").trim();
+  }
+}
+
+function unitHasStatus(unit, key) {
+  const want = statusKeyOf(key);
+  if (!unit || !want) return false;
+  const st = safeObj(unit.status);
+  return Object.keys(st).some(
+    (k) => statusKeyOf(k) === want && st[k] != null && st[k] !== false,
+  );
+}
+
+function assistBlockedForTarget(unit) {
+  try {
+    return typeof blocksAssist === "function" && blocksAssist(unit);
+  } catch {
+    return unitHasStatus(unit, "lostSoul");
+  }
+}
+
+function taimanBlocksDamage(target, caster) {
+  if (!unitHasStatus(target, "taiman")) return false;
+  if (!caster) return true;
+  try {
+    return !isTaimanDamageAllowed(target, caster);
+  } catch {
+    return true;
+  }
+}
+
+function isAssistStatusForSupport(key) {
+  const k = statusKeyOf(key);
+  try {
+    return typeof isAssistStatusKey === "function" && isAssistStatusKey(k);
+  } catch {
+    return ["armor", "evade", "hitUp", "aim", "powerUp", "power", "counter", "taiman"].includes(k);
+  }
+}
+
+function logAssistBlocked(logLines, cardDefs, target) {
+  logLines.push(
+    `  → 失魂：${cardNameFromDefs(cardDefs, target?.cardId)} は補助効果を受けない`,
+  );
 }
 
 function findUnit(units, id) {
@@ -198,7 +255,7 @@ function getEffectDrawback(effectSpec) {
 
 function unitAttr(cardDefs, u) {
   const def = cardDefs?.[u?.cardId] || null;
-  return asStr(def?.type, "");
+  return asStr(u?.attrOverride ?? u?.attr ?? u?.type ?? def?.attr ?? def?.type, "");
 }
 function unitMaxHp(cardDefs, u) {
   const def = cardDefs?.[u?.cardId] || null;
@@ -386,6 +443,47 @@ function checkCondForTarget({ cond, cardDefs, mana, targetUnit }) {
   return { ok: true, reason: "" };
 }
 
+function checkCondForTargetMany({ cond, cardDefs, mana, targetUnits }) {
+  const list = safeArr(targetUnits).filter(Boolean);
+  const c = safeObj(cond);
+
+  // 条件が空なら常にOK
+  if (!Object.keys(c).length) return { ok: true, reason: "" };
+
+  // 対象依存の条件が無ければOK
+  const hasTargetSpecific =
+    c.attr != null ||
+    Array.isArray(c.attrIn) ||
+    c.hp != null ||
+    c.sp != null ||
+    c.hpPct != null ||
+    c.spPct != null ||
+    c.status != null ||
+    c.mana != null;
+
+  if (!list.length) {
+    return hasTargetSpecific
+      ? { ok: false, reason: "条件に対象が必要" }
+      : { ok: true, reason: "" };
+  }
+
+  // 全対象が条件を満たす必要あり
+  for (const u of list) {
+    const r = checkCondForTarget({
+      cond,
+      cardDefs,
+      mana,
+      targetUnit: u,
+    });
+    if (!r.ok) {
+      const name = cardNameFromDefs(cardDefs, u.cardId);
+      return { ok: false, reason: `${name}: ${r.reason}` };
+    }
+  }
+
+  return { ok: true, reason: "" };
+}
+
 function checkCondForCasterMana({ cond, mana, seat }) {
   // Optional: cond.mana.seat === "CASTER"
   const c = safeObj(cond);
@@ -453,7 +551,535 @@ function checkDrawbackFeasible({
 
 function otherSeat(seat) {
   return seat === "A" ? "B" : "A";
-} 
+}
+
+function normalizeHandLocks(raw) {
+  const src = safeObj(raw);
+  const out = { A: [], B: [] };
+  for (const seatKey of ["A", "B"]) {
+    const list = safeArr(src[seatKey]);
+    out[seatKey] = list
+      .map((x) => safeObj(x))
+      .map((x) => ({
+        cardId: asStr(x.cardId, ""),
+        count: Math.max(1, asInt(x.count, 1)),
+        releaseSeat: asStr(x.releaseSeat, ""),
+        source: asStr(x.source, ""),
+        at: asInt(x.at, Date.now()),
+      }))
+      .filter((x) => x.cardId && x.releaseSeat);
+  }
+  return out;
+}
+
+function lockCountForCard(handLocks, seatKey, cardId) {
+  return safeArr(handLocks?.[seatKey])
+    .filter((x) => asStr(x.cardId, "") === cardId)
+    .reduce((sum, x) => sum + Math.max(1, asInt(x.count, 1)), 0);
+}
+
+function pickSeatFromEffect(eff, casterSeat, fallback = casterSeat) {
+  const raw = asStr(
+    eff?.targetSeat ?? eff?.seat ?? eff?.who ?? eff?.targetPlayer,
+    fallback,
+  ).toLowerCase();
+  if (raw === "a") return "A";
+  if (raw === "b") return "B";
+  if (raw === "self" || raw === "caster" || raw === "you") return casterSeat;
+  if (raw === "enemy" || raw === "opponent" || raw === "foe")
+    return otherSeat(casterSeat);
+  return fallback === "enemy" ? otherSeat(casterSeat) : fallback;
+}
+
+function searchDeckCard({ decks, hands, seat, cardDefs, eff, searchCardId }) {
+  const deck = safeArr(decks[seat]).slice();
+  const hand = safeArr(hands[seat]).slice();
+  const wanted = asStr(searchCardId ?? eff?.cardId ?? eff?.id ?? eff?.searchId, "");
+  const kind = asStr(eff?.kind ?? eff?.cardKind, "").toLowerCase();
+  const attr = asStr(eff?.attr, "");
+  const rarity = asStr(eff?.rarity, "").toUpperCase();
+  const text = asStr(eff?.nameIncludes ?? eff?.query ?? eff?.q, "").toLowerCase();
+
+  const matches = (cardId) => {
+    if (!cardId) return false;
+    if (wanted && cardId !== wanted) return false;
+    const def = cardDefs?.[cardId] || {};
+    if (kind) {
+      const k = asStr(def.kind || "unit", "unit").toLowerCase();
+      if (kind === "unit") {
+        if (k === "support" || k === "ex_support" || k === "exsupport") return false;
+      } else if (k !== kind) return false;
+    }
+    if (attr && asStr(def.attr || def.type, "") !== attr) return false;
+    if (rarity && asStr(def.rarity || "R", "R").toUpperCase() !== rarity) return false;
+    if (text) {
+      const hay = `${cardId} ${def.name || ""} ${def.desc || ""}`.toLowerCase();
+      if (!hay.includes(text)) return false;
+    }
+    return true;
+  };
+
+  let idx = -1;
+  if (asStr(eff?.pick, "").toLowerCase() === "top") {
+    for (let i = deck.length - 1; i >= 0; i -= 1) {
+      if (matches(deck[i])) {
+        idx = i;
+        break;
+      }
+    }
+  } else {
+    idx = deck.findIndex(matches);
+  }
+
+  if (idx < 0) return { ok: false, decks, hands, cardId: "" };
+  const [cardId] = deck.splice(idx, 1);
+  hand.push(cardId);
+  return {
+    ok: true,
+    cardId,
+    decks: { ...decks, [seat]: deck },
+    hands: { ...hands, [seat]: hand },
+  };
+}
+
+function setHandCardFaceDown({ hands, handLocks, seat, cardDefs, eff, sourceName }) {
+  const targetSeat = pickSeatFromEffect(eff, seat, "enemy");
+  const releaseSeat = pickSeatFromEffect(
+    { targetSeat: eff?.releaseSeat ?? eff?.untilSeat },
+    seat,
+    seat,
+  );
+  const hand = safeArr(hands[targetSeat]);
+  if (!hand.length) return { ok: false, targetSeat, cardId: "" };
+
+  const wanted = asStr(eff?.cardId ?? eff?.id ?? "", "");
+  const kind = asStr(eff?.kind ?? eff?.cardKind, "").toLowerCase();
+  const attr = asStr(eff?.attr, "");
+  const candidates = [];
+
+  for (let i = 0; i < hand.length; i += 1) {
+    const cardId = hand[i];
+    if (!cardId) continue;
+    if (wanted && cardId !== wanted) continue;
+    const def = cardDefs?.[cardId] || {};
+    if (kind) {
+      const k = asStr(def.kind || "unit", "unit").toLowerCase();
+      if (kind === "unit") {
+        if (k === "support" || k === "ex_support" || k === "exsupport") continue;
+      } else if (k !== kind) continue;
+    }
+    if (attr && asStr(def.attr || def.type, "") !== attr) continue;
+    candidates.push({ i, cardId });
+  }
+
+  if (!candidates.length) return { ok: false, targetSeat, cardId: "" };
+  const pick =
+    asStr(eff?.pick, "random").toLowerCase() === "first"
+      ? candidates[0]
+      : candidates[Math.floor(Math.random() * candidates.length)];
+  const nextLocks = normalizeHandLocks(handLocks);
+  nextLocks[targetSeat].push({
+    cardId: pick.cardId,
+    count: Math.max(1, asInt(eff?.count ?? 1, 1)),
+    releaseSeat,
+    source: sourceName,
+    at: Date.now(),
+  });
+  return { ok: true, targetSeat, releaseSeat, cardId: pick.cardId, handLocks: nextLocks };
+}
+
+function decrementHandLockForCard(handLocks, seatKey, cardId, count = 1) {
+  const locks = normalizeHandLocks(handLocks);
+  let left = Math.max(1, asInt(count, 1));
+  locks[seatKey] = safeArr(locks[seatKey]).flatMap((lock) => {
+    if (left <= 0 || asStr(lock.cardId, "") !== cardId) return [lock];
+    const n = Math.max(1, asInt(lock.count, 1));
+    const used = Math.min(left, n);
+    left -= used;
+    const remain = n - used;
+    return remain > 0 ? [{ ...lock, count: remain }] : [];
+  });
+  return locks;
+}
+
+function discardHandCards({ hands, handLocks, discards, seat, eff }) {
+  const targetSeat = pickSeatFromEffect(eff, seat, "enemy");
+  const hand = safeArr(hands[targetSeat]);
+  if (!hand.length) return { ok: false, targetSeat, cardIds: [], handLocks };
+
+  const count = Math.max(1, asInt(eff?.count ?? eff?.n ?? 1, 1));
+  const pool = hand.map((cardId, i) => ({ cardId, i })).filter((x) => x.cardId);
+  const picked = [];
+  while (pool.length && picked.length < count) {
+    const idx = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  picked.sort((a, b) => b.i - a.i);
+
+  const nextDiscards = { ...(discards || {}) };
+  nextDiscards.A = safeArr(nextDiscards.A).slice();
+  nextDiscards.B = safeArr(nextDiscards.B).slice();
+  let nextLocks = normalizeHandLocks(handLocks);
+  const cardIds = [];
+
+  for (const p of picked) {
+    const [cardId] = hand.splice(p.i, 1);
+    if (!cardId) continue;
+    cardIds.push(cardId);
+    nextDiscards[targetSeat].push(cardId);
+    nextLocks = decrementHandLockForCard(nextLocks, targetSeat, cardId, 1);
+  }
+
+  return { ok: cardIds.length > 0, targetSeat, cardIds, hands, handLocks: nextLocks, discards: nextDiscards };
+}
+
+function normalizeSupportType(rawType, eff) {
+  const t = asStr(rawType, "").toLowerCase();
+
+  // alias: max mana up
+  if (t === "manamaxup" || t === "manaupmax" || t === "manamax")
+    return "manaUp";
+  if (t === "search" || t === "decksearch" || t === "tutor")
+    return "search";
+  if (
+    t === "changeattr" ||
+    t === "setattr" ||
+    t === "attrchange" ||
+    t === "attributechange" ||
+    t === "typechange" ||
+    t === "属性変更"
+  )
+    return "changeAttr";
+  if (
+    t === "discardhand" ||
+    t === "handdiscard" ||
+    t === "discard" ||
+    t === "gravehand" ||
+    t === "trashhand" ||
+    t === "手札を墓地へ"
+  )
+    return "discardHand";
+  if (
+    t === "setcard" ||
+    t === "facedown" ||
+    t === "cardset" ||
+    t === "cardlock" ||
+    t === "hidecard" ||
+    t === "伏せ" ||
+    t === "カードふせ"
+  )
+    return "setCard";
+
+  // ここ増やせる
+  return rawType;
+}
+
+function manaUpKind(eff) {
+  const rawType = asStr(eff?.type, "").toLowerCase();
+  const which = asStr(eff?.which ?? eff?.mode ?? eff?.kind, "cur").toLowerCase();
+
+  if (
+    which === "max" ||
+    which === "maximum" ||
+    which === "cap" ||
+    rawType === "manamaxup" ||
+    rawType === "manaupmax" ||
+    rawType === "manamax"
+  ) {
+    return "max";
+  }
+
+  return "cur";
+}
+// =====================
+// v3 helpers: multi target / auto target / group move
+// =====================
+
+function uniqIds(arr) {
+  const seen = new Set();
+  const out = [];
+  for (const x of safeArr(arr)) {
+    const id = asStr(x, "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
+function findUnits(units, ids) {
+  const map = new Map(safeArr(units).map((u) => [u?.id, u]));
+  return uniqIds(ids)
+    .map((id) => map.get(id))
+    .filter(Boolean);
+}
+
+function aliveUnits(units) {
+  return safeArr(units).filter((u) => isAlive(u));
+}
+
+function boardSizeFromUnits(units, eff) {
+  const W = Math.max(1, asInt(eff?.W, 5));
+  const H = Math.max(1, asInt(eff?.H, 7));
+  return { W, H };
+}
+
+function unitMaxHpFromDefs(cardDefs, u) {
+  return Math.max(0, asInt(cardDefs?.[u?.cardId]?.hp, 0));
+}
+
+function unitMaxSpFromDefs(cardDefs, u) {
+  return Math.max(0, asInt(cardDefs?.[u?.cardId]?.sp, 0));
+}
+
+function sortUnitsByPick(list, pick, seat, cardDefs) {
+  const a = safeArr(list).slice();
+  const p = asStr(pick, "first").toLowerCase();
+
+  if (p === "random") {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  if (p === "lowesthp") {
+    return a.sort((x, y) => asInt(x.hp, 0) - asInt(y.hp, 0));
+  }
+  if (p === "highesthp") {
+    return a.sort((x, y) => asInt(y.hp, 0) - asInt(x.hp, 0));
+  }
+  if (p === "lowestsp") {
+    return a.sort((x, y) => asInt(x.sp, 0) - asInt(y.sp, 0));
+  }
+  if (p === "highestsp") {
+    return a.sort((x, y) => asInt(y.sp, 0) - asInt(x.sp, 0));
+  }
+
+  // front / back
+  // A は y が小さいほど前、B は y が大きいほど前 とみなす
+  if (p === "front") {
+    return a.sort((x, y) => {
+      const fx = x.owner === "A" ? asInt(x.y, 0) : -asInt(x.y, 0);
+      const fy = y.owner === "A" ? asInt(y.y, 0) : -asInt(y.y, 0);
+      return fx - fy;
+    });
+  }
+  if (p === "back") {
+    return a.sort((x, y) => {
+      const fx = x.owner === "A" ? -asInt(x.y, 0) : asInt(x.y, 0);
+      const fy = y.owner === "A" ? -asInt(y.y, 0) : asInt(y.y, 0);
+      return fx - fy;
+    });
+  }
+
+  if (p === "leftright") {
+    return a.sort((x, y) => asInt(x.x, 0) - asInt(y.x, 0));
+  }
+
+  return a;
+}
+
+function filterUnitsByTargetGroup(units, seat, caster, targetGroup) {
+  const g = asStr(targetGroup, "").toLowerCase();
+  const all = aliveUnits(units);
+
+  if (!g || g === "single") return all;
+
+  if (g === "enemy" || g === "allenemy") {
+    return all.filter((u) => u.owner && u.owner !== seat);
+  }
+  if (g === "ally" || g === "allally") {
+    return all.filter((u) => u.owner === seat);
+  }
+  if (g === "self") {
+    return caster ? all.filter((u) => u.id === caster.id) : [];
+  }
+  if (g === "otherself") {
+    return caster
+      ? all.filter((u) => u.owner === seat && u.id !== caster.id)
+      : all.filter((u) => u.owner === seat);
+  }
+  if (g === "any" || g === "all") {
+    return all;
+  }
+
+  return all;
+}
+
+function filterUnitsByCondLite(list, eff, cardDefs) {
+  const out = [];
+  const cond = safeObj(eff?.cond);
+
+  for (const u of safeArr(list)) {
+    let ok = true;
+
+    const attr = asStr(unitAttr(cardDefs, u), "");
+    const needAttr = asStr(cond.attr, "");
+    const attrIn = Array.isArray(cond.attrIn)
+      ? cond.attrIn.map((x) => asStr(x, "")).filter(Boolean)
+      : [];
+    if (needAttr && attr !== needAttr) ok = false;
+    if (attrIn.length && !attrIn.includes(attr)) ok = false;
+
+    if (cond.hp && typeof cond.hp === "object") {
+      const min = cond.hp.min == null ? null : asInt(cond.hp.min, 0);
+      const max = cond.hp.max == null ? null : asInt(cond.hp.max, 0);
+      const v = asInt(u.hp, 0);
+      if (min != null && v < min) ok = false;
+      if (max != null && v > max) ok = false;
+    }
+
+    if (cond.sp && typeof cond.sp === "object") {
+      const min = cond.sp.min == null ? null : asInt(cond.sp.min, 0);
+      const max = cond.sp.max == null ? null : asInt(cond.sp.max, 0);
+      const v = asInt(u.sp, 0);
+      if (min != null && v < min) ok = false;
+      if (max != null && v > max) ok = false;
+    }
+
+    if (cond.hpPct && typeof cond.hpPct === "object") {
+      const min = cond.hpPct.min == null ? null : asInt(cond.hpPct.min, 0);
+      const max = cond.hpPct.max == null ? null : asInt(cond.hpPct.max, 100);
+      const mh = unitMaxHp(cardDefs, u);
+      const pct = mh > 0 ? Math.floor((asInt(u.hp, 0) * 100) / mh) : 0;
+      if (min != null && pct < min) ok = false;
+      if (max != null && pct > max) ok = false;
+    }
+
+    if (cond.spPct && typeof cond.spPct === "object") {
+      const min = cond.spPct.min == null ? null : asInt(cond.spPct.min, 0);
+      const max = cond.spPct.max == null ? null : asInt(cond.spPct.max, 100);
+      const ms = unitMaxSpFromDefs(cardDefs, u);
+      const pct = ms > 0 ? Math.floor((asInt(u.sp, 0) * 100) / ms) : 0;
+      if (min != null && pct < min) ok = false;
+      if (max != null && pct > max) ok = false;
+    }
+
+    const sc = safeObj(cond.status);
+    const keys = Object.keys(safeObj(u.status));
+    const hasAny = Array.isArray(sc.hasAny)
+      ? sc.hasAny.map((x) => asStr(x, "")).filter(Boolean)
+      : [];
+    const hasAll = Array.isArray(sc.hasAll)
+      ? sc.hasAll.map((x) => asStr(x, "")).filter(Boolean)
+      : [];
+    const lacksAny = Array.isArray(sc.lacksAny)
+      ? sc.lacksAny.map((x) => asStr(x, "")).filter(Boolean)
+      : [];
+    const lacksAll = Array.isArray(sc.lacksAll)
+      ? sc.lacksAll.map((x) => asStr(x, "")).filter(Boolean)
+      : [];
+
+    if (hasAny.length && !hasAny.some((k) => keys.includes(k))) ok = false;
+    if (hasAll.length && !hasAll.every((k) => keys.includes(k))) ok = false;
+    if (lacksAny.length && lacksAny.some((k) => keys.includes(k))) ok = false;
+    if (lacksAll.length && !lacksAll.every((k) => !keys.includes(k)))
+      ok = false;
+
+    if (ok) out.push(u);
+  }
+
+  return out;
+}
+
+function resolveEffectTargets({
+  units,
+  seat,
+  caster,
+  cardDefs,
+  eff,
+  targetUnitId = null,
+  targetUnitId2 = null,
+  targetUnitIds = null,
+}) {
+  // 1) 明示複数指定が最優先
+  const explicitMany = findUnits(units, targetUnitIds);
+  if (explicitMany.length) return explicitMany;
+
+  // 2) 従来の単体/2体
+  const explicit = [];
+  if (targetUnitId) {
+    const u = findUnit(units, targetUnitId);
+    if (u) explicit.push(u);
+  }
+  if (targetUnitId2) {
+    const u = findUnit(units, targetUnitId2);
+    if (u && !explicit.some((x) => x.id === u.id)) explicit.push(u);
+  }
+  if (explicit.length) return explicit;
+
+  // 3) 自動選択
+  const group = asStr(eff?.targetGroup, "");
+  let pool = filterUnitsByTargetGroup(units, seat, caster, group);
+  pool = filterUnitsByCondLite(pool, eff, cardDefs);
+
+  const pick = asStr(eff?.pick, "first");
+  pool = sortUnitsByPick(pool, pick, seat, cardDefs);
+
+  const countRaw = eff?.count == null ? 1 : asInt(eff.count, 1);
+  const count = Math.max(1, countRaw);
+
+  return pool.slice(0, count);
+}
+
+function nextYByMode(u, mode, dist) {
+  const d = Math.max(1, asInt(dist, 1));
+  const m = asStr(mode, "retreat").toLowerCase();
+
+  // Aは上に進軍(-y)、Bは下に進軍(+y)
+  if (m === "retreat") {
+    return u.owner === "A" ? asInt(u.y, 0) + d : asInt(u.y, 0) - d;
+  }
+  if (m === "advance") {
+    return u.owner === "A" ? asInt(u.y, 0) - d : asInt(u.y, 0) + d;
+  }
+
+  return asInt(u.y, 0);
+}
+
+function canPlaceUnit(units, selfUnit, x, y, W, H) {
+  if (x < 0 || x >= W || y < 0 || y >= H) return false;
+  return !safeArr(units).some(
+    (u) =>
+      u &&
+      u !== selfUnit &&
+      isAlive(u) &&
+      asInt(u.x, -999) === x &&
+      asInt(u.y, -999) === y,
+  );
+}
+
+function tryShiftUnitY(units, u, mode, dist, eff) {
+  const { W, H } = boardSizeFromUnits(units, eff);
+  const x = asInt(u.x, 0);
+  let y = asInt(u.y, 0);
+  let moved = 0;
+
+  for (let i = 0; i < Math.max(1, asInt(dist, 1)); i++) {
+    const nextY = nextYByMode({ ...u, y }, mode, 1);
+    if (!canPlaceUnit(units, u, x, nextY, W, H)) break;
+    y = nextY;
+    moved++;
+  }
+
+  if (moved > 0) {
+    u.y = y;
+  }
+  return moved;
+}
+
+function applyStatusEntry(target, key, v, turns = 1) {
+  target.status = safeObj(target.status);
+  const nk = statusKeyOf(key);
+  if (!nk) return;
+  const prev = safeObj(target.status[nk]);
+  target.status[nk] = {
+    v: clamp(asInt(prev.v, 0) + asInt(v, 1), 0, 999),
+    turns: Math.max(asInt(prev.turns, 0), Math.max(1, asInt(turns, 1))),
+  };
+}
 
 function applyDrawback({
   drawback,
@@ -517,7 +1143,7 @@ function applyDrawback({
     }
   }
 
-    // self damage
+  // self damage
   const selfHp = Math.max(0, asInt(d.selfHp, 0));
   const selfSp = Math.max(0, asInt(d.selfSp, 0));
   if (selfHp > 0 || selfSp > 0) {
@@ -546,7 +1172,14 @@ function applyDrawback({
       // HP0 → 撃破
       if (asInt(payer.hp, 0) <= 0) {
         payer.hp = 0;
-        countKillIfNeeded(payer, enemy, kills, logLines, cardDefs, "撃破(自傷)");
+        countKillIfNeeded(
+          payer,
+          enemy,
+          kills,
+          logLines,
+          cardDefs,
+          "撃破(自傷)",
+        );
       }
     }
   }
@@ -564,7 +1197,9 @@ export function applySupport({
   casterUnitId = null,
   targetUnitId = null,
   targetUnitId2 = null,
+  targetUnitIds = null,
   targetCell = null,
+  searchCardId = null,
   rand = Math.random,
 }) {
   const mana = normalizeMana(s.mana);
@@ -576,6 +1211,10 @@ export function applySupport({
   const decks = { ...(s.decks || { A: [], B: [] }) };
   decks.A = safeArr(decks.A).slice();
   decks.B = safeArr(decks.B).slice();
+  let discards = { ...(s.discards || { A: [], B: [] }) };
+  discards.A = safeArr(discards.A).slice();
+  discards.B = safeArr(discards.B).slice();
+  let handLocks = normalizeHandLocks(s.handLocks);
 
   const units = safeArr(s.units).map((u) => ({
     ...u,
@@ -598,13 +1237,12 @@ export function applySupport({
   }
 
   const baseCost = asInt(def.cost, 0);
-  if (mana[seat].cur < baseCost) return { ok: false, reason: "mana 부족" };
+  if (mana[seat].cur < baseCost) return { ok: false, reason: "マナ不足" };
 
   // roll target refs (for restrictions / drawbacks feasibility)
   const t1 = targetUnitId ? findUnit(units, targetUnitId) : null;
   const t2 = targetUnitId2 ? findUnit(units, targetUnitId2) : null;
   const caster = casterUnitId ? findUnit(units, casterUnitId) : null;
-
   // IMPORTANT: determine chosen effect type requirement (for target needs)
   // We need to know type for target requirement check, but for table we know after roll.
   // However, restrictions may depend on the final chosen effect.
@@ -633,8 +1271,10 @@ export function applySupport({
   // if chosen is null, we still allow play (it will fail and consume/pay)
   const effChosen = safeObj(res.chosen || {});
   const effForRules = res.chosen ? effChosen : safeObj(def.effect); // fallback to base spec
-  const typeForRules = asStr(effForRules.type, "");
-
+  const typeForRules = normalizeSupportType(
+    asStr(effForRules.type, ""),
+    effForRules,
+  );
   const needUnit = new Set([
     "dmg",
     "heal",
@@ -643,10 +1283,11 @@ export function applySupport({
     "powerUp",
     "cleanse",
     "moveTo",
-    "manaUp",
     "grantEvade",
+    "changeAttr",
     "addStatus",
     "lostSoul",
+    "shiftGroup",
   ]);
   const needTwoUnits = new Set(["swapPos"]);
   const needCell = new Set(["moveTo"]);
@@ -658,7 +1299,17 @@ export function applySupport({
       return { ok: false, reason: "対象2体が必要" };
     }
   } else if (needUnit.has(typeForRules)) {
-    if (!isAlive(t1)) return { ok: false, reason: "対象が必要" };
+    const previewTargets = resolveEffectTargets({
+      units,
+      seat,
+      caster,
+      cardDefs,
+      eff: effForRules,
+      targetUnitId,
+      targetUnitId2,
+      targetUnitIds,
+    });
+    if (!previewTargets.length) return { ok: false, reason: "対象が必要" };
   }
 
   if (needCell.has(typeForRules)) {
@@ -670,17 +1321,34 @@ export function applySupport({
 
   // ===== Restrictions (generic) =====
   // Apply on the resolved chosen effect (table can change chosen)
+    // ===== Restrictions (generic) =====
+  // Apply on the resolved chosen effect (table can change chosen)
   const cond = getEffectCond(res.chosen || def.effect);
 
   const cc = checkCondForCaster({ cond, cardDefs, casterUnit: caster });
   if (!cc.ok) return { ok: false, reason: `条件未達：${cc.reason}` };
 
-  const c1 = checkCondForTarget({ cond, cardDefs, mana, targetUnit: t1 });
+  const condTargets = resolveEffectTargets({
+    units,
+    seat,
+    caster,
+    cardDefs,
+    eff: effForRules,
+    targetUnitId,
+    targetUnitId2,
+    targetUnitIds,
+  });
+
+  const c1 = checkCondForTargetMany({
+    cond,
+    cardDefs,
+    mana,
+    targetUnits: condTargets,
+  });
   if (!c1.ok) return { ok: false, reason: `条件未達：${c1.reason}` };
 
   const c2 = checkCondForCasterMana({ cond, mana, seat });
   if (!c2.ok) return { ok: false, reason: `条件未達：${c2.reason}` };
-
   // ===== Drawback feasibility check =====
   const drawback = getEffectDrawback(res.chosen || def.effect);
   const df = checkDrawbackFeasible({
@@ -697,6 +1365,7 @@ export function applySupport({
   const myHand = hands[seat] || [];
   myHand.splice(supportHandIndex, 1);
   hands[seat] = myHand;
+  discards[seat] = safeArr(discards[seat]).concat([supportCardId]);
 
   // ===== pay mana ALWAYS =====
   const pay = spendMana(mana, seat, baseCost);
@@ -728,6 +1397,7 @@ export function applySupport({
       mana: mana2,
       hands,
       decks,
+      discards,
       units,
       kills,
       log: logLines.slice(-200),
@@ -736,8 +1406,18 @@ export function applySupport({
   }
 
   const eff = safeObj(res.chosen);
-  const type = asStr(eff.type, "");
+  const type = normalizeSupportType(asStr(eff.type, ""), eff);
 
+  const targets = resolveEffectTargets({
+    units,
+    seat,
+    caster,
+    cardDefs,
+    eff,
+    targetUnitId,
+    targetUnitId2,
+    targetUnitIds,
+  });
   // refresh t1/t2 references (already exist)
   const tag = `🎲${res.roll} / ${res.label}`;
   const sayTarget = (u) =>
@@ -752,81 +1432,104 @@ export function applySupport({
     logLines.push(
       `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ドロー${actual}`,
     );
+  } else if (type === "search") {
+    const found = searchDeckCard({
+      decks,
+      hands,
+      seat,
+      cardDefs,
+      eff,
+      searchCardId,
+    });
+    if (!found.ok) {
+      logLines.push(
+        `[${seat}] サポート不発：${supportName} → サーチ対象がデッキにありません`,
+      );
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        handLocks,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+    hands.A = found.hands.A;
+    hands.B = found.hands.B;
+    decks.A = found.decks.A;
+    decks.B = found.decks.B;
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${cardNameFromDefs(cardDefs, found.cardId)}をサーチ`,
+    );
+  } else if (type === "setCard") {
+    const locked = setHandCardFaceDown({
+      hands,
+      handLocks,
+      seat,
+      cardDefs,
+      eff,
+      sourceName: supportName,
+    });
+    if (!locked.ok) {
+      logLines.push(
+        `[${seat}] サポート不発：${supportName} → 伏せる手札がありません`,
+      );
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        handLocks,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+    handLocks = locked.handLocks;
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${locked.targetSeat}の${cardNameFromDefs(cardDefs, locked.cardId)}を伏せた（${locked.releaseSeat}ターン開始まで）`,
+    );
+  } else if (type === "discardHand") {
+    const discarded = discardHandCards({
+      hands,
+      handLocks,
+      discards,
+      seat,
+      eff,
+    });
+    if (!discarded.ok) {
+      logLines.push(
+        `[${seat}] サポート不発：${supportName} → 墓地へ送る手札がありません`,
+      );
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        discards,
+        units,
+        kills,
+        handLocks,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+    handLocks = discarded.handLocks;
+    discards = discarded.discards;
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${discarded.targetSeat}の手札${discarded.cardIds.length}枚を墓地へ`,
+    );
   } else if (type === "dmg") {
     const { hp, sp } = readHpSp(eff);
-
-    if (hp > 0) t1.hp = Math.max(0, asInt(t1.hp, 0) - hp);
-    if (sp > 0) t1.sp = Math.max(0, asInt(t1.sp, 0) - sp);
-
-    // panic / kill count
-    setPanicAndCountIfNeeded(
-      t1,
-      seat,
-      kills,
-      logLines,
-      cardDefs,
-      "パニック撃破(サポート)",
-    );
-    if (asInt(t1.hp, 0) <= 0) {
-      t1.hp = 0;
-      countKillIfNeeded(t1, seat, kills, logLines, cardDefs, "撃破(サポート)");
-    }
-
-    logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} に HP-${hp} SP-${sp}`,
-    );
-  } else if (type === "heal") {
-    const { hp, sp } = readHpSp(eff);
-    const maxHP = Math.max(0, asInt(cardDefs?.[t1.cardId]?.hp, 0));
-    const maxSP = Math.max(0, asInt(cardDefs?.[t1.cardId]?.sp, 0));
-
-    if (hp > 0) t1.hp = clamp(asInt(t1.hp, 0) + hp, 0, maxHP || 9999);
-    if (sp > 0) t1.sp = clamp(asInt(t1.sp, 0) + sp, 0, maxSP || 9999);
-
-    // 回復でpanic解除したいならON（不要ならここ消してOK）
-    if (asInt(t1.sp, 0) > 0) t1.panic = false;
-
-    logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} を HP+${hp} SP+${sp}`,
-    );
-  } else if (type === "modRate") {
-    const delta = asInt(eff.delta ?? eff.rateDelta, 0);
-    if (delta >= 0)
-      t1.status.aim = { v: clamp(asInt(t1.status?.aim?.v, 0) + delta, 0, 80) };
-    else
-      t1.status.jinx = {
-        v: clamp(asInt(t1.status?.jinx?.v, 0) + Math.abs(delta), 0, 80),
-      };
-    logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 命中${delta >= 0 ? `+${delta}` : `-${Math.abs(delta)}`}%`,
-    );
-  } else if (type === "powerUp") {
-    // ★固定値: status.powerUp
-    const delta = asInt(eff.delta ?? eff.power, 0);
-    t1.status.powerUp = {
-      v: clamp(asInt(t1.status?.powerUp?.v, 0) + delta, 0, 200),
-    };
-    logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 威力+${delta}`,
-    );
-  } else if (type === "grantEvade") {
-    const delta = Math.max(0, asInt(eff.delta ?? eff.evade, 10));
-    t1.status.evade = {
-      v: clamp(asInt(t1.status?.evade?.v, 0) + delta, 0, 80),
-    };
-    logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 回避+${delta}`,
-    );
-  } else if (type === "manaUp") {
-    // By default: raise target owner's mana.cur
-    const amt = Math.max(0, asInt(eff.delta ?? 1, 1));
-    const which = asStr(eff.which, "cur").toLowerCase(); // cur|max
-    const whoRaw = asStr(eff.targetSeat, "").toUpperCase();
-    const who =
-      whoRaw === "A" || whoRaw === "B" ? whoRaw : asStr(t1.owner, seat);
-
-    if (!mana2?.[who]) {
-      logLines.push(`[${seat}] サポート不発：targetSeat不正`);
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
       return {
         ok: true,
         applied: false,
@@ -840,22 +1543,234 @@ export function applySupport({
       };
     }
 
-    if (which === "max") {
-      mana2[who].max = clamp(asInt(mana2[who].max, 0) + amt, 0, 99);
-      if (mana2[who].cur > mana2[who].max) mana2[who].cur = mana2[who].max;
-      logLines.push(
-        `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナmax+${amt}`,
+    for (const t of targets) {
+      if (taimanBlocksDamage(t, caster)) {
+        logLines.push(`  → タイマン：${cardNameFromDefs(cardDefs, t.cardId)} は正面の敵以外からのダメージを受けない`);
+        continue;
+      }
+      if (hp > 0) t.hp = Math.max(0, asInt(t.hp, 0) - hp);
+      if (sp > 0) t.sp = Math.max(0, asInt(t.sp, 0) - sp);
+
+      setPanicAndCountIfNeeded(
+        t,
+        seat,
+        kills,
+        logLines,
+        cardDefs,
+        "パニック撃破(サポート)",
       );
-    } else {
-      mana2[who].cur = clamp(asInt(mana2[who].cur, 0) + amt, 0, 99);
-      if (mana2[who].cur > mana2[who].max) mana2[who].cur = mana2[who].max;
-      logLines.push(
-        `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナcur+${amt}`,
-      );
+      if (asInt(t.hp, 0) <= 0) {
+        t.hp = 0;
+        countKillIfNeeded(t, seat, kills, logLines, cardDefs, "撃破(サポート)");
+      }
     }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} に HP-${hp} SP-${sp}`,
+    );
+  } else if (type === "heal") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const { hp, sp } = readHpSp(eff);
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      const maxHP = Math.max(0, asInt(cardDefs?.[t.cardId]?.hp, 0));
+      const maxSP = Math.max(0, asInt(cardDefs?.[t.cardId]?.sp, 0));
+
+      if (hp > 0) t.hp = clamp(asInt(t.hp, 0) + hp, 0, maxHP || 9999);
+      if (sp > 0) t.sp = clamp(asInt(t.sp, 0) + sp, 0, maxSP || 9999);
+
+      if (asInt(t.sp, 0) > 0) t.panic = false;
+    }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を HP+${hp} SP+${sp}`,
+    );
+  } else if (type === "modRate") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const delta = asInt(eff.delta ?? eff.rateDelta, 0);
+
+    for (const t of targets) {
+      if (delta >= 0 && assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      if (delta >= 0) {
+        t.status.hitUp = {
+          v: clamp(asInt(t.status?.hitUp?.v, 0) + delta, 0, 80),
+        };
+      } else {
+        t.status.jinx = {
+          v: clamp(asInt(t.status?.jinx?.v, 0) + Math.abs(delta), 0, 80),
+        };
+      }
+    }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 命中${delta >= 0 ? `+${delta}` : `-${Math.abs(delta)}`}%`,
+    );
+  } else if (type === "powerUp") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const delta = asInt(eff.delta ?? eff.power, 0);
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      t.status.powerUp = {
+        v: clamp(asInt(t.status?.powerUp?.v, 0) + delta, 0, 200),
+      };
+    }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 威力+${delta}`,
+    );
+  } else if (type === "changeAttr") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] support failed: ${supportName} needs a target`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const nextAttr = asStr(
+      eff.attr ?? eff.to ?? eff.value ?? eff.targetAttr ?? eff.typeTo,
+      "",
+    );
+    if (!nextAttr) {
+      logLines.push(`[${seat}] support failed: ${supportName} has no attr`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      const before = unitAttr(cardDefs, t) || "?";
+      t.attrOverride = nextAttr;
+      t.attr = nextAttr;
+      t.status = safeObj(t.status);
+      t.status.attrChange = {
+        attr: nextAttr,
+        v: nextAttr,
+        from: before,
+        turns: Math.max(0, asInt(eff.turns ?? eff.turn ?? 0, 0)),
+      };
+    }
+
+    logLines.push(
+      `[${seat}] support success: ${supportName} (-${baseCost}) ${tag} -> ${targets.map(sayTarget).join(" / ")} attr=${nextAttr}`,
+    );
+  } else if (type === "grantEvade") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const delta = Math.max(0, asInt(eff.delta ?? eff.evade ?? eff.v, 10));
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      t.status.evade = {
+        v: clamp(asInt(t.status?.evade?.v, 0) + delta, 0, 80),
+      };
+    }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 回避+${delta}`,
+    );
   } else if (type === "addStatus" || type === "lostSoul") {
-    // addStatus: t1.status[key] = { v, turns }
-    // lostSoul: 互換。key="lostSoul" として扱う
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
     const key = type === "lostSoul" ? "lostSoul" : asStr(eff.status, "");
     const v = asInt(eff.v ?? eff.delta ?? 1, 1);
     const turns = Math.max(1, asInt(eff.turns ?? 1, 1));
@@ -875,28 +1790,137 @@ export function applySupport({
       };
     }
 
-    // 上書き更新（重ね掛けルールはここで調整できる）
-    const prev = safeObj(t1.status[key]);
-  t1.status[key] = {
-  v: clamp(asInt(prev.v, 0) + v, 0, 999),
-  turns: Math.max(asInt(prev.turns, 0), turns),
-};
+    for (const t of targets) {
+      if (isAssistStatusForSupport(key) && assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      applyStatusEntry(t, key, v, turns);
+    }
+
     logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} に ${key}(${v}) ${turns}T`,
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} に ${key}(${v}) ${turns}T`,
     );
   } else if (type === "cleanse") {
-    clearStatuses(t1);
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      clearStatuses(t);
+    }
+
     logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 状態異常回復`,
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 状態異常回復`,
     );
   } else if (type === "bounce") {
-    const owner = t1.owner;
-    const idx = units.findIndex((u) => u.id === t1.id);
-    if (idx >= 0) units.splice(idx, 1);
-    hands[owner] = safeArr(hands[owner]).concat([t1.cardId]);
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets.slice()) {
+      const owner = t.owner;
+      const idx = units.findIndex((u) => u.id === t.id);
+      if (idx >= 0) units.splice(idx, 1);
+      hands[owner] = safeArr(hands[owner]).concat([t.cardId]);
+    }
+
     logLines.push(
-      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} を手札に戻した`,
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を手札に戻した`,
     );
+  } else if (type === "shiftGroup") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] サポート不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const mode = asStr(eff.mode, "retreat"); // retreat / advance
+    const dist = Math.max(1, asInt(eff.dist, 1));
+    let movedCount = 0;
+
+    for (const t of targets) {
+      movedCount += tryShiftUnitY(units, t, mode, dist, eff) > 0 ? 1 : 0;
+    }
+
+    logLines.push(
+      `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を ${mode === "retreat" ? "後退" : "前進"} ${dist}マス (${movedCount}体成功)`,
+    );
+  } else if (type === "manaUp") {
+    // By default: raise target owner's mana.cur
+    const amt = Math.max(0, asInt(eff.delta ?? 1, 1));
+    const which = manaUpKind(eff);
+    const whoRaw = asStr(eff.targetSeat, "").toUpperCase();
+
+    const who =
+      whoRaw === "A" || whoRaw === "B"
+        ? whoRaw
+        : whoRaw === "CASTER" || whoRaw === "SELF"
+          ? seat
+          : targets[0]?.owner
+            ? asStr(targets[0].owner, seat)
+            : seat;
+    if (!mana2?.[who]) {
+      logLines.push(`[${seat}] サポート不発：targetSeat不正`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    if (which === "max") {
+      mana2[who].max = clamp(asInt(mana2[who].max, 0) + amt, 0, 99);
+      logLines.push(
+        `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナmax+${amt}`,
+      );
+    } else {
+      mana2[who].cur = clamp(asInt(mana2[who].cur, 0) + amt, 0, 99);
+      logLines.push(
+        `[${seat}] サポート成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナcur+${amt}`,
+      );
+    }
   } else if (type === "swapPos") {
     if (!isAlive(t2) || t1.id === t2.id) {
       logLines.push(`[${seat}] サポート不発：対象2体が必要`);
@@ -1019,8 +2043,10 @@ export function applySupport({
     mana: mana2,
     hands,
     decks,
+    discards,
     units,
     kills,
+    handLocks,
     log: logLines.slice(-200),
     lastSupportRoll,
   };
@@ -1059,6 +2085,7 @@ export function applyExSupport({
   casterUnitId = null,
   targetUnitId = null,
   targetUnitId2 = null,
+  targetUnitIds = null,
   targetCell = null,
   rand = Math.random,
 }) {
@@ -1087,25 +2114,21 @@ export function applyExSupport({
 
   const def = cardDefs?.[exCardId];
   if (!def) return { ok: false, reason: "EX card def missing" };
-
-  // EXは support kind 前提
   if (!isSupportCard(def))
     return { ok: false, reason: "EX card is not support-kind" };
 
   const baseCost = asInt(def.cost, 0);
-  if (mana[seat].cur < baseCost) return { ok: false, reason: "mana 부족" };
+  if (mana[seat].cur < baseCost) return { ok: false, reason: "マナ不足" };
 
   const t1 = targetUnitId ? findUnit(units, targetUnitId) : null;
   const t2 = targetUnitId2 ? findUnit(units, targetUnitId2) : null;
   const caster = casterUnitId ? findUnit(units, casterUnitId) : null;
 
-  // pre-roll
   const roll = roll1to100(rand);
   const res = resolveSupportEffect(def.effect, roll);
-
   const supportName = cardNameFromDefs(cardDefs, exCardId);
 
-  // EX is consumed regardless of success/fail
+  // EXは成功失敗に関わらず消費
   const ex2 = { ...ex, [seat]: null };
   const exUsed2 = { ...exUsed, [seat]: true };
 
@@ -1124,7 +2147,10 @@ export function applyExSupport({
   };
 
   const effForRules = res.chosen ? safeObj(res.chosen) : safeObj(def.effect);
-  const typeForRules = asStr(effForRules.type, "");
+  const typeForRules = normalizeSupportType(
+    asStr(effForRules.type, ""),
+    effForRules,
+  );
 
   const needUnit = new Set([
     "dmg",
@@ -1134,36 +2160,69 @@ export function applyExSupport({
     "powerUp",
     "cleanse",
     "moveTo",
-    "manaUp",
     "grantEvade",
-    "addStatus","lostSoul",
+    "changeAttr",
+    "addStatus",
+    "lostSoul",
+    "shiftGroup",
   ]);
   const needTwoUnits = new Set(["swapPos"]);
   const needCell = new Set(["moveTo"]);
 
   if (needTwoUnits.has(typeForRules)) {
-    if (!isAlive(t1) || !isAlive(t2) || (t1 && t2 && t1.id === t2.id))
+    if (!isAlive(t1) || !isAlive(t2) || (t1 && t2 && t1.id === t2.id)) {
       return { ok: false, reason: "対象2体が必要" };
+    }
   } else if (needUnit.has(typeForRules)) {
-    if (!isAlive(t1)) return { ok: false, reason: "対象が必要" };
+    const previewTargets = resolveEffectTargets({
+      units,
+      seat,
+      caster,
+      cardDefs,
+      eff: effForRules,
+      targetUnitId,
+      targetUnitId2,
+      targetUnitIds,
+    });
+    if (!previewTargets.length) return { ok: false, reason: "対象が必要" };
   }
+
   if (needCell.has(typeForRules)) {
     const c = targetCell && typeof targetCell === "object" ? targetCell : null;
-    if (!c || !Number.isFinite(Number(c.x)) || !Number.isFinite(Number(c.y)))
+    if (!c || !Number.isFinite(Number(c.x)) || !Number.isFinite(Number(c.y))) {
       return { ok: false, reason: "移動先マスが必要" };
+    }
   }
 
   // ===== Restrictions =====
+    // ===== Restrictions =====
   const cond = getEffectCond(res.chosen || def.effect);
 
   // ★ caster 条件（発動者属性など）
   const cc = checkCondForCaster({ cond, cardDefs, casterUnit: caster });
   if (!cc.ok) return { ok: false, reason: `条件未達：${cc.reason}` };
-  const c1 = checkCondForTarget({ cond, cardDefs, mana, targetUnit: t1 });
+
+  const condTargets = resolveEffectTargets({
+    units,
+    seat,
+    caster,
+    cardDefs,
+    eff: effForRules,
+    targetUnitId,
+    targetUnitId2,
+    targetUnitIds,
+  });
+
+  const c1 = checkCondForTargetMany({
+    cond,
+    cardDefs,
+    mana,
+    targetUnits: condTargets,
+  });
   if (!c1.ok) return { ok: false, reason: `条件未達：${c1.reason}` };
+
   const c2 = checkCondForCasterMana({ cond, mana, seat });
   if (!c2.ok) return { ok: false, reason: `条件未達：${c2.reason}` };
-
   // ===== Drawback feasibility =====
   const drawback = getEffectDrawback(res.chosen || def.effect);
   const df = checkDrawbackFeasible({
@@ -1176,12 +2235,12 @@ export function applyExSupport({
   });
   if (!df.ok) return { ok: false, reason: `デメリット不可：${df.reason}` };
 
-  // pay mana ALWAYS
+  // ===== pay mana =====
   const pay = spendMana(mana, seat, baseCost);
   if (!pay.ok) return { ok: false, reason: "mana spend failed" };
   const mana2 = pay.mana;
 
-  // apply drawback ALWAYS
+  // ===== drawback =====
   applyDrawback({
     drawback,
     seat,
@@ -1195,7 +2254,7 @@ export function applyExSupport({
     kills,
   });
 
-  // fail path
+  // ===== fail =====
   if (!res.ok || !res.chosen) {
     logLines.push(
       `[${seat}] EX失敗：${supportName} (-${baseCost}) 🎲${res.roll} / ${res.label}`,
@@ -1216,7 +2275,19 @@ export function applyExSupport({
   }
 
   const eff = safeObj(res.chosen);
-  const type = asStr(eff.type, "");
+  const type = normalizeSupportType(asStr(eff.type, ""), eff);
+
+  const targets = resolveEffectTargets({
+    units,
+    seat,
+    caster,
+    cardDefs,
+    eff,
+    targetUnitId,
+    targetUnitId2,
+    targetUnitIds,
+  });
+
   const tag = `🎲${res.roll} / ${res.label}`;
   const sayTarget = (u) =>
     `${cardNameFromDefs(cardDefs, u.cardId)}(${u.owner})`;
@@ -1227,75 +2298,350 @@ export function applyExSupport({
     drawCards(decks, hands, seat, n);
     const after = (decks[seat] || []).length;
     const actual = before - after;
+
     logLines.push(
       `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ドロー${actual}`,
     );
   } else if (type === "dmg") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
     const { hp, sp } = readHpSp(eff);
 
-    if (hp > 0) t1.hp = Math.max(0, asInt(t1.hp, 0) - hp);
-    if (sp > 0) t1.sp = Math.max(0, asInt(t1.sp, 0) - sp);
+    for (const t of targets) {
+      if (taimanBlocksDamage(t, caster)) {
+        logLines.push(`  → タイマン：${cardNameFromDefs(cardDefs, t.cardId)} は正面の敵以外からのダメージを受けない`);
+        continue;
+      }
+      if (hp > 0) t.hp = Math.max(0, asInt(t.hp, 0) - hp);
+      if (sp > 0) t.sp = Math.max(0, asInt(t.sp, 0) - sp);
 
-    setPanicAndCountIfNeeded(
-      t1,
-      seat,
-      kills,
-      logLines,
-      cardDefs,
-      "パニック撃破(EX)",
-    );
-    if (asInt(t1.hp, 0) <= 0) {
-      t1.hp = 0;
-      countKillIfNeeded(t1, seat, kills, logLines, cardDefs, "撃破(EX)");
+      setPanicAndCountIfNeeded(
+        t,
+        seat,
+        kills,
+        logLines,
+        cardDefs,
+        "パニック撃破(EX)",
+      );
+      if (asInt(t.hp, 0) <= 0) {
+        t.hp = 0;
+        countKillIfNeeded(t, seat, kills, logLines, cardDefs, "撃破(EX)");
+      }
     }
+
     logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} に HP-${hp} SP-${sp}`,
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} に HP-${hp} SP-${sp}`,
     );
   } else if (type === "heal") {
-    const { hp, sp } = readHpSp(eff);
-    const maxHP = Math.max(0, asInt(cardDefs?.[t1.cardId]?.hp, 0));
-    const maxSP = Math.max(0, asInt(cardDefs?.[t1.cardId]?.sp, 0));
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
 
-    if (hp > 0) t1.hp = clamp(asInt(t1.hp, 0) + hp, 0, maxHP || 9999);
-    if (sp > 0) t1.sp = clamp(asInt(t1.sp, 0) + sp, 0, maxSP || 9999);
-    if (asInt(t1.sp, 0) > 0) t1.panic = false;
+    const { hp, sp } = readHpSp(eff);
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      const maxHP = Math.max(0, asInt(cardDefs?.[t.cardId]?.hp, 0));
+      const maxSP = Math.max(0, asInt(cardDefs?.[t.cardId]?.sp, 0));
+
+      if (hp > 0) t.hp = clamp(asInt(t.hp, 0) + hp, 0, maxHP || 9999);
+      if (sp > 0) t.sp = clamp(asInt(t.sp, 0) + sp, 0, maxSP || 9999);
+
+      if (asInt(t.sp, 0) > 0) t.panic = false;
+    }
 
     logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} を HP+${hp} SP+${sp}`,
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を HP+${hp} SP+${sp}`,
     );
   } else if (type === "modRate") {
-    const delta = asInt(eff.delta ?? eff.rateDelta, 0);
-    if (delta >= 0)
-      t1.status.aim = { v: clamp(asInt(t1.status?.aim?.v, 0) + delta, 0, 80) };
-    else
-      t1.status.jinx = {
-        v: clamp(asInt(t1.status?.jinx?.v, 0) + Math.abs(delta), 0, 80),
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
       };
+    }
+
+    const delta = asInt(eff.delta ?? eff.rateDelta, 0);
+
+    for (const t of targets) {
+      if (delta >= 0 && assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      t.status = safeObj(t.status);
+      if (delta >= 0) {
+        t.status.hitUp = {
+          v: clamp(asInt(t.status?.hitUp?.v, 0) + delta, 0, 80),
+        };
+      } else {
+        t.status.jinx = {
+          v: clamp(asInt(t.status?.jinx?.v, 0) + Math.abs(delta), 0, 80),
+        };
+      }
+    }
+
     logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 命中${delta >= 0 ? `+${delta}` : `-${Math.abs(delta)}`}%`,
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 命中${delta >= 0 ? `+${delta}` : `-${Math.abs(delta)}`}%`,
     );
   } else if (type === "powerUp") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
     const delta = asInt(eff.delta ?? eff.power, 0);
-    t1.status.powerUp = {
-      v: clamp(asInt(t1.status?.powerUp?.v, 0) + delta, 0, 200),
-    };
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      t.status = safeObj(t.status);
+      t.status.powerUp = {
+        v: clamp(asInt(t.status?.powerUp?.v, 0) + delta, 0, 200),
+      };
+    }
+
     logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 威力+${delta}`,
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 威力+${delta}`,
     );
   } else if (type === "grantEvade") {
-    const delta = Math.max(0, asInt(eff.delta ?? eff.evade, 10));
-    t1.status.evade = {
-      v: clamp(asInt(t1.status?.evade?.v, 0) + delta, 0, 80),
-    };
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const delta = Math.max(0, asInt(eff.delta ?? eff.evade ?? eff.v, 10));
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      t.status = safeObj(t.status);
+      t.status.evade = {
+        v: clamp(asInt(t.status?.evade?.v, 0) + delta, 0, 80),
+      };
+    }
+
     logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 回避+${delta}`,
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 回避+${delta}`,
+    );
+  } else if (type === "addStatus" || type === "lostSoul") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const key = type === "lostSoul" ? "lostSoul" : asStr(eff.status, "");
+    const v = asInt(eff.v ?? eff.delta ?? 1, 1);
+    const turns = Math.max(1, asInt(eff.turns ?? 1, 1));
+
+    if (!key) {
+      logLines.push(`[${seat}] EX不発：statusが空`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets) {
+      if (isAssistStatusForSupport(key) && assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      applyStatusEntry(t, key, v, turns);
+    }
+
+    logLines.push(
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} に ${key}(${v}) ${turns}T`,
+    );
+  } else if (type === "cleanse") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets) {
+      if (assistBlockedForTarget(t)) {
+        logAssistBlocked(logLines, cardDefs, t);
+        continue;
+      }
+      clearStatuses(t);
+      t.status = safeObj(t.status);
+    }
+
+    logLines.push(
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} 状態異常回復`,
+    );
+  } else if (type === "bounce") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    for (const t of targets.slice()) {
+      const owner = t.owner;
+      const idx = units.findIndex((u) => u.id === t.id);
+      if (idx >= 0) units.splice(idx, 1);
+      hands[owner] = safeArr(hands[owner]).concat([t.cardId]);
+    }
+
+    logLines.push(
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を手札に戻した`,
+    );
+  } else if (type === "shiftGroup") {
+    if (!targets.length) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
+    const mode = asStr(eff.mode, "retreat");
+    const dist = Math.max(1, asInt(eff.dist, 1));
+    let movedCount = 0;
+
+    for (const t of targets) {
+      movedCount += tryShiftUnitY(units, t, mode, dist, eff) > 0 ? 1 : 0;
+    }
+
+    logLines.push(
+      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${targets.map(sayTarget).join(" / ")} を ${mode === "retreat" ? "後退" : "前進"} ${dist}マス (${movedCount}体成功)`,
     );
   } else if (type === "manaUp") {
     const amt = Math.max(0, asInt(eff.delta ?? 1, 1));
-    const which = asStr(eff.which, "cur").toLowerCase();
+    const which = manaUpKind(eff);
     const whoRaw = asStr(eff.targetSeat, "").toUpperCase();
+
     const who =
-      whoRaw === "A" || whoRaw === "B" ? whoRaw : asStr(t1.owner, seat);
+      whoRaw === "A" || whoRaw === "B"
+        ? whoRaw
+        : whoRaw === "CASTER" || whoRaw === "SELF"
+          ? seat
+          : targets[0]?.owner
+            ? asStr(targets[0].owner, seat)
+            : seat;
 
     if (!mana2?.[who]) {
       logLines.push(`[${seat}] EX不発：targetSeat不正`);
@@ -1316,32 +2662,17 @@ export function applyExSupport({
 
     if (which === "max") {
       mana2[who].max = clamp(asInt(mana2[who].max, 0) + amt, 0, 99);
-      if (mana2[who].cur > mana2[who].max) mana2[who].cur = mana2[who].max;
       logLines.push(
         `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナmax+${amt}`,
       );
     } else {
       mana2[who].cur = clamp(asInt(mana2[who].cur, 0) + amt, 0, 99);
-      if (mana2[who].cur > mana2[who].max) mana2[who].cur = mana2[who].max;
       logLines.push(
         `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${who}のマナcur+${amt}`,
       );
     }
-  } else if (type === "cleanse") {
-    clearStatuses(t1);
-    logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} 状態異常回復`,
-    );
-  } else if (type === "bounce") {
-    const owner = t1.owner;
-    const idx = units.findIndex((u) => u.id === t1.id);
-    if (idx >= 0) units.splice(idx, 1);
-    hands[owner] = safeArr(hands[owner]).concat([t1.cardId]);
-    logLines.push(
-      `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} を手札に戻した`,
-    );
   } else if (type === "swapPos") {
-    if (!isAlive(t2) || t1.id === t2.id) {
+    if (!isAlive(t1) || !isAlive(t2) || t1.id === t2.id) {
       logLines.push(`[${seat}] EX不発：対象2体が必要`);
       return {
         ok: true,
@@ -1357,16 +2688,35 @@ export function applyExSupport({
         lastSupportRoll,
       };
     }
-    const ax = asInt(t1.x, 0),
-      ay = asInt(t1.y, 0);
+
+    const ax = asInt(t1.x, 0);
+    const ay = asInt(t1.y, 0);
     t1.x = asInt(t2.x, 0);
     t1.y = asInt(t2.y, 0);
     t2.x = ax;
     t2.y = ay;
+
     logLines.push(
       `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → 位置入替：${sayTarget(t1)} ⇄ ${sayTarget(t2)}`,
     );
   } else if (type === "moveTo") {
+    if (!isAlive(t1)) {
+      logLines.push(`[${seat}] EX不発：対象が必要`);
+      return {
+        ok: true,
+        applied: false,
+        mana: mana2,
+        hands,
+        decks,
+        units,
+        kills,
+        ex: ex2,
+        exUsed: exUsed2,
+        log: logLines.slice(-200),
+        lastSupportRoll,
+      };
+    }
+
     const c = targetCell && typeof targetCell === "object" ? targetCell : null;
     if (!c) {
       logLines.push(`[${seat}] EX不発：移動先マスが必要`);
@@ -1384,6 +2734,7 @@ export function applyExSupport({
         lastSupportRoll,
       };
     }
+
     const x = asInt(c.x, -1);
     const y = asInt(c.y, -1);
     const W = asInt(eff.W, 5);
@@ -1405,6 +2756,7 @@ export function applyExSupport({
         lastSupportRoll,
       };
     }
+
     if (isOccupied(units, x, y)) {
       logLines.push(`[${seat}] EX不発：そのマスは埋まっている`);
       return {
@@ -1427,7 +2779,9 @@ export function applyExSupport({
     if (maxDist != null) {
       const dist = Math.abs(asInt(t1.x, 0) - x) + Math.abs(asInt(t1.y, 0) - y);
       if (dist > maxDist) {
-        logLines.push(`[${seat}] EX不発：距離制限 max=${maxDist} dist=${dist}`);
+        logLines.push(
+          `[${seat}] EX不発：距離制限 max=${maxDist} dist=${dist}`,
+        );
         return {
           ok: true,
           applied: false,
@@ -1446,6 +2800,7 @@ export function applyExSupport({
 
     t1.x = x;
     t1.y = y;
+
     logLines.push(
       `[${seat}] EX成功：${supportName} (-${baseCost}) ${tag} → ${sayTarget(t1)} を (${x},${y})へ移動`,
     );

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="snow queen mirror shard pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#1d1d1d" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".13" stroke-width="1">
+      <path d="M38 56c54-13 105 9 180-4M30 293c64 13 116-11 196 4"/>
+      <path d="M128 28v300M42 53l172 252M215 51L41 306"/>
+    </g>
+    <g stroke-width="3.7">
+      <circle cx="128" cy="72" r="24"/>
+      <path d="M96 111c19-26 45-36 65-1"/>
+      <path d="M92 116l-27 152h126l-28-152"/>
+      <path d="M98 76c19-39 41-39 61 1"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M78 156c29 11 69 12 100 0M72 199c36 15 77 15 113 0"/>
+      <path d="M129 111v149"/>
+      <path d="M176 95l35-25-9 43 32 29-45 4-17 41-19-40-46-2 34-30-10-44z"/>
+      <path d="M52 119l20-18 20 18-20 19z"/>
+      <path d="M50 58l13 14-13 14-13-14z"/>
+    </g>
+    <g opacity=".34" stroke-width="1.1">
+      <path d="M107 57c14-8 32-8 45 1M103 78c17 6 34 7 51 0"/>
+      <path d="M187 85l16 24M181 120l34 4M167 137l19 32"/>
+    </g>
+  </g>
+</svg>

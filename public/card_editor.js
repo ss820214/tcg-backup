@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // あなたの既存 action_text を利用（プレビューに使う）
-import { actionDetailPartsJa } from "./action_text.js?v=20260226";
+import { actionDetailPartsJa } from "./action_text.js?v=20260722_vital_icons1";
 
 // ====== ここをあなたの Firebase config に差し替え ======
 const firebaseConfig = {
@@ -336,11 +336,11 @@ function refreshActionsPreview(){
       lines.push(`【${parts.cost}】 ${parts.name}（射程:${parts.range || "-"} 成功:${parts.rate}%）`);
 
       const dmg = [];
-      if (parts.hpDmg) dmg.push(`HPダメージ:${parts.hpDmg}`);
-            if (parts.spDmg) dmg.push(`SPダメージ:${parts.spDmg}`);
-      if (parts.hpHeal) dmg.push(`HP回復:${parts.hpHeal}`);
-      if (parts.spHeal) dmg.push(`SP回復:${parts.spHeal}`);
-      if (dmg.length) lines.push(`ダメージ/回復:${dmg.join(" ")}`);
+      if (parts.hpDmg) dmg.push(`❤️-${parts.hpDmg}`);
+      if (parts.spDmg) dmg.push(`💙-${parts.spDmg}`);
+      if (parts.hpHeal) dmg.push(`❤️+${parts.hpHeal}`);
+      if (parts.spHeal) dmg.push(`💙+${parts.spHeal}`);
+      if (dmg.length) lines.push(dmg.join(" "));
 
       if (parts.effectText) lines.push(parts.effectText);
       p.textContent = lines.join("\n");
@@ -374,10 +374,10 @@ function refreshPreviewPanel(){
     lines.push(`[${i+1}] ${p.name}（コスト:${p.cost} / 射程:${p.range || "-"} / 成功:${p.rate}%）`);
 
     const dmg = [];
-    if (p.hpDmg) dmg.push(`HPダメ:${p.hpDmg}`);
-    if (p.spDmg) dmg.push(`SPダメ:${p.spDmg}`);
-    if (p.hpHeal) dmg.push(`HP回復:${p.hpHeal}`);
-    if (p.spHeal) dmg.push(`SP回復:${p.spHeal}`);
+    if (p.hpDmg) dmg.push(`❤️-${p.hpDmg}`);
+    if (p.spDmg) dmg.push(`💙-${p.spDmg}`);
+    if (p.hpHeal) dmg.push(`❤️+${p.hpHeal}`);
+    if (p.spHeal) dmg.push(`💙+${p.spHeal}`);
     if (dmg.length) lines.push(`  ${dmg.join(" ")}`);
 
     if (p.effectText) lines.push(`  ${p.effectText}`);

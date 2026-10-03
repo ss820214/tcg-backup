@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TCG UI Health</title>
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+  <style>
+    body{margin:0;background:#070b0f;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans JP",sans-serif}
+    .healthWrap{max-width:1180px;margin:0 auto;padding:22px}
+    .healthHero{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
+    .healthGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .healthCard{border:1px solid rgba(255,255,255,.13);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));padding:14px}
+    .healthCard b{display:block;font-size:26px;margin-top:4px}
+    .healthList{display:grid;gap:8px;margin-top:14px}
+    .healthRow{display:grid;grid-template-columns:140px 1fr auto;gap:10px;align-items:center;border:1px solid rgba(255,255,255,.11);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.22)}
+    .ok{color:#78f7bd}.warn{color:#ffd86b}.bad{color:#ff7777}.note{color:#8fc8ff}
+    .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+    @media(max-width:760px){.healthGrid{grid-template-columns:1fr 1fr}.healthRow{grid-template-columns:1fr}.healthHero{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="healthWrap">
+    <section class="healthHero">
+      <div>
+        <h1>UI Health Check</h1>
+        <p class="small">逕ｻ髱｢蟠ｩ繧後・繧ｫ繝ｼ繝牙ｮ夂ｾｩ繝ｻ隱ｭ縺ｿ霎ｼ縺ｿ迥ｶ諷九ｒ縺ｾ縺ｨ繧√※隕九ｋ險ｺ譁ｭ繝壹・繧ｸ縺ｧ縺吶ゅけ繝ｩ繧ｦ繝峨↓縺ｯ譖ｸ縺崎ｾｼ縺ｿ縺ｾ縺帙ｓ縲・/p>
+      </div>
+      <div class="row">
+        <button onclick="location.href='./index.html'">蛻晄悄逕ｻ髱｢縺ｸ</button>
+        <button onclick="location.href='./card_audit.html'">繧ｫ繝ｼ繝臥屮譟ｻ縺ｸ</button>
+      </div>
+    </section>
+    <section id="summary" class="healthGrid"></section>
+    <section class="healthCard" style="margin-top:14px">
+      <h2>隱ｭ縺ｿ霎ｼ縺ｿ繝√ぉ繝・け</h2>
+      <div id="fileChecks" class="healthList"></div>
+    </section>
+    <section class="healthCard" style="margin-top:14px">
+      <h2>蟆守ｷ壹メ繧ｧ繝・け</h2>
+      <div class="links" id="screenLinks"></div>
+    </section>
+  </main>
+  <script type="module" src="./ui_health.js?v=20260825_audit1"></script>
+</body>
+</html>
+

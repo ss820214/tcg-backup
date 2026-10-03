@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="海底本のリヴァイア illustration">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#62d7ff"/>
+      <stop offset=".52" stop-color="#0b1728"/>
+      <stop offset="1" stop-color="#07090d"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".50" cy=".34" r=".60">
+      <stop offset="0" stop-color="#e5ff9c" stop-opacity=".78"/>
+      <stop offset=".42" stop-color="#62d7ff" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#0b1728" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="figure" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e5ff9c"/>
+      <stop offset=".62" stop-color="#62d7ff"/>
+      <stop offset="1" stop-color="#10131a"/>
+    </linearGradient>
+    <radialGradient id="core" cx=".38" cy=".22" r=".7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".32" stop-color="#e5ff9c"/>
+      <stop offset="1" stop-color="#62d7ff"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".92"/>
+      <stop offset="1" stop-color="#e5ff9c" stop-opacity=".45"/>
+    </linearGradient>
+    <filter id="ft_water_leviathan_book_glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="356" rx="26" fill="#080b12"/>
+  <rect x="7" y="7" width="242" height="342" rx="22" fill="url(#bg)"/>
+  <rect x="10" y="10" width="236" height="336" rx="19" fill="url(#halo)"/>
+  <path d="M-20 92 C64 44 132 48 276 12" stroke="white" stroke-opacity=".10" stroke-width="42"/>
+  <path d="M-18 286 C72 222 178 282 274 216" stroke="#e5ff9c" stroke-opacity=".16" stroke-width="38"/>
+  <g transform="rotate(72 128 176)" opacity=".36">
+    <ellipse cx="128" cy="176" rx="83" ry="118" fill="none" stroke="white" stroke-opacity=".15" stroke-width="2"/>
+    <ellipse cx="128" cy="176" rx="54" ry="104" fill="none" stroke="#e5ff9c" stroke-opacity=".26" stroke-width="4"/>
+  </g>
+  <path d="M20 252 L236 84" stroke="white" stroke-opacity=".12" stroke-width="2"/>
+  <path d="M48 306 L223 72" stroke="#e5ff9c" stroke-opacity=".18" stroke-width="7" transform="rotate(20 128 178)"/>
+  <g opacity=".82"><path d="M48 250c34-22 68-22 102 0" fill="none" stroke="white" stroke-opacity=".18" stroke-width="7" stroke-linecap="round"/><path d="M48 250c34-22 68-22 102 0" fill="none" stroke="white" stroke-opacity=".18" stroke-width="7" stroke-linecap="round"/></g>
+  <g filter="url(#ft_water_leviathan_book_glow)"><rect x="67" y="120" width="122" height="92" rx="14" fill="url(#paper)" opacity=".72"/><path d="M128 120v92M85 146h32M139 146h32M82 178h38M139 178h36" stroke="#0b1320" stroke-opacity=".4" stroke-width="5"/><path d="M52 234c42-64 111-42 152-83-4 64-72 105-152 83Z" fill="url(#core)" opacity=".74"/></g>
+  <circle cx="223" cy="147" r="2.3" fill="white" opacity="0.29"/><circle cx="153" cy="191" r="2.5" fill="white" opacity="0.33"/><circle cx="28" cy="70" r="3.3" fill="white" opacity="0.31"/><circle cx="65" cy="208" r="1.6" fill="white" opacity="0.42"/><circle cx="40" cy="204" r="3.0" fill="white" opacity="0.19"/><circle cx="163" cy="58" r="2.4" fill="white" opacity="0.29"/><circle cx="121" cy="260" r="2.7" fill="white" opacity="0.40"/><circle cx="191" cy="78" r="3.3" fill="white" opacity="0.23"/><circle cx="206" cy="153" r="2.3" fill="white" opacity="0.27"/>
+  <rect x="18" y="18" width="42" height="42" rx="14" fill="rgba(0,0,0,.38)" stroke="white" stroke-opacity=".22"/>
+  <text x="39" y="46" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="900" fill="white">7</text>
+  <rect x="190" y="18" width="48" height="30" rx="15" fill="rgba(0,0,0,.34)" stroke="white" stroke-opacity=".22"/>
+  <text x="214" y="38" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="900" fill="white">SSR</text>
+  <rect x="21" y="264" width="42" height="24" rx="12" fill="rgba(0,0,0,.32)" stroke="white" stroke-opacity=".14"/>
+  <text x="42" y="281" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="900" fill="white" opacity=".66">海</text>
+  <rect x="18" y="292" width="220" height="44" rx="14" fill="rgba(0,0,0,.44)" stroke="white" stroke-opacity=".16"/>
+  <text x="128" y="319" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="900" fill="white">海底本のリヴァイア</text>
+</svg>

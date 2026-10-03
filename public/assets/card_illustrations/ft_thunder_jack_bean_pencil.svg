@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="jack beanstalk lightning pencil illustration">
+  <defs><radialGradient id="bg" cx=".48" cy=".36" r=".76"><stop stop-color="#fff7b7"/><stop offset=".5" stop-color="#f7f6ef"/><stop offset="1" stop-color="#e9e6d9"/></radialGradient><filter id="gl"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+  <rect width="256" height="356" rx="18" fill="url(#bg)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#111" opacity=".12"><path d="M27 59c61 13 116-15 200 3M29 298c66-12 124 11 199-3"/><path d="M41 38l174 279M221 40L36 317"/></g>
+    <g stroke="#ffd52f" stroke-width="6" opacity=".55" filter="url(#gl)"><path d="M190 38l-42 77h42l-65 111M64 45l34 61H70l51 88"/><path d="M38 276c49-26 83 8 118-4 35-12 51-29 68-18"/></g>
+    <g stroke="#202020">
+      <g stroke-width="3.8"><circle cx="117" cy="76" r="23"/><path d="M85 116c22-29 54-31 75 1M85 116c-14 38-8 77 31 108 39-31 46-69 33-108"/><path d="M173 290c-27-76-18-147 31-213"/></g>
+      <g stroke-width="2.5"><path d="M174 221c-35-15-51-40-47-75M181 177c-38-5-61-25-68-60M187 136c-29 6-49-4-59-29"/><path d="M197 92c17 20 20 44 8 70M190 154c20 19 27 44 18 73"/><path d="M95 154c19 10 37 10 55 0M117 115v105"/><path d="M93 224c-12 20-17 41-15 66M146 224c12 19 18 40 16 66"/><path d="M177 75l-28 55h36l-42 76"/></g>
+      <g stroke-width="1.1" opacity=".34"><path d="M97 96c15 7 34 8 49 0M88 133c23 8 45 8 67 0M85 180c25 12 52 12 76 0"/><path d="M165 258c19 12 38 12 58-1"/></g>
+    </g>
+  </g>
+</svg>

@@ -46,7 +46,7 @@ export function normalizeMana(mana){
     if (m && typeof m === "object"){
       const cur = clamp(m.cur ?? m.current ?? res[k].cur, 0, CORE.MAX_MANA);
       const max = clamp(m.max ?? m.maximum ?? res[k].max, 0, CORE.MAX_MANA);
-      res[k] = { cur: Math.min(cur, max), max };
+      res[k] = { cur, max };
     }
   }
   return res;

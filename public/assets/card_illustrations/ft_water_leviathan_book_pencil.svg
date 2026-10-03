@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="356" viewBox="0 0 256 356" role="img" aria-label="leviathan book pencil illustration">
+  <rect width="256" height="356" rx="18" fill="#f8f8f5"/>
+  <g fill="none" stroke="#202020" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity=".13" stroke-width="1">
+      <path d="M28 55c56 11 106-12 193 3M28 301c65-12 117 10 196-4"/>
+      <path d="M42 40l177 270M220 42L37 315"/>
+    </g>
+    <g stroke-width="3.8">
+      <path d="M52 125c35-19 70-17 104 5 17-12 33-17 52-15v137c-20-2-39 1-58 12-31-19-63-23-98-10z"/>
+      <path d="M150 130v133"/>
+      <path d="M74 151c21-9 43-7 63 4M74 178c21-8 43-5 63 4M74 205c21-8 43-5 63 4"/>
+    </g>
+    <g stroke-width="2.4">
+      <path d="M164 146c36-54 76-42 61-1-10 29-45 28-37 58 4 15 24 16 33 4"/>
+      <path d="M206 129c17 9 24 28 15 47M199 172c12 14 23 27 33 45"/>
+      <path d="M176 106c9-19 26-29 48-30-9 15-19 26-31 32"/>
+      <path d="M63 280c48 18 92 20 139 1"/>
+    </g>
+    <g opacity=".35" stroke-width="1.2">
+      <path d="M76 231c22-7 43-4 62 5M163 229c15-8 31-10 48-7"/>
+      <path d="M181 144c12-10 26-12 40-7M185 195c12 9 25 10 39 3"/>
+    </g>
+  </g>
+</svg>

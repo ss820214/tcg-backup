@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>OTNP16繧ｿ繧､繝苓ｨｺ譁ｭ | 0繝舌ヨ</title>
+
+  <link rel="stylesheet" href="./otnp.css?v=20260429_1" />
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+</head>
+
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main class="app-shell">
+    <section id="startScreen" class="screen active">
+      <div class="hero-card">
+        <div class="badge">0繝舌ヨ髱槫・蠑上ヮ繝ｪ險ｺ譁ｭ</div>
+
+        <h1 class="title">
+          <span>OTNP</span>
+          <small>16繧ｿ繧､繝苓ｨｺ譁ｭ</small>
+        </h1>
+
+        <p class="lead">
+          縺ゅ↑縺溘・繝・ャ繧ｭ縺ｯ縲∬誠縺｡逹縺・※繧具ｼ・br />
+          縺昴ｌ縺ｨ繧ゅ∫乢髱｢縺ｧ證ｴ繧梧淵繧峨°縺吶ち繧､繝暦ｼ・        </p>
+
+        <div class="mini-info">
+          <div>
+            <strong>25蝠・/strong>
+            <span>縺ｯ縺・/ 縺ｩ縺｡繧峨〒繧ゅ↑縺・/ 縺・＞縺・/span>
+          </div>
+          <div>
+            <strong>16繧ｿ繧､繝・/strong>
+            <span>MBTI鬚ｨ繝・ャ繧ｭ諤ｧ譬ｼ險ｺ譁ｭ</span>
+          </div>
+        </div>
+
+        <button id="startBtn" class="primary-btn">
+          險ｺ譁ｭ繧帝幕蟋九☆繧・        </button>
+
+        <p class="note">
+          窶ｻ 險ｺ譁ｭ邨先棡縺ｯ縺ゅ→縺ｧ螂ｽ縺阪↑16繧ｿ繧､繝怜錐縺ｫ蟾ｮ縺玲崛縺亥庄閭ｽ縲・        </p>
+      </div>
+    </section>
+
+    <section id="questionScreen" class="screen">
+      <div class="top-bar">
+        <button id="backBtn" class="ghost-btn">竊・謌ｻ繧・/button>
+        <div class="progress-text">
+          <span id="questionCount">1</span> / 25
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <article class="question-card">
+        <div id="axisBadge" class="axis-badge">OTNP</div>
+
+        <p id="questionNumber" class="question-number">QUESTION 01</p>
+        <h2 id="questionText" class="question-text">
+          蛻晄焔縺九ｉ逶ｸ謇九↓蝨ｧ繧偵°縺代◆縺・・        </h2>
+
+        <div class="answer-grid">
+          <button class="answer-btn yes" data-answer="yes">
+            <span class="answer-main">縺ｯ縺・/span>
+            <span class="answer-sub">繧√▲縺｡繧・◎縺・/span>
+          </button>
+
+          <button class="answer-btn neutral" data-answer="neutral">
+            <span class="answer-main">縺ｩ縺｡繧峨〒繧ゅ↑縺・/span>
+            <span class="answer-sub">豌怜・縺ｫ繧医ｋ</span>
+          </button>
+
+          <button class="answer-btn no" data-answer="no">
+            <span class="answer-main">縺・＞縺・/span>
+            <span class="answer-sub">縺昴ｌ縺ｯ驕輔≧</span>
+          </button>
+        </div>
+      </article>
+
+      <div class="deck-meter">
+        <div class="meter-card">
+          <span>謾ｻ繧・/span>
+          <strong id="meterOD">0</strong>
+        </div>
+        <div class="meter-card">
+          <span>菴懈姶</span>
+          <strong id="meterTS">0</strong>
+        </div>
+        <div class="meter-card">
+          <span>逶､髱｢</span>
+          <strong id="meterNE">0</strong>
+        </div>
+        <div class="meter-card">
+          <span>騾・ｻ｢</span>
+          <strong id="meterPR">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="result-card">
+        <div class="result-glow"></div>
+
+        <p class="result-label">YOUR OTNP TYPE</p>
+
+        <h2 id="resultCode" class="result-code">O-T-N-P</h2>
+        <h1 id="resultName" class="result-name">蜈域判蝨ｧ谿ｺ繧ｳ繝槭Φ繝繝ｼ</h1>
+
+        <p id="resultDesc" class="result-desc">
+          縺ゅ↑縺溘・蠎冗乢縺九ｉ逶､髱｢繧呈髪驟阪＠縲∫嶌謇九↓驕ｸ謚櫁い繧剃ｸ弱∴縺ｪ縺・ち繧､繝励〒縺吶・        </p>
+
+        <div class="result-section">
+          <h3>逶ｸ諤ｧ縺ｮ縺・＞螻樊ｧ</h3>
+          <div id="resultAttrs" class="tag-list"></div>
+        </div>
+
+        <div class="result-section">
+          <h3>縺翫☆縺吶ａ繝・ャ繧ｭ蛯ｾ蜷・/h3>
+          <p id="resultDeck" class="result-text"></p>
+        </div>
+
+        <div class="result-section">
+          <h3>闍ｦ謇九↑逶ｸ謇・/h3>
+          <p id="resultWeak" class="result-text"></p>
+        </div>
+
+        <div class="result-actions">
+          <button id="retryBtn" class="primary-btn">繧ゅ≧荳蝗櫁ｨｺ譁ｭ縺吶ｋ</button>
+          <button id="shareBtn" class="ghost-btn">邨先棡繧偵さ繝斐・</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./otnp.js?v=20260429_1"></script>
+  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body>
+</html>

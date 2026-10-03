@@ -10,8 +10,10 @@
   const $ = (id) => document.getElementById(id);
 
   function isDeckPage() {
-    const p = (location.pathname.split("/").pop() || "deck.html").toLowerCase();
-    return p === "deck.html" || p === "deck";
+    const p = (location.pathname.split("/").pop() || "").toLowerCase();
+    const pathLooksLikeDeck = p === "deck.html" || p === "deck";
+    const deckDomReady = !!($("cardList") && $("deckPanel"));
+    return pathLooksLikeDeck || deckDomReady;
   }
 
   function injectStyle() {

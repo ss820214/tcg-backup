@@ -245,11 +245,13 @@
 // This avoids waiting for every image/resource and removes the intermittent half-rendered state.
 (() => {
   const path = (location.pathname.split("/").pop() || "").toLowerCase();
-  if (path !== "deck.html" && path !== "deck") return;
+  const pathLooksLikeDeck = path === "deck.html" || path === "deck";
+  const deckDomReady = () => !!(document.getElementById("cardList") && document.getElementById("deckPanel"));
+  if (!pathLooksLikeDeck && !deckDomReady()) return;
 
   const REFINE = "20261003_refine2";
   const DENSITY = "20261003_density2";
-  const GUARD = "20261003_guard2";
+  const GUARD = "20261003_guard3";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;

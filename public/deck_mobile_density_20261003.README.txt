@@ -1,0 +1,2 @@
+Mobile deck density override for 2026-10-03.
+Keeps the existing visual design while reducing mobile whitespace, card height, redundant labels, deck action button size, and moving Home/Deck controls to the upper-right.

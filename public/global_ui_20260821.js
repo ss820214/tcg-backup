@@ -248,11 +248,11 @@
   if (path !== "deck.html" && path !== "deck") return;
 
   const loadDensity = () => {
-    if (document.querySelector('script[data-deck-mobile-density="20261003_density1"]')) return;
+    if (document.querySelector('script[data-deck-mobile-density="20261003_density2"]')) return;
     const density = document.createElement("script");
-    density.src = "./deck_mobile_density_20261003.js?v=20261003_density1";
+    density.src = "./deck_mobile_density_20261003.js?v=20261003_density2";
     density.async = false;
-    density.dataset.deckMobileDensity = "20261003_density1";
+    density.dataset.deckMobileDensity = "20261003_density2";
     document.body.appendChild(density);
   };
 

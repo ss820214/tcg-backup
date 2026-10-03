@@ -61,8 +61,37 @@ jobs:
 
           await page.goto('http://127.0.0.1:8000/deck.html?view=mobile', { waitUntil: 'domcontentloaded' });
           await waitStable();
-          await page.waitForSelector('[data-home-action="play"]', { state: 'visible', timeout: 10000 });
-          await page.click('[data-home-action="play"]');
+
+          const diag = await page.evaluate(() => {
+            const play = document.querySelector('[data-home-action="play"]');
+            const rows = [];
+            let el = play;
+            while (el && rows.length < 8) {
+              const s = getComputedStyle(el);
+              const r = el.getBoundingClientRect();
+              rows.push({
+                tag: el.tagName,
+                id: el.id,
+                cls: el.className,
+                hidden: !!el.hidden,
+                aria: el.getAttribute('aria-hidden'),
+                display: s.display,
+                visibility: s.visibility,
+                opacity: s.opacity,
+                position: s.position,
+                overflow: s.overflow,
+                width: r.width,
+                height: r.height,
+                top: r.top,
+                bottom: r.bottom
+              });
+              el = el.parentElement;
+            }
+            return { bodyClass: document.body.className, htmlData: { ...document.documentElement.dataset }, rows };
+          });
+          console.log('PLAY_DIAG=' + JSON.stringify(diag));
+
+          await page.locator('[data-home-action="play"]').click({ force: true });
           await page.waitForFunction(() => {
             const d = document.getElementById('roomDrawer');
             return !!d && d.classList.contains('open') && d.getAttribute('aria-hidden') === 'false';
@@ -98,8 +127,10 @@ jobs:
           node check.mjs
 
       - name: Upload screenshot
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: play-stability-check
           path: play-stability.png
+          if-no-files-found: ignore
           retention-days: 1

@@ -1,0 +1,44 @@
+name: Deck smoke check
+
+on:
+  push:
+    branches:
+      - import/local-latest-20261003
+    paths:
+      - 'public/deck*.js'
+      - 'public/deck.html'
+      - 'public/global_ui_20260821.js'
+      - 'firebase.json'
+      - '.github/workflows/deck-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Syntax check runtime UI scripts
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_mobile_refine_20261003.js
+          node --check public/deck_mobile_density_20261003.js
+          node --check public/deck_runtime_guard_20261003.js
+          node --check public/deck_runtime_guard_v3_20261003.js
+
+      - name: Verify essential deck controls
+        run: |
+          grep -q 'data-home-action="play"' public/deck.js
+          grep -q 'id="roomDrawer"' public/deck.html
+          grep -q 'id="roomDrawerToggle"' public/deck.html
+          grep -q 'tcgEmergencyBack' public/deck_runtime_guard_v3_20261003.js
+          grep -q 'forceDrawer(true)' public/deck_runtime_guard_v3_20261003.js
+
+      - name: Verify Firebase hosting config
+        run: |
+          python3 -m json.tool firebase.json >/dev/null
+          grep -q 'no-cache' firebase.json
+          grep -q 'tcg-0bato' .firebaserc

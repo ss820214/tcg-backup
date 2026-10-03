@@ -1,0 +1,83 @@
+name: Temporary Mobile Density Preview
+
+on:
+  push:
+    branches:
+      - preview-mobile-density-20261003
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: temporary-mobile-density-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_mobile_refine_20261003.js
+          node --check public/deck_mobile_density_20261003.js
+
+      - name: Start static server
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          echo $! >/tmp/http.pid
+          sleep 2
+          curl --fail -I http://127.0.0.1:8000/deck.html
+
+      - name: Install cloudflared
+        run: |
+          curl -L --fail --retry 3 -o cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      - name: Publish and verify preview tunnel
+        run: |
+          nohup cloudflared tunnel --url http://127.0.0.1:8000 --no-autoupdate >/tmp/cloudflared.log 2>&1 &
+          echo $! >/tmp/cloudflared.pid
+          URL=""
+          for i in $(seq 1 30); do
+            URL=$(grep -o 'https://[-a-z0-9]*\.trycloudflare.com' /tmp/cloudflared.log | head -1 || true)
+            [ -n "$URL" ] && break
+            sleep 2
+          done
+          if [ -z "$URL" ]; then
+            cat /tmp/cloudflared.log
+            exit 1
+          fi
+          echo "PREVIEW_URL=$URL" >> "$GITHUB_ENV"
+          for i in $(seq 1 12); do
+            CODE=$(curl -L -sS -o /tmp/preview.html -w '%{http_code}' "$URL/deck.html?view=mobile&density=1" || true)
+            if [ "$CODE" = "200" ]; then
+              grep -q "Deck Builder" /tmp/preview.html
+              echo "$URL/deck.html?view=mobile&density=1" > preview-url.txt
+              echo "### 0バト スマホ密度調整版" >> "$GITHUB_STEP_SUMMARY"
+              echo "$URL/deck.html?view=mobile&density=1" >> "$GITHUB_STEP_SUMMARY"
+              echo "PREVIEW_URL=$URL/deck.html?view=mobile&density=1"
+              exit 0
+            fi
+            sleep 3
+          done
+          cat /tmp/cloudflared.log
+          exit 1
+
+      - name: Upload preview URL
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-url-density
+          path: preview-url.txt
+          retention-days: 1
+
+      - name: Keep preview alive
+        run: |
+          echo "Preview: $PREVIEW_URL/deck.html?view=mobile&density=1"
+          sleep 2400

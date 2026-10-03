@@ -1,0 +1,38 @@
+name: Deploy 0bato to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - deploy/live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-hosting-live
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Firebase config
+        run: |
+          test -f firebase.json
+          test -f .firebaserc
+          test -d public
+          grep -q '"default": "tcg-0bato"' .firebaserc
+          grep -q '"public": "public"' firebase.json
+
+      - name: Deploy live site
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TCG_0BATO }}
+          channelId: live
+          projectId: tcg-0bato

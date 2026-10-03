@@ -1,0 +1,111 @@
+name: One-shot root deck runtime fix v2
+
+on:
+  push:
+    branches:
+      - import/local-latest-20261003
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.head_commit.message == 'Apply root deck runtime fix v2 bootstrap'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: import/local-latest-20261003
+          fetch-depth: 1
+
+      - name: Patch actual root deck runtime
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace_required(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8-sig')
+              if old not in text:
+                  raise SystemExit(f'required pattern not found in {path}: {old[:120]!r}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          def replace_optional(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8-sig')
+              if old in text:
+                  p.write_text(text.replace(old, new, 1), encoding='utf-8')
+                  return True
+              return False
+
+          # The root site is also the Deck Builder. Do not decide from pathname only.
+          replace_required(
+              'public/global_ui_20260821.js',
+              '  const path = (location.pathname.split("/").pop() || "").toLowerCase();\n  if (path !== "deck.html" && path !== "deck") return;',
+              '  const path = (location.pathname.split("/").pop() || "").toLowerCase();\n  const pathLooksLikeDeck = path === "deck.html" || path === "deck";\n  const deckDomReady = () => !!(document.getElementById("cardList") && document.getElementById("deckPanel"));\n  if (!pathLooksLikeDeck && !deckDomReady()) return;'
+          )
+          replace_required(
+              'public/global_ui_20260821.js',
+              '  const GUARD = "20261003_guard2";',
+              '  const GUARD = "20261003_guard3";'
+          )
+
+          # guard v3 itself must also accept the root/index Deck Builder.
+          replace_required(
+              'public/deck_runtime_guard_v3_20261003.js',
+              '  function isDeckPage() {\n    const p = (location.pathname.split("/").pop() || "deck.html").toLowerCase();\n    return p === "deck.html" || p === "deck";\n  }',
+              '  function isDeckPage() {\n    const p = (location.pathname.split("/").pop() || "").toLowerCase();\n    const pathLooksLikeDeck = p === "deck.html" || p === "deck";\n    const deckDomReady = !!($("cardList") && $("deckPanel"));\n    return pathLooksLikeDeck || deckDomReady;\n  }'
+          )
+
+          # Bust the HTML reference too, so Android Chrome cannot retain the old shell URL.
+          replace_optional(
+              'public/index.html',
+              './global_ui_20260821.js?v=20260926_device_switch4',
+              './global_ui_20260821.js?v=20261003_root_guard3'
+          )
+          replace_optional(
+              'public/deck.html',
+              './global_ui_20260821.js?v=20261003_play_guard2',
+              './global_ui_20260821.js?v=20261003_root_guard3'
+          )
+
+          # Revalidate the literal root path as well as HTML files.
+          p = Path('firebase.json')
+          cfg = json.loads(p.read_text(encoding='utf-8-sig'))
+          hosting = cfg.setdefault('hosting', {})
+          headers = hosting.setdefault('headers', [])
+          if not any(h.get('source') == '/' for h in headers):
+              headers.insert(0, {
+                  'source': '/',
+                  'headers': [{'key':'Cache-Control','value':'no-cache, no-store, must-revalidate'}]
+              })
+          p.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          # Sanity assertions.
+          glob = Path('public/global_ui_20260821.js').read_text(encoding='utf-8')
+          guard = Path('public/deck_runtime_guard_v3_20261003.js').read_text(encoding='utf-8')
+          idx = Path('public/index.html').read_text(encoding='utf-8')
+          assert 'deckDomReady' in glob
+          assert 'const GUARD = "20261003_guard3"' in glob
+          assert 'deckDomReady' in guard
+          assert '20261003_root_guard3' in idx
+          PY
+
+      - name: Syntax and config check
+        run: |
+          node --check public/global_ui_20260821.js
+          node --check public/deck_runtime_guard_v3_20261003.js
+          python -m json.tool firebase.json >/dev/null
+          grep -q 'id="cardList"' public/index.html
+          grep -q 'id="deckPanel"' public/index.html
+
+      - name: Commit actual root fix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html public/deck.html public/global_ui_20260821.js public/deck_runtime_guard_v3_20261003.js firebase.json
+          git commit -m "ルート版Deck Builderでスマホ最終ガードを有効化"
+          git push origin HEAD:import/local-latest-20261003

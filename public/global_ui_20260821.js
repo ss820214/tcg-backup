@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   "use strict";
 
   const VERSION = "20260926_device_switch4";
@@ -241,3 +241,21 @@
   window.addEventListener("orientationchange", () => refreshDeviceMode(false), { passive: true });
 })();
 
+// Deck builder only: load the final mobile refinement after all static page scripts.
+// Keeping this outside the main UI IIFE avoids coupling the shared global UI to deck internals.
+(() => {
+  const path = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (path !== "deck.html" && path !== "deck") return;
+
+  const load = () => {
+    if (document.querySelector('script[data-deck-mobile-refine="20261003_refine2"]')) return;
+    const script = document.createElement("script");
+    script.src = "./deck_mobile_refine_20261003.js?v=20261003_refine2";
+    script.defer = true;
+    script.dataset.deckMobileRefine = "20261003_refine2";
+    document.body.appendChild(script);
+  };
+
+  if (document.readyState === "complete") load();
+  else window.addEventListener("load", load, { once: true });
+})();

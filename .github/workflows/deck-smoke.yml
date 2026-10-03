@@ -29,6 +29,7 @@ jobs:
           node --check public/deck_mobile_density_20261003.js
           node --check public/deck_mobile_compact_v3_20261004.js
           node --check public/deck_visual_polish_v4_20261004.js
+          node --check public/deck_kana_gear_20261004.js
           node --check public/deck_runtime_guard_20261003.js
           node --check public/deck_runtime_guard_v3_20261003.js
 
@@ -41,12 +42,17 @@ jobs:
           grep -q 'forceDrawer(true)' public/deck_runtime_guard_v3_20261003.js
           grep -q 'deck_mobile_compact_v3_20261004.js' public/deck_runtime_guard_20261003.js
           grep -q 'deck_visual_polish_v4_20261004.js' public/deck_runtime_guard_20261003.js
+          grep -q 'deck_kana_gear_20261004.js' public/deck_runtime_guard_20261003.js
           grep -q 'grid-template-columns:repeat(2,minmax(0,1fr))' public/deck_mobile_compact_v3_20261004.js
           grep -q '#deckInfoDock > .deckInfoDockHead' public/deck_mobile_compact_v3_20261004.js
           grep -q '#deckProgressMini .deckProgressMiniHead' public/deck_mobile_compact_v3_20261004.js
           grep -q 'exInfoToggleV4' public/deck_visual_polish_v4_20261004.js
           grep -q 'deckHomeBtn::before' public/deck_visual_polish_v4_20261004.js
           grep -q '#libraryPanelMinBtn' public/deck_visual_polish_v4_20261004.js
+          grep -q 'したてや' public/deck_kana_gear_20261004.js
+          grep -q 'tcgGearFromTopRight' public/deck_kana_gear_20261004.js
+          grep -q 'tcgGearFromBottomLeft' public/deck_kana_gear_20261004.js
+          grep -q 'GEAR_DURATION = 2000' public/deck_kana_gear_20261004.js
           grep -q '20261004_visual4' public/global_ui_20260821.js
 
       - name: Verify root Deck Builder and Firebase hosting config

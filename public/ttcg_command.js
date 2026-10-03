@@ -73,3 +73,20 @@
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true}); else boot();
 })();
+
+// Deck Builder mobile refinement is intentionally loaded after the existing deck/mobile layers.
+(() => {
+  "use strict";
+  const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+  if (page !== "deck.html") return;
+  const load = () => {
+    if (document.querySelector('script[data-deck-mobile-refine="1"]')) return;
+    const script = document.createElement("script");
+    script.src = "./deck_mobile_refine_20261003.js?v=20261003_refine1";
+    script.defer = true;
+    script.dataset.deckMobileRefine = "1";
+    document.body.appendChild(script);
+  };
+  if (document.readyState === "complete") load();
+  else window.addEventListener("load", load, { once: true });
+})();

@@ -1,0 +1,145 @@
+name: Deck Play Recovery Final Check
+
+on:
+  push:
+    branches:
+      - test/play-recovery-final-20261003
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          node --check public/deck_bootstrap_recovery_20261003.js
+          node --check public/deck_runtime_guard_20261003.js
+          node --check public/global_ui_20260821.js
+
+      - name: Start site
+        run: |
+          cd public
+          nohup python3 -m http.server 8000 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          sleep 2
+          curl --fail -I http://127.0.0.1:8000/deck.html
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.57.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Verify recovery PLAY and safe back with Firebase blocked
+        run: |
+          cat > check.mjs <<'EOF'
+          import { chromium } from 'playwright';
+
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage({
+            viewport: { width: 460, height: 900 },
+            userAgent: 'Mozilla/5.0 (Linux; Android 15; Pixel 8) AppleWebKit/537.36 Chrome/154 Mobile Safari/537.36'
+          });
+
+          await page.route('https://www.gstatic.com/**', route => route.abort());
+          await page.addInitScript(() => {
+            try {
+              localStorage.setItem('tcgDeckStartSeen', '1');
+              localStorage.setItem('tcgDeviceModeOverrideV2', 'mobile');
+            } catch {}
+          });
+
+          async function waitBoot() {
+            await page.waitForFunction(() =>
+              document.documentElement.dataset.deckBootstrapRecovery === '20261003_recovery1' &&
+              document.documentElement.dataset.deckRuntimeGuardBound === '20261003_guard2' &&
+              !!document.getElementById('btnSafeBack'),
+              null,
+              { timeout: 5000 }
+            );
+          }
+
+          async function waitRecovery() {
+            await page.waitForFunction(() => {
+              const h = document.getElementById('deckRecoveryHome');
+              return !!h && !h.hidden && getComputedStyle(h).display !== 'none';
+            }, null, { timeout: 6000 });
+          }
+
+          async function waitDrawer(wanted) {
+            await page.waitForFunction((open) => {
+              const d = document.getElementById('roomDrawer');
+              if (!d) return false;
+              const now = d.classList.contains('open') && d.getAttribute('aria-hidden') === 'false';
+              return open ? now : !now;
+            }, wanted, { timeout: 5000 });
+          }
+
+          await page.goto('http://127.0.0.1:8000/deck.html?view=mobile&recovery=1', { waitUntil: 'domcontentloaded' });
+          await waitBoot();
+          await waitRecovery();
+
+          // Even with Firebase unavailable, PLAY must always produce a room UI.
+          await page.click('[data-recovery-play]');
+          await waitDrawer(true);
+
+          // Safe back closes the drawer and stays on deck page.
+          const deckUrl = page.url();
+          await page.click('#btnSafeBack');
+          await waitDrawer(false);
+          if (!page.url().includes('/deck.html')) throw new Error('safe back left deck page');
+
+          // Safe back again brings a usable recovery home instead of a dead/blank screen.
+          await page.click('#btnSafeBack');
+          await waitRecovery();
+
+          // Reopen via PLAY, then Android/browser back semantics should close overlay safely.
+          await page.click('[data-recovery-play]');
+          await waitDrawer(true);
+          await page.evaluate(() => history.back());
+          await waitDrawer(false);
+          if (!page.url().includes('/deck.html')) throw new Error('browser back escaped deck page');
+
+          // Simulate a dynamic PLAY appearing late; guard must also make that click non-silent.
+          await page.evaluate(() => {
+            document.getElementById('deckRecoveryHome')?.setAttribute('hidden', '');
+            const old = document.getElementById('deckStart');
+            old?.remove();
+            const home = document.createElement('section');
+            home.id = 'deckStart';
+            home.innerHTML = '<button type="button" data-home-action="play">PLAY</button>';
+            document.body.appendChild(home);
+          });
+          await page.click('[data-home-action="play"]');
+          await waitDrawer(true);
+          await page.click('#btnSafeBack');
+          await waitDrawer(false);
+
+          await page.screenshot({ path: 'play-recovery-final.png', fullPage: true });
+
+          // Reload repeatedly under the same worst-case network condition.
+          for (let i = 0; i < 3; i++) {
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await waitBoot();
+            await waitRecovery();
+          }
+
+          if (page.url() !== deckUrl && !page.url().includes('/deck.html')) throw new Error('unexpected navigation');
+          console.log('PLAY_RECOVERY_FINAL_OK');
+          await browser.close();
+          EOF
+          node check.mjs
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-recovery-final
+          path: play-recovery-final.png
+          if-no-files-found: ignore
+          retention-days: 1

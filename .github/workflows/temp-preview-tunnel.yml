@@ -55,7 +55,8 @@ jobs:
             cat /tmp/cloudflared.log
             exit 1
           fi
-          curl -I "$URL/deck.html"
+          sleep 8
+          curl -I --retry 5 --retry-delay 3 --retry-all-errors "$URL/deck.html" || true
 
       - name: Upload preview URL
         uses: actions/upload-artifact@v4

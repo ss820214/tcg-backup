@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_cleanup3";
+  const VERSION = "20261004_spark1";
   const STORAGE_KEY = "tcgDeviceModeOverrideV2";
   const MODES = ["auto", "pc", "mobile"];
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -357,5 +357,32 @@
     document.addEventListener("DOMContentLoaded", loadCleanup, { once: true });
   } else {
     loadCleanup();
+  }
+})();
+
+// Global press feedback: a small spark burst at the actual press point.
+(() => {
+  const SPARK = "20261004_spark1";
+
+  const load = () => {
+    if (!document.body) {
+      requestAnimationFrame(load);
+      return;
+    }
+    if (document.querySelector(`script[data-global-press-spark="${SPARK}"]`)) return;
+    const script = document.createElement("script");
+    script.src = `./global_press_spark_20261004.js?v=${SPARK}`;
+    script.async = false;
+    script.dataset.globalPressSpark = SPARK;
+    script.addEventListener("error", () => {
+      console.error("[global_ui] press spark layer failed to load");
+    }, { once: true });
+    document.body.appendChild(script);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", load, { once: true });
+  } else {
+    load();
   }
 })();

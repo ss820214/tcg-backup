@@ -1,19 +1,19 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261005_ui_entry1";
+  const VERSION = "20261005_ui_entry2";
   const fileName = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   const isRootDeck = fileName === "" || fileName === "index.html";
 
   const styleSources = [
     ["visual-upgrade", "./visual_upgrade_20260805.css?v=20260808_deck_flow2"],
-    ["global-ui", "./global_ui_20260821.css?v=20261005_ui_entry1"],
+    ["global-ui", "./global_ui_20260821.css?v=20261005_ui_entry2"],
     ["ui-stability", "./ui_stability_20260825.css?v=20260830_statusguide1"],
   ];
   if (isRootDeck) {
     styleSources.push([
       "mobile-deck-block-final",
-      "./mobile_deck_block_final_20260927.css?v=20261005_ui_entry1",
+      "./mobile_deck_block_final_20260927.css?v=20261005_ui_entry2",
     ]);
   }
 
@@ -24,21 +24,22 @@
     ["dopagaki", "./dopagaki_mode.js?v=20260912_dopa_tools_fix1"],
     ["mobile-deck-ui", "./mobile_deck_ui.js?v=20260906_curse_nav1"],
     ["ui-stability", "./ui_stability_20260825.js?v=20260826_deckspace1"],
-    ["mobile-home-deck", "./mobile_home_deck_ui_20260926.js?v=20261005_ui_entry1"],
+    ["mobile-home-deck", "./mobile_home_deck_ui_20260926.js?v=20261005_ui_entry2"],
   ];
   if (isRootDeck) {
     scriptSources.push([
       "mobile-deck-block-final",
-      "./mobile_deck_block_final_20260927.js?v=20261005_ui_entry1",
+      "./mobile_deck_block_final_20260927.js?v=20261005_ui_entry2",
     ]);
   }
-  // The current global UI loader must always run last. It installs the modern
-  // refine -> density -> guard -> compact -> visual -> kana/gear chain and the
-  // shared cleanup/mojibake/spark layers.
-  scriptSources.push([
-    "global-ui",
-    "./global_ui_20260821.js?v=20261005_ui_entry1",
-  ]);
+  // The current global UI loader must always run last among legacy/modern UI layers.
+  // It installs refine -> density -> guard -> compact -> visual -> kana/gear plus
+  // cleanup/mojibake/spark. The generated reading dictionary is then loaded after
+  // it and waits for TCG_KANA_SEARCH to become ready before registering aliases.
+  scriptSources.push(
+    ["global-ui", "./global_ui_20260821.js?v=20261005_ui_entry2"],
+    ["card-readings", "./card_readings_20261005.js?v=20261005_readings1"],
+  );
 
   function filenameFromUrl(src) {
     try {

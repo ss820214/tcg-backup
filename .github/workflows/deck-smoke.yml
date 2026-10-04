@@ -8,7 +8,10 @@ on:
       - 'public/deck*.js'
       - 'public/deck.html'
       - 'public/index.html'
+      - 'public/profile.html'
+      - 'public/gacha.html'
       - 'public/global_ui_20260821.js'
+      - 'public/global_cleanup_20261004.js'
       - 'firebase.json'
       - '.github/workflows/deck-smoke.yml'
 
@@ -25,6 +28,7 @@ jobs:
       - name: Syntax check runtime UI scripts
         run: |
           node --check public/global_ui_20260821.js
+          node --check public/global_cleanup_20261004.js
           node --check public/deck_mobile_refine_20261003.js
           node --check public/deck_mobile_density_20261003.js
           node --check public/deck_mobile_compact_v3_20261004.js
@@ -53,11 +57,20 @@ jobs:
           grep -q 'tcgGearFromTopRight' public/deck_kana_gear_20261004.js
           grep -q 'tcgGearFromBottomLeft' public/deck_kana_gear_20261004.js
           grep -q 'GEAR_DURATION = 2000' public/deck_kana_gear_20261004.js
-          grep -q '20261004_visual4' public/global_ui_20260821.js
+          grep -q '20261004_cleanup1' public/global_ui_20260821.js
+          grep -q 'global_cleanup_20261004.js' public/global_ui_20260821.js
+          grep -q 'カード一覧・検索' public/global_cleanup_20261004.js
+          grep -q '編集中デッキ' public/global_cleanup_20261004.js
+          grep -q 'deckStartConcept' public/global_cleanup_20261004.js
+          grep -q 'width:clamp(180px,46vmin,390px)' public/global_cleanup_20261004.js
+          grep -q 'ユーザー情報' public/global_cleanup_20261004.js
+          grep -q 'SSR 3%' public/global_cleanup_20261004.js
 
       - name: Verify root Deck Builder and Firebase hosting config
         run: |
           grep -q '20261003_root_guard3' public/index.html
           python3 -m json.tool firebase.json >/dev/null
           grep -q 'no-cache' firebase.json
+          grep -Fq '"source": "**/*.js"' firebase.json
+          grep -Fq '"source": "**/*.css"' firebase.json
           grep -q 'tcg-0bato' .firebaserc

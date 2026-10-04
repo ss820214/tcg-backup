@@ -1,0 +1,104 @@
+name: One-shot UI entry consolidation 20261005
+
+on:
+  push:
+    branches:
+      - import/local-latest-20261003
+    paths:
+      - '.github/workflows/one-shot-ui-entry-20261005.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: import/local-latest-20261003
+          fetch-depth: 0
+
+      - name: Replace legacy UI direct loads with canonical entry
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          files = [Path('public/index.html'), Path('public/deck.html')]
+          css_names = [
+              'visual_upgrade_20260805.css',
+              'global_ui_20260821.css',
+              'ui_stability_20260825.css',
+              'mobile_deck_block_final_20260927.css',
+          ]
+          js_names = [
+              'ui_polish.js',
+              'deck_layout_guard.js',
+              'visual_upgrade_20260805.js',
+              'dopagaki_mode.js',
+              'mobile_deck_ui.js',
+              'ui_stability_20260825.js',
+              'global_ui_20260821.js',
+              'mobile_home_deck_ui_20260926.js',
+              'mobile_deck_block_final_20260927.js',
+          ]
+          entry = '  <script src="./deck_ui_entry_20261005.js?v=20261005_ui_entry1" defer></script>'
+
+          for path in files:
+              text = path.read_text(encoding='utf-8-sig')
+
+              for name in css_names:
+                  pattern = rf'\s*<link\b[^>]*href=["\']\./{re.escape(name)}(?:\?[^"\']*)?["\'][^>]*>\s*'
+                  text = re.sub(pattern, '\n', text, flags=re.I)
+
+              for name in js_names:
+                  pattern = rf'\s*<script\b[^>]*src=["\']\./{re.escape(name)}(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*'
+                  text = re.sub(pattern, '\n', text, flags=re.I)
+
+              # Remove an old copy if this workflow is re-run, then insert once.
+              text = re.sub(
+                  r'\s*<script\b[^>]*src=["\']\./deck_ui_entry_20261005\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*',
+                  '\n',
+                  text,
+                  flags=re.I,
+              )
+
+              anchor = re.search(
+                  r'(?P<tag><script\b[^>]*src=["\']\./ttcg_command\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>)',
+                  text,
+                  flags=re.I,
+              )
+              if anchor:
+                  pos = anchor.end('tag')
+                  text = text[:pos] + '\n' + entry + text[pos:]
+              else:
+                  text = text.replace('</body>', entry + '\n</body>')
+
+              path.write_text(text, encoding='utf-8')
+
+          # Safety assertions: old UI assets must no longer be direct HTML dependencies.
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+              assert 'deck_ui_entry_20261005.js' in text, path
+              for name in css_names:
+                  assert not re.search(rf'href=["\']\./{re.escape(name)}(?:\?|["\'])', text), (path, name)
+              for name in js_names:
+                  assert not re.search(rf'src=["\']\./{re.escape(name)}(?:\?|["\'])', text), (path, name)
+          PY
+
+      - name: Syntax check canonical entry
+        run: node --check public/deck_ui_entry_20261005.js
+
+      - name: Commit consolidation
+        run: |
+          if git diff --quiet -- public/index.html public/deck.html; then
+            echo 'No changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/index.html public/deck.html
+          git commit -m 'Deck UIの読み込み入口を統一'
+          git push origin HEAD:import/local-latest-20261003

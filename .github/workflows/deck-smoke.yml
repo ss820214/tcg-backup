@@ -15,6 +15,7 @@ on:
       - 'public/global_ui_20260821.js'
       - 'public/global_cleanup_20261004.js'
       - 'public/global_mojibake_repair_20261004.js'
+      - 'public/global_press_spark_20261004.js'
       - 'firebase.json'
       - '.github/workflows/deck-smoke.yml'
 
@@ -33,6 +34,7 @@ jobs:
           node --check public/global_ui_20260821.js
           node --check public/global_cleanup_20261004.js
           node --check public/global_mojibake_repair_20261004.js
+          node --check public/global_press_spark_20261004.js
           node --check public/deck_mobile_refine_20261003.js
           node --check public/deck_mobile_density_20261003.js
           node --check public/deck_mobile_compact_v3_20261004.js
@@ -61,10 +63,13 @@ jobs:
           grep -q 'tcgGearFromTopRight' public/deck_kana_gear_20261004.js
           grep -q 'tcgGearFromBottomLeft' public/deck_kana_gear_20261004.js
           grep -q 'GEAR_DURATION = 2000' public/deck_kana_gear_20261004.js
-          grep -q '20261004_cleanup3' public/global_ui_20260821.js
+          grep -q '20261004_spark1' public/global_ui_20260821.js
           grep -q 'global_cleanup_20261004.js' public/global_ui_20260821.js
           grep -q 'global_mojibake_repair_20261004.js' public/global_ui_20260821.js
           grep -q '20261004_mojifix1' public/global_ui_20260821.js
+          grep -q 'global_press_spark_20261004.js' public/global_ui_20260821.js
+          grep -q 'tcgPressSparkRay' public/global_press_spark_20261004.js
+          grep -q 'pointerdown' public/global_press_spark_20261004.js
           grep -q 'TextDecoder("shift_jis")' public/global_cleanup_20261004.js
           grep -q 'recoverMojibake' public/global_cleanup_20261004.js
           grep -q 'AGGRESSIVE_PAGES' public/global_mojibake_repair_20261004.js

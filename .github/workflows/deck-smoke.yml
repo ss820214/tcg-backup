@@ -16,6 +16,7 @@ on:
       - 'public/global_cleanup_20261004.js'
       - 'public/global_mojibake_repair_20261004.js'
       - 'public/global_press_spark_20261004.js'
+      - 'public/deck_ui_entry_20261005.js'
       - 'firebase.json'
       - '.github/workflows/deck-smoke.yml'
 
@@ -31,6 +32,7 @@ jobs:
 
       - name: Syntax check runtime UI scripts
         run: |
+          node --check public/deck_ui_entry_20261005.js
           node --check public/global_ui_20260821.js
           node --check public/global_cleanup_20261004.js
           node --check public/global_mojibake_repair_20261004.js
@@ -42,6 +44,45 @@ jobs:
           node --check public/deck_kana_gear_20261004.js
           node --check public/deck_runtime_guard_20261003.js
           node --check public/deck_runtime_guard_v3_20261003.js
+
+      - name: Verify canonical Deck UI entry
+        run: |
+          grep -q '20261005_ui_entry1' public/deck_ui_entry_20261005.js
+          grep -q 'global_ui_20260821.js' public/deck_ui_entry_20261005.js
+          grep -q 'deck_ui_entry_20261005.js' public/index.html
+          grep -q 'deck_ui_entry_20261005.js' public/deck.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          pages = [Path('public/index.html'), Path('public/deck.html')]
+          old_direct_css = [
+              'visual_upgrade_20260805.css',
+              'global_ui_20260821.css',
+              'ui_stability_20260825.css',
+              'mobile_deck_block_final_20260927.css',
+          ]
+          old_direct_js = [
+              'ui_polish.js',
+              'deck_layout_guard.js',
+              'visual_upgrade_20260805.js',
+              'dopagaki_mode.js',
+              'mobile_deck_ui.js',
+              'ui_stability_20260825.js',
+              'global_ui_20260821.js',
+              'mobile_home_deck_ui_20260926.js',
+              'mobile_deck_block_final_20260927.js',
+              'deck_runtime_guard_20261003.js',
+          ]
+
+          for page in pages:
+              text = page.read_text(encoding='utf-8-sig')
+              assert text.count('deck_ui_entry_20261005.js') == 1, (page, 'entry count')
+              for name in old_direct_css:
+                  assert not re.search(rf'href=["\']\./{re.escape(name)}(?:\?|["\'])', text), (page, name)
+              for name in old_direct_js:
+                  assert not re.search(rf'src=["\']\./{re.escape(name)}(?:\?|["\'])', text), (page, name)
+          PY
 
       - name: Verify essential deck controls
         run: |
@@ -83,9 +124,8 @@ jobs:
           grep -q 'アーケードモード' public/global_cleanup_20261004.js
           grep -q 'カード工房' public/global_cleanup_20261004.js
 
-      - name: Verify root Deck Builder and Firebase hosting config
+      - name: Verify Firebase hosting config
         run: |
-          grep -q '20261003_root_guard3' public/index.html
           python3 -m json.tool firebase.json >/dev/null
           grep -q 'no-cache' firebase.json
           grep -Fq '"source": "**/*.js"' firebase.json

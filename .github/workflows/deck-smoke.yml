@@ -10,6 +10,8 @@ on:
       - 'public/index.html'
       - 'public/profile.html'
       - 'public/gacha.html'
+      - 'public/arcade.html'
+      - 'public/creator.html'
       - 'public/global_ui_20260821.js'
       - 'public/global_cleanup_20261004.js'
       - 'firebase.json'
@@ -57,14 +59,18 @@ jobs:
           grep -q 'tcgGearFromTopRight' public/deck_kana_gear_20261004.js
           grep -q 'tcgGearFromBottomLeft' public/deck_kana_gear_20261004.js
           grep -q 'GEAR_DURATION = 2000' public/deck_kana_gear_20261004.js
-          grep -q '20261004_cleanup1' public/global_ui_20260821.js
+          grep -q '20261004_cleanup2' public/global_ui_20260821.js
           grep -q 'global_cleanup_20261004.js' public/global_ui_20260821.js
+          grep -q 'TextDecoder("shift_jis")' public/global_cleanup_20261004.js
+          grep -q 'recoverMojibake' public/global_cleanup_20261004.js
           grep -q 'カード一覧・検索' public/global_cleanup_20261004.js
           grep -q '編集中デッキ' public/global_cleanup_20261004.js
           grep -q 'deckStartConcept' public/global_cleanup_20261004.js
           grep -q 'width:clamp(180px,46vmin,390px)' public/global_cleanup_20261004.js
           grep -q 'ユーザー情報' public/global_cleanup_20261004.js
           grep -q 'SSR 3%' public/global_cleanup_20261004.js
+          grep -q 'アーケードモード' public/global_cleanup_20261004.js
+          grep -q 'カード工房' public/global_cleanup_20261004.js
 
       - name: Verify root Deck Builder and Firebase hosting config
         run: |

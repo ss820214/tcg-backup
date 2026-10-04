@@ -1,9 +1,11 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_cleanup1";
+  const VERSION = "20261004_cleanup2";
   const STYLE_ID = "tcgGlobalCleanup20261004Style";
+  const UTF8 = new TextDecoder("utf-8", { fatal: true });
   let scheduled = false;
+  let sjisReverse = null;
 
   const $ = (id) => document.getElementById(id);
   const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -14,6 +16,122 @@
 
   function setPlaceholder(el, value) {
     if (el && el.getAttribute("placeholder") !== value) el.setAttribute("placeholder", value);
+  }
+
+  function mojibakeScore(value) {
+    const text = String(value || "");
+    const hits = text.match(/[繧繝縺蜿謇螟荳譁驟遒邇窶莠逕蟇蜊闔髣驪螻謗蛯]/g);
+    return (hits?.length || 0) + ((text.match(/�/g) || []).length * 4);
+  }
+
+  function getSjisReverseMap() {
+    if (sjisReverse) return sjisReverse;
+    const map = new Map();
+    let decoder;
+    try {
+      decoder = new TextDecoder("shift_jis");
+    } catch {
+      sjisReverse = map;
+      return map;
+    }
+
+    const add = (bytes) => {
+      const decoded = decoder.decode(Uint8Array.from(bytes));
+      if (!decoded || decoded.includes("�")) return;
+      if (!map.has(decoded)) map.set(decoded, bytes);
+    };
+
+    for (let b = 0x00; b <= 0x7f; b += 1) add([b]);
+    for (let b = 0xa1; b <= 0xdf; b += 1) add([b]);
+    const leads = [];
+    for (let b = 0x81; b <= 0x9f; b += 1) leads.push(b);
+    for (let b = 0xe0; b <= 0xfc; b += 1) leads.push(b);
+    for (const lead of leads) {
+      for (let trail = 0x40; trail <= 0xfc; trail += 1) {
+        if (trail === 0x7f) continue;
+        add([lead, trail]);
+      }
+    }
+    sjisReverse = map;
+    return map;
+  }
+
+  function reverseShiftJisBytes(value) {
+    const map = getSjisReverseMap();
+    if (!map.size) return null;
+    const bytes = [];
+    for (const ch of String(value || "")) {
+      const code = ch.codePointAt(0);
+      if (code <= 0x7f) {
+        bytes.push(code);
+        continue;
+      }
+      const part = map.get(ch);
+      if (!part) return null;
+      bytes.push(...part);
+    }
+    return bytes;
+  }
+
+  function cleanRecoveredMarkup(value) {
+    return String(value || "")
+      .replace(/\/(?:h[1-6]|div|span|label|option|button|b|p|section|header|small)>/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function recoverMojibake(value) {
+    const original = String(value || "");
+    const before = mojibakeScore(original);
+    if (before < 2) return original;
+    try {
+      const bytes = reverseShiftJisBytes(original);
+      if (!bytes) return original;
+      const decoded = cleanRecoveredMarkup(UTF8.decode(Uint8Array.from(bytes)));
+      if (!decoded) return original;
+      const after = mojibakeScore(decoded);
+      if (after <= Math.max(0, before - 2)) return decoded;
+    } catch {
+      // Mixed encodings are left untouched; page-specific fixes below handle key labels.
+    }
+    return original;
+  }
+
+  function repairMojibakeInDocument() {
+    const root = document.body;
+    if (!root) return;
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        if (parent.closest("script,style,noscript,textarea,pre,code")) return NodeFilter.FILTER_REJECT;
+        return mojibakeScore(node.nodeValue) >= 2
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
+      },
+    });
+
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    for (const node of nodes) {
+      const next = recoverMojibake(node.nodeValue);
+      if (next !== node.nodeValue) node.nodeValue = next;
+    }
+
+    const attrs = ["placeholder", "title", "aria-label"];
+    document.querySelectorAll("[placeholder],[title],[aria-label]").forEach((el) => {
+      for (const name of attrs) {
+        const value = el.getAttribute(name);
+        if (!value || mojibakeScore(value) < 2) continue;
+        const next = recoverMojibake(value);
+        if (next !== value) el.setAttribute(name, next);
+      }
+    });
+
+    if (mojibakeScore(document.title) >= 2) {
+      document.title = recoverMojibake(document.title);
+    }
   }
 
   function injectStyle() {
@@ -150,7 +268,7 @@
     setText(document.querySelector(".grid > .panel:first-child > h2"), "ガチャ選択");
 
     const stamp = $("bannerStamp");
-    if (stamp && /[遒邇繝繧縺窶]/.test(stamp.textContent || "")) setText(stamp, "SSR 3%");
+    if (stamp && mojibakeScore(stamp.textContent) >= 2) setText(stamp, "SSR 3%");
     const mini = $("miniInfo");
     if (mini && /窶/.test(mini.textContent || "")) setText(mini, "準備中…");
     const big = $("revealBig");
@@ -158,15 +276,63 @@
     const sub = $("revealSub");
     if (sub && /窶/.test(sub.textContent || "")) setText(sub, "…");
     const status = $("statusTag");
-    if (status && /[繝繧縺窶遒邇]/.test(status.textContent || "")) setText(status, "状態: -");
+    if (status && mojibakeScore(status.textContent) >= 2) setText(status, "状態: -");
+  }
+
+  function normalizeArcade() {
+    if (page !== "arcade.html") return;
+    document.title = "0BATo - アーケード";
+    setText(document.querySelector("header h1"), "アーケードモード");
+    setText(document.querySelector("header .sub"), "30枚デッキから部隊を選び、5ラウンド突破を目指す短期戦");
+    setText($("btnDeck"), "デッキへ");
+    setText($("btnProfile"), "ユーザー");
+
+    const setup = document.querySelector(".panel.setup");
+    setText(setup?.querySelector(":scope > h2"), "ラン設定");
+    const rewards = { easy: 120, normal: 200, hard: 350 };
+    document.querySelectorAll("#difficulty [data-diff]").forEach((btn) => {
+      const diff = btn.dataset.diff;
+      const status = btn.querySelector(".status");
+      if (status && rewards[diff]) setText(status, `報酬 ${rewards[diff]}`);
+    });
+    setText($("btnStart"), "ラン開始");
+    setText($("btnNext"), "次のラウンド");
+
+    const panels = [...document.querySelectorAll("main.grid > section.panel")];
+    const battle = panels[1];
+    setText(battle?.querySelector(":scope > h2"), "戦場");
+    const teamHeads = battle ? [...battle.querySelectorAll(".teams h2")] : [];
+    setText(teamHeads[0], "自軍");
+    setText(teamHeads[1], "敵軍");
+    setText(document.querySelector('label[for="actorSelect"]'), "自軍");
+    setText(document.querySelector('label[for="actionSelect"]'), "技");
+    setText(document.querySelector('label[for="targetSelect"]'), "対象");
+    setText($("btnRoll"), "ダイスロール");
+    setText(panels[2]?.querySelector(":scope > h2"), "ログ");
+  }
+
+  function normalizeCreator() {
+    if (page !== "creator.html") return;
+    document.title = "0BATo - カード工房";
+    setText(document.querySelector("header h1"), "カード工房");
+    setText(document.querySelector("header .sub"), "テーマ・技・カードを作成してゲームへ反映");
+    setText($("btnSyncNow"), "同期");
+    setText($("btnDeck"), "デッキへ");
+    setText($("btnProfile"), "ユーザー");
+    setText($("tabTheme"), "テーマ");
+    setText($("tabCard"), "カード");
+    setText($("tabSkill"), "技");
   }
 
   function apply() {
     injectStyle();
+    repairMojibakeInDocument();
     removeOldConcept();
     normalizeDeckHeadings();
     normalizeProfile();
     normalizeGacha();
+    normalizeArcade();
+    normalizeCreator();
     document.documentElement.dataset.uiCleanup = VERSION;
   }
 
@@ -186,7 +352,7 @@
   }
 
   const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
 
   window.addEventListener("pageshow", (event) => {
     apply();
@@ -197,6 +363,10 @@
     }
   });
 
-  window.TCG_UI_CLEANUP = { version: VERSION, refresh: apply };
+  window.TCG_UI_CLEANUP = {
+    version: VERSION,
+    refresh: apply,
+    recoverText: recoverMojibake,
+  };
   console.log("[global_cleanup] ready", VERSION);
 })();

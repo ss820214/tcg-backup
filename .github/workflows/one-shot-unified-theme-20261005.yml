@@ -1,5 +1,6 @@
 name: One-shot unified mode theme 20261005
 
+# Re-run marker: 20261005-theme-wire-1
 on:
   push:
     branches:

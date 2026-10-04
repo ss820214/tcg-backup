@@ -1,0 +1,14 @@
+{
+  "version": "20261005_readings1",
+  "generatedAt": "2026-10-04T15:43:50.807Z",
+  "total": 320,
+  "explicitCount": 0,
+  "generatedCount": 320,
+  "unresolvedCount": 0,
+  "unresolved": [],
+  "sources": {
+    "firestore:cards": 285,
+    "static:jewel_cards.js": 23,
+    "static:starter_support_cards.js": 12
+  }
+}

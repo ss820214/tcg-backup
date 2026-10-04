@@ -43,6 +43,7 @@ jobs:
               'global_ui_20260821.js',
               'mobile_home_deck_ui_20260926.js',
               'mobile_deck_block_final_20260927.js',
+              'deck_runtime_guard_20261003.js',
           ]
           entry = '  <script src="./deck_ui_entry_20261005.js?v=20261005_ui_entry1" defer></script>'
 

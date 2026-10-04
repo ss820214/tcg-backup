@@ -53,7 +53,7 @@ jobs:
 
       - name: Commit reading dictionary
         run: |
-          if git diff --quiet -- public/card_readings_20261005.js tools/card_readings_report_20261005.json; then
+          if [ -z "$(git status --porcelain -- public/card_readings_20261005.js tools/card_readings_report_20261005.json)" ]; then
             echo 'No reading changes.'
             exit 0
           fi

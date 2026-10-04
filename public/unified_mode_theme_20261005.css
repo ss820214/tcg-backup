@@ -1,0 +1,491 @@
+/* 0BATo unified mode theme
+ * Shared visual language for profile / gacha / arcade / creator.
+ * Layout and mode-specific effects stay owned by each page.
+ */
+
+:root {
+  --ob-bg-0: #07090d;
+  --ob-bg-1: #0b0f15;
+  --ob-panel: rgba(16, 22, 31, .80);
+  --ob-panel-strong: rgba(20, 28, 39, .92);
+  --ob-panel-soft: rgba(255, 255, 255, .045);
+  --ob-line: rgba(178, 219, 255, .15);
+  --ob-line-strong: rgba(178, 219, 255, .28);
+  --ob-text: rgba(247, 251, 255, .94);
+  --ob-muted: rgba(213, 226, 240, .64);
+  --ob-accent: #79d8ff;
+  --ob-accent-rgb: 121, 216, 255;
+  --ob-accent-2: #79efb1;
+  --ob-gold: #ffd36f;
+  --ob-danger: #ff7790;
+  --ob-radius: 16px;
+  --ob-radius-sm: 11px;
+  --ob-shadow: 0 18px 48px rgba(0, 0, 0, .32);
+  --ob-shadow-soft: 0 9px 28px rgba(0, 0, 0, .24);
+}
+
+body.ui-page-profile {
+  --ob-accent: #79efb1;
+  --ob-accent-rgb: 121, 239, 177;
+  --ob-accent-2: #79d8ff;
+}
+body.ui-page-gacha {
+  --ob-accent: #b69cff;
+  --ob-accent-rgb: 182, 156, 255;
+  --ob-accent-2: #ffd36f;
+}
+body.ui-page-arcade {
+  --ob-accent: #7fc9ff;
+  --ob-accent-rgb: 127, 201, 255;
+  --ob-accent-2: #79efb1;
+}
+body.ui-page-creator {
+  --ob-accent: #79d8ff;
+  --ob-accent-rgb: 121, 216, 255;
+  --ob-accent-2: #ffd36f;
+}
+
+body.ui-page-profile,
+body.ui-page-gacha,
+body.ui-page-arcade,
+body.ui-page-creator {
+  --bg: var(--ob-bg-1);
+  --panel: rgba(255, 255, 255, .055);
+  --panel2: rgba(255, 255, 255, .085);
+  --line: var(--ob-line);
+  --text: var(--ob-text);
+  --txt: var(--ob-text);
+  --muted: var(--ob-muted);
+  --accent: var(--ob-accent);
+  --good: var(--ob-accent-2);
+  --ok: var(--ob-accent-2);
+  --gold: var(--ob-gold);
+  --warn: var(--ob-gold);
+  --bad: var(--ob-danger);
+  color: var(--ob-text) !important;
+  background:
+    radial-gradient(780px 520px at 6% -4%, rgba(var(--ob-accent-rgb), .16), transparent 60%),
+    radial-gradient(660px 500px at 96% 2%, rgba(255, 211, 111, .075), transparent 57%),
+    radial-gradient(620px 480px at 50% 108%, rgba(var(--ob-accent-rgb), .06), transparent 64%),
+    linear-gradient(180deg, var(--ob-bg-0), var(--ob-bg-1) 48%, #080a0e) !important;
+  background-attachment: fixed !important;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Segoe UI", sans-serif !important;
+}
+
+body.ui-page-profile::before,
+body.ui-page-gacha::before,
+body.ui-page-arcade::before,
+body.ui-page-creator::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .28;
+  background-image:
+    linear-gradient(rgba(255,255,255,.016) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.72), transparent 82%);
+}
+
+body.ui-page-profile .wrap,
+body.ui-page-gacha .wrap,
+body.ui-page-arcade .wrap,
+body.ui-page-creator .wrap {
+  position: relative;
+}
+
+body.ui-page-profile header,
+body.ui-page-gacha header,
+body.ui-page-arcade header,
+body.ui-page-creator header {
+  position: relative;
+  border: 1px solid rgba(var(--ob-accent-rgb), .13);
+  border-radius: var(--ob-radius);
+  padding: 12px 14px;
+  background:
+    linear-gradient(135deg, rgba(var(--ob-accent-rgb), .075), transparent 42%),
+    rgba(9, 13, 19, .64);
+  box-shadow: var(--ob-shadow-soft), inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+body.ui-page-profile header::after,
+body.ui-page-gacha header::after,
+body.ui-page-arcade header::after,
+body.ui-page-creator header::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: -1px;
+  width: min(150px, 36%);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(var(--ob-accent-rgb), .9), transparent);
+  box-shadow: 0 0 18px rgba(var(--ob-accent-rgb), .46);
+  pointer-events: none;
+}
+
+body.ui-page-profile h1,
+body.ui-page-gacha h1,
+body.ui-page-arcade h1,
+body.ui-page-creator h1,
+body.ui-page-gacha .brand h1 {
+  color: #fff !important;
+  font-weight: 1000 !important;
+  letter-spacing: .025em !important;
+  text-shadow: 0 2px 16px rgba(var(--ob-accent-rgb), .14);
+}
+
+body.ui-page-profile .sub,
+body.ui-page-gacha .sub,
+body.ui-page-arcade .sub,
+body.ui-page-creator .sub {
+  color: var(--ob-muted) !important;
+}
+
+body.ui-page-profile .panel,
+body.ui-page-gacha .panel,
+body.ui-page-arcade .panel,
+body.ui-page-creator .panel {
+  position: relative;
+  border: 1px solid var(--ob-line) !important;
+  border-radius: var(--ob-radius) !important;
+  background:
+    radial-gradient(440px 160px at 12% 0%, rgba(var(--ob-accent-rgb), .07), transparent 68%),
+    linear-gradient(180deg, rgba(24, 31, 42, .82), rgba(11, 16, 23, .82)) !important;
+  box-shadow: var(--ob-shadow), inset 0 1px 0 rgba(255,255,255,.045) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+body.ui-page-profile .panel::after,
+body.ui-page-gacha .panel::after,
+body.ui-page-arcade .panel::after,
+body.ui-page-creator .panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(var(--ob-accent-rgb), .018);
+  z-index: 0;
+}
+
+body.ui-page-profile .panel > *,
+body.ui-page-gacha .panel > *,
+body.ui-page-arcade .panel > *,
+body.ui-page-creator .panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+body.ui-page-profile .panel h2,
+body.ui-page-gacha .panel h2,
+body.ui-page-arcade .panel h2,
+body.ui-page-creator .panel h2,
+body.ui-page-creator .hd b {
+  color: rgba(247, 251, 255, .90) !important;
+  font-weight: 950 !important;
+  letter-spacing: .035em !important;
+}
+
+body.ui-page-profile .panel > h2,
+body.ui-page-gacha .panel > h2,
+body.ui-page-arcade .panel > h2 {
+  padding-left: 10px;
+  border-left: 3px solid rgba(var(--ob-accent-rgb), .82);
+  text-align: left !important;
+}
+
+body.ui-page-creator .hd {
+  border-bottom-color: var(--ob-line) !important;
+  background:
+    linear-gradient(90deg, rgba(var(--ob-accent-rgb), .09), transparent 46%),
+    rgba(0, 0, 0, .20) !important;
+}
+body.ui-page-creator .hd::before {
+  content: "";
+  width: 3px;
+  align-self: stretch;
+  border-radius: 99px;
+  background: rgba(var(--ob-accent-rgb), .82);
+  box-shadow: 0 0 12px rgba(var(--ob-accent-rgb), .30);
+}
+body.ui-page-creator .hd > :first-child {
+  margin-left: -2px;
+}
+
+body.ui-page-profile button,
+body.ui-page-gacha button,
+body.ui-page-gacha .btn,
+body.ui-page-arcade button,
+body.ui-page-creator button,
+body.ui-page-creator .btn,
+body.ui-page-creator .tab {
+  border-color: rgba(178, 219, 255, .17) !important;
+  border-radius: var(--ob-radius-sm) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.095), rgba(255,255,255,.035)) !important;
+  color: var(--ob-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 5px 14px rgba(0,0,0,.15);
+  transition: transform .11s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease, filter .16s ease !important;
+  touch-action: manipulation;
+}
+
+body.ui-page-profile button:hover,
+body.ui-page-gacha button:hover,
+body.ui-page-gacha .btn:hover,
+body.ui-page-arcade button:hover,
+body.ui-page-creator button:hover,
+body.ui-page-creator .btn:hover,
+body.ui-page-creator .tab:hover {
+  border-color: rgba(var(--ob-accent-rgb), .42) !important;
+  background:
+    linear-gradient(180deg, rgba(var(--ob-accent-rgb), .14), rgba(255,255,255,.04)) !important;
+  filter: brightness(1.06);
+}
+
+body.ui-page-profile button:active,
+body.ui-page-gacha button:active,
+body.ui-page-gacha .btn:active,
+body.ui-page-arcade button:active,
+body.ui-page-creator button:active,
+body.ui-page-creator .btn:active,
+body.ui-page-creator .tab:active {
+  transform: translateY(1px) scale(.985) !important;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.18) !important;
+}
+
+body.ui-page-profile button:focus-visible,
+body.ui-page-gacha button:focus-visible,
+body.ui-page-gacha .btn:focus-visible,
+body.ui-page-arcade button:focus-visible,
+body.ui-page-creator button:focus-visible,
+body.ui-page-creator .btn:focus-visible,
+body.ui-page-profile input:focus-visible,
+body.ui-page-gacha input:focus-visible,
+body.ui-page-arcade select:focus-visible,
+body.ui-page-creator input:focus-visible,
+body.ui-page-creator select:focus-visible,
+body.ui-page-creator textarea:focus-visible {
+  outline: 2px solid rgba(var(--ob-accent-rgb), .72) !important;
+  outline-offset: 2px;
+}
+
+body.ui-page-gacha .btnPrimary,
+body.ui-page-arcade .primary,
+body.ui-page-creator .primary,
+body.ui-page-profile button[data-intent="primary"] {
+  border-color: rgba(var(--ob-accent-rgb), .42) !important;
+  background:
+    linear-gradient(180deg, rgba(var(--ob-accent-rgb), .22), rgba(var(--ob-accent-rgb), .075)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 22px rgba(var(--ob-accent-rgb), .08) !important;
+}
+
+body.ui-page-gacha .btnGold,
+body.ui-page-arcade .gold {
+  border-color: rgba(255, 211, 111, .42) !important;
+  background: linear-gradient(180deg, rgba(255,211,111,.20), rgba(255,211,111,.055)) !important;
+}
+
+body.ui-page-gacha .btnDanger,
+body.ui-page-creator .danger,
+body.ui-page-profile button[data-intent="danger"] {
+  border-color: rgba(255, 119, 144, .36) !important;
+  background: linear-gradient(180deg, rgba(255,119,144,.16), rgba(255,119,144,.045)) !important;
+}
+
+body.ui-page-profile input,
+body.ui-page-profile select,
+body.ui-page-profile textarea,
+body.ui-page-gacha input,
+body.ui-page-gacha select,
+body.ui-page-gacha textarea,
+body.ui-page-arcade input,
+body.ui-page-arcade select,
+body.ui-page-arcade textarea,
+body.ui-page-creator input,
+body.ui-page-creator select,
+body.ui-page-creator textarea {
+  border: 1px solid var(--ob-line) !important;
+  border-radius: var(--ob-radius-sm) !important;
+  background: rgba(4, 7, 11, .52) !important;
+  color: var(--ob-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+body.ui-page-profile input:focus,
+body.ui-page-profile select:focus,
+body.ui-page-profile textarea:focus,
+body.ui-page-gacha input:focus,
+body.ui-page-gacha select:focus,
+body.ui-page-gacha textarea:focus,
+body.ui-page-arcade input:focus,
+body.ui-page-arcade select:focus,
+body.ui-page-arcade textarea:focus,
+body.ui-page-creator input:focus,
+body.ui-page-creator select:focus,
+body.ui-page-creator textarea:focus {
+  border-color: rgba(var(--ob-accent-rgb), .56) !important;
+  box-shadow: 0 0 0 3px rgba(var(--ob-accent-rgb), .09), inset 0 1px 0 rgba(255,255,255,.03) !important;
+  outline: none !important;
+}
+
+body.ui-page-profile input::placeholder,
+body.ui-page-gacha input::placeholder,
+body.ui-page-arcade input::placeholder,
+body.ui-page-creator input::placeholder,
+body.ui-page-creator textarea::placeholder {
+  color: rgba(213, 226, 240, .42) !important;
+}
+
+body.ui-page-profile .pill,
+body.ui-page-gacha .pill,
+body.ui-page-gacha .tag,
+body.ui-page-arcade .status,
+body.ui-page-creator .pill,
+body.ui-page-creator .syncStatus {
+  border-color: rgba(var(--ob-accent-rgb), .16);
+}
+
+/* Profile surfaces */
+body.ui-page-profile .stat,
+body.ui-page-profile .card,
+body.ui-page-profile .row,
+body.ui-page-profile .youCardHead,
+body.ui-page-profile .youLine,
+body.ui-page-profile .youStat {
+  border-color: rgba(var(--ob-accent-rgb), .11) !important;
+  border-radius: var(--ob-radius-sm) !important;
+  background:
+    linear-gradient(150deg, rgba(var(--ob-accent-rgb), .045), rgba(0,0,0,.19)) !important;
+}
+body.ui-page-profile .value.good,
+body.ui-page-profile .uidCopyMsg,
+body.ui-page-profile .youMsg,
+body.ui-page-profile .adminMsg {
+  color: var(--ob-accent-2) !important;
+}
+
+/* Gacha keeps its cinematic/banner identity; only its chrome is normalized. */
+body.ui-page-gacha .themeCard,
+body.ui-page-gacha .bannerArt,
+body.ui-page-gacha .reveal,
+body.ui-page-gacha .gachaSpinBoard {
+  border-radius: var(--ob-radius) !important;
+}
+body.ui-page-gacha .actions,
+body.ui-page-gacha .mini,
+body.ui-page-gacha .rates,
+body.ui-page-gacha .toast {
+  border-radius: var(--ob-radius-sm) !important;
+}
+
+/* Arcade surfaces */
+body.ui-page-arcade .node,
+body.ui-page-arcade .unit,
+body.ui-page-arcade .command,
+body.ui-page-arcade .log {
+  border-color: rgba(var(--ob-accent-rgb), .12) !important;
+  border-radius: var(--ob-radius-sm) !important;
+  background: rgba(4, 7, 11, .38) !important;
+}
+body.ui-page-arcade .node.active,
+body.ui-page-arcade .unit.selected {
+  border-color: rgba(255, 211, 111, .62) !important;
+  box-shadow: 0 0 0 1px rgba(255,211,111,.12), 0 0 24px rgba(255,211,111,.10) !important;
+}
+
+/* Creator surfaces */
+body.ui-page-creator .themeHero,
+body.ui-page-creator .metric,
+body.ui-page-creator .presetBtn,
+body.ui-page-creator .themeTemplateBox,
+body.ui-page-creator .themeTemplateItem,
+body.ui-page-creator .item,
+body.ui-page-creator .skillChip,
+body.ui-page-creator .rangeBuilder,
+body.ui-page-creator .cardEffectBox {
+  border-color: rgba(var(--ob-accent-rgb), .12) !important;
+  border-radius: var(--ob-radius-sm) !important;
+}
+body.ui-page-creator .themeHero {
+  border-radius: var(--ob-radius) !important;
+  background:
+    radial-gradient(520px 240px at 15% 0%, rgba(var(--ob-accent-rgb), .16), transparent 64%),
+    linear-gradient(135deg, rgba(255,255,255,.075), rgba(8,12,18,.58)) !important;
+}
+body.ui-page-creator .item.active,
+body.ui-page-creator .tab.active {
+  border-color: rgba(var(--ob-accent-rgb), .58) !important;
+  box-shadow: 0 0 0 1px rgba(var(--ob-accent-rgb), .12), 0 0 22px rgba(var(--ob-accent-rgb), .09) !important;
+}
+
+body.ui-page-profile *,
+body.ui-page-gacha *,
+body.ui-page-arcade *,
+body.ui-page-creator * {
+  scrollbar-color: rgba(var(--ob-accent-rgb), .34) rgba(255,255,255,.035);
+}
+body.ui-page-profile *::-webkit-scrollbar,
+body.ui-page-gacha *::-webkit-scrollbar,
+body.ui-page-arcade *::-webkit-scrollbar,
+body.ui-page-creator *::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+body.ui-page-profile *::-webkit-scrollbar-thumb,
+body.ui-page-gacha *::-webkit-scrollbar-thumb,
+body.ui-page-arcade *::-webkit-scrollbar-thumb,
+body.ui-page-creator *::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(var(--ob-accent-rgb), .30);
+  background-clip: padding-box;
+}
+body.ui-page-profile *::-webkit-scrollbar-track,
+body.ui-page-gacha *::-webkit-scrollbar-track,
+body.ui-page-arcade *::-webkit-scrollbar-track,
+body.ui-page-creator *::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.025);
+}
+
+@media (max-width: 720px) {
+  body.ui-page-profile header,
+  body.ui-page-gacha header,
+  body.ui-page-arcade header,
+  body.ui-page-creator header {
+    border-radius: 14px;
+    padding: 10px 11px;
+  }
+
+  body.ui-page-profile .panel,
+  body.ui-page-gacha .panel,
+  body.ui-page-arcade .panel,
+  body.ui-page-creator .panel {
+    border-radius: 14px !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04) !important;
+  }
+
+  body.ui-page-profile button,
+  body.ui-page-gacha button,
+  body.ui-page-gacha .btn,
+  body.ui-page-arcade button,
+  body.ui-page-creator button,
+  body.ui-page-creator .btn,
+  body.ui-page-creator .tab {
+    min-height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ui-page-profile *,
+  body.ui-page-gacha *,
+  body.ui-page-arcade *,
+  body.ui-page-creator * {
+    transition-duration: .01ms !important;
+  }
+}

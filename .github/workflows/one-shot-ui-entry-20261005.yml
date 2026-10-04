@@ -45,7 +45,7 @@ jobs:
               'mobile_deck_block_final_20260927.js',
               'deck_runtime_guard_20261003.js',
           ]
-          entry = '  <script src="./deck_ui_entry_20261005.js?v=20261005_ui_entry1" defer></script>'
+          entry = '  <script src="./deck_ui_entry_20261005.js?v=20261005_ui_entry2" defer></script>'
 
           for path in files:
               text = path.read_text(encoding='utf-8-sig')
@@ -83,6 +83,7 @@ jobs:
           for path in files:
               text = path.read_text(encoding='utf-8')
               assert 'deck_ui_entry_20261005.js' in text, path
+              assert '20261005_ui_entry2' in text, path
               for name in css_names:
                   assert not re.search(rf'href=["\']\./{re.escape(name)}(?:\?|["\'])', text), (path, name)
               for name in js_names:
@@ -101,5 +102,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add public/index.html public/deck.html
-          git commit -m 'Deck UIの読み込み入口を統一'
+          git commit -m 'Deck UI入口を全カードかな検索対応へ更新'
           git push origin HEAD:import/local-latest-20261003

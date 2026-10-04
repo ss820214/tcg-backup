@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_cleanup2";
+  const VERSION = "20261004_cleanup3";
   const STORAGE_KEY = "tcgDeviceModeOverrideV2";
   const MODES = ["auto", "pc", "mobile"];
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -248,7 +248,7 @@
 
   const REFINE = "20261003_refine2";
   const DENSITY = "20261003_density2";
-  const GUARD = "20261004_cleanup2";
+  const GUARD = "20261004_cleanup3";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;
@@ -310,29 +310,52 @@
   }
 })();
 
-// Shared cleanup layer: final text/layout repair for every mode.
+// Shared cleanup layers: final layout/text cleanup plus legacy mojibake repair.
 (() => {
   const CLEANUP = "20261004_cleanup2";
+  const MOJIFIX = "20261004_mojifix1";
 
-  const load = () => {
+  const loadMojifix = () => {
     if (!document.body) {
-      requestAnimationFrame(load);
+      requestAnimationFrame(loadMojifix);
       return;
     }
-    if (document.querySelector(`script[data-global-cleanup="${CLEANUP}"]`)) return;
+    if (document.querySelector(`script[data-global-mojifix="${MOJIFIX}"]`)) return;
+    const script = document.createElement("script");
+    script.src = `./global_mojibake_repair_20261004.js?v=${MOJIFIX}`;
+    script.async = false;
+    script.dataset.globalMojifix = MOJIFIX;
+    script.addEventListener("error", () => {
+      console.error("[global_ui] mojibake repair layer failed to load");
+    }, { once: true });
+    document.body.appendChild(script);
+  };
+
+  const loadCleanup = () => {
+    if (!document.body) {
+      requestAnimationFrame(loadCleanup);
+      return;
+    }
+    const existing = document.querySelector(`script[data-global-cleanup="${CLEANUP}"]`);
+    if (existing) {
+      loadMojifix();
+      return;
+    }
     const script = document.createElement("script");
     script.src = `./global_cleanup_20261004.js?v=${CLEANUP}`;
     script.async = false;
     script.dataset.globalCleanup = CLEANUP;
+    script.addEventListener("load", loadMojifix, { once: true });
     script.addEventListener("error", () => {
       console.error("[global_ui] cleanup layer failed to load");
+      loadMojifix();
     }, { once: true });
     document.body.appendChild(script);
   };
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", load, { once: true });
+    document.addEventListener("DOMContentLoaded", loadCleanup, { once: true });
   } else {
-    load();
+    loadCleanup();
   }
 })();

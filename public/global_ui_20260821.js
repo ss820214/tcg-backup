@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_cleanup1";
+  const VERSION = "20261004_cleanup2";
   const STORAGE_KEY = "tcgDeviceModeOverrideV2";
   const MODES = ["auto", "pc", "mobile"];
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -248,7 +248,7 @@
 
   const REFINE = "20261003_refine2";
   const DENSITY = "20261003_density2";
-  const GUARD = "20261004_cleanup1";
+  const GUARD = "20261004_cleanup2";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;
@@ -312,7 +312,7 @@
 
 // Shared cleanup layer: final text/layout repair for every mode.
 (() => {
-  const CLEANUP = "20261004_cleanup1";
+  const CLEANUP = "20261004_cleanup2";
 
   const load = () => {
     if (!document.body) {

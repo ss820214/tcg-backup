@@ -1,0 +1,64 @@
+name: Generate all card readings 20261005
+
+on:
+  push:
+    branches:
+      - import/local-latest-20261003
+    paths:
+      - '.github/workflows/generate-card-readings-20261005.yml'
+      - 'tools/generate_card_readings.cjs'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TCG_0BATO }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: import/local-latest-20261003
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install temporary reading generator dependencies
+        run: |
+          mkdir -p /tmp/card-reading-gen
+          cd /tmp/card-reading-gen
+          npm init -y >/dev/null 2>&1
+          npm install --no-audit --no-fund firebase-admin@12 kuroshiro@1 kuroshiro-analyzer-kuromoji@1
+
+      - name: Generate readings from production Firestore
+        env:
+          NODE_PATH: /tmp/card-reading-gen/node_modules
+        run: node tools/generate_card_readings.cjs
+
+      - name: Validate generated dictionary
+        run: |
+          node --check public/card_readings_20261005.js
+          test -s tools/card_readings_report_20261005.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('tools/card_readings_report_20261005.json', 'utf8'));
+          console.log(report);
+          if (!Number.isFinite(report.total) || report.total < 1) process.exit(1);
+          NODE
+
+      - name: Commit reading dictionary
+        run: |
+          if git diff --quiet -- public/card_readings_20261005.js tools/card_readings_report_20261005.json; then
+            echo 'No reading changes.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/card_readings_20261005.js tools/card_readings_report_20261005.json
+          git commit -m '全カードの読み検索辞書を生成'
+          git push origin HEAD:import/local-latest-20261003

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_visual4";
+  const VERSION = "20261004_cleanup1";
   const STORAGE_KEY = "tcgDeviceModeOverrideV2";
   const MODES = ["auto", "pc", "mobile"];
   const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
@@ -248,7 +248,7 @@
 
   const REFINE = "20261003_refine2";
   const DENSITY = "20261003_density2";
-  const GUARD = "20261004_visual4";
+  const GUARD = "20261004_cleanup1";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;
@@ -307,5 +307,32 @@
     document.addEventListener("DOMContentLoaded", start, { once: true });
   } else {
     start();
+  }
+})();
+
+// Shared cleanup layer: final text/layout repair for every mode.
+(() => {
+  const CLEANUP = "20261004_cleanup1";
+
+  const load = () => {
+    if (!document.body) {
+      requestAnimationFrame(load);
+      return;
+    }
+    if (document.querySelector(`script[data-global-cleanup="${CLEANUP}"]`)) return;
+    const script = document.createElement("script");
+    script.src = `./global_cleanup_20261004.js?v=${CLEANUP}`;
+    script.async = false;
+    script.dataset.globalCleanup = CLEANUP;
+    script.addEventListener("error", () => {
+      console.error("[global_ui] cleanup layer failed to load");
+    }, { once: true });
+    document.body.appendChild(script);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", load, { once: true });
+  } else {
+    load();
   }
 })();

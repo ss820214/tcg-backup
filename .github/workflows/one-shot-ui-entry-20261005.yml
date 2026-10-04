@@ -58,7 +58,6 @@ jobs:
                   pattern = rf'\s*<script\b[^>]*src=["\']\./{re.escape(name)}(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*'
                   text = re.sub(pattern, '\n', text, flags=re.I)
 
-              # Remove an old copy if this workflow is re-run, then insert once.
               text = re.sub(
                   r'\s*<script\b[^>]*src=["\']\./deck_ui_entry_20261005\.js(?:\?[^"\']*)?["\'][^>]*>\s*</script>\s*',
                   '\n',
@@ -79,10 +78,9 @@ jobs:
 
               path.write_text(text, encoding='utf-8')
 
-          # Safety assertions: old UI assets must no longer be direct HTML dependencies.
           for path in files:
               text = path.read_text(encoding='utf-8')
-              assert 'deck_ui_entry_20261005.js' in text, path
+              assert text.count('deck_ui_entry_20261005.js') == 1, path
               assert '20261005_ui_entry2' in text, path
               for name in css_names:
                   assert not re.search(rf'href=["\']\./{re.escape(name)}(?:\?|["\'])', text), (path, name)
@@ -90,17 +88,74 @@ jobs:
                   assert not re.search(rf'src=["\']\./{re.escape(name)}(?:\?|["\'])', text), (path, name)
           PY
 
-      - name: Syntax check canonical entry
-        run: node --check public/deck_ui_entry_20261005.js
+      - name: Wire shared mode theme into global UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('public/global_ui_20260821.js')
+          text = path.read_text(encoding='utf-8-sig')
+          marker = '20261005_unified_theme1'
+          if marker not in text:
+              text = text.rstrip() + r'''
+
+// Shared visual theme for the non-battle game modes.
+(() => {
+  const THEME = "20261005_unified_theme1";
+  const page = (location.pathname.split("/").pop() || "index.html")
+    .toLowerCase()
+    .replace(/\.html$/i, "");
+  const themedPages = new Set(["profile", "gacha", "arcade", "creator"]);
+  if (!themedPages.has(page)) return;
+
+  const load = () => {
+    if (!document.head) {
+      requestAnimationFrame(load);
+      return;
+    }
+    if (document.querySelector(`link[data-unified-mode-theme="${THEME}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `./unified_mode_theme_20261005.css?v=${THEME}`;
+    link.dataset.unifiedModeTheme = THEME;
+    link.addEventListener("load", () => {
+      document.documentElement.dataset.unifiedModeTheme = THEME;
+      window.dispatchEvent(new CustomEvent("tcg:unified-mode-theme-ready", {
+        detail: { version: THEME, page },
+      }));
+    }, { once: true });
+    link.addEventListener("error", () => {
+      console.error("[global_ui] unified mode theme failed to load");
+    }, { once: true });
+    document.head.appendChild(link);
+  };
+
+  load();
+})();
+''' + '\n'
+              path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Syntax and wiring checks
+        run: |
+          node --check public/deck_ui_entry_20261005.js
+          node --check public/global_ui_20260821.js
+          test -s public/unified_mode_theme_20261005.css
+          grep -q '20261005_unified_theme1' public/global_ui_20260821.js
+          grep -q 'unified_mode_theme_20261005.css' public/global_ui_20260821.js
+          grep -q 'ui-page-profile' public/unified_mode_theme_20261005.css
+          grep -q 'ui-page-gacha' public/unified_mode_theme_20261005.css
+          grep -q 'ui-page-arcade' public/unified_mode_theme_20261005.css
+          grep -q 'ui-page-creator' public/unified_mode_theme_20261005.css
 
       - name: Commit consolidation
         run: |
-          if git diff --quiet -- public/index.html public/deck.html; then
+          if [ -z "$(git status --porcelain -- public/index.html public/deck.html public/global_ui_20260821.js)" ]; then
             echo 'No changes required.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/index.html public/deck.html
-          git commit -m 'Deck UI入口を全カードかな検索対応へ更新'
+          git add public/index.html public/deck.html public/global_ui_20260821.js
+          git commit -m 'UI入口と各モード共通テーマを統合'
           git push origin HEAD:import/local-latest-20261003

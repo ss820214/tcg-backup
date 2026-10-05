@@ -16,14 +16,14 @@
   };
 
   const stable = append(
-    "./deck_mobile_refine_20261005.js?v=20261005_hotfix2",
+    "./deck_mobile_refine_20261005.js?v=20261005_hotfix3",
     "data-deck-mobile-stable",
   );
 
   if (stable) {
     stable.addEventListener("load", () => {
       append(
-        "./deck_mobile_refine_20261005_patch1.js?v=20261005_patch2",
+        "./deck_mobile_refine_20261005_patch1.js?v=20261005_patch3",
         "data-deck-mobile-stable-patch",
       );
     });
@@ -32,14 +32,18 @@
     });
   }
 
-  // Independent final hotfixes. They do not wait for the stable layer so the
-  // UI remains usable even when an older cached stable file is present.
+  // Independent final hotfixes. They intentionally do not wait for the stable
+  // layer so index.html and deck.html stay usable even with older cached CSS.
   append(
-    "./deck_mobile_hotfix_20261005_tabs2.js?v=20261005_tabs2_2053",
+    "./deck_mobile_hotfix_20261005_tabs2.js?v=20261005_tabs2_2119",
     "data-deck-mobile-tabs2",
   );
   append(
-    "./deck_mobile_hotfix_20261005_labels3.js?v=20261005_labels3_2053",
+    "./deck_mobile_hotfix_20261005_labels3.js?v=20261005_labels3_2119",
     "data-deck-mobile-labels3",
+  );
+  append(
+    "./deck_mobile_hotfix_20261005_stats4.js?v=20261005_stats4_2119",
+    "data-deck-mobile-stats4",
   );
 })();

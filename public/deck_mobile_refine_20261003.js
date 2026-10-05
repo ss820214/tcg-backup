@@ -46,4 +46,8 @@
     "./deck_mobile_hotfix_20261005_stats4.js?v=20261005_stats4_2119",
     "data-deck-mobile-stats4",
   );
+  append(
+    "./deck_mobile_hotfix_20261006_cardlayout5.js?v=20261006_cardlayout5_0131",
+    "data-deck-mobile-cardlayout5",
+  );
 })();

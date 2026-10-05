@@ -112,13 +112,19 @@
     if (!def) return;
     const box = row.querySelector(".mobileSkillLines");
     if (!box) return;
-    box.textContent = skillText(def);
+    const next = skillText(def);
     box.dataset.skillSource = "carddef";
+    if (box.textContent !== next) box.textContent = next;
   }
 
   async function applyAll() {
     const defs = await loadDefs();
     document.querySelectorAll("#cardList .cardRow,#deckList .cardRow").forEach((row) => applyRow(row, defs));
+  }
+
+  function relevantAddedNode(node) {
+    if (!(node instanceof Element)) return false;
+    return node.matches?.(".cardRow,.mobileSkillLines") || !!node.querySelector?.(".cardRow,.mobileSkillLines");
   }
 
   function boot() {
@@ -127,7 +133,8 @@
     else setTimeout(start, 0);
 
     const observer = new MutationObserver((records) => {
-      if (!records.some((r) => r.type === "childList" && r.addedNodes.length)) return;
+      const needed = records.some((record) => [...record.addedNodes].some(relevantAddedNode));
+      if (!needed) return;
       requestAnimationFrame(() => applyAll());
     });
     [document.getElementById("cardList"), document.getElementById("deckList")]

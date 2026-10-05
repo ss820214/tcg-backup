@@ -32,26 +32,18 @@
     });
   }
 
-  // Independent final hotfixes. They intentionally do not wait for the stable
-  // layer so index.html and deck.html stay usable even with older cached CSS.
+  // Search/filter controls are kept. Old labels3/stats4 are intentionally not
+  // loaded anymore because they duplicated HP/SP and support effect text.
   append(
     "./deck_mobile_hotfix_20261005_tabs2.js?v=20261005_tabs2_2119",
     "data-deck-mobile-tabs2",
   );
   append(
-    "./deck_mobile_hotfix_20261005_labels3.js?v=20261005_labels3_2119",
-    "data-deck-mobile-labels3",
-  );
-  append(
-    "./deck_mobile_hotfix_20261005_stats4.js?v=20261005_stats4_2119",
-    "data-deck-mobile-stats4",
-  );
-  append(
-    "./deck_mobile_hotfix_20261006_cardlayout5.js?v=20261006_cardlayout5_0200",
+    "./deck_mobile_hotfix_20261006_cardlayout5.js?v=20261006_cardlayout7_0208",
     "data-deck-mobile-cardlayout5",
   );
   append(
-    "./deck_mobile_hotfix_20261006_skills6.js?v=20261006_skills6_0200",
+    "./deck_mobile_hotfix_20261006_skills6.js?v=20261006_skills7_0208",
     "data-deck-mobile-skills6",
   );
 })();

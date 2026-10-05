@@ -1,5 +1,5 @@
 // public/player_journey.js
-// v20261006_home_beginner_gate1
+// v20261006_home_beginner_gate2
 // Keep the full journey system in the archived core, but only expose the game
 // explanation from Home. Gacha/Profile/Creator/Arcade stay unobstructed.
 (() => {
@@ -14,11 +14,16 @@
 
   const isHome = page === "index.html" || page === "";
   if (isHome) {
-    try { localStorage.setItem("tcgJourneyOpen", "0"); } catch {}
+    try {
+      localStorage.setItem("tcgJourneyOpen", "0");
+      // Mark the legacy auto-open as seen before loading its core. The guide is
+      // now opened only from the beginner mark in the Home header.
+      localStorage.setItem("tcgJourneySeen", "20260801_journey1");
+    } catch {}
   }
 
   const core = document.createElement("script");
-  core.src = "./player_journey_core_20261006.js?v=20261006_home_beginner_gate1";
+  core.src = "./player_journey_core_20261006.js?v=20261006_home_beginner_gate2";
   core.defer = true;
   core.dataset.playerJourneyCore = "1";
 
@@ -78,7 +83,6 @@
       try { localStorage.setItem("tcgJourneyOpen", "0"); } catch {}
     });
 
-    // The explanation must never auto-open on Home; the beginner mark is the gate.
     panel?.classList.remove("open");
     try { localStorage.setItem("tcgJourneyOpen", "0"); } catch {}
   };

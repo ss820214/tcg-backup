@@ -24,6 +24,7 @@ const LS_LAST_ID = "tcg_cloud_deck_last_id_v20260204";
 const LS_LAST_VIS = "tcg_cloud_deck_last_vis_v20260204";
 const LS_LAST_THEME = "tcg_cloud_deck_theme_v20260822";
 const LS_DEVICEKEY = "tcg_cloud_device_key_v20260204";
+const COMMUNITY_IMPORT_KEY = "tcg_community_deck_import_v20261005";
 const DECK_LIST_PAGE_SIZE = 10;
 
 function $(id) {
@@ -1354,6 +1355,36 @@ async function uploadDeck({ overwrite }) {
 
   btnNew?.addEventListener("click", () => uploadDeck({ overwrite: false }));
   btnOw?.addEventListener("click", () => uploadDeck({ overwrite: true }));
+
+  // Main "デッキ保存" should clone an imported community deck into a new personal slot.
+  // Normal personal-deck edits keep their existing behavior and are not duplicated.
+  let communityImportSaveBusy = false;
+  const mainDeckSaveBtn = $("btnSave");
+  mainDeckSaveBtn?.addEventListener("click", () => {
+    let marker = null;
+    try {
+      const raw = sessionStorage.getItem(COMMUNITY_IMPORT_KEY) || "";
+      marker = raw ? JSON.parse(raw) : null;
+    } catch {}
+    if (!marker?.sourceId || communityImportSaveBusy) return;
+
+    communityImportSaveBusy = true;
+    // Force new-save semantics even if an old/stale cloud id survived elsewhere.
+    setLS(LS_LAST_ID, "");
+
+    setTimeout(async () => {
+      try {
+        await uploadDeck({ overwrite: false });
+        const newId = getLS(LS_LAST_ID);
+        if (newId && newId !== String(marker.sourceId)) {
+          try { sessionStorage.removeItem(COMMUNITY_IMPORT_KEY); } catch {}
+          updateOverwriteState();
+        }
+      } finally {
+        communityImportSaveBusy = false;
+      }
+    }, 0);
+  });
 
   // 初期表示
   setTab("my");

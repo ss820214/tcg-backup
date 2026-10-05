@@ -24,6 +24,8 @@ const FIELD_KEY = "tcg_desired_field_v20260702";
 const LAST_ID_KEY = "tcg_cloud_deck_last_id_v20260204";
 const DEVICE_KEY = "tcg_cloud_device_key_v20260204";
 const PENDING_CLOUD_DECK_KEY = "tcg_pending_cloud_deck_v20260822";
+const COMMUNITY_IMPORT_KEY = "tcg_community_deck_import_v20261005";
+const DECKLIB_LAST_OPENED_KEY = "tcg_decklib_last_opened_id_v1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -322,8 +324,24 @@ function renderDeckCard(item, slotNo) {
       setLS(LOCAL_KEY, JSON.stringify(payload.deck));
       setLS(DECK_TITLE_KEY, payload.title);
       setLS(EX_KEY, payload.exSupport);
-      if (payload.desiredField) setLS(FIELD_KEY, payload.desiredField);
-      setLS(LAST_ID_KEY, id);
+      // Always copy the field value too. An empty source value must clear the previous deck's field.
+      setLS(FIELD_KEY, payload.desiredField);
+
+      if (mode === "public") {
+        // A community deck is a clone source, never the user's current cloud-save target.
+        try { localStorage.removeItem(LAST_ID_KEY); } catch {}
+        try { localStorage.removeItem(DECKLIB_LAST_OPENED_KEY); } catch {}
+        try {
+          sessionStorage.setItem(
+            COMMUNITY_IMPORT_KEY,
+            JSON.stringify({ sourceId: id, title: payload.title, importedAt: Date.now() }),
+          );
+        } catch {}
+      } else {
+        // Loading one's own deck keeps update semantics.
+        setLS(LAST_ID_KEY, id);
+        try { sessionStorage.removeItem(COMMUNITY_IMPORT_KEY); } catch {}
+      }
       setLS(PENDING_CLOUD_DECK_KEY, JSON.stringify(payload));
       location.href = currentParamsUrl("./index.html?skipIntro=1");
     } catch (e) {

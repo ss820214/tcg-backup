@@ -8,13 +8,20 @@
   if (window.__deckMobileStable20261005Loading) return;
   window.__deckMobileStable20261005Loading = true;
 
-  const script = document.createElement("script");
-  script.src = "./deck_mobile_refine_20261005.js?v=20261005_hotfix1";
-  script.defer = true;
-  script.dataset.deckMobileStable = "1";
-  script.addEventListener("error", () => {
+  const stable = document.createElement("script");
+  stable.src = "./deck_mobile_refine_20261005.js?v=20261005_hotfix1";
+  stable.defer = true;
+  stable.dataset.deckMobileStable = "1";
+  stable.addEventListener("load", () => {
+    const patch = document.createElement("script");
+    patch.src = "./deck_mobile_refine_20261005_patch1.js?v=20261005_patch1";
+    patch.defer = true;
+    patch.dataset.deckMobileStablePatch = "1";
+    document.body.appendChild(patch);
+  });
+  stable.addEventListener("error", () => {
     window.__deckMobileStable20261005Loading = false;
     console.error("[deck_mobile_refine] failed to load stable mobile layer");
   });
-  document.body.appendChild(script);
+  document.body.appendChild(stable);
 })();

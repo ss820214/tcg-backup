@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const STYLE_ID = "deckMobileCardLayout5Style";
+  const STYLE_ID = "deckMobileCardLayout7Style";
 
   function injectStyle() {
     if (document.getElementById(STYLE_ID)) return;
@@ -8,15 +8,25 @@
     style.id = STYLE_ID;
     style.textContent = `
 @media (max-width:900px), (pointer:coarse) and (max-width:1180px) {
+  /* カードを「丸い箱の集合」にせず、フラットな3行表示に固定する。 */
   #cardList .cardRow,
   #deckList .cardRow {
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) 126px!important;
+    grid-template-columns:minmax(0,1fr) 108px!important;
     align-items:start!important;
     gap:8px!important;
-    min-height:112px!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:92px!important;
     height:auto!important;
-    padding:10px!important;
+    margin:0!important;
+    padding:9px 8px 9px 10px!important;
+    border:0!important;
+    border-left:3px solid var(--row-attr,#7dd3fc)!important;
+    border-bottom:1px solid rgba(255,255,255,.13)!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:rgba(7,12,16,.54)!important;
     overflow:hidden!important;
   }
 
@@ -29,98 +39,117 @@
     text-align:left!important;
   }
 
+  /* 1行目: 【マナ】名前 ×枚数 HP/SP */
   #cardList .cardRow .name,
   #deckList .cardRow .name,
+  #cardList .cardRow .cardName,
+  #deckList .cardRow .cardName,
   #cardList .cardRow .cardHead > div:first-child > b,
   #deckList .cardRow .cardHead > div:first-child > b {
     display:flex!important;
-    align-items:center!important;
+    align-items:baseline!important;
     justify-content:flex-start!important;
     flex-wrap:wrap!important;
-    gap:5px!important;
+    column-gap:7px!important;
+    row-gap:2px!important;
     width:100%!important;
     min-width:0!important;
     margin:0!important;
     padding:0!important;
     text-align:left!important;
-    font-size:13px!important;
+    font-size:13.5px!important;
+    font-weight:900!important;
     line-height:1.35!important;
     white-space:normal!important;
     overflow:visible!important;
+    text-overflow:clip!important;
   }
 
-  /* 一覧では属性・入手ジャンルより、枚数とHP/SPを優先する。 */
-  #cardList .attrBadge,
-  #deckList .attrBadge,
-  #cardList .seriesBadge,
-  #deckList .seriesBadge,
-  #cardList .deckRoleTags,
-  #deckList .deckRoleTags {
+  /* 属性・シリーズ・種別・ロールは一覧では出さない。 */
+  #cardList .attrBadge,#deckList .attrBadge,
+  #cardList .seriesBadge,#deckList .seriesBadge,
+  #cardList .deckRoleTags,#deckList .deckRoleTags,
+  #cardList .kindBadge,#deckList .kindBadge,
+  #cardList .typeBadge,#deckList .typeBadge {
     display:none!important;
   }
 
-  #cardList .ownedBadge,
-  #deckList .ownedBadge,
-  #cardList .mobileInlineStats,
-  #deckList .mobileInlineStats {
-    display:inline-flex!important;
-    align-items:center!important;
+  /* 枚数 / HP / SP はチップにしない。文字だけ。 */
+  #cardList .ownedBadge,#deckList .ownedBadge,
+  #cardList .mobileInlineStats,#deckList .mobileInlineStats {
+    display:inline!important;
     flex:0 0 auto!important;
-    min-height:24px!important;
-    padding:2px 7px!important;
-    border-radius:999px!important;
-    border:1px solid rgba(255,255,255,.16)!important;
-    background:rgba(255,255,255,.055)!important;
-    color:rgba(255,255,255,.9)!important;
-    font-size:10.5px!important;
-    font-weight:850!important;
-    line-height:1!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:none!important;
+    box-shadow:none!important;
+    color:rgba(255,255,255,.78)!important;
+    font-size:11.5px!important;
+    font-weight:750!important;
+    line-height:1.35!important;
     white-space:nowrap!important;
     writing-mode:horizontal-tb!important;
   }
-  #cardList .mobileInlineStats,
-  #deckList .mobileInlineStats {
-    border-color:rgba(112,198,255,.30)!important;
-    background:rgba(65,150,210,.11)!important;
-  }
+  #cardList .ownedBadge,#deckList .ownedBadge { color:rgba(255,255,255,.70)!important; }
+  #cardList .mobileInlineStats,#deckList .mobileInlineStats { color:rgba(190,226,255,.88)!important; }
 
-  /* 2〜3行目は技・効果。 */
-  #cardList .mobileSkillLines,
-  #deckList .mobileSkillLines {
-    display:-webkit-box!important;
-    -webkit-box-orient:vertical!important;
-    -webkit-line-clamp:2!important;
-    overflow:hidden!important;
-    width:100%!important;
-    min-width:0!important;
-    margin:7px 0 0!important;
-    padding:0!important;
-    color:rgba(255,255,255,.72)!important;
-    font-size:10.5px!important;
-    line-height:1.48!important;
-    text-align:left!important;
-    white-space:normal!important;
-  }
-  #cardList .cardRow .sub:not(.mobileSkillLines),
-  #deckList .cardRow .sub:not(.mobileSkillLines),
-  #cardList .cardRow .small:not(.mobileSkillLines),
-  #deckList .cardRow .small:not(.mobileSkillLines) {
+  /* 元の HP/SP・種別・行動要約は完全に隠す。重複表示を許さない。 */
+  #cardList .cardRow .sub,
+  #deckList .cardRow .sub,
+  #cardList .cardRow .small,
+  #deckList .cardRow .small,
+  #cardList .cardRow .cardMeta,
+  #deckList .cardRow .cardMeta {
     display:none!important;
   }
 
-  /* 右側の操作列を固定。詳細は1回だけ横書きで描画する。 */
+  /* 2〜3行目: 行動1 / 行動2、サポートだけ効果。 */
+  #cardList .mobileSkillLines,
+  #deckList .mobileSkillLines {
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:5px 0 0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:none!important;
+    color:rgba(255,255,255,.72)!important;
+    font-size:11px!important;
+    line-height:1.48!important;
+    text-align:left!important;
+    white-space:normal!important;
+    overflow:visible!important;
+  }
+  #cardList .mobileSkillLine,
+  #deckList .mobileSkillLine {
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    background:none!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  /* 操作部もピルを廃止。 */
   #cardList .cardRow .btns,
   #deckList .cardRow .btns,
   #cardList .cardRow .cardCtrl,
   #deckList .cardRow .cardCtrl {
     align-self:start!important;
-    width:126px!important;
-    min-width:126px!important;
-    max-width:126px!important;
+    width:108px!important;
+    min-width:108px!important;
+    max-width:108px!important;
     display:grid!important;
-    grid-template-columns:36px 46px 36px!important;
+    grid-template-columns:30px 40px 30px!important;
     grid-template-areas:"minus count plus" "detail detail detail" "ex ex ex" "admin admin admin"!important;
-    gap:5px 4px!important;
+    gap:4px!important;
     align-content:start!important;
     justify-content:end!important;
     margin:0!important;
@@ -135,48 +164,58 @@
   #cardList .cardRow [data-expick],#deckList .cardRow [data-expick]{grid-area:ex!important;}
 
   #cardList .cardRow [data-minus],#deckList .cardRow [data-minus],
-  #cardList .cardRow [data-plus],#deckList .cardRow [data-plus],
+  #cardList .cardRow [data-plus],#deckList .cardRow [data-plus] {
+    width:100%!important;
+    min-width:0!important;
+    height:30px!important;
+    min-height:30px!important;
+    padding:0!important;
+    border-radius:2px!important;
+    background:rgba(255,255,255,.035)!important;
+    box-shadow:none!important;
+    font-size:12px!important;
+    line-height:1!important;
+  }
   #cardList .cardRow .count,#deckList .cardRow .count,
   #cardList .cardRow .cnt,#deckList .cardRow .cnt {
     width:100%!important;
     min-width:0!important;
-    max-width:none!important;
-    height:36px!important;
-    min-height:36px!important;
+    height:30px!important;
+    min-height:30px!important;
     padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:none!important;
+    box-shadow:none!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
+    font-size:11px!important;
     white-space:nowrap!important;
-    writing-mode:horizontal-tb!important;
-    line-height:1!important;
-    pointer-events:auto!important;
-    touch-action:manipulation!important;
   }
   #cardList .cardRow [data-detail],
   #deckList .cardRow [data-detail] {
     width:100%!important;
     min-width:0!important;
-    max-width:none!important;
-    height:38px!important;
-    min-height:38px!important;
-    padding:0 8px!important;
+    height:31px!important;
+    min-height:31px!important;
+    margin:0!important;
+    padding:0 4px!important;
+    border-radius:2px!important;
+    background:rgba(255,255,255,.035)!important;
+    box-shadow:none!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
-    font-size:12px!important;
-    font-weight:900!important;
+    font-size:11.5px!important;
+    font-weight:850!important;
     letter-spacing:0!important;
     line-height:1!important;
     white-space:nowrap!important;
     word-break:keep-all!important;
     writing-mode:horizontal-tb!important;
-    text-indent:0!important;
-    text-shadow:none!important;
     overflow:hidden!important;
     text-overflow:clip!important;
-    pointer-events:auto!important;
-    touch-action:manipulation!important;
   }
 }
 `;
@@ -187,85 +226,72 @@
     if (el && el.textContent !== text) el.textContent = text;
   }
 
+  function titleOf(row) {
+    return row.querySelector(":scope > .name, .cardHead > div:first-child > b, :scope > div:first-child > .name");
+  }
+
   function tidyOwnedBadge(row) {
     const badge = row.querySelector(".ownedBadge");
     if (!badge) return;
     const text = String(badge.textContent || "").trim();
-    const m = text.match(/(?:所持|枚数)\s*(\d+)/);
+    const m = text.match(/(?:所持|枚数)?\s*[×x]?\s*(\d+)/i);
     if (m) setText(badge, `×${m[1]}`);
   }
 
-  function removeDuplicateAttrText(row, title) {
-    const badge = row.querySelector(".attrBadge");
-    const attr = String(badge?.textContent || "").trim();
-    if (!attr || !title) return;
-    const node = [...title.childNodes].find((n) => n.nodeType === Node.TEXT_NODE);
-    if (!node) return;
-    const escaped = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const next = String(node.textContent || "").replace(new RegExp(`\\s+${escaped}\\s*$`), "");
-    if (node.textContent !== next) node.textContent = next;
+  function cleanTitleText(title) {
+    if (!title) return;
+    const attr = String(title.querySelector(".attrBadge")?.textContent || "").trim();
+    [...title.childNodes].forEach((node) => {
+      if (node.nodeType !== Node.TEXT_NODE) return;
+      let t = String(node.textContent || "");
+      if (attr) {
+        const safe = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        t = t.replace(new RegExp(`\\s+${safe}\\s*$`), "");
+      }
+      t = t.replace(/\s+(?:UNIT|Unit|unit|ユニット|キャラ|サポート|サポ)\s*$/g, "");
+      if (node.textContent !== t) node.textContent = t;
+    });
   }
 
-  function extractStats(text) {
-    const s = String(text || "").replace(/\s+/g, " ").trim();
-    const hp = s.match(/HP\s*[:：]\s*([^\s/]+)/i)?.[1];
-    const sp = s.match(/SP\s*[:：]\s*([^\s/]+)/i)?.[1];
-    if (!hp && !sp) return "";
-    return [hp ? `HP:${hp}` : "", sp ? `SP:${sp}` : ""].filter(Boolean).join(" ");
+  function ensureSkillBox(row, title) {
+    let box = row.querySelector(".mobileSkillLines");
+    if (box) return box;
+    box = document.createElement("div");
+    box.className = "mobileSkillLines";
+    const host = title?.parentElement || row.firstElementChild || row;
+    host.appendChild(box);
+    return box;
   }
 
-  function extractSkill(text) {
-    let s = String(text || "").replace(/\s+/g, " ").trim();
-    if (!s) return "";
-    const actionAt = s.search(/(?:行動|効果)\s*[:：]/);
-    if (actionAt >= 0) s = s.slice(actionAt);
-    s = s
-      .replace(/^種別\s*[:：][^/]+\/?\s*/i, "")
-      .replace(/HP\s*[:：]\s*[^\s/]+\s*/ig, "")
-      .replace(/SP\s*[:：]\s*[^\s/]+\s*/ig, "")
-      .replace(/マナ\s*[:：]\s*[^\s/]+\s*/ig, "")
-      .replace(/^\s*\/\s*/, "")
-      .trim();
-    if (/^(?:サポート\s*\/\s*)?$/.test(s)) return "";
-    return s;
+  function fallbackStats(row) {
+    const texts = [...row.querySelectorAll(".sub,.small,.cardMeta")]
+      .map((el) => String(el.textContent || "").replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+    for (const s of texts) {
+      const hp = s.match(/HP\s*[:：]\s*([^\s/]+)/i)?.[1];
+      const sp = s.match(/SP\s*[:：]\s*([^\s/]+)/i)?.[1];
+      if (hp || sp) return [hp ? `HP:${hp}` : "", sp ? `SP:${sp}` : ""].filter(Boolean).join(" ");
+    }
+    return "";
   }
 
   function polishRow(row) {
     if (!(row instanceof HTMLElement)) return;
-    const title = row.querySelector(":scope > .name, .cardHead > div:first-child > b, :scope > div:first-child > .name");
+    const title = titleOf(row);
     if (!title) return;
-
     tidyOwnedBadge(row);
-    removeDuplicateAttrText(row, title);
+    cleanTitleText(title);
 
-    const textLines = [...row.querySelectorAll(".sub,.small")]
-      .map((el) => String(el.textContent || "").trim())
-      .filter(Boolean);
-    const stats = textLines.map(extractStats).find(Boolean) || "";
     let stat = title.querySelector(".mobileInlineStats");
-    if (stats) {
-      if (!stat) {
-        stat = document.createElement("span");
-        stat.className = "mobileInlineStats";
-        title.appendChild(stat);
-      }
-      setText(stat, stats);
-    } else if (stat) {
-      stat.remove();
+    const stats = fallbackStats(row);
+    if (stats && !stat) {
+      stat = document.createElement("span");
+      stat.className = "mobileInlineStats";
+      stat.textContent = stats;
+      title.appendChild(stat);
     }
 
-    const skills = [...new Set(textLines.map(extractSkill).filter(Boolean))];
-    let skillBox = row.querySelector(".mobileSkillLines");
-    if (!skillBox) {
-      skillBox = document.createElement("div");
-      skillBox.className = "mobileSkillLines";
-      const host = title.parentElement || row.firstElementChild || row;
-      host.appendChild(skillBox);
-    }
-    if (skillBox.dataset.skillSource !== "carddef") {
-      setText(skillBox, skills.length ? skills.slice(0, 2).join(" / ") : "技・効果は詳細へ");
-    }
-
+    ensureSkillBox(row, title);
     const detail = row.querySelector("[data-detail]");
     if (detail) {
       setText(detail, "詳細");

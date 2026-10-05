@@ -1,5 +1,5 @@
 // public/deck_library.js
-// v20261006_partial_save1
+// v20261006_partial_save2
 // Compatibility layer over the 20260822 deck library.
 
 import { initDeckLibrary as initDeckLibraryCore } from "./deck_library_core_20261005.js?v=20260822_deck_meta1";
@@ -20,13 +20,20 @@ const LS_LAST_VIS = "tcg_cloud_deck_last_vis_v20260204";
 const LS_LAST_THEME = "tcg_cloud_deck_theme_v20260822";
 const LS_DEVICEKEY = "tcg_cloud_device_key_v20260204";
 const LS_COPY_SOURCE_ID = "tcg_cloud_deck_copy_source_id_v20261005";
+const PARTIAL_SLOT_KEY = "__tcg_partial_slots__";
 const FIX_STATE_KEY = "__tcgDeckCopySaveFix20261005";
 
 function getLS(key) { try { return localStorage.getItem(key) || ""; } catch { return ""; } }
 function setLS(key, value) { try { localStorage.setItem(key, String(value ?? "")); } catch {} }
 function removeLS(key) { try { localStorage.removeItem(key); } catch {} }
-function sumDeck(deck) { return Object.values(deck || {}).reduce((n, v) => n + (Number(v) || 0), 0); }
+function sumDeck(deck) { return Object.entries(deck || {}).reduce((n, [k, v]) => k === PARTIAL_SLOT_KEY ? n : n + (Number(v) || 0), 0); }
 function safeClone(v) { try { return JSON.parse(JSON.stringify(v ?? {})); } catch { return {}; } }
+function cloudDeckForSave(deck, size) {
+  const out = safeClone(deck);
+  delete out[PARTIAL_SLOT_KEY];
+  if (size > 0 && size < 30) out[PARTIAL_SLOT_KEY] = 30 - size;
+  return out;
+}
 
 function deviceKey() {
   let key = getLS(LS_DEVICEKEY);
@@ -130,7 +137,7 @@ async function ownDeckCount(db) {
 function updatePartialHint() {
   document.querySelectorAll("#deckLibBox .deckLibSub").forEach((el) => {
     if (el.textContent.includes("30枚ちょうど")) {
-      el.textContent = el.textContent.replace("「30枚ちょうど」のデッキのみ対応", "30枚以下のデッキを保存可能");
+      el.textContent = el.textContent.replace("「30枚ちょうど」のデッキのみ対応", "1〜30枚のデッキを保存可能");
     }
   });
 }
@@ -146,7 +153,7 @@ function installPartialSaveBridge(opts = {}) {
     const snap = opts.getSnapshot?.() || {};
     const deck = snap.deck || {};
     const size = sumDeck(deck);
-    if (size >= 30) return; // 30枚は従来処理へ
+    if (size >= 30) return;
 
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -155,6 +162,7 @@ function installPartialSaveBridge(opts = {}) {
     void (async () => {
       const db = opts.db;
       if (!db) return setNg("保存先の初期化に失敗しました");
+      if (size <= 0) return setNg("1枚以上カードを入れてから保存してください");
 
       const input = document.getElementById(opts.deckTitleInputId || "deckTitle");
       const title = String(input?.value || snap.title || "無題デッキ").trim().slice(0, 32) || "無題デッキ";
@@ -166,7 +174,7 @@ function installPartialSaveBridge(opts = {}) {
       const payload = {
         docType: "deck",
         title,
-        deck: safeClone(deck),
+        deck: cloudDeckForSave(deck, size),
         exSupport: String(snap.exSupport || ""),
         desiredField: String(snap.desiredField || ""),
         deckSize: size,
@@ -177,6 +185,7 @@ function installPartialSaveBridge(opts = {}) {
         ownerName,
         isAdminOwner: getLS("isAdmin") === "1",
         ownerKey,
+        partialDeck: true,
         updatedAt: serverTimestamp(),
       };
 
@@ -250,6 +259,10 @@ export function initDeckLibrary(opts = {}) {
   installLoadCapture();
   const wrappedApplySnapshot = typeof originalApplySnapshot === "function"
     ? (snap) => {
+        if (snap?.deck && PARTIAL_SLOT_KEY in snap.deck) {
+          snap = { ...snap, deck: { ...snap.deck } };
+          delete snap.deck[PARTIAL_SLOT_KEY];
+        }
         const state = sharedState();
         const pending = state.pendingLoad;
         const result = originalApplySnapshot(snap);

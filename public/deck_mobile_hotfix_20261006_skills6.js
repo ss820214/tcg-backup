@@ -6,34 +6,31 @@
     projectId: "tcg-0bato",
   };
   const COLLECTIONS = [
-    "cards",
-    "support_cards",
-    "supports",
-    "supportCards",
-    "ex_support_cards",
-    "ex_supports",
-    "exSupportCards",
-    "ex_support",
+    ["cards", "unit"],
+    ["support_cards", "support"],
+    ["supports", "support"],
+    ["supportCards", "support"],
+    ["ex_support_cards", "support"],
+    ["ex_supports", "support"],
+    ["exSupportCards", "support"],
+    ["ex_support", "support"],
   ];
   let defsPromise = null;
   let textHelpers = null;
 
-  function putMap(out, source) {
+  function putMap(out, source, sourceKind = "") {
     if (!source) return;
+    const add = (key, d) => {
+      if (!d || typeof d !== "object") return;
+      const id = String(d.id || d.cardId || key || "").trim();
+      if (!id) return;
+      out[id] = sourceKind && !d.__deckSourceKind ? { ...d, __deckSourceKind: sourceKind } : d;
+    };
     if (Array.isArray(source)) {
-      source.forEach((d) => {
-        const id = String(d?.id || d?.cardId || "").trim();
-        if (id) out[id] = d;
-      });
+      source.forEach((d) => add("", d));
       return;
     }
-    if (typeof source === "object") {
-      Object.entries(source).forEach(([key, d]) => {
-        if (!d || typeof d !== "object") return;
-        const id = String(d.id || d.cardId || key || "").trim();
-        if (id) out[id] = d;
-      });
-    }
+    if (typeof source === "object") Object.entries(source).forEach(([key, d]) => add(key, d));
   }
 
   async function loadDefs() {
@@ -53,18 +50,18 @@
         const app = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(FIREBASE_CONFIG);
         const db = fsMod.getFirestore(app);
         const out = {};
-        putMap(out, starterMod.STARTER_SUPPORT_CARD_MAP);
+        putMap(out, starterMod.STARTER_SUPPORT_CARD_MAP, "support");
         putMap(out, fairyMod.FAIRY_TALE_CARDS);
         putMap(out, jewelMod.JEWEL_CARDS);
 
-        const remote = await Promise.all(COLLECTIONS.map(async (name) => {
+        const remote = await Promise.all(COLLECTIONS.map(async ([name, sourceKind]) => {
           try {
             const snap = await fsMod.getDocs(fsMod.collection(db, name));
             const map = {};
             snap.forEach((doc) => {
               const d = doc.data() || {};
               const id = String(d.id || doc.id || "").trim();
-              if (id) map[id] = d;
+              if (id) map[id] = { ...d, __deckSourceKind: sourceKind };
             });
             return map;
           } catch {
@@ -81,28 +78,139 @@
     return defsPromise;
   }
 
-  function actionLabel(action) {
-    if (!action) return "";
-    let name = "";
-    try {
-      const parts = textHelpers?.actionMod?.actionDetailPartsJa?.(action);
-      name = String(parts?.name || action.name || action.label || action.actionName || action.id || "").trim();
-    } catch {
-      name = String(action.name || action.label || action.actionName || action.id || "").trim();
-    }
-    return name ? `技: ${name}` : "技";
+  function kindText(def) {
+    return [def?.__deckSourceKind, def?.kind, def?.type, def?.cardType, def?.category]
+      .filter(Boolean)
+      .map((v) => String(v).toLowerCase())
+      .join(" ");
   }
 
-  function skillText(def) {
-    const acts = Array.isArray(def?.actions) ? def.actions.filter(Boolean).slice(0, 2) : [];
-    if (acts.length) return acts.map(actionLabel).filter(Boolean).join(" / ");
-    if (def?.effect) {
+  function isSupport(def) {
+    const k = kindText(def);
+    if (/support|サポート|ex_support/.test(k)) return true;
+    if (/unit|character|char|キャラ/.test(k)) return false;
+    return !Array.isArray(def?.actions) && def?.effect != null;
+  }
+
+  function cleanSimpleText(value) {
+    return String(value || "")
+      .replace(/[\uFE0E\uFE0F]/g, "")
+      .replace(/[🎯🛡️💥💨👟😌🦴🩸🙈🦨📌💢🔗⏭️↩️🔒🃏🧠🟣✨❤️💙💚🩵🔷➡]/gu, "")
+      .replace(/\s+/g, " ")
+      .replace(/\s*\/\s*/g, " / ")
+      .trim();
+  }
+
+  function actionParts(action) {
+    try {
+      return textHelpers?.actionMod?.actionDetailPartsJa?.(action) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function actionEffectSummary(action, parts) {
+    const out = [];
+    if (Number(parts?.hpDmg) > 0) out.push(`HPダメージ${parts.hpDmg}`);
+    if (Number(parts?.spDmg) > 0) out.push(`SPダメージ${parts.spDmg}`);
+    if (Number(parts?.hpHeal) > 0) out.push(`HP回復${parts.hpHeal}`);
+    if (Number(parts?.spHeal) > 0) out.push(`SP回復${parts.spHeal}`);
+
+    const extra = cleanSimpleText(parts?.effectText || "");
+    if (extra && !out.includes(extra)) out.push(extra);
+
+    if (!out.length) {
       try {
-        const text = textHelpers?.supportMod?.supportEffectTextJa?.(def.effect);
-        if (text) return `効果: ${text}`;
+        const fallback = cleanSimpleText(textHelpers?.actionMod?.actionEffectTextJa?.(action));
+        if (fallback) out.push(fallback);
       } catch {}
     }
-    return "技・効果なし";
+    return [...new Set(out.filter(Boolean))].join(" / ");
+  }
+
+  function actionLine(action, index) {
+    if (!action) return "";
+    const parts = actionParts(action);
+    const rawCost = parts?.cost ?? action.cost ?? 0;
+    const cost = Number.isFinite(Number(rawCost)) ? Number(rawCost) : rawCost;
+    const name = String(parts?.name || action.name || action.label || action.actionName || "").trim() || "名称なし";
+    const effect = actionEffectSummary(action, parts);
+    return `行動${index + 1}: 【${cost}】${name}${effect ? ` ${effect}` : ""}`;
+  }
+
+  function supportEffectLine(def) {
+    let text = "";
+    try {
+      text = cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect));
+    } catch {}
+    if (!text) text = cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || "");
+    if (!text && Array.isArray(def?.actions) && def.actions[0]) {
+      const parts = actionParts(def.actions[0]);
+      text = actionEffectSummary(def.actions[0], parts) || cleanSimpleText(parts?.name || def.actions[0]?.name || "");
+    }
+    return text ? `効果: ${text}` : "効果: なし";
+  }
+
+  function statText(def) {
+    const hp = def?.hp;
+    const sp = def?.sp;
+    const out = [];
+    if (hp !== undefined && hp !== null && hp !== "") out.push(`HP:${hp}`);
+    if (sp !== undefined && sp !== null && sp !== "") out.push(`SP:${sp}`);
+    return out.join(" ");
+  }
+
+  function titleOf(row) {
+    return row.querySelector(":scope > .name, .cardHead > div:first-child > b, :scope > div:first-child > .name");
+  }
+
+  function cleanTypeSuffix(title) {
+    if (!title) return;
+    [...title.childNodes].forEach((node) => {
+      if (node.nodeType !== Node.TEXT_NODE) return;
+      const next = String(node.textContent || "")
+        .replace(/\s+(?:UNIT|Unit|unit|ユニット|キャラ|サポート|サポ)\s*$/g, "");
+      if (next !== node.textContent) node.textContent = next;
+    });
+  }
+
+  function setStats(row, def) {
+    const title = titleOf(row);
+    if (!title) return;
+    cleanTypeSuffix(title);
+    let el = title.querySelector(".mobileInlineStats");
+    const next = statText(def);
+    if (!next) {
+      el?.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("span");
+      el.className = "mobileInlineStats";
+      title.appendChild(el);
+    }
+    if (el.textContent !== next) el.textContent = next;
+  }
+
+  function setLines(row, lines) {
+    let box = row.querySelector(".mobileSkillLines");
+    if (!box) {
+      box = document.createElement("div");
+      box.className = "mobileSkillLines";
+      const title = titleOf(row);
+      (title?.parentElement || row.firstElementChild || row).appendChild(box);
+    }
+    box.dataset.skillSource = "carddef";
+    const normalized = lines.filter(Boolean).slice(0, 2);
+    const key = normalized.join("\n");
+    if (box.dataset.renderKey === key) return;
+    box.dataset.renderKey = key;
+    box.replaceChildren(...normalized.map((line) => {
+      const div = document.createElement("div");
+      div.className = "mobileSkillLine";
+      div.textContent = line;
+      return div;
+    }));
   }
 
   function applyRow(row, defs) {
@@ -110,11 +218,16 @@
     if (!id) return;
     const def = defs[id];
     if (!def) return;
-    const box = row.querySelector(".mobileSkillLines");
-    if (!box) return;
-    const next = skillText(def);
-    box.dataset.skillSource = "carddef";
-    if (box.textContent !== next) box.textContent = next;
+
+    setStats(row, def);
+    if (isSupport(def)) {
+      setLines(row, [supportEffectLine(def)]);
+      return;
+    }
+
+    const actions = Array.isArray(def?.actions) ? def.actions.filter(Boolean).slice(0, 2) : [];
+    const lines = actions.map((a, i) => actionLine(a, i)).filter(Boolean);
+    setLines(row, lines.length ? lines : ["行動1: なし"]);
   }
 
   async function applyAll() {
@@ -124,12 +237,12 @@
 
   function relevantAddedNode(node) {
     if (!(node instanceof Element)) return false;
-    return node.matches?.(".cardRow,.mobileSkillLines") || !!node.querySelector?.(".cardRow,.mobileSkillLines");
+    return node.matches?.(".cardRow") || !!node.querySelector?.(".cardRow");
   }
 
   function boot() {
     const start = () => applyAll();
-    if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 900 });
+    if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 500 });
     else setTimeout(start, 0);
 
     const observer = new MutationObserver((records) => {
@@ -140,6 +253,7 @@
     [document.getElementById("cardList"), document.getElementById("deckList")]
       .filter(Boolean)
       .forEach((el) => observer.observe(el, { childList:true, subtree:true }));
+    window.addEventListener("pageshow", () => requestAnimationFrame(() => applyAll()));
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once:true });

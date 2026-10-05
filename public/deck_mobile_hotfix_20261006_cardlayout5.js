@@ -1,7 +1,6 @@
 (() => {
   "use strict";
   const STYLE_ID = "deckMobileCardLayout5Style";
-  const ROW_MARK = "deckCardLayout5Ready";
 
   function injectStyle() {
     if (document.getElementById(STYLE_ID)) return;
@@ -50,7 +49,7 @@
     overflow:visible!important;
   }
 
-  /* 属性・入手ジャンルは一覧では省き、枚数とHP/SPを優先する。 */
+  /* 一覧では属性・入手ジャンルより、枚数とHP/SPを優先する。 */
   #cardList .attrBadge,
   #deckList .attrBadge,
   #cardList .seriesBadge,
@@ -85,7 +84,7 @@
     background:rgba(65,150,210,.11)!important;
   }
 
-  /* 2〜3行目は技・効果の表示場所として固定。 */
+  /* 2〜3行目は技・効果。 */
   #cardList .mobileSkillLines,
   #deckList .mobileSkillLines {
     display:-webkit-box!important;
@@ -109,7 +108,7 @@
     display:none!important;
   }
 
-  /* 操作は右上に固定。詳細は1文字も重ねない。 */
+  /* 右側の操作列を固定。詳細は1回だけ横書きで描画する。 */
   #cardList .cardRow .btns,
   #deckList .cardRow .btns,
   #cardList .cardRow .cardCtrl,
@@ -184,23 +183,27 @@
     document.head.appendChild(style);
   }
 
+  function setText(el, text) {
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+
   function tidyOwnedBadge(row) {
     const badge = row.querySelector(".ownedBadge");
     if (!badge) return;
     const text = String(badge.textContent || "").trim();
     const m = text.match(/(?:所持|枚数)\s*(\d+)/);
-    if (m) badge.textContent = `×${m[1]}`;
+    if (m) setText(badge, `×${m[1]}`);
   }
 
   function removeDuplicateAttrText(row, title) {
     const badge = row.querySelector(".attrBadge");
     const attr = String(badge?.textContent || "").trim();
     if (!attr || !title) return;
-    const nodes = [...title.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE);
-    const node = nodes[0];
+    const node = [...title.childNodes].find((n) => n.nodeType === Node.TEXT_NODE);
     if (!node) return;
     const escaped = attr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    node.textContent = String(node.textContent || "").replace(new RegExp(`\\s+${escaped}\\s*$`), "");
+    const next = String(node.textContent || "").replace(new RegExp(`\\s+${escaped}\\s*$`), "");
+    if (node.textContent !== next) node.textContent = next;
   }
 
   function extractStats(text) {
@@ -246,7 +249,7 @@
         stat.className = "mobileInlineStats";
         title.appendChild(stat);
       }
-      stat.textContent = stats;
+      setText(stat, stats);
     } else if (stat) {
       stat.remove();
     }
@@ -259,29 +262,34 @@
       const host = title.parentElement || row.firstElementChild || row;
       host.appendChild(skillBox);
     }
-    skillBox.textContent = skills.length ? skills.slice(0, 2).join(" / ") : "技・効果は詳細へ";
+    if (skillBox.dataset.skillSource !== "carddef") {
+      setText(skillBox, skills.length ? skills.slice(0, 2).join(" / ") : "技・効果は詳細へ");
+    }
 
     const detail = row.querySelector("[data-detail]");
     if (detail) {
-      detail.textContent = "詳細";
+      setText(detail, "詳細");
       detail.setAttribute("aria-label", "詳細");
     }
-    row.dataset[ROW_MARK] = "1";
   }
 
   function polishAll(root = document) {
     root.querySelectorAll?.("#cardList .cardRow,#deckList .cardRow").forEach(polishRow);
   }
 
+  function addedCardRow(records) {
+    return records.some((record) => [...record.addedNodes].some((node) => {
+      if (!(node instanceof Element)) return false;
+      return node.matches?.(".cardRow") || !!node.querySelector?.(".cardRow");
+    }));
+  }
+
   function boot() {
     injectStyle();
     polishAll();
     const observer = new MutationObserver((records) => {
-      let needed = false;
-      for (const r of records) {
-        if (r.type === "childList" && r.addedNodes.length) { needed = true; break; }
-      }
-      if (needed) requestAnimationFrame(() => polishAll());
+      if (!addedCardRow(records)) return;
+      requestAnimationFrame(() => polishAll());
     });
     [document.getElementById("cardList"), document.getElementById("deckList")]
       .filter(Boolean)

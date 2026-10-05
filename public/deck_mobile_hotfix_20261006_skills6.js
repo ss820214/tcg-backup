@@ -26,11 +26,8 @@
       if (!id) return;
       out[id] = sourceKind && !d.__deckSourceKind ? { ...d, __deckSourceKind: sourceKind } : d;
     };
-    if (Array.isArray(source)) {
-      source.forEach((d) => add("", d));
-      return;
-    }
-    if (typeof source === "object") Object.entries(source).forEach(([key, d]) => add(key, d));
+    if (Array.isArray(source)) source.forEach((d) => add("", d));
+    else if (typeof source === "object") Object.entries(source).forEach(([key, d]) => add(key, d));
   }
 
   async function loadDefs() {
@@ -53,7 +50,6 @@
         putMap(out, starterMod.STARTER_SUPPORT_CARD_MAP, "support");
         putMap(out, fairyMod.FAIRY_TALE_CARDS);
         putMap(out, jewelMod.JEWEL_CARDS);
-
         const remote = await Promise.all(COLLECTIONS.map(async ([name, sourceKind]) => {
           try {
             const snap = await fsMod.getDocs(fsMod.collection(db, name));
@@ -71,7 +67,7 @@
         remote.forEach((m) => Object.assign(out, m));
         return out;
       } catch (err) {
-        console.warn("[deck skills6] card definitions could not be loaded", err);
+        console.warn("[deck skills] card definitions could not be loaded", err);
         return {};
       }
     })();
@@ -80,9 +76,7 @@
 
   function kindText(def) {
     return [def?.__deckSourceKind, def?.kind, def?.type, def?.cardType, def?.category]
-      .filter(Boolean)
-      .map((v) => String(v).toLowerCase())
-      .join(" ");
+      .filter(Boolean).map((v) => String(v).toLowerCase()).join(" ");
   }
 
   function isSupport(def) {
@@ -102,10 +96,15 @@
   }
 
   function actionParts(action) {
+    try { return textHelpers?.actionMod?.actionDetailPartsJa?.(action) || {}; }
+    catch { return {}; }
+  }
+
+  function arrowRange(action) {
     try {
-      return textHelpers?.actionMod?.actionDetailPartsJa?.(action) || {};
+      return cleanSimpleText(textHelpers?.actionMod?.rangeToArrowJa?.(action?.range || ""));
     } catch {
-      return {};
+      return "";
     }
   }
 
@@ -115,10 +114,8 @@
     if (Number(parts?.spDmg) > 0) out.push(`SPダメージ${parts.spDmg}`);
     if (Number(parts?.hpHeal) > 0) out.push(`HP回復${parts.hpHeal}`);
     if (Number(parts?.spHeal) > 0) out.push(`SP回復${parts.spHeal}`);
-
     const extra = cleanSimpleText(parts?.effectText || "");
     if (extra && !out.includes(extra)) out.push(extra);
-
     if (!out.length) {
       try {
         const fallback = cleanSimpleText(textHelpers?.actionMod?.actionEffectTextJa?.(action));
@@ -134,15 +131,15 @@
     const rawCost = parts?.cost ?? action.cost ?? 0;
     const cost = Number.isFinite(Number(rawCost)) ? Number(rawCost) : rawCost;
     const name = String(parts?.name || action.name || action.label || action.actionName || "").trim() || "名称なし";
+    const range = arrowRange(action);
     const effect = actionEffectSummary(action, parts);
-    return `行動${index + 1}: 【${cost}】${name}${effect ? ` ${effect}` : ""}`;
+    return `行動${index + 1}: 【${cost}】${name}${range ? ` ${range}` : ""}${effect ? ` ${effect}` : ""}`;
   }
 
   function supportEffectLine(def) {
     let text = "";
-    try {
-      text = cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect));
-    } catch {}
+    try { text = cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect)); }
+    catch {}
     if (!text) text = cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || "");
     if (!text && Array.isArray(def?.actions) && def.actions[0]) {
       const parts = actionParts(def.actions[0]);
@@ -152,11 +149,9 @@
   }
 
   function statText(def) {
-    const hp = def?.hp;
-    const sp = def?.sp;
     const out = [];
-    if (hp !== undefined && hp !== null && hp !== "") out.push(`HP:${hp}`);
-    if (sp !== undefined && sp !== null && sp !== "") out.push(`SP:${sp}`);
+    if (def?.hp !== undefined && def?.hp !== null && def?.hp !== "") out.push(`HP:${def.hp}`);
+    if (def?.sp !== undefined && def?.sp !== null && def?.sp !== "") out.push(`SP:${def.sp}`);
     return out.join(" ");
   }
 
@@ -168,18 +163,16 @@
     if (!title) return;
     [...title.childNodes].forEach((node) => {
       if (node.nodeType !== Node.TEXT_NODE) return;
-      const next = String(node.textContent || "")
-        .replace(/\s+(?:UNIT|Unit|unit|ユニット|キャラ|サポート|サポ)\s*$/g, "");
-      if (next !== node.textContent) node.textContent = next;
+      node.textContent = String(node.textContent || "").replace(/\s+(?:UNIT|Unit|unit|ユニット|キャラ|サポート|サポ)\s*$/g, "");
     });
   }
 
-  function setStats(row, def) {
+  function setStats(row, def, support) {
     const title = titleOf(row);
     if (!title) return;
     cleanTypeSuffix(title);
     let el = title.querySelector(".mobileInlineStats");
-    const next = statText(def);
+    const next = support ? "" : statText(def);
     if (!next) {
       el?.remove();
       return;
@@ -218,16 +211,14 @@
     if (!id) return;
     const def = defs[id];
     if (!def) return;
-
-    setStats(row, def);
-    if (isSupport(def)) {
+    const support = isSupport(def);
+    setStats(row, def, support);
+    if (support) {
       setLines(row, [supportEffectLine(def)]);
       return;
     }
-
     const actions = Array.isArray(def?.actions) ? def.actions.filter(Boolean).slice(0, 2) : [];
-    const lines = actions.map((a, i) => actionLine(a, i)).filter(Boolean);
-    setLines(row, lines.length ? lines : ["行動1: なし"]);
+    setLines(row, actions.length ? actions.map((a, i) => actionLine(a, i)) : ["行動1: なし"]);
   }
 
   async function applyAll() {
@@ -235,23 +226,15 @@
     document.querySelectorAll("#cardList .cardRow,#deckList .cardRow").forEach((row) => applyRow(row, defs));
   }
 
-  function relevantAddedNode(node) {
-    if (!(node instanceof Element)) return false;
-    return node.matches?.(".cardRow") || !!node.querySelector?.(".cardRow");
-  }
-
   function boot() {
     const start = () => applyAll();
     if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 500 });
     else setTimeout(start, 0);
-
     const observer = new MutationObserver((records) => {
-      const needed = records.some((record) => [...record.addedNodes].some(relevantAddedNode));
-      if (!needed) return;
-      requestAnimationFrame(() => applyAll());
+      const needed = records.some((record) => [...record.addedNodes].some((node) => node instanceof Element && (node.matches?.(".cardRow") || node.querySelector?.(".cardRow"))));
+      if (needed) requestAnimationFrame(() => applyAll());
     });
-    [document.getElementById("cardList"), document.getElementById("deckList")]
-      .filter(Boolean)
+    [document.getElementById("cardList"), document.getElementById("deckList")].filter(Boolean)
       .forEach((el) => observer.observe(el, { childList:true, subtree:true }));
     window.addEventListener("pageshow", () => requestAnimationFrame(() => applyAll()));
   }

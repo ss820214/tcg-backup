@@ -169,7 +169,6 @@
   }
 
   function handleKeyboardClick(event) {
-    // Pointer-generated click already got its spark on pointerdown.
     if (event.detail !== 0) return;
     const target = actionableFrom(event.target);
     if (!target) return;
@@ -197,4 +196,30 @@
   };
 
   console.log("[press_spark] ready", VERSION);
+})();
+
+// Shared interaction experience: network/load feedback plus the finished home presentation.
+(() => {
+  const EXPERIENCE = "20261005_experience1";
+  const load = () => {
+    if (!document.body) {
+      requestAnimationFrame(load);
+      return;
+    }
+    if (document.querySelector(`script[data-global-experience="${EXPERIENCE}"]`)) return;
+    const script = document.createElement("script");
+    script.src = `./global_experience_20261005.js?v=${EXPERIENCE}`;
+    script.async = false;
+    script.dataset.globalExperience = EXPERIENCE;
+    script.addEventListener("error", () => {
+      console.error("[press_spark] global experience layer failed to load");
+    }, { once: true });
+    document.body.appendChild(script);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", load, { once: true });
+  } else {
+    load();
+  }
 })();

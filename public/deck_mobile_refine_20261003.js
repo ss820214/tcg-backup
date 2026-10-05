@@ -32,11 +32,14 @@
     });
   }
 
-  // Independent final hotfix. It intentionally does not wait for the stable
-  // layer so the tabs / +/- / cloud save layout still applies if an older
-  // cached stable file fails to load.
+  // Independent final hotfixes. They do not wait for the stable layer so the
+  // UI remains usable even when an older cached stable file is present.
   append(
     "./deck_mobile_hotfix_20261005_tabs2.js?v=20261005_tabs2_2053",
     "data-deck-mobile-tabs2",
+  );
+  append(
+    "./deck_mobile_hotfix_20261005_labels3.js?v=20261005_labels3_2053",
+    "data-deck-mobile-labels3",
   );
 })();

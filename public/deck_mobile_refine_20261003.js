@@ -50,4 +50,8 @@
     "./deck_mobile_hotfix_20261006_cardlayout5.js?v=20261006_cardlayout5_0131",
     "data-deck-mobile-cardlayout5",
   );
+  append(
+    "./deck_mobile_hotfix_20261006_skills6.js?v=20261006_skills6_0148",
+    "data-deck-mobile-skills6",
+  );
 })();

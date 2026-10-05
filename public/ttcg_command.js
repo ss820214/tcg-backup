@@ -24,6 +24,7 @@
       { id:"deck-room", label:t("\\u958b\\u59cb\\u30d1\\u30cd\\u30eb"), sub:t("\\u30eb\\u30fc\\u30e0\\u64cd\\u4f5c\\u3092\\u958b\\u304f"), action:() => document.getElementById("roomDrawerToggle")?.click() }
     ]
   };
+  page["index.html"] = page["deck.html"];
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
   const all = () => [...(page[path] || []), ...base];
   const showFab = () => {
@@ -78,11 +79,11 @@
 (() => {
   "use strict";
   const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  if (page !== "deck.html") return;
+  if (page !== "deck.html" && page !== "index.html") return;
   const load = () => {
     if (document.querySelector('script[data-deck-mobile-refine="1"]')) return;
     const script = document.createElement("script");
-    script.src = "./deck_mobile_refine_20261003.js?v=20261003_refine2";
+    script.src = "./deck_mobile_refine_20261003.js?v=20261005_index_hotfix1";
     script.defer = true;
     script.dataset.deckMobileRefine = "1";
     document.body.appendChild(script);

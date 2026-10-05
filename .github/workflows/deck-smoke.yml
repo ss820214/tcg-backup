@@ -18,6 +18,7 @@ on:
       - 'public/global_press_spark_20261004.js'
       - 'public/global_experience_20261005.js'
       - 'public/deck_ui_entry_20261005.js'
+      - 'public/deck_community_import_fix_20261005.js'
       - 'firebase.json'
       - '.github/workflows/deck-smoke.yml'
 
@@ -39,6 +40,7 @@ jobs:
           node --check public/global_mojibake_repair_20261004.js
           node --check public/global_press_spark_20261004.js
           node --check public/global_experience_20261005.js
+          node --check public/deck_community_import_fix_20261005.js
           node --check public/deck_mobile_refine_20261003.js
           node --check public/deck_mobile_density_20261003.js
           node --check public/deck_mobile_compact_v3_20261004.js
@@ -49,9 +51,10 @@ jobs:
 
       - name: Verify canonical Deck UI entry
         run: |
-          grep -q '20261005_ui_entry2' public/deck_ui_entry_20261005.js
+          grep -q '20261005_ui_entry3' public/deck_ui_entry_20261005.js
           grep -q 'global_ui_20260821.js' public/deck_ui_entry_20261005.js
           grep -q 'card_readings_20261005.js' public/deck_ui_entry_20261005.js
+          grep -q 'deck_community_import_fix_20261005.js' public/deck_ui_entry_20261005.js
           grep -q 'deck_ui_entry_20261005.js' public/index.html
           grep -q 'deck_ui_entry_20261005.js' public/deck.html
           python3 - <<'PY'
@@ -121,6 +124,10 @@ jobs:
           grep -q 'tcgHomeComplete' public/global_experience_20261005.js
           grep -q 'tcgHomeBtnGlow' public/global_experience_20261005.js
           grep -q 'tcgPlaySweep' public/global_experience_20261005.js
+          grep -q 'tcg_community_deck_import_v20261005' public/deck_community_import_fix_20261005.js
+          grep -q 'embedded-library' public/deck_community_import_fix_20261005.js
+          grep -q 'localStorage.removeItem(LAST_ID_KEY)' public/deck_community_import_fix_20261005.js
+          grep -q 'コピー中：保存すると自分の新規デッキになります' public/deck_community_import_fix_20261005.js
           grep -q 'TextDecoder("shift_jis")' public/global_cleanup_20261004.js
           grep -q 'recoverMojibake' public/global_cleanup_20261004.js
           grep -q 'AGGRESSIVE_PAGES' public/global_mojibake_repair_20261004.js

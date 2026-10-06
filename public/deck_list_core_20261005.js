@@ -210,12 +210,15 @@ function syncModeUI() {
   const head = $("boardTitle");
   if (title) title.textContent = mode === "my" ? "自分のデッキ" : "みんなのデッキ";
   if (desc) {
+    const linked = getLS("profileLinked") === "1" && !!getLS("uid");
     desc.textContent =
       mode === "my"
-        ? "保存済みデッキは最大10件。名前・公開範囲・テーマカラーをここで管理できます。"
-        : "公開されたデッキを検索してロードできます。限定公開・非公開デッキは表示されません。";
+        ? (linked
+            ? "保存したデッキをロード・編集できます。"
+            : "ゲストではクラウド保存できません。ログイン / 新規登録後に利用できます。")
+        : "公開デッキを検索してロードできます。";
   }
-  if (head) head.textContent = mode === "my" ? "保存スロット" : "公開デッキ";
+  if (head) head.textContent = mode === "my" ? "保存デッキ" : "公開デッキ";
   $("countPill").textContent =
     mode === "my" ? `${items.length} / ${MAX_DECKS}` : `${items.length}件`;
   const url = new URL(location.href);

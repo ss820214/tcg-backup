@@ -66,7 +66,8 @@ function deviceKey() {
 
 function sumDeck(deck) {
   let total = 0;
-  for (const v of Object.values(deck || {})) {
+  for (const [key, v] of Object.entries(deck || {})) {
+    if (key === "__tcg_partial_slots__") continue;
     const n = Number(v || 0);
     if (Number.isFinite(n)) total += n;
   }
@@ -84,7 +85,8 @@ function isDeckDoc(data = {}) {
   if (type.includes("template") || type.includes("skill") || type.includes("action") || type.includes("creator")) return false;
   if (title.includes("技テンプレ")) return false;
   if (!isPlainObject(data.deck)) return false;
-  return sumDeck(data.deck) === 30;
+  const actual = Number(data.deckSize || 0) || sumDeck(data.deck);
+  return actual >= 1 && actual <= 30;
 }
 
 function millis(ts) {
@@ -235,31 +237,11 @@ function render() {
     div.className = "deckCard empty";
     div.innerHTML =
       mode === "my"
-        ? `<div><div class="slot">NO DECK</div><div class="deckName">保存デッキなし</div><div class="sub">デッキビルダーで30枚デッキを保存するとここに追加されます。</div></div>`
+        ? `<div><div class="slot">NO DECK</div><div class="deckName">保存デッキなし</div><div class="sub">デッキビルダーで「保存」を押すとここに追加されます。</div></div>`
         : `<div><div class="slot">NO PUBLIC DECK</div><div class="deckName">公開デッキなし</div><div class="sub">検索条件を変えるか、誰かが公開するのを待ってください。</div></div>`;
     grid.appendChild(div);
   }
 
-  if (mode === "my" && !$("searchInput")?.value) {
-    for (let i = items.length; i < MAX_DECKS; i++) {
-      const div = document.createElement("div");
-      div.className = "deckCard empty";
-      div.innerHTML = `
-        <div>
-          <div class="slot">SLOT ${String(i + 1).padStart(2, "0")}</div>
-          <div class="deckName">空きスロット</div>
-          <div class="sub">デッキビルダーで保存するとここに追加されます。</div>
-        </div>
-        <div class="cardActions">
-          <button class="btn primary" type="button" data-builder>作成</button>
-        </div>
-      `;
-      div.querySelector("[data-builder]")?.addEventListener("click", () => {
-        location.href = currentParamsUrl("./index.html?skipIntro=1");
-      });
-      grid.appendChild(div);
-    }
-  }
 }
 
 function renderDeckCard(item, slotNo) {
@@ -268,24 +250,32 @@ function renderDeckCard(item, slotNo) {
   const tags = Array.isArray(data.tags) ? data.tags.slice(0, 4) : [];
   const vis = normalizeVisibility(data.visibility);
   const themeColor = cleanColor(data.themeColor || data.accentColor);
-  const count = sumDeck(data.deck || {});
+  const count = Number(data.deckSize || 0) || sumDeck(data.deck || {});
   const canEdit = mode === "my";
   const card = document.createElement("article");
   card.className = "deckCard";
   card.style.setProperty("--deck-color", themeColor);
   card.innerHTML = `
-    <div>
-      <div class="slot">SLOT ${String(slotNo).padStart(2, "0")}</div>
-      <div class="deckName" title="${esc(title)}">${esc(title)}</div>
+    <div class="deckCardMain">
+      <div class="deckCardTopline">
+        <div>
+          <div class="slot">SLOT ${String(slotNo).padStart(2, "0")}</div>
+          <div class="deckName" title="${esc(title)}">${esc(title)}</div>
+        </div>
+        <div class="deckCardQuick">
+          <button class="btn primary" type="button" data-load>ロード</button>
+          ${canEdit ? `<button class="btn iconBtn" type="button" data-edit aria-expanded="false" title="デッキ設定">⚙</button>` : ``}
+        </div>
+      </div>
       <div class="meta">
         <span class="tag ${visibilityClass(vis)}">${visibilityLabel(vis)}</span>
         <span class="tag">${count}/30</span>
         ${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}
       </div>
-      <div class="sub">ID: ${esc(id)}<br>${esc(fmtTime(data.updatedAt))}</div>
+      <div class="sub">${esc(fmtTime(data.updatedAt))}</div>
       ${
         canEdit
-          ? `<div class="editBox">
+          ? `<div class="editBox" data-edit-box hidden>
               <label>デッキ名<input class="editInput" data-title value="${esc(title)}" maxlength="32" /></label>
               <label>公開範囲
                 <select class="editInput" data-vis>
@@ -295,16 +285,24 @@ function renderDeckCard(item, slotNo) {
                 </select>
               </label>
               <label>テーマ色<input class="editColor" data-color type="color" value="${esc(themeColor)}" /></label>
+              <div class="editActions">
+                <button class="btn" type="button" data-save-meta>変更保存</button>
+                <button class="btn danger" type="button" data-delete>削除</button>
+              </div>
             </div>`
           : ``
       }
     </div>
-    <div class="cardActions">
-      <button class="btn primary" type="button" data-load>ロード</button>
-      ${canEdit ? `<button class="btn" type="button" data-save-meta>変更保存</button>` : ``}
-      ${canEdit ? `<button class="btn danger" type="button" data-delete>削除</button>` : ``}
-    </div>
   `;
+
+  card.querySelector("[data-edit]")?.addEventListener("click", () => {
+    const btn = card.querySelector("[data-edit]");
+    const box = card.querySelector("[data-edit-box]");
+    if (!box || !btn) return;
+    const open = box.hidden;
+    box.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
 
   card.querySelector("[data-load]")?.addEventListener("click", async () => {
     try {
@@ -313,12 +311,13 @@ function renderDeckCard(item, slotNo) {
       const fresh = snap.exists() ? snap.data() || data : data;
       const payload = {
         title: String(fresh.title || title),
-        deck: fresh.deck || {},
+        deck: { ...(fresh.deck || {}) },
         exSupport: String(fresh.exSupport || ""),
         desiredField: String(fresh.desiredField || ""),
         themeColor: cleanColor(fresh.themeColor || themeColor),
         sourceId: id,
       };
+      delete payload.deck.__tcg_partial_slots__;
       setLS(LOCAL_KEY, JSON.stringify(payload.deck));
       setLS(DECK_TITLE_KEY, payload.title);
       setLS(EX_KEY, payload.exSupport);

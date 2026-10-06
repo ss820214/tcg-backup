@@ -115,7 +115,7 @@
 
   function cleanSimpleText(value) {
     return String(value || "")
-      .replace(/[\uFE0E\uFE0F]/g, "")
+      .replace(/[\uFE0E]/g, "")
       .replace(/[🎯🛡️💥💨👟😌🦴🩸🙈🦨📌💢🔗⏭️↩️🔒🃏🧠🟣✨🔷➡]/gu, "")
       .replace(/\s+/g, " ")
       .replace(/\s*\/\s*/g, " / ")
@@ -139,6 +139,7 @@
 
   function compactVitals(text) {
     return String(text || "")
+      .replace(/❤(?!️)/g, "❤️")
       .replace(/💚/g, "❤️")
       .replace(/🩵/g, "💙")
       .replace(/HP\s*ダメージ\s*([+-]?\d+)/gi, "❤️-$1")
@@ -149,6 +150,10 @@
       .replace(/\bSP\s*[:：]?\s*([+-]\d+)/gi, "💙$1")
       .replace(/❤️--/g, "❤️-")
       .replace(/💙--/g, "💙-")
+      .replace(/❤️-\+/g, "❤️-")
+      .replace(/💙-\+/g, "💙-")
+      .replace(/❤️\+-/g, "❤️-")
+      .replace(/💙\+-/g, "💙-")
       .replace(/❤️\+\+/g, "❤️+")
       .replace(/💙\+\+/g, "💙+")
       .replace(/\s+/g, " ")

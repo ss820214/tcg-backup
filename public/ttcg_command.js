@@ -83,7 +83,7 @@
   const load = () => {
     if (document.querySelector('script[data-deck-mobile-refine="1"]')) return;
     const script = document.createElement("script");
-    script.src = "./deck_mobile_refine_20261003.js?v=20261005_index_hotfix1";
+    script.src = "./deck_mobile_refine_20261003.js?v=20261006_icons9_2220";
     script.defer = true;
     script.dataset.deckMobileRefine = "1";
     document.body.appendChild(script);

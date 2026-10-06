@@ -18,6 +18,33 @@
   let defsPromise = null;
   let textHelpers = null;
 
+  const STATUS_VISUALS = [
+    { keys:["命中増加","hitUp","aim"], file:"aim.png", label:"命中増加" },
+    { keys:["命中DOWN","jinx"], file:"jinx.png", label:"命中DOWN" },
+    { keys:["装甲","アーマー","armor"], file:"armor.png", label:"アーマー" },
+    { keys:["攻撃増加","パワーUP","powerUp","power"], file:"power.png", label:"パワーUP" },
+    { keys:["回避","evade"], file:"evade.png", label:"回避" },
+    { keys:["疲労回復","recoverFatigue","fatigue"], file:"fatigue.png", label:"疲労回復" },
+    { keys:["パニック","panic"], file:"panic.png", label:"パニック" },
+    { keys:["骨折","fracture"], file:"fracture.png", label:"骨折" },
+    { keys:["出血","bleed"], file:"bleed.png", label:"出血" },
+    { keys:["毒","poison"], file:"poison.png", label:"毒" },
+    { keys:["盲目","blind"], file:"blind.png", label:"盲目" },
+    { keys:["におい","匂い","smell"], file:"smell.png", label:"におい" },
+    { keys:["失魂","lostSoul"], file:"lostSoul.png", label:"失魂" },
+    { keys:["封印","seal"], file:"seal.png", label:"封印" },
+    { keys:["激怒","rage"], file:"rage.png", label:"激怒" },
+    { keys:["洗脳","brainwash"], file:"brainwash.png", label:"洗脳" },
+    { keys:["ヘドロ","sludge"], file:"sludge.png", label:"ヘドロ" },
+    { keys:["カウンター","counter"], file:"counter.png", label:"カウンター" },
+    { keys:["タイマン","taiman"], file:"taiman.png", label:"タイマン" },
+    { keys:["ノックバック","knockback"], glyph:"↩", label:"ノックバック" },
+    { keys:["貫通","pierce"], glyph:"📌", label:"貫通" },
+    { keys:["範囲","aoe"], glyph:"💢", label:"範囲" },
+    { keys:["コンボ","combo"], glyph:"🔗", label:"コンボ" },
+    { keys:["追撃","followUp"], glyph:"⏭", label:"追撃" },
+  ];
+
   function putMap(out, source, sourceKind = "") {
     if (!source) return;
     const add = (key, d) => {
@@ -88,8 +115,8 @@
 
   function cleanSimpleText(value) {
     return String(value || "")
-      .replace(/[\uFE0E\uFE0F]/g, "")
-      .replace(/[🎯🛡️💥💨👟😌🦴🩸🙈🦨📌💢🔗⏭️↩️🔒🃏🧠🟣✨❤️💙💚🩵🔷➡]/gu, "")
+      .replace(/[\uFE0E]/g, "")
+      .replace(/[🎯🛡️💥💨👟😌🦴🩸🙈🦨📌💢🔗⏭️↩️🔒🃏🧠🟣✨🔷➡]/gu, "")
       .replace(/\s+/g, " ")
       .replace(/\s*\/\s*/g, " / ")
       .trim();
@@ -102,27 +129,112 @@
 
   function arrowRange(action) {
     try {
-      return cleanSimpleText(textHelpers?.actionMod?.rangeToArrowJa?.(action?.range || ""));
+      return cleanSimpleText(textHelpers?.actionMod?.rangeToArrowJa?.(action?.range || ""))
+        .replace(/\s*\+\s*/g, " ")
+        .trim();
     } catch {
       return "";
     }
   }
 
+  function compactVitals(text) {
+    return String(text || "")
+      .replace(/❤(?!️)/g, "❤️")
+      .replace(/💚/g, "❤️")
+      .replace(/🩵/g, "💙")
+      .replace(/HP\s*ダメージ\s*([+-]?\d+)/gi, "❤️-$1")
+      .replace(/SP\s*ダメージ\s*([+-]?\d+)/gi, "💙-$1")
+      .replace(/HP\s*(?:回復|ヒール)\s*([+-]?\d+)/gi, "❤️+$1")
+      .replace(/SP\s*(?:回復|ヒール)\s*([+-]?\d+)/gi, "💙+$1")
+      .replace(/\bHP\s*[:：]?\s*([+-]\d+)/gi, "❤️$1")
+      .replace(/\bSP\s*[:：]?\s*([+-]\d+)/gi, "💙$1")
+      .replace(/❤️--/g, "❤️-")
+      .replace(/💙--/g, "💙-")
+      .replace(/❤️-\+/g, "❤️-")
+      .replace(/💙-\+/g, "💙-")
+      .replace(/❤️\+-/g, "❤️-")
+      .replace(/💙\+-/g, "💙-")
+      .replace(/❤️\+\+/g, "❤️+")
+      .replace(/💙\+\+/g, "💙+")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function visualMatches(text) {
+    const src = String(text || "");
+    const matches = [];
+    STATUS_VISUALS.forEach((meta) => {
+      meta.keys.forEach((key) => {
+        let from = 0;
+        while (from < src.length) {
+          const at = src.toLowerCase().indexOf(String(key).toLowerCase(), from);
+          if (at < 0) break;
+          matches.push({ start:at, end:at + String(key).length, meta });
+          from = at + String(key).length;
+        }
+      });
+    });
+    matches.sort((a,b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+    const picked = [];
+    let cursor = -1;
+    matches.forEach((m) => {
+      if (m.start < cursor) return;
+      picked.push(m);
+      cursor = m.end;
+    });
+    return picked;
+  }
+
+  function appendStatusVisual(host, meta) {
+    const span = document.createElement("span");
+    span.className = "deckStatusVisual";
+    span.title = meta.label;
+    span.setAttribute("aria-label", meta.label);
+    if (meta.file) {
+      const img = document.createElement("img");
+      img.className = "deckStatusIcon";
+      img.src = `./assets/status_marks/${meta.file}`;
+      img.alt = "";
+      img.loading = "lazy";
+      span.appendChild(img);
+    } else {
+      span.classList.add("deckStatusGlyph");
+      span.textContent = meta.glyph || "•";
+    }
+    host.appendChild(span);
+  }
+
+  function renderRichText(host, text) {
+    const src = compactVitals(text);
+    const matches = visualMatches(src);
+    if (!matches.length) {
+      host.appendChild(document.createTextNode(src));
+      return;
+    }
+    let pos = 0;
+    matches.forEach((m) => {
+      if (m.start > pos) host.appendChild(document.createTextNode(src.slice(pos, m.start)));
+      appendStatusVisual(host, m.meta);
+      pos = m.end;
+    });
+    if (pos < src.length) host.appendChild(document.createTextNode(src.slice(pos)));
+  }
+
   function actionEffectSummary(action, parts) {
     const out = [];
-    if (Number(parts?.hpDmg) > 0) out.push(`HPダメージ${parts.hpDmg}`);
-    if (Number(parts?.spDmg) > 0) out.push(`SPダメージ${parts.spDmg}`);
-    if (Number(parts?.hpHeal) > 0) out.push(`HP回復${parts.hpHeal}`);
-    if (Number(parts?.spHeal) > 0) out.push(`SP回復${parts.spHeal}`);
-    const extra = cleanSimpleText(parts?.effectText || "");
+    if (Number(parts?.hpDmg) > 0) out.push(`❤️-${parts.hpDmg}`);
+    if (Number(parts?.spDmg) > 0) out.push(`💙-${parts.spDmg}`);
+    if (Number(parts?.hpHeal) > 0) out.push(`❤️+${parts.hpHeal}`);
+    if (Number(parts?.spHeal) > 0) out.push(`💙+${parts.spHeal}`);
+    const extra = compactVitals(cleanSimpleText(parts?.effectText || ""));
     if (extra && !out.includes(extra)) out.push(extra);
     if (!out.length) {
       try {
-        const fallback = cleanSimpleText(textHelpers?.actionMod?.actionEffectTextJa?.(action));
+        const fallback = compactVitals(cleanSimpleText(textHelpers?.actionMod?.actionEffectTextJa?.(action)));
         if (fallback) out.push(fallback);
       } catch {}
     }
-    return [...new Set(out.filter(Boolean))].join(" / ");
+    return [...new Set(out.filter(Boolean))].join(" ");
   }
 
   function actionLine(action, index) {
@@ -138,9 +250,9 @@
 
   function supportEffectLine(def) {
     let text = "";
-    try { text = cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect)); }
+    try { text = compactVitals(cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect))); }
     catch {}
-    if (!text) text = cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || "");
+    if (!text) text = compactVitals(cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || ""));
     if (!text && Array.isArray(def?.actions) && def.actions[0]) {
       const parts = actionParts(def.actions[0]);
       text = actionEffectSummary(def.actions[0], parts) || cleanSimpleText(parts?.name || def.actions[0]?.name || "");
@@ -150,8 +262,8 @@
 
   function statText(def) {
     const out = [];
-    if (def?.hp !== undefined && def?.hp !== null && def?.hp !== "") out.push(`HP:${def.hp}`);
-    if (def?.sp !== undefined && def?.sp !== null && def?.sp !== "") out.push(`SP:${def.sp}`);
+    if (def?.hp !== undefined && def?.hp !== null && def?.hp !== "") out.push(`❤️${def.hp}`);
+    if (def?.sp !== undefined && def?.sp !== null && def?.sp !== "") out.push(`💙${def.sp}`);
     return out.join(" ");
   }
 
@@ -201,7 +313,7 @@
     box.replaceChildren(...normalized.map((line) => {
       const div = document.createElement("div");
       div.className = "mobileSkillLine";
-      div.textContent = line;
+      renderRichText(div, line);
       return div;
     }));
   }

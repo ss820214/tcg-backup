@@ -117,6 +117,36 @@
     overflow:hidden!important;
     text-overflow:ellipsis!important;
   }
+  #cardList .deckStatusVisual,
+  #deckList .deckStatusVisual {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:16px!important;
+    height:16px!important;
+    margin:0 2px!important;
+    vertical-align:-3px!important;
+    flex:0 0 auto!important;
+  }
+  #cardList .deckStatusIcon,
+  #deckList .deckStatusIcon {
+    display:block!important;
+    width:16px!important;
+    height:16px!important;
+    object-fit:contain!important;
+    border:0!important;
+    border-radius:0!important;
+    background:none!important;
+    box-shadow:none!important;
+  }
+  #cardList .deckStatusGlyph,
+  #deckList .deckStatusGlyph {
+    width:auto!important;
+    min-width:15px!important;
+    font-size:14px!important;
+    line-height:1!important;
+    color:rgba(255,255,255,.92)!important;
+  }
 
   #cardList .cardRow .btns,
   #deckList .cardRow .btns,

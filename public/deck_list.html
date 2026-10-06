@@ -1,276 +1,121 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OBATO - デッキ一覧</title>
+  <title>OBATO - デッキ</title>
   <style>
     :root{
-      --bg:#070b10;
-      --panel:rgba(16,22,28,.88);
-      --line:rgba(255,255,255,.13);
-      --text:#f7fbff;
-      --muted:rgba(247,251,255,.68);
-      --blue:#70c7ff;
-      --green:#76f2b2;
-      --gold:#f3d17a;
-      --bad:#ff7585;
+      --bg:#070b10; --panel:rgba(15,21,28,.92); --line:rgba(255,255,255,.12);
+      --text:#f7fbff; --muted:rgba(247,251,255,.65); --blue:#70c7ff;
+      --green:#76f2b2; --bad:#ff7585;
     }
     *{box-sizing:border-box}
+    [hidden]{display:none!important}
     body{
-      margin:0;
-      min-height:100vh;
-      color:var(--text);
+      margin:0; min-height:100vh; color:var(--text);
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       background:
-        radial-gradient(900px 500px at 80% 10%,rgba(105,160,255,.16),transparent 60%),
-        radial-gradient(700px 420px at 14% 12%,rgba(120,255,190,.14),transparent 58%),
-        linear-gradient(180deg,#0c1219,#06080c 72%);
-      overflow-x:hidden;
+        radial-gradient(760px 420px at 8% 0%,rgba(112,199,255,.12),transparent 62%),
+        radial-gradient(680px 420px at 95% 8%,rgba(118,242,178,.09),transparent 62%),
+        linear-gradient(180deg,#0b1118,#06090d 75%);
     }
-    body::before{
-      content:"";
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      background-image:
-        linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
-      background-size:42px 42px;
-      mask-image:linear-gradient(180deg,rgba(0,0,0,.9),transparent 88%);
-    }
-    button,input{font:inherit;color:inherit}
-    .page{
-      width:min(1180px,calc(100vw - 28px));
-      margin:0 auto;
-      padding:22px 0 34px;
-      position:relative;
-      z-index:1;
-    }
-    .top{
-      display:flex;
-      justify-content:space-between;
-      gap:14px;
-      align-items:center;
-      margin-bottom:16px;
-    }
-    .title h1{
-      margin:0;
-      font-size:clamp(26px,4vw,46px);
-      letter-spacing:.04em;
-    }
-    .title p{margin:6px 0 0;color:var(--muted);font-size:14px}
-    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .btn{
-      min-height:42px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      padding:10px 16px;
-      background:rgba(255,255,255,.07);
-      cursor:pointer;
-      font-weight:850;
-      letter-spacing:.03em;
+    button,input,select{font:inherit;color:inherit}
+    .page{width:min(1040px,calc(100vw - 24px));margin:0 auto;padding:20px 0 36px}
+    .top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
+    .title h1{margin:0;font-size:clamp(30px,5vw,48px);line-height:1.05}
+    .title p{margin:9px 0 0;color:var(--muted);font-size:14px;line-height:1.55;max-width:680px}
+    .actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+    .btn,.modeTab{
+      min-height:42px;border:1px solid var(--line);border-radius:12px;padding:0 15px;
+      background:rgba(255,255,255,.055);font-weight:850;cursor:pointer;
     }
     .btn.primary{
-      border-color:rgba(118,242,178,.42);
-      background:linear-gradient(135deg,rgba(118,242,178,.28),rgba(95,157,255,.16));
-      box-shadow:0 0 24px rgba(118,242,178,.12);
+      border-color:rgba(118,242,178,.38);
+      background:linear-gradient(135deg,rgba(118,242,178,.20),rgba(112,199,255,.12));
     }
-    .btn.danger{
-      border-color:rgba(255,117,133,.36);
-      background:rgba(255,117,133,.10);
+    .btn.danger{border-color:rgba(255,117,133,.35);background:rgba(255,117,133,.08)}
+    .btn.iconBtn,.settingsToggle{width:44px;min-width:44px;padding:0;font-size:19px}
+    .btn:disabled{opacity:.42;cursor:not-allowed}
+    .settingsPanel{
+      margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;
+      background:rgba(0,0,0,.20);display:grid;gap:11px;
     }
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .status{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-      color:var(--muted);
+    .settingsHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .settingsHead b{font-size:14px}
+    .tcgUtilityLinks{display:flex;gap:8px;flex-wrap:wrap}
+    .tcgUtilityLinks a{
+      min-height:38px;display:inline-flex;align-items:center;padding:0 12px;border:1px solid var(--line);
+      border-radius:10px;background:rgba(255,255,255,.05);color:var(--text);text-decoration:none;font-weight:800;font-size:13px;
     }
+    .status{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted)}
     .pill{
-      border:1px solid rgba(255,255,255,.13);
-      border-radius:999px;
-      padding:7px 11px;
-      background:rgba(0,0,0,.22);
-      font-size:13px;
+      border:1px solid rgba(255,255,255,.10);border-radius:9px;padding:6px 9px;
+      background:rgba(0,0,0,.20);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-    .board{
-      border:1px solid var(--line);
-      border-radius:24px;
-      background:
-        radial-gradient(680px 260px at 20% 0%,rgba(112,199,255,.11),transparent 60%),
-        linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.018)),
-        var(--panel);
-      box-shadow:0 28px 80px rgba(0,0,0,.46);
-      overflow:hidden;
+    .modeTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0 12px}
+    .modeTab{font-size:16px}
+    .modeTab.active{
+      border-color:rgba(112,199,255,.52);background:rgba(112,199,255,.13);
+      box-shadow:inset 0 -2px 0 rgba(112,199,255,.55);
     }
+    .board{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
     .boardHead{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      background:rgba(0,0,0,.18);
+      display:grid;grid-template-columns:auto minmax(220px,360px);gap:14px;align-items:center;
+      padding:14px 16px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.18);
     }
     .boardHead b{font-size:18px}
     .search{
-      min-width:min(360px,100%);
-      height:42px;
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:999px;
-      background:rgba(0,0,0,.25);
-      padding:0 14px;
-      outline:none;
+      width:100%;height:42px;border:1px solid var(--line);border-radius:11px;background:rgba(0,0,0,.25);
+      padding:0 13px;outline:none;
     }
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:12px;
-      padding:16px;
-    }
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
     .deckCard{
-      min-height:146px;
-      border:1px solid rgba(255,255,255,.13);
-      border-radius:18px;
-      background:
-        linear-gradient(135deg,rgba(112,199,255,.10),transparent 34%),
-        linear-gradient(180deg,rgba(255,255,255,.055),rgba(0,0,0,.18));
-      padding:14px;
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      gap:12px;
-      position:relative;
-      overflow:hidden;
+      min-width:0;border:1px solid rgba(255,255,255,.11);border-left:4px solid var(--deck-color,var(--blue));
+      border-radius:13px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.14));
+      padding:13px 14px;position:relative;
     }
-    .deckCard::before{
-      content:"";
-      position:absolute;
-      inset:0 auto 0 0;
-      width:5px;
-      background:linear-gradient(180deg,var(--deck-color,var(--blue)),var(--green));
-      opacity:.9;
-    }
-    .deckCard.empty{
-      opacity:.65;
-      border-style:dashed;
-      background:rgba(0,0,0,.16);
-    }
-    .slot{
-      color:var(--blue);
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-    .deckName{
-      margin-top:7px;
-      font-size:20px;
-      line-height:1.22;
-      font-weight:950;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .meta{
-      display:flex;
-      gap:7px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .tag{
-      border:1px solid rgba(255,255,255,.13);
-      border-radius:999px;
-      padding:5px 8px;
-      color:rgba(255,255,255,.78);
-      background:rgba(0,0,0,.22);
-      font-size:12px;
-    }
-    .tag.public{border-color:rgba(118,242,178,.32);color:#a8ffd1}
-    .tag.private{border-color:rgba(255,117,133,.30);color:#ffc4cc}
-    .tag.unlisted{border-color:rgba(243,209,122,.32);color:#ffe6a6}
-    .sub{
-      color:var(--muted);
-      font-size:12px;
-      margin-top:9px;
-      line-height:1.45;
-      word-break:break-all;
-    }
-    .cardActions{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:104px;
-    }
-    .modeTabs{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-bottom:14px;
-    }
-    .modeTab{
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:999px;
-      background:rgba(255,255,255,.055);
-      padding:9px 14px;
-      cursor:pointer;
-      font-weight:900;
-    }
-    .modeTab.active{
-      border-color:rgba(112,199,255,.55);
-      background:linear-gradient(135deg,rgba(112,199,255,.22),rgba(118,242,178,.10));
-      box-shadow:0 0 18px rgba(112,199,255,.16);
-    }
+    .deckCard.empty{grid-column:1/-1;opacity:.72;border-left-color:rgba(112,199,255,.55);border-style:dashed}
+    .deckCardTopline{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .deckCardQuick{display:flex;gap:7px;flex:0 0 auto}
+    .deckCardQuick .btn{min-height:40px}
+    .slot{color:rgba(112,199,255,.85);font-size:11px;font-weight:900;letter-spacing:.10em}
+    .deckName{margin-top:4px;font-size:19px;line-height:1.2;font-weight:950;overflow-wrap:anywhere}
+    .meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+    .tag{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.18);font-size:12px;color:rgba(255,255,255,.78)}
+    .tag.public{color:#a8ffd1;border-color:rgba(118,242,178,.45)}
+    .tag.private{color:#ffc4cc;border-color:rgba(255,117,133,.42)}
+    .tag.unlisted{color:#ffe6a6}
+    .sub{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.45}
     .editBox{
-      display:grid;
-      grid-template-columns:minmax(0,1.2fr) minmax(130px,.8fr) auto;
-      gap:8px;
-      margin-top:12px;
-      padding-top:12px;
-      border-top:1px solid rgba(255,255,255,.10);
+      margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.09);
+      display:grid;grid-template-columns:minmax(0,1.4fr) minmax(130px,.8fr) auto;gap:9px;align-items:end;
     }
-    .editBox label{
-      display:grid;
-      gap:5px;
-      color:rgba(255,255,255,.62);
-      font-size:12px;
-      font-weight:800;
-    }
-    .editInput{
-      min-width:0;
-      height:38px;
-      border:1px solid rgba(255,255,255,.13);
-      border-radius:12px;
-      background:rgba(0,0,0,.24);
-      padding:0 11px;
-      outline:none;
-    }
-    .editColor{
-      width:54px;
-      height:38px;
-      padding:4px;
-      border:1px solid rgba(255,255,255,.13);
-      border-radius:12px;
-      background:rgba(0,0,0,.24);
-    }
-    .message{
-      margin-top:14px;
-      min-height:22px;
-      color:#97ffbc;
-      white-space:pre-wrap;
-    }
+    .editBox label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:800}
+    .editInput{width:100%;min-width:0;height:40px;border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.24);padding:0 10px}
+    .editColor{width:52px;height:40px;padding:3px;border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.24)}
+    .editActions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+    .message{margin-top:12px;min-height:20px;color:#97ffbc;font-size:13px;white-space:pre-wrap}
     .message.bad{color:var(--bad)}
-    @media (max-width: 760px){
+    @media(max-width:720px){
       .page{width:calc(100vw - 18px);padding-top:12px}
-      .top{align-items:flex-start;flex-direction:column}
-      .actions{justify-content:flex-start}
-      .boardHead{align-items:stretch;flex-direction:column}
-      .search{width:100%}
-      .grid{grid-template-columns:1fr;padding:10px}
-      .deckCard{grid-template-columns:1fr;min-height:0}
-      .cardActions{flex-direction:row;min-width:0}
-      .cardActions .btn{flex:1}
-      .editBox{grid-template-columns:1fr 1fr auto}
+      .top{grid-template-columns:1fr;gap:12px}
+      .title h1{font-size:32px}
+      .title p{font-size:13px}
+      .actions{justify-content:flex-start;display:grid;grid-template-columns:1fr 1fr 44px;width:100%}
+      .actions .btn:not(.settingsToggle){width:100%}
+      .modeTabs{margin-top:14px}
+      .boardHead{grid-template-columns:1fr;gap:10px}
+      .grid{grid-template-columns:1fr;padding:8px}
+      .deckCard{padding:12px}
+      .deckCardTopline{gap:8px}
+      .deckName{font-size:18px}
+      .deckCardQuick .btn.primary{padding:0 12px}
+      .editBox{grid-template-columns:1fr 1fr}
+      .editBox label:first-child{grid-column:1/-1}
+      .editActions{justify-content:stretch}
+      .editActions .btn{flex:1}
+      .settingsPanel{padding:11px}
     }
   </style>
   <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
@@ -280,18 +125,27 @@
     <header class="top">
       <div class="title">
         <h1 id="pageTitle">自分のデッキ</h1>
-        <p id="pageDesc">保存済みデッキは最大10件。名前・公開範囲・テーマカラーをここで管理できます。</p>
+        <p id="pageDesc">保存したデッキをロード・編集できます。</p>
       </div>
       <div class="actions">
         <button class="btn" id="btnHome" type="button">トップへ</button>
         <button class="btn primary" id="btnBuilder" type="button">デッキ作成へ</button>
+        <button class="btn settingsToggle" id="btnListSettings" type="button" aria-expanded="false" title="設定">⚙</button>
       </div>
     </header>
-    <div class="status">
-      <span class="pill" id="uidPill">uid: ...</span>
-      <span class="pill" id="countPill">0 / 10</span>
-      <span class="pill">v20260822 deck-meta1</span>
-    </div>
+
+    <section class="settingsPanel" id="listSettingsPanel" hidden>
+      <div class="settingsHead"><b>ツール・情報</b><span id="accountPill" class="pill">確認中</span></div>
+      <div class="tcgUtilityLinks">
+        <a href="./ui_health.html?v=20261006_clean1">UI診断</a>
+        <a href="./card_audit.html?v=20261006_clean1">カード精査</a>
+      </div>
+      <div class="status">
+        <span class="pill" id="uidPill">uid: ...</span>
+        <span class="pill" id="countPill">0 / 10</span>
+        <span class="pill">deck-list 20261006</span>
+      </div>
+    </section>
 
     <div class="modeTabs">
       <button class="modeTab active" id="tabMy" type="button">自分のデッキ</button>
@@ -300,17 +154,29 @@
 
     <section class="board">
       <div class="boardHead">
-        <b id="boardTitle">保存スロット</b>
+        <b id="boardTitle">保存デッキ</b>
         <input class="search" id="searchInput" placeholder="デッキ名 / ID / タグで検索" />
       </div>
       <div class="grid" id="deckGrid"></div>
     </section>
     <div class="message" id="message"></div>
   </main>
-  <script type="module" src="./deck_list.js?v=20260926_deck_critical3"></script>
+
+  <script>
+    (() => {
+      const btn = document.getElementById("btnListSettings");
+      const panel = document.getElementById("listSettingsPanel");
+      btn?.addEventListener("click", () => {
+        const open = panel?.hidden !== false;
+        if (panel) panel.hidden = !open;
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      const linked = localStorage.getItem("profileLinked") === "1" && !!localStorage.getItem("uid");
+      const account = document.getElementById("accountPill");
+      if (account) account.textContent = linked ? "ログイン済み" : "ゲスト";
+    })();
+  </script>
+  <script type="module" src="./deck_list.js?v=20261006_clean1"></script>
   <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
 </body>
 </html>
-
-
-

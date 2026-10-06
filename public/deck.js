@@ -1,4 +1,4 @@
-// public/deck.js
+﻿// public/deck.js
 // v20260829_home_left_fit1
 // Deck builder screen. Keep room/profile tools outside the card list flow.
 import { ensureSignedIn } from "./auth.js?v=20260627_user1";
@@ -54,7 +54,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { initDeckLibrary } from "./deck_library.js?v=20261005_community_fix1";
+import { initDeckLibrary } from "./deck_library.js?v=20261006_unified_save1";
 
 initPostBox();
 
@@ -7213,22 +7213,7 @@ function consumePendingCloudDeck() {
 
     if (snap.sourceId) {
       try {
-        let communityImport = null;
-        try {
-          const markerRaw = sessionStorage.getItem("tcg_community_deck_import_v20261005") || "";
-          communityImport = markerRaw ? JSON.parse(markerRaw) : null;
-        } catch {}
-        const isCommunityClone =
-          communityImport &&
-          String(communityImport.sourceId || "") === String(snap.sourceId);
-
-        if (isCommunityClone) {
-          // Keep provenance in sessionStorage only. Never point personal overwrite state at somebody else's deck.
-          localStorage.removeItem("tcg_cloud_deck_last_id_v20260204");
-          localStorage.removeItem("tcg_decklib_last_opened_id_v1");
-        } else {
-          localStorage.setItem("tcg_cloud_deck_last_id_v20260204", String(snap.sourceId));
-        }
+        localStorage.setItem("tcg_cloud_deck_last_id_v20260204", String(snap.sourceId));
       } catch {}
     }
 

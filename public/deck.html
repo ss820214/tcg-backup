@@ -1,13 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
-  <link rel="dns-prefetch" href="//www.gstatic.com" />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js" crossorigin />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js" crossorigin />
-  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js" crossorigin />
   <title>TCG Online - Deck Builder</title>
   <style>
     :root{--bg:#070a0d;--panel:#111820;--panel2:#17222b;--line:rgba(255,255,255,.12);--text:#fff;--muted:rgba(255,255,255,.66);--acc:#65b7ff;--ok:#76f7bd;--gold:#ffd86b;--bad:#ff7777;}
@@ -19,6 +14,9 @@
     body[data-kind-filter="unit"] #cardList .cardRow:not([data-kind="unit"]){display:none!important}body[data-kind-filter="support"] #cardList .cardRow:not([data-kind="support"]):not([data-kind="ex_support"]){display:none!important}body[data-owned-filter="owned"] #cardList .cardRow.notOwned{display:none!important}body[data-owned-filter="missing"] #cardList .cardRow:not(.notOwned){display:none!important}
     @media(max-width:1180px){.wrap{grid-template-columns:1fr}#deckPanel{position:relative;top:auto;max-height:none;min-height:auto}#cardList{max-height:52vh}}@media(max-width:720px){header{align-items:flex-start;flex-direction:column}.topRight{width:100%;overflow-x:auto;flex-wrap:nowrap}.wrap{padding:8px;gap:8px}.panel{border-radius:16px}.filterGrid{grid-template-columns:1fr}.ownedRow{justify-content:flex-start;border-left:0;padding-left:0}.cardRow{grid-template-columns:minmax(0,1fr) 150px;min-height:72px;padding:8px}.cardName{font-size:13px}.cardMeta{font-size:11px}.cardCtrl{grid-template-columns:34px minmax(44px,1fr) 34px;min-width:150px}.detailBtn{min-height:31px}.deckSaveRow{grid-template-columns:1fr}#roomDrawerToggle{right:10px;bottom:10px}.deckStartTitle{font-size:30px}}
   </style>
+  <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260808_deck_flow2" />
+  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
+  <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
 </head>
 <body data-kind-filter="all" data-owned-filter="all">
   <div id="deckStart" class="deckStart" role="button" tabindex="0" aria-label="Deck start">
@@ -37,10 +35,16 @@
   <div id="detailWrap" aria-hidden="true"><div class="detailHead"><b>&#35443;&#32048;</b><button id="detailClose" class="btnGhost" type="button">x</button></div><div id="detail">&#12459;&#12540;&#12489;&#35443;&#32048;&#12364;&#12371;&#12371;&#12395;&#34920;&#31034;&#12373;&#12428;&#12414;&#12377;&#12290;</div></div>
   <div id="guideOverlay" class="guideOverlay" aria-hidden="true"><div id="guideDim" class="guideDim"></div><div id="guideFocus" class="guideFocus"></div><div id="guideCard" class="guideCard"><div class="small" id="guideStep"></div><h3 id="guideTitle" style="margin:6px 0 8px;"></h3><div id="guideText" class="msg"></div><div class="guideBtns"><button id="guidePrev" class="btnGhost" type="button">&#25147;&#12427;</button><button id="guideSkip" class="btnGhost" type="button">&#38281;&#12376;&#12427;</button><button id="guideNext" class="btn" type="button">&#27425;&#12408;</button></div></div></div>
   <script>(()=>{const typeSelect=document.getElementById('typeSelect');const kindBtns=Array.from(document.querySelectorAll('[data-kind-filter]'));const attrBtns=Array.from(document.querySelectorAll('[data-attr-filter]'));const ownedBtns=Array.from(document.querySelectorAll('[data-owned-filter]'));const setKind=(kind)=>{document.body.dataset.kindFilter=kind;kindBtns.forEach(b=>b.classList.toggle('active',b.dataset.kindFilter===kind));};const setOwned=(owned)=>{document.body.dataset.ownedFilter=owned;ownedBtns.forEach(b=>b.classList.toggle('active',b.dataset.ownedFilter===owned));};const setAttr=(attr)=>{if(typeSelect){typeSelect.value=attr;typeSelect.dispatchEvent(new Event('change',{bubbles:true}));}attrBtns.forEach(b=>b.classList.toggle('active',b.dataset.attrFilter===attr));};kindBtns.forEach(b=>b.addEventListener('click',()=>setKind(b.dataset.kindFilter||'all')));ownedBtns.forEach(b=>b.addEventListener('click',()=>setOwned(b.dataset.ownedFilter||'all')));attrBtns.forEach(b=>b.addEventListener('click',()=>setAttr(b.dataset.attrFilter||'ALL')));setKind('all');setOwned('all');setAttr(typeSelect?.value||'ALL');const openRoom=()=>{document.getElementById('roomDrawer')?.classList.add('open');document.getElementById('roomDrawerOverlay')?.classList.add('open');};const closeRoom=()=>{document.getElementById('roomDrawer')?.classList.remove('open');document.getElementById('roomDrawerOverlay')?.classList.remove('open');};document.getElementById('roomDrawerToggle')?.addEventListener('click',openRoom);document.getElementById('btnSettings')?.addEventListener('click',openRoom);document.getElementById('roomDrawerClose')?.addEventListener('click',closeRoom);document.getElementById('roomDrawerOverlay')?.addEventListener('click',closeRoom);document.querySelectorAll('[data-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b===btn));document.getElementById('tab-create').hidden=btn.dataset.tab!=='create';document.getElementById('tab-join').hidden=btn.dataset.tab!=='join';}));document.getElementById('btnHome')?.addEventListener('click',()=>location.href='./index.html');document.getElementById('btnDeckTop')?.addEventListener('click',()=>document.getElementById('deckPanel')?.scrollIntoView({behavior:'smooth',block:'start'}));document.getElementById('btnRule')?.addEventListener('click',()=>location.href='./rule.html');})();</script>
-<script src="./deck_bootstrap_recovery_20261003.js?v=20261003_recovery1"></script>
-<script type="module" src="./deck.js?v=20261003_play_stability2"></script>
+<script type="module" src="./deck.js?v=20261006_unified_save1"></script>
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
-  <script src="./deck_ui_entry_20261005.js?v=20261005_ui_entry2" defer></script>
+  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./dopagaki_mode.js?v=20260821_drag1"></script>
+  <script src="./visual_upgrade_20260805.js?v=20260808_deck_flow2"></script>
+<script src="./deck_layout_guard.js?v=20260821_readable_ui1"></script>
+  <script src="./mobile_deck_ui.js?v=20260906_curse_nav1"></script>
+  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script src="./mobile_home_deck_ui_20260926.js?v=20260926_device_switch4" defer></script>
 </body>
 </html>
 

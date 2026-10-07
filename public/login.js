@@ -114,10 +114,22 @@ function useSavedId() {
   el.pin.focus();
 }
 
-function moveNext(uid) {
+function safeReturnUrl() {
   const ret = new URLSearchParams(location.search).get("return");
+  if (!ret) return "";
+  try {
+    const url = new URL(ret, location.href);
+    if (url.origin !== location.origin) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function moveNext(uid) {
+  const ret = safeReturnUrl();
   if (ret) {
-    location.href = decodeURIComponent(ret);
+    location.href = ret;
     return;
   }
   location.href = `./index.html?uid=${encodeURIComponent(uid)}`;
@@ -309,8 +321,7 @@ function wire() {
   el.btnSuggest?.addEventListener("click", suggestId);
   el.btnUseSaved?.addEventListener("click", useSavedId);
   el.btnBack?.addEventListener("click", () => {
-    const ret = new URLSearchParams(location.search).get("return");
-    location.href = ret ? decodeURIComponent(ret) : "./index.html";
+    location.href = safeReturnUrl() || "./index.html";
   });
   el.form?.addEventListener("submit", (e) => {
     e.preventDefault();

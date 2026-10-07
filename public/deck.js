@@ -8613,8 +8613,21 @@ await loadCards();
 await initOwnedCards();
 const loadedPendingDeck = consumePendingCloudDeck();
 if (!loadedPendingDeck) {
-  const okUser = await loadDeckFromUser();
-  if (!okUser) await loadDeckPreferFirestore(roomId, playerId);
+  let loadedLocalDeck = false;
+  try {
+    const rawLocalDeck = localStorage.getItem(LOCAL_KEY);
+    if (rawLocalDeck) {
+      const parsedLocalDeck = normalizeDeckMap(JSON.parse(rawLocalDeck) || {});
+      if (Object.keys(parsedLocalDeck).length > 0) {
+        deckMap = parsedLocalDeck;
+        loadedLocalDeck = true;
+      }
+    }
+  } catch {}
+  if (!loadedLocalDeck) {
+    const okUser = await loadDeckFromUser();
+    if (!okUser) await loadDeckPreferFirestore(roomId, playerId);
+  }
 }
 updateRoomPlayerSummary();
 pruneDeckByOwnership("デッキ調整");

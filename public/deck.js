@@ -54,7 +54,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { initDeckLibrary } from "./deck_library.js?v=20261007_loginfix2";
+import { initDeckLibrary } from "./deck_library.js?v=20261008_guest2save2";
 
 initPostBox();
 
@@ -6631,6 +6631,7 @@ function addToDeck(cardId) {
   if (!chk.ok) return setMsg(chk.reason, false);
   setMsg("", true);
   deckMap[cardId] = Number(deckMap[cardId] || 0) + 1;
+  saveLocalDeck();
   keepCardListScroll(renderAll);
   flashDeckAdd(cardId);
 }
@@ -6647,12 +6648,14 @@ function removeFromDeck(cardId) {
     saveSelectedEx("");
   }
 
+  saveLocalDeck();
   keepCardListScroll(renderAll);
 }
 function clearDeck() {
   deckMap = {};
   selectedExSupportId = "";
   saveSelectedEx("");
+  saveLocalDeck();
   renderAll();
   setMsg("デッキを全消ししました", true);
   setTimeout(() => setMsg("", true), 800);

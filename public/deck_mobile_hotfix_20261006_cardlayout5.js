@@ -153,11 +153,11 @@
   #cardList .cardRow .cardCtrl,
   #deckList .cardRow .cardCtrl {
     align-self:start!important;
-    width:108px!important;
-    min-width:108px!important;
-    max-width:108px!important;
+    width:148px!important;
+    min-width:148px!important;
+    max-width:148px!important;
     display:grid!important;
-    grid-template-columns:30px 40px 30px!important;
+    grid-template-columns:44px 52px 44px!important;
     grid-template-areas:"minus count plus" "detail detail detail" "ex ex ex" "admin admin admin"!important;
     gap:4px!important;
     margin:0!important;
@@ -182,8 +182,8 @@
   #cardList .cardRow .count,#deckList .cardRow .count,
   #cardList .cardRow .cnt,#deckList .cardRow .cnt {
     width:100%!important;
-    height:30px!important;
-    min-height:30px!important;
+    height:44px!important;
+    min-height:44px!important;
     padding:0!important;
     display:flex!important;
     align-items:center!important;
@@ -191,8 +191,8 @@
   }
   #cardList .cardRow [data-detail],#deckList .cardRow [data-detail] {
     width:100%!important;
-    height:31px!important;
-    min-height:31px!important;
+    height:40px!important;
+    min-height:40px!important;
     padding:0 4px!important;
     display:flex!important;
     align-items:center!important;

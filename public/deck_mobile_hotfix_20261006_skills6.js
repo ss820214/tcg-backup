@@ -18,7 +18,7 @@
   let defsPromise = null;
   let textHelpers = null;
 
-  const STATUS_SPRITE_URL = "./assets/status_marks/status_icons_sprite_20261007.webp?v=20261007_icons1";
+  const STATUS_SPRITE_URL = "/status_icons_sprite_20261007.png?v=20261007_icons12";
   const STATUS_VISUALS = [
     { keys:["命中増加","hitUp","aim"], sprite:0, label:"命中増加" },
     { keys:["命中DOWN","jinx"], sprite:1, label:"命中DOWN" },

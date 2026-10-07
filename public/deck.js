@@ -7912,6 +7912,17 @@ function renderCardSectionsOldUI() {
   }
 }
 
+// Detail buttons are re-rendered by mobile/card-layout hotfixes.
+document.addEventListener("click", (e) => {
+  const btn = e.target instanceof Element ? e.target.closest("[data-detail]") : null;
+  if (!btn || (!btn.closest("#cardList") && !btn.closest("#deckList") && !btn.closest("#cardSections"))) return;
+  const cardId = String(btn.getAttribute("data-detail") || btn.closest("[data-card-id]")?.getAttribute("data-card-id") || "").trim();
+  if (!cardId || !cardDefs[cardId]) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  showCardDetail(cardId);
+}, true);
+
 function renderAll() {
   ensureDeckCriticalBlockCss();
   setupMobileDeckStack();

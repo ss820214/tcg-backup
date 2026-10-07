@@ -18,27 +18,28 @@
   let defsPromise = null;
   let textHelpers = null;
 
+  const STATUS_SPRITE_URL = "./assets/status_marks/status_icons_sprite_20261007.webp?v=20261007_icons1";
   const STATUS_VISUALS = [
-    { keys:["命中増加","hitUp","aim"], file:"aim.png", label:"命中増加" },
-    { keys:["命中DOWN","jinx"], file:"jinx.png", label:"命中DOWN" },
-    { keys:["装甲","アーマー","armor"], file:"armor.png", label:"アーマー" },
-    { keys:["攻撃増加","パワーUP","powerUp","power"], file:"power.png", label:"パワーUP" },
-    { keys:["回避","evade"], file:"evade.png", label:"回避" },
-    { keys:["疲労回復","recoverFatigue","fatigue"], file:"fatigue.png", label:"疲労回復" },
-    { keys:["パニック","panic"], file:"panic.png", label:"パニック" },
-    { keys:["骨折","fracture"], file:"fracture.png", label:"骨折" },
-    { keys:["出血","bleed"], file:"bleed.png", label:"出血" },
-    { keys:["毒","poison"], file:"poison.png", label:"毒" },
-    { keys:["盲目","blind"], file:"blind.png", label:"盲目" },
-    { keys:["におい","匂い","smell"], file:"smell.png", label:"におい" },
-    { keys:["失魂","lostSoul"], file:"lostSoul.png", label:"失魂" },
-    { keys:["封印","seal"], file:"seal.png", label:"封印" },
-    { keys:["激怒","rage"], file:"rage.png", label:"激怒" },
-    { keys:["洗脳","brainwash"], file:"brainwash.png", label:"洗脳" },
-    { keys:["ヘドロ","sludge"], file:"sludge.png", label:"ヘドロ" },
-    { keys:["カウンター","counter"], file:"counter.png", label:"カウンター" },
-    { keys:["タイマン","taiman"], file:"taiman.png", label:"タイマン" },
-    { keys:["ノックバック","knockback"], glyph:"↩", label:"ノックバック" },
+    { keys:["命中増加","hitUp","aim"], sprite:0, label:"命中増加" },
+    { keys:["命中DOWN","jinx"], sprite:1, label:"命中DOWN" },
+    { keys:["装甲","アーマー","armor"], sprite:2, label:"アーマー" },
+    { keys:["攻撃増加","パワーUP","powerUp","power"], sprite:3, label:"パワーUP" },
+    { keys:["回避","evade"], sprite:4, label:"回避" },
+    { keys:["疲労回復","recoverFatigue","fatigue"], sprite:5, label:"疲労回復" },
+    { keys:["パニック","panic"], sprite:6, label:"パニック" },
+    { keys:["骨折","fracture"], sprite:7, label:"骨折" },
+    { keys:["出血","bleed"], sprite:8, label:"出血" },
+    { keys:["毒","poison"], sprite:9, label:"毒" },
+    { keys:["盲目","blind"], sprite:10, label:"盲目" },
+    { keys:["におい","匂い","smell"], sprite:11, label:"におい" },
+    { keys:["失魂","lostSoul"], sprite:12, label:"失魂" },
+    { keys:["封印","seal"], sprite:13, label:"封印" },
+    { keys:["激怒","rage"], sprite:14, label:"激怒" },
+    { keys:["洗脳","brainwash"], sprite:15, label:"洗脳" },
+    { keys:["ヘドロ","sludge"], sprite:16, label:"ヘドロ" },
+    { keys:["カウンター","counter"], sprite:17, label:"カウンター" },
+    { keys:["タイマン","taiman"], sprite:18, label:"タイマン" },
+    { keys:["ノックバック","knockback"], sprite:19, label:"ノックバック" },
     { keys:["貫通","pierce"], glyph:"📌", label:"貫通" },
     { keys:["範囲","aoe"], glyph:"💢", label:"範囲" },
     { keys:["コンボ","combo"], glyph:"🔗", label:"コンボ" },
@@ -190,13 +191,14 @@
     span.className = "deckStatusVisual";
     span.title = meta.label;
     span.setAttribute("aria-label", meta.label);
-    if (meta.file) {
-      const img = document.createElement("img");
-      img.className = "deckStatusIcon";
-      img.src = `./assets/status_marks/${meta.file}`;
-      img.alt = "";
-      img.loading = "lazy";
-      span.appendChild(img);
+    if (Number.isInteger(meta.sprite)) {
+      const col = meta.sprite % 5;
+      const row = Math.floor(meta.sprite / 5);
+      span.classList.add("deckStatusSprite");
+      span.style.backgroundImage = `url("${STATUS_SPRITE_URL}")`;
+      span.style.backgroundSize = "80px 64px";
+      span.style.backgroundPosition = `${-col * 16}px ${-row * 16}px`;
+      span.style.backgroundRepeat = "no-repeat";
     } else {
       span.classList.add("deckStatusGlyph");
       span.textContent = meta.glyph || "•";

@@ -358,12 +358,12 @@ body.mobileDeckUi #mobileDeckNav{display:none !important}
   body.mobileDeckUi #cardList .cardRow .cardCtrl {
     grid-area: ctrl !important;
     display: grid !important;
-    grid-template-columns: 34px minmax(42px, 1fr) 34px !important;
+    grid-template-columns: 44px minmax(52px, 1fr) 44px !important;
     grid-template-areas:
       "minus count plus"
       "detail detail detail"
       "admin admin admin" !important;
-    grid-auto-rows: 28px !important;
+    grid-auto-rows: 44px 40px 40px !important;
     gap: 4px !important;
     align-self: stretch !important;
     width: 100% !important;
@@ -377,8 +377,8 @@ body.mobileDeckUi #mobileDeckNav{display:none !important}
   body.mobileDeckUi #cardList .cardRow .cardCtrl .countBox {
     width: auto !important;
     min-width: 0 !important;
-    min-height: 28px !important;
-    height: 28px !important;
+    min-height: 44px !important;
+    height: 44px !important;
     padding: 0 !important;
     border-radius: 9px !important;
     font-size: 11px !important;

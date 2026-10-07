@@ -253,8 +253,9 @@ function installUnifiedUi(opts = {}) {
     if (linked) {
       note.textContent = "1〜30枚で保存できます。初回は新規保存、以後は同じデッキを更新します。";
     } else {
-      const ret = encodeURIComponent(location.href);
-      note.innerHTML = `ゲストではクラウド保存できません。<a href="./login.html?return=${ret}">ログイン / 新規登録</a>後に利用できます。`;
+      const params = new URLSearchParams();
+      params.set("return", location.href);
+      note.innerHTML = `ゲストではクラウド保存できません。<a href="./login.html?${params.toString()}">ログイン / 新規登録</a>後に利用できます。`;
     }
   }
 

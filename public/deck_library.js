@@ -1,6 +1,6 @@
 // public/deck_library.js
-// v20261006_unified_save1
-// Single-save UI + registered-profile cloud save + copy-safe overwrite semantics.
+// v20261008_guest_save_limit2
+// Single-save UI + guest 2-deck / registered 10-deck cloud save + copy-safe overwrite semantics.
 
 import { initDeckLibrary as initDeckLibraryCore } from "./deck_library_core_20261005.js?v=20260822_deck_meta1";
 import { ensureSignedIn } from "./auth.js?v=20260627_perm1";
@@ -255,7 +255,7 @@ function installUnifiedUi(opts = {}) {
     } else {
       const params = new URLSearchParams();
       params.set("return", location.href);
-      note.innerHTML = `ゲストではクラウド保存できません。<a href="./login.html?${params.toString()}">ログイン / 新規登録</a>後に利用できます。`;
+      note.innerHTML = `ゲストは2デッキまで保存できます。<a href="./login.html?${params.toString()}">ログイン / 新規登録</a>すると最大10デッキ保存できます。`;
     }
   }
 
@@ -265,15 +265,13 @@ function installUnifiedUi(opts = {}) {
     if (state.saving) return;
 
     void (async () => {
-      if (!isProfileLinked()) {
-        setMsg("ゲストではデッキ保存できません。ログイン / 新規登録してください。", false);
-        return;
-      }
-
+      const linked = isProfileLinked();
       const user = await ensureSignedIn().catch(() => null);
-      const linkedUid = getLS("uid");
+      const linkedUid = linked ? getLS("uid") : String(user?.uid || "");
       if (!user?.uid || !linkedUid || user.uid !== linkedUid) {
-        setMsg("ログイン情報を確認できません。いったんログインし直してください。", false);
+        setMsg(linked
+          ? "ログイン情報を確認できません。いったんログインし直してください。"
+          : "ゲスト情報を確認できません。ページを再読み込みしてもう一度お試しください。", false);
         return;
       }
 
@@ -314,8 +312,11 @@ function installUnifiedUi(opts = {}) {
           await setDoc(doc(db, "decks", targetId), payload, { merge:true });
           setMsg(`保存しました：${payload.title}（${size}/30枚）`, true);
         } else {
-          if (await ownDeckCount(db, linkedUid) >= 10) {
-            throw new Error("保存デッキは最大10件です。自分のデッキから不要なデッキを削除してください。");
+          const maxDecks = linked ? 10 : 2;
+          if (await ownDeckCount(db, linkedUid) >= maxDecks) {
+            throw new Error(linked
+              ? "保存デッキは最大10件です。自分のデッキから不要なデッキを削除してください。"
+              : "ゲストは2デッキまで保存できます。さらに保存するにはログイン / 新規登録してください。");
           }
           payload.createdAt = serverTimestamp();
           const ref = await addDoc(collection(db, "decks"), payload);

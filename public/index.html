@@ -2473,6 +2473,33 @@
     <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
     <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260830_statusguide1" />
   <link rel="stylesheet" href="./mobile_deck_block_final_20260927.css?v=20260930_mobile_deck_stable3" />
+
+  <style id="deckMobileFinalControls_20261008">
+  @media (max-width: 940px), (pointer: coarse) {
+    #cardList .cardRow, #deckList .cardRow {
+      grid-template-columns: minmax(0,1fr) 156px !important;
+      overflow: hidden !important;
+    }
+    #cardList .cardCtrl, #deckList .cardCtrl,
+    #cardList .btns, #deckList .btns {
+      width:156px !important; min-width:156px !important; max-width:156px !important;
+      grid-template-columns:46px 58px 46px !important;
+      gap:3px !important;
+    }
+    #cardList [data-minus], #cardList [data-plus],
+    #deckList [data-minus], #deckList [data-plus] {
+      width:46px !important; min-width:46px !important; max-width:46px !important;
+      height:46px !important; min-height:46px !important;
+      padding:0 !important; font-size:22px !important; touch-action:manipulation;
+    }
+    #cardList .count, #cardList .cnt, #deckList .count, #deckList .cnt {
+      min-width:58px !important; height:46px !important; display:grid !important; place-items:center !important;
+    }
+    #cardList [data-detail], #deckList [data-detail], .detailBtn {
+      grid-column:1/-1 !important; width:100% !important; min-height:40px !important;
+    }
+  }
+  </style>
 </head>
 
   <body>
@@ -2639,7 +2666,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261008_persist_support_guest3"></script>
+  <script type="module" src="./deck.js?v=20261008_rootfix5"></script>
 
     <script>
       (() => {

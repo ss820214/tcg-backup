@@ -191,18 +191,42 @@
     span.className = "deckStatusVisual";
     span.title = meta.label;
     span.setAttribute("aria-label", meta.label);
+
     if (Number.isInteger(meta.sprite)) {
       const col = meta.sprite % 5;
       const row = Math.floor(meta.sprite / 5);
       span.classList.add("deckStatusSprite");
-      span.style.backgroundImage = `url("${STATUS_SPRITE_URL}")`;
-      span.style.backgroundSize = "80px 64px";
-      span.style.backgroundPosition = `${-col * 16}px ${-row * 16}px`;
-      span.style.backgroundRepeat = "no-repeat";
+
+      // 背景画像指定は既存CSSの !important に潰される環境があるため、
+      // スプライト本体を <img> として切り抜いて確実に表示する。
+      span.style.setProperty("position", "relative", "important");
+      span.style.setProperty("overflow", "hidden", "important");
+      span.style.setProperty("width", "16px", "important");
+      span.style.setProperty("height", "16px", "important");
+      span.style.setProperty("background", "transparent", "important");
+
+      const img = document.createElement("img");
+      img.src = STATUS_SPRITE_URL;
+      img.alt = "";
+      img.draggable = false;
+      img.loading = "eager";
+      img.style.setProperty("position", "absolute", "important");
+      img.style.setProperty("width", "80px", "important");
+      img.style.setProperty("height", "64px", "important");
+      img.style.setProperty("max-width", "none", "important");
+      img.style.setProperty("max-height", "none", "important");
+      img.style.setProperty("left", `${-col * 16}px`, "important");
+      img.style.setProperty("top", `${-row * 16}px`, "important");
+      img.style.setProperty("border", "0", "important");
+      img.style.setProperty("border-radius", "0", "important");
+      img.style.setProperty("box-shadow", "none", "important");
+      img.style.setProperty("pointer-events", "none", "important");
+      span.appendChild(img);
     } else {
       span.classList.add("deckStatusGlyph");
       span.textContent = meta.glyph || "•";
     }
+
     host.appendChild(span);
   }
 
@@ -213,12 +237,29 @@
       host.appendChild(document.createTextNode(src));
       return;
     }
+
     let pos = 0;
     matches.forEach((m) => {
+      if (m.start < pos) return;
       if (m.start > pos) host.appendChild(document.createTextNode(src.slice(pos, m.start)));
+
       appendStatusVisual(host, m.meta);
-      pos = m.end;
+
+      // 状態異常は強度の数値を一覧に出さない。
+      // 例: 命中増加+10 / 出血:20 / 封印1T → [アイコン]+
+      let next = m.end;
+      const suffix = src.slice(next);
+      const amount = suffix.match(/^\s*(?:[:：=]?\s*)?[+-]?\d+(?:\.\d+)?(?:%|T)?/i);
+      if (amount) next += amount[0].length;
+      else {
+        const plusOnly = suffix.match(/^\s*\+/);
+        if (plusOnly) next += plusOnly[0].length;
+      }
+
+      host.appendChild(document.createTextNode("+"));
+      pos = next;
     });
+
     if (pos < src.length) host.appendChild(document.createTextNode(src.slice(pos)));
   }
 

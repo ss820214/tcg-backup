@@ -20,8 +20,8 @@
 
   const STATUS_SPRITE_URL = "/status_icons_sprite_20261007.png?v=20261007_icons12";
   const STATUS_VISUALS = [
-    { keys:["命中増加","hitUp","aim"], sprite:0, label:"命中増加" },
-    { keys:["命中DOWN","jinx"], sprite:1, label:"命中DOWN" },
+    { keys:["命中増加","命中UP","命中アップ","成功率UP","成功率アップ","成功率増加","hitUp","aim"], sprite:0, label:"命中増加", keepRate:true, rateSign:1 },
+    { keys:["命中DOWN","命中ダウン","成功率DOWN","成功率ダウン","成功率低下","jinx"], sprite:1, label:"命中DOWN", keepRate:true, rateSign:-1 },
     { keys:["装甲","アーマー","armor"], sprite:2, label:"アーマー" },
     { keys:["攻撃増加","パワーUP","powerUp","power"], sprite:3, label:"パワーUP" },
     { keys:["回避","evade"], sprite:4, label:"回避" },
@@ -245,18 +245,28 @@
 
       appendStatusVisual(host, m.meta);
 
-      // 状態異常は強度の数値を一覧に出さない。
-      // 例: 命中増加+10 / 出血:20 / 封印1T → [アイコン]+
+      // 通常の状態異常は「アイコン+」だけ。
+      // 命中/成功率に関わるバフ・デバフだけ増減率を残す。
       let next = m.end;
       const suffix = src.slice(next);
-      const amount = suffix.match(/^\s*(?:[:：=]?\s*)?[+-]?\d+(?:\.\d+)?(?:%|T)?/i);
-      if (amount) next += amount[0].length;
-      else {
-        const plusOnly = suffix.match(/^\s*\+/);
+      const amount = suffix.match(/^\s*(?:[:：=]?\s*)?([+-]?\d+(?:\.\d+)?)(?:%|T)?/i);
+      let rendered = "+";
+
+      if (amount) {
+        next += amount[0].length;
+        if (m.meta.keepRate) {
+          const raw = Number(amount[1]);
+          const magnitude = Number.isFinite(raw) ? Math.abs(raw) : 0;
+          const sign = m.meta.rateSign < 0 ? "-" : "+";
+          rendered = `${sign}${magnitude}%`;
+        }
+      } else {
+        const plusOnly = suffix.match(/^\s*[+-]/);
         if (plusOnly) next += plusOnly[0].length;
+        if (m.meta.keepRate) rendered = m.meta.rateSign < 0 ? "-" : "+";
       }
 
-      host.appendChild(document.createTextNode("+"));
+      host.appendChild(document.createTextNode(rendered));
       pos = next;
     });
 
@@ -288,7 +298,10 @@
     const name = String(parts?.name || action.name || action.label || action.actionName || "").trim() || "名称なし";
     const range = arrowRange(action);
     const effect = actionEffectSummary(action, parts);
-    return `行動${index + 1}: 【${cost}】${name}${range ? ` ${range}` : ""}${effect ? ` ${effect}` : ""}`;
+    const rawRate = parts?.rate ?? action.rate ?? 0;
+    const rate = Number(rawRate);
+    const rateText = Number.isFinite(rate) && rate > 0 ? ` 成功${Math.round(rate)}%` : "";
+    return `行動${index + 1}: 【${cost}】${name}${range ? ` ${range}` : ""}${effect ? ` ${effect}` : ""}${rateText}`;
   }
 
   function supportEffectLine(def) {

@@ -1,369 +1,368 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>0BATo - Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>0BATo - ログイン</title>
   <style>
-    :root {
-      --bg: #080a0f;
-      --panel: rgba(255,255,255,.075);
-      --panel2: rgba(255,255,255,.105);
-      --line: rgba(255,255,255,.15);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.64);
-      --soft: rgba(255,255,255,.08);
-      --accent: #8fd0ff;
-      --accent2: #78e3ad;
-      --gold: #ffd166;
-      --bad: #ff7a90;
-      --shadow: 0 24px 80px rgba(0,0,0,.44);
+    :root{
+      --bg:#071017;
+      --panel:#0d1821;
+      --panel2:#111f2a;
+      --line:rgba(255,255,255,.12);
+      --text:#f6fbff;
+      --muted:rgba(246,251,255,.65);
+      --accent:#75d7ff;
+      --accent2:#79f0b8;
+      --bad:#ff8194;
     }
-    * { box-sizing: border-box; }
-    html, body { min-height: 100%; }
-    body {
-      margin: 0;
-      color: var(--text);
-      font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+    *{box-sizing:border-box}
+    html,body{width:100%;min-height:100%;overflow-x:hidden}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Segoe UI",sans-serif;
       background:
-        linear-gradient(90deg, rgba(143,208,255,.05) 1px, transparent 1px) 0 0 / 42px 42px,
-        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 42px 42px,
-        radial-gradient(960px 680px at 12% 8%, rgba(143,208,255,.20), transparent 58%),
-        radial-gradient(840px 620px at 84% 4%, rgba(120,227,173,.14), transparent 56%),
-        radial-gradient(700px 560px at 52% 100%, rgba(255,209,102,.10), transparent 58%),
-        linear-gradient(180deg, #090b10, var(--bg));
+        radial-gradient(700px 420px at 15% 0%,rgba(117,215,255,.13),transparent 58%),
+        radial-gradient(620px 400px at 90% 8%,rgba(121,240,184,.09),transparent 60%),
+        linear-gradient(180deg,#09121a,var(--bg));
     }
-    .screen {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(360px, 470px);
-      gap: 32px;
-      align-items: center;
-      width: min(1180px, calc(100vw - 32px));
-      margin: 0 auto;
-      padding: 34px 0;
+    button,input{font:inherit;color:inherit}
+    .screen{
+      width:min(920px,calc(100vw - 24px));
+      margin:0 auto;
+      padding:max(18px,env(safe-area-inset-top)) 0 max(28px,env(safe-area-inset-bottom));
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(340px,430px);
+      gap:26px;
+      align-items:center;
+      min-height:100vh;
     }
-    .brand {
-      min-width: 0;
-      padding: 12px 0;
+    .brand{min-width:0;padding:8px 4px}
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      min-height:34px;
+      padding:0 10px;
+      border:1px solid rgba(117,215,255,.28);
+      border-radius:999px;
+      background:rgba(117,215,255,.08);
+      color:#cfefff;
+      font-size:12px;
+      font-weight:900;
     }
-    .logo {
-      width: 68px;
-      height: 68px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.22);
-      background:
-        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.70), transparent 58%),
-        linear-gradient(135deg, rgba(143,208,255,.88), rgba(120,227,173,.78));
-      box-shadow: 0 16px 50px rgba(0,0,0,.36);
-      margin-bottom: 22px;
+    .brand h1{
+      margin:16px 0 0;
+      font-size:clamp(36px,6vw,72px);
+      line-height:.98;
+      letter-spacing:-.03em;
     }
-    h1 {
-      margin: 0;
-      font-size: clamp(42px, 7vw, 92px);
-      line-height: .92;
-      letter-spacing: 0;
-      font-weight: 950;
+    .brand p{
+      margin:15px 0 0;
+      max-width:560px;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:14px;
     }
-    .lead {
-      margin: 18px 0 0;
-      color: rgba(255,255,255,.72);
-      font-size: 16px;
-      line-height: 1.8;
-      max-width: 640px;
+    .brandLinks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:9px;
+      margin-top:18px;
     }
-    .badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 24px;
+    .brandLinks a{
+      min-height:42px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 14px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:850;
+      font-size:13px;
     }
-    .badge {
-      border: 1px solid var(--line);
-      background: rgba(0,0,0,.22);
-      border-radius: 999px;
-      padding: 8px 11px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
+    .panel{
+      min-width:0;
+      width:100%;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg,rgba(17,31,42,.96),rgba(10,19,27,.96));
+      box-shadow:0 24px 70px rgba(0,0,0,.36);
     }
-    .brandActions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 22px;
+    .panelHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:15px 16px;
+      border-bottom:1px solid var(--line);
     }
-    .deckLink {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 44px;
-      border: 1px solid rgba(143,208,255,.40);
-      border-radius: 999px;
-      background:
-        linear-gradient(135deg, rgba(143,208,255,.20), rgba(120,227,173,.13)),
-        rgba(0,0,0,.22);
-      color: white;
-      text-decoration: none;
-      padding: 11px 16px;
-      font-size: 13px;
-      font-weight: 950;
-      box-shadow: 0 14px 42px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
-      transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+    .panelTitle{font-size:18px;font-weight:950}
+    .status{
+      max-width:150px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      color:var(--muted);
+      font-size:11px;
     }
-    .deckLink:hover {
-      transform: translateY(-1px);
-      border-color: rgba(143,208,255,.72);
-      box-shadow: 0 18px 52px rgba(0,0,0,.34), 0 0 24px rgba(143,208,255,.12);
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:12px 14px 4px;
     }
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: linear-gradient(180deg, var(--panel2), var(--panel));
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      backdrop-filter: blur(18px);
+    .tab{
+      min-width:0;
+      min-height:44px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+      font-weight:900;
     }
-    .panelHead {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255,255,255,.11);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+    .tab[aria-selected="true"]{
+      color:white;
+      border-color:rgba(117,215,255,.48);
+      background:rgba(117,215,255,.13);
+      box-shadow:inset 0 -2px 0 rgba(117,215,255,.62);
     }
-    .panelTitle {
-      font-weight: 950;
-      font-size: 18px;
+    form{padding:4px 14px 14px}
+    label{
+      display:block;
+      margin:13px 0 6px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
     }
-    .status {
-      max-width: 190px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      color: var(--muted);
-      font-size: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 999px;
-      padding: 5px 9px;
-      background: rgba(0,0,0,.20);
+    .idRow{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:8px;
+      align-items:stretch;
     }
-    .tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      padding: 12px;
-      gap: 8px;
+    input{
+      width:100%;
+      min-width:0;
+      height:46px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(0,0,0,.20);
+      padding:0 12px;
+      outline:none;
+      font-size:16px;
     }
-    .tab {
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 999px;
-      padding: 10px 12px;
-      color: var(--muted);
-      background: rgba(0,0,0,.18);
-      font-weight: 900;
-      cursor: pointer;
+    input:focus{
+      border-color:rgba(117,215,255,.55);
+      box-shadow:0 0 0 3px rgba(117,215,255,.10);
     }
-    .tab[aria-selected="true"] {
-      color: white;
-      border-color: rgba(143,208,255,.45);
-      background: rgba(143,208,255,.15);
+    .miniBtn{
+      min-width:68px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(255,255,255,.055);
+      font-weight:900;
+      padding:0 12px;
     }
-    form {
-      padding: 6px 16px 16px;
+    .hint{
+      margin-top:6px;
+      color:rgba(246,251,255,.48);
+      font-size:11px;
+      line-height:1.55;
     }
-    label {
-      display: block;
-      margin: 14px 0 7px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
+    .primary{
+      width:100%;
+      min-height:48px;
+      margin-top:16px;
+      border:1px solid rgba(121,240,184,.42);
+      border-radius:11px;
+      background:linear-gradient(135deg,rgba(117,215,255,.18),rgba(121,240,184,.18));
+      font-weight:950;
+      font-size:16px;
     }
-    input {
-      width: 100%;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 8px;
-      background: rgba(0,0,0,.22);
-      color: var(--text);
-      padding: 13px 13px;
-      font-size: 16px;
-      outline: none;
+    button{cursor:pointer}
+    button:disabled{opacity:.5;cursor:wait}
+    .subActions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-top:9px;
     }
-    input:focus {
-      border-color: rgba(143,208,255,.52);
-      box-shadow: 0 0 0 3px rgba(143,208,255,.11);
+    .linkBtn,.deckTextLink{
+      min-width:0;
+      min-height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(255,255,255,.035);
+      color:#cfefff;
+      text-decoration:none;
+      font-size:12px;
+      font-weight:850;
+      padding:0 9px;
     }
-    .hint {
-      margin-top: 7px;
-      color: rgba(255,255,255,.50);
-      font-size: 12px;
-      line-height: 1.5;
+    #btnBack{grid-column:1/-1}
+    .message{
+      min-height:46px;
+      margin-top:11px;
+      padding:10px 11px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      font-size:12px;
+      line-height:1.5;
     }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: end;
+    .message.ok{color:var(--accent2);border-color:rgba(121,240,184,.28)}
+    .message.bad{color:var(--bad);border-color:rgba(255,129,148,.30)}
+    .account{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:0 14px 14px;
     }
-    .miniBtn {
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 8px;
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      padding: 13px 12px;
-      font-weight: 900;
-      cursor: pointer;
-      white-space: nowrap;
+    .accountCell{
+      min-width:0;
+      padding:9px 10px;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      background:rgba(0,0,0,.14);
     }
-    .primary {
-      width: 100%;
-      margin-top: 16px;
-      border: 1px solid rgba(120,227,173,.42);
-      border-radius: 8px;
-      background: linear-gradient(135deg, rgba(143,208,255,.20), rgba(120,227,173,.18));
-      color: white;
-      padding: 13px 14px;
-      font-size: 16px;
-      font-weight: 950;
-      cursor: pointer;
+    .k{color:var(--muted);font-size:10px}
+    .v{
+      margin-top:3px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:12px;
+      font-weight:900;
     }
-    button:disabled {
-      opacity: .55;
-      cursor: wait;
-    }
-    .subActions {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .linkBtn {
-      border: 0;
-      background: transparent;
-      color: var(--accent);
-      padding: 6px 0;
-      cursor: pointer;
-      font-weight: 800;
-    }
-    .subActions .deckTextLink {
-      color: var(--accent2);
-      text-decoration: none;
-      padding: 6px 0;
-      font-weight: 900;
-      white-space: nowrap;
-    }
-    .subActions .deckTextLink:hover {
-      text-decoration: underline;
-    }
-    .message {
-      min-height: 56px;
-      margin-top: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 8px;
-      background: rgba(0,0,0,.18);
-      padding: 11px;
-      color: var(--muted);
-      white-space: pre-wrap;
-      line-height: 1.5;
-      font-size: 13px;
-    }
-    .message.ok { color: var(--accent2); border-color: rgba(120,227,173,.28); }
-    .message.bad { color: var(--bad); border-color: rgba(255,122,144,.28); }
-    .account {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 0 16px 16px;
-    }
-    .accountCell {
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 8px;
-      padding: 10px;
-      background: rgba(0,0,0,.16);
-      min-width: 0;
-    }
-    .k { color: var(--muted); font-size: 11px; }
-    .v { margin-top: 4px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    @media (max-width: 860px) {
-      .screen {
-        grid-template-columns: 1fr;
-        gap: 18px;
-        align-items: start;
+    @media(max-width:760px){
+      .screen{
+        width:calc(100vw - 16px);
+        min-height:auto;
+        grid-template-columns:1fr;
+        gap:12px;
+        padding-top:max(10px,env(safe-area-inset-top));
       }
-      .brand { padding-top: 10px; }
-      .lead { font-size: 14px; }
-      .panel { max-width: 560px; width: 100%; margin: 0 auto; }
+      .brand{
+        padding:4px 4px 0;
+        text-align:center;
+      }
+      .eyebrow{min-height:30px}
+      .brand h1{
+        margin-top:10px;
+        font-size:29px;
+        line-height:1.05;
+      }
+      .brand h1 br{display:none}
+      .brand p{
+        margin:9px auto 0;
+        max-width:480px;
+        font-size:12px;
+        line-height:1.55;
+      }
+      .brandLinks{
+        margin-top:10px;
+        justify-content:center;
+      }
+      .brandLinks a{
+        min-height:38px;
+        flex:1 1 140px;
+        max-width:220px;
+      }
+      .panel{
+        border-radius:14px;
+        max-width:520px;
+        margin:0 auto;
+      }
+      .panelHead{padding:12px 13px}
+      .panelTitle{font-size:16px}
+      .tabs{padding:10px 12px 3px}
+      form{padding:3px 12px 12px}
+      .account{padding:0 12px 12px}
+    }
+    @media(max-width:380px){
+      .idRow{grid-template-columns:1fr}
+      .miniBtn{height:42px}
+      .subActions{grid-template-columns:1fr}
+      #btnBack{grid-column:auto}
+      .account{grid-template-columns:1fr}
     }
   </style>
-  <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
 <body>
   <main class="screen">
     <section class="brand" aria-label="0BATo">
-      <div class="logo"></div>
-      <h1>0BATo<br>Player Gate</h1>
-      <p class="lead">
-        繝励Ξ繧､繝､繝ｼID繧堤匳骭ｲ縺励※縲√ョ繝・く縲√ぎ繝√Ε縲∵姶邵ｾ繧貞酔縺倥・繝ｭ繝輔ぅ繝ｼ繝ｫ縺ｫ邏舌▼縺代∪縺吶・        譌｢蟄露D縺ｧ蜈･繧区凾縺ｯ縲後Ο繧ｰ繧､繝ｳ縲阪∝・繧√※菴ｿ縺・D縺ｯ縲梧眠隕冗匳骭ｲ縲阪°繧牙ｧ九ａ縺ｾ縺吶・      </p>
-      <div class="badges">
-        <span class="badge">Deck Sync</span>
-        <span class="badge">Gacha Profile</span>
-        <span class="badge">Match History</span>
-      </div>
-      <div class="brandActions">
-        <a class="deckLink" href="./deck.html">繝・ャ繧ｭ繝薙Ν繝繝ｼ縺ｸ</a>
+      <div class="eyebrow">0BATo PLAYER GATE</div>
+      <h1>ログイン / 新規登録</h1>
+      <p>
+        プレイヤーIDとPINを登録すると、デッキ保存などのクラウド機能を利用できます。
+        ゲストのまま遊ぶこともできますが、クラウドへのデッキ保存はできません。
+      </p>
+      <div class="brandLinks">
+        <a href="./deck.html">デッキ作成へ戻る</a>
+        <a href="./index.html">ホームへ</a>
       </div>
     </section>
 
-    <section class="panel" aria-label="繝ｭ繧ｰ繧､繝ｳ繝輔か繝ｼ繝">
+    <section class="panel" aria-label="ログインフォーム">
       <div class="panelHead">
-        <div class="panelTitle">繧｢繧ｫ繧ｦ繝ｳ繝・/div>
-        <div id="authState" class="status">謗･邯夂｢ｺ隱堺ｸｭ</div>
+        <div class="panelTitle">アカウント</div>
+        <div id="authState" class="status">接続確認中</div>
       </div>
 
-      <div class="tabs" role="tablist" aria-label="繝ｭ繧ｰ繧､繝ｳ遞ｮ蛻･">
-        <button id="tabLogin" class="tab" type="button" role="tab" aria-selected="true">繝ｭ繧ｰ繧､繝ｳ</button>
-        <button id="tabRegister" class="tab" type="button" role="tab" aria-selected="false">譁ｰ隕冗匳骭ｲ</button>
+      <div class="tabs" role="tablist" aria-label="ログイン種別">
+        <button id="tabLogin" class="tab" type="button" role="tab" aria-selected="true">ログイン</button>
+        <button id="tabRegister" class="tab" type="button" role="tab" aria-selected="false">新規登録</button>
       </div>
 
       <form id="loginForm">
-        <label for="name">繝励Ξ繧､繝､繝ｼID</label>
-        <div class="row">
-          <input id="name" maxlength="16" autocomplete="username" placeholder="萓・ obato_217">
-          <button id="btnSuggest" class="miniBtn" type="button">蛟呵｣・/button>
+        <label for="name">プレイヤーID</label>
+        <div class="idRow">
+          <input id="name" maxlength="16" autocomplete="username" placeholder="例: obato_217" />
+          <button id="btnSuggest" class="miniBtn" type="button">候補</button>
         </div>
-        <div class="hint">闍ｱ謨ｰ蟄励→ `_` 縺ｮ3縲・6譁・ｭ励ゅΟ繧ｰ繧､繝ｳ縺ｧ縺ｯ譛ｪ逋ｻ骭ｲID繧定・蜍穂ｽ懈・縺励∪縺帙ｓ縲・/div>
+        <div class="hint">英数字と _ の3〜16文字。ログインでは未登録IDを自動作成しません。</div>
 
         <label for="pin">PIN</label>
-        <input id="pin" maxlength="8" inputmode="numeric" autocomplete="current-password" pattern="[0-9]*" placeholder="4縲・譯・>
-        <div class="hint">縺薙・遶ｯ譛ｫ縺ｮ蛹ｿ蜷攻ID縺ｫ繝励Ο繝輔ぅ繝ｼ繝ｫ繧堤ｴ舌▼縺代∪縺吶・/div>
+        <input id="pin" maxlength="8" inputmode="numeric" autocomplete="current-password" pattern="[0-9]*" placeholder="4〜8桁" />
+        <div class="hint">この端末の匿名UIDにプレイヤープロフィールを紐づけます。</div>
 
-        <button id="btnSubmit" class="primary" type="submit">繝ｭ繧ｰ繧､繝ｳ縺吶ｋ</button>
+        <button id="btnSubmit" class="primary" type="submit">ログインする</button>
 
         <div class="subActions">
-          <button id="btnUseSaved" class="linkBtn" type="button">菫晏ｭ俶ｸ医∩ID繧貞・蜉・/button>
-          <a class="deckTextLink" href="./deck.html">繝・ャ繧ｭ縺ｸ</a>
-          <button id="btnBack" class="linkBtn" type="button">謌ｻ繧・/button>
+          <button id="btnUseSaved" class="linkBtn" type="button">保存済みIDを入力</button>
+          <a class="deckTextLink" href="./deck.html">デッキへ</a>
+          <button id="btnBack" class="linkBtn" type="button">元の画面へ戻る</button>
         </div>
 
-        <div id="msg" class="message">繝ｭ繧ｰ繧､繝ｳ縲√∪縺溘・譁ｰ隕冗匳骭ｲ繧帝∈繧薙〒縺上□縺輔＞縲・/div>
+        <div id="msg" class="message">ログイン、または新規登録を選んでください。</div>
       </form>
 
       <div class="account">
         <div class="accountCell">
-          <div class="k">菫晏ｭ俶ｸ医∩ID</div>
-          <div id="savedName" class="v">縺ｪ縺・/div>
+          <div class="k">保存済みID</div>
+          <div id="savedName" class="v">なし</div>
         </div>
         <div class="accountCell">
           <div class="k">UID</div>
-          <div id="uidView" class="v">譛ｪ謗･邯・/div>
+          <div id="uidView" class="v">未接続</div>
         </div>
       </div>
     </section>
   </main>
 
-  <script type="module" src="./login.js?v=20260627_login1"></script>
-  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
-
-  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+  <script type="module" src="./login.js?v=20261007_mobile2"></script>
 </body>
 </html>
-

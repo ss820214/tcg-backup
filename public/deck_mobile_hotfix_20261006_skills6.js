@@ -306,14 +306,19 @@
 
   function supportEffectLine(def) {
     let text = "";
-    try { text = compactVitals(cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(def?.effect))); }
-    catch {}
-    if (!text) text = compactVitals(cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || ""));
-    if (!text && Array.isArray(def?.actions) && def.actions[0]) {
-      const parts = actionParts(def.actions[0]);
-      text = actionEffectSummary(def.actions[0], parts) || cleanSimpleText(parts?.name || def.actions[0]?.name || "");
+    const effectSource = def?.effect ?? def?.effects ?? null;
+    if (effectSource != null && effectSource !== "") {
+      try { text = compactVitals(cleanSimpleText(textHelpers?.supportMod?.supportEffectTextJa?.(effectSource))); }
+      catch {}
+      if (/^(?:効果なし|効果[:：]?\s*なし)$/u.test(text)) text = "";
     }
-    return text ? `効果: ${text}` : "効果: なし";
+    if (!text) text = compactVitals(cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || ""));
+    const actions = Array.isArray(def?.actions) ? def.actions : Array.isArray(def?.action) ? def.action : def?.action ? [def.action] : [];
+    if (!text && actions[0]) {
+      const parts = actionParts(actions[0]);
+      text = actionEffectSummary(actions[0], parts) || cleanSimpleText(parts?.effectText || parts?.name || actions[0]?.name || "");
+    }
+    return text ? `効果: ${text}` : "効果: 詳細を確認";
   }
 
   function statText(def) {

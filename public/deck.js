@@ -5661,11 +5661,29 @@ function parseEffect(effect) {
   return null;
 }
 
+function supportSummaryText(def = {}) {
+  const sources = [def?.effect, def?.effects, def?.effectText, def?.description, def?.text, def?.desc];
+  for (const source of sources) {
+    if (source === undefined || source === null || source === "") continue;
+    let t = "";
+    try {
+      t = typeof source === "object" ? supportEffectTextJa(source) : String(source);
+    } catch {
+      t = String(source ?? "");
+    }
+    t = String(t || "").replace(/^(?:効果[:：]?\\s*)?/u, "").trim();
+    if (t && !/^(?:効果)?なし$/u.test(t)) return t;
+  }
+  const a = (Array.isArray(def?.actions) ? def.actions : [])[0];
+  if (a) return actionOneLine(a);
+  return "";
+}
+
 function firstActionLine(def) {
   const a = def?.actions?.[0];
   if (!a) {
-    const t = supportEffectTextJa(def?.effect);
-    return t ? `効果: ${t}` : "行動: なし";
+    const t = supportSummaryText(def);
+    return t ? `効果: ${t}` : "効果: 詳細を確認";
   }
   return `行動: ${actionOneLine(a)}`;
 }
@@ -7396,7 +7414,7 @@ function showCardDetail(cardId) {
   `;
 
   // サポート/effect 表示
-  const effText = supportEffectTextJa(d.effect);
+  const effText = supportSummaryText(d);
   if (effText) {
     html += `<div class="deckDetailSection"><b>効果</b><br>${esc(effText)}</div>`;
   }
@@ -7911,6 +7929,17 @@ function renderCardSectionsOldUI() {
     cardSectionsEl.innerHTML = `<div class="small" style="opacity:0.85;">該当するカードがありません</div>`;
   }
 }
+
+// Detail buttons are re-rendered by mobile/card-layout hotfixes.
+document.addEventListener("click", (e) => {
+  const btn = e.target instanceof Element ? e.target.closest("[data-detail]") : null;
+  if (!btn || (!btn.closest("#cardList") && !btn.closest("#deckList") && !btn.closest("#cardSections"))) return;
+  const cardId = String(btn.getAttribute("data-detail") || btn.closest("[data-card-id]")?.getAttribute("data-card-id") || "").trim();
+  if (!cardId || !cardDefs[cardId]) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  showCardDetail(cardId);
+}, true);
 
 function renderAll() {
   ensureDeckCriticalBlockCss();

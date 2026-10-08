@@ -7,11 +7,20 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.textContent = `
+#cardList .cardRow .btns button[data-plus],
+#cardList .cardRow .btns button[data-minus],
+#deckList .cardRow .btns button[data-plus],
+#deckList .cardRow .btns button[data-minus] {
+  min-width:44px!important;
+  min-height:44px!important;
+  height:44px!important;
+  touch-action:manipulation;
+}
 @media (max-width:900px), (pointer:coarse) and (max-width:1180px) {
   #cardList .cardRow,
   #deckList .cardRow {
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) 108px!important;
+    grid-template-columns:minmax(0,1fr) 148px!important;
     align-items:start!important;
     gap:8px!important;
     width:100%!important;
@@ -113,9 +122,9 @@
     padding:0!important;
     border:0!important;
     background:none!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    overflow-wrap:anywhere!important;
   }
   #cardList .deckStatusVisual,
   #deckList .deckStatusVisual {

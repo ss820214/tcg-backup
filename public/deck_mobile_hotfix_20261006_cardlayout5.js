@@ -268,6 +268,8 @@
     row.style.setProperty("display", "grid", "important");
     row.style.setProperty("grid-template-columns", "minmax(0,1fr)", "important");
     row.style.setProperty("height", "auto", "important");
+    row.style.setProperty("min-height", "max-content", "important");
+    row.style.setProperty("grid-template-rows", "auto auto", "important");
     row.style.setProperty("gap", "8px", "important");
     const controls = row.querySelector(".btns,.cardCtrl");
     if (controls) {
@@ -277,7 +279,14 @@
       controls.style.setProperty("max-width","100%","important");
       controls.style.setProperty("grid-column","1","important");
       controls.style.setProperty("grid-template-columns","44px minmax(44px,1fr) 44px","important");
-      controls.style.setProperty("grid-template-areas",'"minus count plus" "detail detail detail" "ex ex ex" "admin admin admin"',"important");
+      const areas = ['"minus count plus"'];
+      if (controls.querySelector("[data-detail]")) areas.push('"detail detail detail"');
+      if (controls.querySelector("[data-ex],[data-expick]")) areas.push('"ex ex ex"');
+      if (controls.querySelector("[data-hide-toggle]")) areas.push('"admin admin admin"');
+      controls.style.setProperty("grid-template-areas",areas.join(" "),"important");
+      controls.style.setProperty("grid-template-rows",`repeat(${areas.length}, minmax(44px, auto))`,"important");
+      controls.style.setProperty("grid-auto-rows","minmax(44px, auto)","important");
+      controls.style.setProperty("height","auto","important");
       controls.style.setProperty("gap","6px","important");
       for (const [selector,area] of [["[data-minus]","minus"],[".count,.cnt","count"],["[data-plus]","plus"],["[data-detail]","detail"],["[data-ex],[data-expick]","ex"],["[data-hide-toggle]","admin"]]) {
         controls.querySelectorAll(selector).forEach(control => {

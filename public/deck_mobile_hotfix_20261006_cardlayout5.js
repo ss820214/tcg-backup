@@ -266,12 +266,13 @@
     // Legacy density rules have higher selector specificity than the modern CSS.
     // Keep the actual tap targets and their grid tracks in sync after every render.
     row.style.setProperty("display", "grid", "important");
-    row.style.setProperty("grid-template-columns", "minmax(0,1fr)", "important");
-    row.style.setProperty("grid-template-areas", '"main" "ctrl"', "important");
+    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 94px", "important");
+    row.style.setProperty("grid-template-areas", '"main ctrl"', "important");
     row.style.setProperty("flex", "0 0 auto", "important");
     row.style.setProperty("height", "auto", "important");
     row.style.setProperty("min-height", "max-content", "important");
-    row.style.setProperty("grid-template-rows", "auto auto", "important");
+    row.style.setProperty("grid-template-rows", "auto", "important");
+    row.style.setProperty("align-items", "stretch", "important");
     row.style.setProperty("gap", "8px", "important");
     // Scroll containers must size every grid track to its complete card content.
     const list = row.parentElement;
@@ -285,6 +286,11 @@
     if (main && main !== controls) {
       main.style.setProperty("grid-area", "main", "important");
       main.style.setProperty("min-width", "0", "important");
+      main.style.setProperty("display", "flex", "important");
+      main.style.setProperty("flex-direction", "column", "important");
+      main.style.setProperty("justify-content", "space-between", "important");
+      main.style.setProperty("align-self", "stretch", "important");
+      main.style.setProperty("gap", "8px", "important");
     }
     if (controls) {
       controls.style.setProperty("display","grid","important");
@@ -292,22 +298,29 @@
       controls.style.setProperty("min-width","0","important");
       controls.style.setProperty("max-width","100%","important");
       controls.style.setProperty("grid-area","ctrl","important");
-      controls.style.setProperty("grid-template-columns","44px minmax(44px,1fr) 44px","important");
-      const areas = ['"minus count plus"'];
-      if (controls.querySelector("[data-detail]")) areas.push('"detail detail detail"');
-      if (controls.querySelector("[data-ex],[data-expick]")) areas.push('"ex ex ex"');
-      if (controls.querySelector("[data-hide-toggle]")) areas.push('"admin admin admin"');
+      controls.style.setProperty("grid-template-columns","44px 44px","important");
+      const areas = [];
+      const tracks = [];
+      if (controls.querySelector(".count,.cnt")) { areas.push('"count count"'); tracks.push("28px"); }
+      if (controls.querySelector("[data-minus],[data-plus]")) { areas.push('"minus plus"'); tracks.push("44px"); }
+      if (controls.querySelector("[data-ex],[data-expick]")) { areas.push('"ex ex"'); tracks.push("44px"); }
+      if (controls.querySelector("[data-hide-toggle]")) { areas.push('"admin admin"'); tracks.push("44px"); }
+      if (controls.querySelector("[data-detail]")) { areas.push('"detail detail"'); tracks.push("minmax(44px,1fr)"); }
       controls.style.setProperty("grid-template-areas",areas.join(" "),"important");
-      controls.style.setProperty("grid-template-rows",`repeat(${areas.length}, minmax(44px, auto))`,"important");
+      controls.style.setProperty("grid-template-rows",tracks.join(" "),"important");
       controls.style.setProperty("grid-auto-rows","minmax(44px, auto)","important");
       controls.style.setProperty("height","auto","important");
+      controls.style.setProperty("align-self","stretch","important");
+      controls.style.setProperty("align-items","stretch","important");
       controls.style.setProperty("gap","6px","important");
       for (const [selector,area] of [["[data-minus]","minus"],[".count,.cnt","count"],["[data-plus]","plus"],["[data-detail]","detail"],["[data-ex],[data-expick]","ex"],["[data-hide-toggle]","admin"]]) {
         controls.querySelectorAll(selector).forEach(control => {
           control.style.setProperty("grid-area",area,"important");
           control.style.setProperty("position","static","important");
           control.style.setProperty("margin","0","important");
-          control.style.setProperty("min-height","44px","important");
+          control.style.setProperty("min-height",area === "count" ? "28px" : "44px","important");
+          control.style.setProperty("height",area === "count" ? "28px" : "44px","important");
+          control.style.setProperty("align-self",area === "detail" ? "end" : "start","important");
           if (["detail","ex","admin"].includes(area)) {
             control.style.setProperty("width","100%","important");
             control.style.setProperty("min-width","0","important");
@@ -323,10 +336,11 @@
     });
     const title = titleOf(row);
     if (!title) return;
+    for (const [key,value] of Object.entries({display:"flex","flex-wrap":"wrap","white-space":"normal","overflow":"visible","max-height":"none","min-width":"0",gap:"4px"})) title.style.setProperty(key,value,"important");
     tidyOwnedBadge(row);
     cleanTitleText(title);
     removeLegacyMeta(row);
-    ensureSkillBox(row, title);
+    ensureSkillBox(row, title).style.setProperty("margin-top", "auto", "important");
     const detail = row.querySelector("[data-detail]");
     if (detail) {
       setText(detail, "詳細");

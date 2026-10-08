@@ -33,6 +33,8 @@ jobs:
         run: |
           node --check public/auth.js
           node --check public/deck.js
+          node --check public/deck_library.js
+          node --check public/deck_mobile_hotfix_20261006_cardlayout5.js
           node --check public/deck_mobile_hotfix_20261006_skills6.js
           node tools/deck_regression_20261008.mjs
 

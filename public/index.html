@@ -3111,7 +3111,7 @@
       })();
     </script>
     <!-- DETAIL・域里蟄倡ｶｭ謖・ｼ・-->
-    <div id="detailWrap" class="detailFloating">
+    <div id="detailWrap" class="detailFloating" style="display:none" aria-hidden="true">
       <div id="detailHead">
         <b>DETAIL</b>
         <button id="detailClose" type="button" title="詳細を閉じる">×</button>
@@ -3213,47 +3213,6 @@
     </script>
 
     <!-- 笘・DETAIL縺ｮ髢峨§迥ｶ諷九ｒ險俶・ + 譖ｴ譁ｰ縺ｧ閾ｪ蜍輔が繝ｼ繝励Φ -->
-    <script>
-      (() => {
-        const KEY = "tcg_detail_hidden";
-        const wrap = document.getElementById("detailWrap");
-        const btn = document.getElementById("detailClose");
-        if (!wrap || !btn) return;
-
-        try {
-          if (localStorage.getItem(KEY) === "1") wrap.classList.add("isHidden");
-        } catch {}
-
-        btn.addEventListener(
-          "click",
-          (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            wrap.classList.add("isHidden");
-            try {
-              localStorage.setItem(KEY, "1");
-            } catch {}
-          },
-          { capture: true },
-        );
-
-        const detail = document.getElementById("detail");
-        if (detail) {
-          const mo = new MutationObserver(() => {
-            wrap.classList.remove("isHidden");
-            try {
-              localStorage.setItem(KEY, "0");
-            } catch {}
-          });
-          mo.observe(detail, {
-            childList: true,
-            subtree: true,
-            characterData: true,
-          });
-        }
-      })();
-    </script>
-
     <!-- 笘・30/30驕疲・縺ｧ蜿ｳ繝代ロ繝ｫ繧堤匱蜈・+ 菴懈・/蜿ょ刈繝懊ち繝ｳ繧る｣蜍・-->
     <script>
       (() => {

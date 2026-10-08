@@ -267,6 +267,8 @@
     // Keep the actual tap targets and their grid tracks in sync after every render.
     row.style.setProperty("display", "grid", "important");
     row.style.setProperty("grid-template-columns", "minmax(0,1fr)", "important");
+    row.style.setProperty("grid-template-areas", '"main" "ctrl"', "important");
+    row.style.setProperty("flex", "0 0 auto", "important");
     row.style.setProperty("height", "auto", "important");
     row.style.setProperty("min-height", "max-content", "important");
     row.style.setProperty("grid-template-rows", "auto auto", "important");
@@ -279,12 +281,17 @@
       list.style.setProperty("align-content", "start", "important");
     }
     const controls = row.querySelector(".btns,.cardCtrl");
+    const main = row.firstElementChild;
+    if (main && main !== controls) {
+      main.style.setProperty("grid-area", "main", "important");
+      main.style.setProperty("min-width", "0", "important");
+    }
     if (controls) {
       controls.style.setProperty("display","grid","important");
       controls.style.setProperty("width","100%","important");
       controls.style.setProperty("min-width","0","important");
       controls.style.setProperty("max-width","100%","important");
-      controls.style.setProperty("grid-column","1","important");
+      controls.style.setProperty("grid-area","ctrl","important");
       controls.style.setProperty("grid-template-columns","44px minmax(44px,1fr) 44px","important");
       const areas = ['"minus count plus"'];
       if (controls.querySelector("[data-detail]")) areas.push('"detail detail detail"');

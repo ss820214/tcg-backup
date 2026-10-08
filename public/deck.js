@@ -2846,6 +2846,8 @@ btnCreator?.addEventListener("click", () => {
 // State
 // =====================
 let cardDefs = {};
+// Shared read-only lookup prevents display layers from reloading stale definitions.
+window.getTcgDeckCardDef = (id) => cardDefs[String(id || "")];
 let cardIdsSorted = [];
 let deckMap = {};
 let filterType = "ALL";

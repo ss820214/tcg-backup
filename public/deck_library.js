@@ -83,8 +83,8 @@ async function ownDeckCount(db, uid) {
   try {
     const snap = await getDocs(query(collection(db, "decks"), where("ownerUid", "==", uid), limit(20)));
     return snap.size;
-  } catch {
-    return 0;
+  } catch (error) {
+    throw new Error("保存デッキ数を確認できません。通信状態を確認してください。", { cause: error });
   }
 }
 function makePayload(opts, snap, uid, size) {
@@ -267,6 +267,7 @@ function installUnifiedUi(opts = {}) {
     void (async () => {
       const linked = isProfileLinked();
       const user = await ensureSignedIn().catch(() => null);
+      if (state.saving) return;
       const linkedUid = linked ? getLS("uid") : String(user?.uid || "");
       if (!user?.uid || !linkedUid || user.uid !== linkedUid) {
         setMsg(linked
@@ -303,8 +304,8 @@ function installUnifiedUi(opts = {}) {
               const own = String(d.ownerUid || "") === linkedUid || String(d.ownerKey || "") === deviceKey();
               if (!own) targetId = "";
             }
-          } catch {
-            targetId = "";
+          } catch (error) {
+            throw new Error("更新先デッキを確認できません。通信状態を確認してください。", { cause: error });
           }
         }
 

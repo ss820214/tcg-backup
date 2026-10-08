@@ -92,7 +92,10 @@
             return {};
           }
         }));
-        remote.forEach((m) => Object.assign(out, m));
+        // Sparse visibility-only documents must not erase effect/action data.
+        remote.forEach((m) => {
+          for (const [id, def] of Object.entries(m)) out[id] = { ...out[id], ...def };
+        });
         return out;
       } catch (err) {
         console.warn("[deck skills] card definitions could not be loaded", err);
@@ -383,7 +386,7 @@
   function applyRow(row, defs) {
     const id = String(row?.dataset?.cardId || "").trim();
     if (!id) return;
-    const def = defs[id];
+    const def = window.getTcgDeckCardDef?.(id) || defs[id];
     if (!def) return;
     const support = isSupport(def);
     setStats(row, def, support);

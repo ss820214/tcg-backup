@@ -38,6 +38,9 @@ for (const fails of [false,true]) {
   assert.equal(unsubscribed,true);
 }
 const modal = section('function openDetail()', 'detailClose?.addEventListener');
+const skills = fs.readFileSync('public/deck_mobile_hotfix_20261006_skills6.js','utf8');
+assert.match(skills,/window.getTcgDeckCardDef\?\.\(id\) \|\| defs\[id\]/);
+assert.match(skills,/out\[id\] = \{ \.\.\.out\[id\], \.\.\.def \}/);
 assert.match(modal,/classList.remove\("isHidden"\)/);
 assert.match(modal,/width:"100vw"/);
 assert.match(modal,/setProperty\("display", "none", "important"\)/);

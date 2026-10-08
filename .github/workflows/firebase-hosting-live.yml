@@ -33,6 +33,7 @@ jobs:
         run: |
           node --check public/auth.js
           node --check public/deck.js
+          node --check public/deck_detail_drag.js
           node --check public/deck_library.js
           node --check public/deck_mobile_hotfix_20261006_cardlayout5.js
           node --check public/deck_mobile_hotfix_20261006_skills6.js

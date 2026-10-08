@@ -2,6 +2,7 @@
 // v20260829_home_left_fit1
 // Deck builder screen. Keep room/profile tools outside the card list flow.
 import { ensureSignedIn } from "./auth.js?v=20260627_user1";
+import { installDetailDrag } from "./deck_detail_drag.js?v=20261008_drag1";
 
 const qs = new URLSearchParams(location.search);
 
@@ -2745,6 +2746,7 @@ function ensureHomeReturnButton() {
 }
 ensureHomeReturnButton();
 
+let detailDragControls = null;
 function openDetail() {
   if (!detailWrap) return;
   detailWrap.classList.remove("isHidden");
@@ -2753,13 +2755,14 @@ function openDetail() {
     panel = document.createElement("section");
     panel.className = "deckDetailDialog";
     panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-modal", "false");
     panel.setAttribute("aria-label", "カード詳細");
     while (detailWrap.firstChild) panel.appendChild(detailWrap.firstChild);
     detailWrap.appendChild(panel);
-    panel.style.cssText = "width:min(94vw,720px);max-height:86dvh;overflow:auto;background:#101018;color:white;border:1px solid #666;border-radius:18px;box-shadow:0 22px 70px #000a";
+    panel.style.cssText = "width:min(94vw,720px);max-height:86dvh;overflow:auto;background:#101018;color:white;border:1px solid #666;border-radius:18px;box-shadow:0 22px 70px #000a;pointer-events:auto";
+    detailDragControls = installDetailDrag(panel);
   }
-  const overlayStyles = {display:"flex",position:"fixed",inset:"0",width:"100vw",height:"100dvh","max-height":"none","max-width":"none","z-index":"2147483000","align-items":"center","justify-content":"center",background:"rgba(0,0,0,.75)",border:"0","border-radius":"0",padding:"0",overflow:"hidden"};
+  const overlayStyles = {display:"flex",position:"fixed",inset:"0",width:"100vw",height:"100dvh","max-height":"none","max-width":"none","z-index":"2147483000","align-items":"center","justify-content":"center",background:"transparent","pointer-events":"none","backdrop-filter":"none","box-shadow":"none",border:"0","border-radius":"0",padding:"0",overflow:"hidden"};
   for (const [key,value] of Object.entries(overlayStyles)) detailWrap.style.setProperty(key,value,"important");
   detailWrap.setAttribute("aria-hidden", "false");
   if (detailEl) detailEl.style.setProperty("display", "block", "important");
@@ -2768,6 +2771,7 @@ function openDetail() {
 
 function closeDetail() {
   if (!detailWrap) return;
+  detailDragControls?.cancel();
   detailWrap.style.setProperty("display", "none", "important");
   detailWrap.setAttribute("aria-hidden", "true");
 }

@@ -265,12 +265,33 @@
     if (!(row instanceof HTMLElement)) return;
     // Legacy density rules have higher selector specificity than the modern CSS.
     // Keep the actual tap targets and their grid tracks in sync after every render.
-    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 148px", "important");
+    row.style.setProperty("display", "grid", "important");
+    row.style.setProperty("grid-template-columns", "minmax(0,1fr)", "important");
+    row.style.setProperty("height", "auto", "important");
+    row.style.setProperty("gap", "8px", "important");
     const controls = row.querySelector(".btns,.cardCtrl");
     if (controls) {
-      for (const key of ["width","min-width","max-width"]) controls.style.setProperty(key,"148px","important");
-      controls.style.setProperty("grid-template-columns","44px 52px 44px","important");
-      controls.style.setProperty("gap","4px","important");
+      controls.style.setProperty("display","grid","important");
+      controls.style.setProperty("width","100%","important");
+      controls.style.setProperty("min-width","0","important");
+      controls.style.setProperty("max-width","100%","important");
+      controls.style.setProperty("grid-column","1","important");
+      controls.style.setProperty("grid-template-columns","44px minmax(44px,1fr) 44px","important");
+      controls.style.setProperty("grid-template-areas",'"minus count plus" "detail detail detail" "ex ex ex" "admin admin admin"',"important");
+      controls.style.setProperty("gap","6px","important");
+      for (const [selector,area] of [["[data-minus]","minus"],[".count,.cnt","count"],["[data-plus]","plus"],["[data-detail]","detail"],["[data-ex],[data-expick]","ex"],["[data-hide-toggle]","admin"]]) {
+        controls.querySelectorAll(selector).forEach(control => {
+          control.style.setProperty("grid-area",area,"important");
+          control.style.setProperty("position","static","important");
+          control.style.setProperty("margin","0","important");
+          control.style.setProperty("min-height","44px","important");
+          if (["detail","ex","admin"].includes(area)) {
+            control.style.setProperty("width","100%","important");
+            control.style.setProperty("min-width","0","important");
+            control.style.setProperty("max-width","100%","important");
+          }
+        });
+      }
     }
     row.querySelectorAll("[data-plus],[data-minus]").forEach(button => {
       for (const key of ["width","min-width","max-width","height","min-height"]) button.style.setProperty(key,"44px","important");

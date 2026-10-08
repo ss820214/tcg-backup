@@ -63,11 +63,14 @@ class ElementMock {
 }
 const detailWrap=new ElementMock('div'),detailEl=new ElementMock('div'),detailClose=new ElementMock('button');
 detailWrap.append(detailClose,detailEl);
-const modalContext={detailWrap,detailEl,detailClose,document:{createElement:tag=>new ElementMock(tag)}};
+const modalContext={detailWrap,detailEl,detailClose,installDetailDrag:()=>({cancel(){}}),document:{createElement:tag=>new ElementMock(tag)}};
 vm.runInNewContext(modal+'\nopenDetail();',modalContext);
 assert.equal(detailWrap.style.width,'100vw');
 assert.equal(detailWrap.children.length,1);
 assert.equal(detailWrap.children[0].attrs.role,'dialog');
+assert.equal(detailWrap.children[0].attrs['aria-modal'],'false');
+assert.equal(detailWrap.style['pointer-events'],'none');
+assert.equal(detailWrap.style.background,'transparent');
 vm.runInNewContext('closeDetail();openDetail();closeDetail();',modalContext);
 assert.equal(detailWrap.children.length,1);
 assert.equal(detailWrap.style.display,'none');
@@ -88,4 +91,25 @@ assert.equal(written.patch.effect.n,2);
 allowed=false;written=null;
 await save.onclick();
 assert.equal(written,null);
+const handlers={};let scheduled=null;
+const handle={style:{cssText:''},addEventListener:(name,fn)=>{handlers[name]=fn;},setPointerCapture:()=>{},hasPointerCapture:()=>false};
+const dragPanel={style:{},querySelector:()=>handle,getBoundingClientRect:()=>({left:100,top:150,width:240,height:300})};
+const dragWindow={innerWidth:393,innerHeight:852,addEventListener:()=>{}};
+const installDrag=vm.runInNewContext(fs.readFileSync('public/deck_detail_drag.js','utf8').replace('export function','function')+'\ninstallDetailDrag',{
+  window:dragWindow,setTimeout:(fn,ms)=>{assert.equal(ms,400);scheduled=fn;return 1;},clearTimeout:()=>{scheduled=null;},
+});
+installDrag(dragPanel);
+const down={button:0,pointerId:1,clientX:120,clientY:170,target:{closest:()=>null}};
+handlers.pointerdown(down);
+handlers.pointermove({pointerId:1,clientX:125,clientY:170});
+assert.equal(dragPanel.style.position,undefined);
+scheduled();
+assert.equal(dragPanel.style.position,'fixed');
+handlers.pointermove({pointerId:1,clientX:999,clientY:999,preventDefault(){}});
+assert.equal(dragPanel.style.left,'145px');
+assert.equal(dragPanel.style.top,'544px');
+handlers.pointerup();
+assert.equal(handle.style.cursor,'grab');
+handlers.pointerdown(down);handlers.pointerup();assert.equal(scheduled,null);
+handlers.pointerdown(down);handlers.pointermove({pointerId:1,clientX:180,clientY:170});assert.equal(scheduled,null);
 console.log('PASS: support text, JSON effects, empty/local deck restoration, snapshot persistence, save failures, auth rejection, modal guards, admin hold guards');

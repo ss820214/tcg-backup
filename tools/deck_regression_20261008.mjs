@@ -43,8 +43,8 @@ const skills = fs.readFileSync('public/deck_mobile_hotfix_20261006_skills6.js','
 assert.match(skills,/window.getTcgDeckCardDef\?\.\(id\) \|\| defs\[id\]/);
 assert.match(skills,/out\[id\] = \{ \.\.\.out\[id\], \.\.\.def \}/);
 const layout = fs.readFileSync('public/deck_mobile_hotfix_20261006_cardlayout5.js','utf8');
-assert.match(layout,/grid-template-columns:minmax\(0,1fr\) 148px!important/);
-assert.match(layout,/min-width:44px!important/);
+assert.match(layout,/grid-template-columns:minmax\(0,1fr\) 110px!important/);
+assert.match(layout,/min-width:32px!important/);
 assert.match(modal,/classList.remove\("isHidden"\)/);
 assert.match(modal,/width:"100vw"/);
 assert.match(modal,/setProperty\("display", "none", "important"\)/);

@@ -11,24 +11,24 @@
 #cardList .cardRow .btns button[data-minus],
 #deckList .cardRow .btns button[data-plus],
 #deckList .cardRow .btns button[data-minus] {
-  min-width:44px!important;
-  min-height:44px!important;
-  height:44px!important;
+  min-width:32px!important;
+  min-height:32px!important;
+  height:32px!important;
   touch-action:manipulation;
 }
 @media (max-width:900px), (pointer:coarse) and (max-width:1180px) {
   #cardList .cardRow,
   #deckList .cardRow {
     display:grid!important;
-    grid-template-columns:minmax(0,1fr) 148px!important;
+    grid-template-columns:minmax(0,1fr) 110px!important;
     align-items:start!important;
     gap:8px!important;
     width:100%!important;
     min-width:0!important;
-    min-height:86px!important;
+    min-height:76px!important;
     height:auto!important;
     margin:0!important;
-    padding:8px 8px 8px 10px!important;
+    padding:6px 8px!important;
     border:0!important;
     border-left:3px solid var(--row-attr,#7dd3fc)!important;
     border-bottom:1px solid rgba(255,255,255,.13)!important;
@@ -162,11 +162,11 @@
   #cardList .cardRow .cardCtrl,
   #deckList .cardRow .cardCtrl {
     align-self:start!important;
-    width:148px!important;
-    min-width:148px!important;
-    max-width:148px!important;
+    width:110px!important;
+    min-width:110px!important;
+    max-width:110px!important;
     display:grid!important;
-    grid-template-columns:44px 52px 44px!important;
+    grid-template-columns:32px 38px 32px!important;
     grid-template-areas:"minus count plus" "detail detail detail" "ex ex ex" "admin admin admin"!important;
     gap:4px!important;
     margin:0!important;
@@ -191,8 +191,8 @@
   #cardList .cardRow .count,#deckList .cardRow .count,
   #cardList .cardRow .cnt,#deckList .cardRow .cnt {
     width:100%!important;
-    height:44px!important;
-    min-height:44px!important;
+    height:32px!important;
+    min-height:32px!important;
     padding:0!important;
     display:flex!important;
     align-items:center!important;
@@ -200,8 +200,8 @@
   }
   #cardList .cardRow [data-detail],#deckList .cardRow [data-detail] {
     width:100%!important;
-    height:40px!important;
-    min-height:40px!important;
+    height:28px!important;
+    min-height:28px!important;
     padding:0 4px!important;
     display:flex!important;
     align-items:center!important;
@@ -266,11 +266,12 @@
     // Legacy density rules have higher selector specificity than the modern CSS.
     // Keep the actual tap targets and their grid tracks in sync after every render.
     row.style.setProperty("display", "grid", "important");
-    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 94px", "important");
+    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 110px", "important");
     row.style.setProperty("grid-template-areas", '"main ctrl"', "important");
     row.style.setProperty("flex", "0 0 auto", "important");
     row.style.setProperty("height", "auto", "important");
-    row.style.setProperty("min-height", "max-content", "important");
+    row.style.setProperty("min-height", "76px", "important");
+    row.style.setProperty("padding", "6px 8px", "important");
     row.style.setProperty("grid-template-rows", "auto", "important");
     row.style.setProperty("align-items", "stretch", "important");
     row.style.setProperty("gap", "8px", "important");
@@ -290,7 +291,7 @@
       main.style.setProperty("flex-direction", "column", "important");
       main.style.setProperty("justify-content", "space-between", "important");
       main.style.setProperty("align-self", "stretch", "important");
-      main.style.setProperty("gap", "8px", "important");
+      main.style.setProperty("gap", "3px", "important");
     }
     if (controls) {
       controls.style.setProperty("display","grid","important");
@@ -298,28 +299,28 @@
       controls.style.setProperty("min-width","0","important");
       controls.style.setProperty("max-width","100%","important");
       controls.style.setProperty("grid-area","ctrl","important");
-      controls.style.setProperty("grid-template-columns","44px 44px","important");
+      controls.style.setProperty("grid-template-columns","32px 38px 32px","important");
       const areas = [];
       const tracks = [];
-      if (controls.querySelector(".count,.cnt")) { areas.push('"count count"'); tracks.push("28px"); }
-      if (controls.querySelector("[data-minus],[data-plus]")) { areas.push('"minus plus"'); tracks.push("44px"); }
-      if (controls.querySelector("[data-ex],[data-expick]")) { areas.push('"ex ex"'); tracks.push("44px"); }
-      if (controls.querySelector("[data-hide-toggle]")) { areas.push('"admin admin"'); tracks.push("44px"); }
-      if (controls.querySelector("[data-detail]")) { areas.push('"detail detail"'); tracks.push("minmax(44px,1fr)"); }
+      if (controls.querySelector("[data-minus],[data-plus]")) { areas.push('"minus count plus"'); tracks.push("32px"); }
+      else if (controls.querySelector(".count,.cnt")) { areas.push('"count count count"'); tracks.push("32px"); }
+      if (controls.querySelector("[data-ex],[data-expick]")) { areas.push('"ex ex ex"'); tracks.push("32px"); }
+      if (controls.querySelector("[data-hide-toggle]")) { areas.push('"admin admin admin"'); tracks.push("32px"); }
+      if (controls.querySelector("[data-detail]")) { areas.push('"detail detail detail"'); tracks.push("28px"); }
       controls.style.setProperty("grid-template-areas",areas.join(" "),"important");
       controls.style.setProperty("grid-template-rows",tracks.join(" "),"important");
-      controls.style.setProperty("grid-auto-rows","minmax(44px, auto)","important");
+      controls.style.setProperty("grid-auto-rows","minmax(32px, auto)","important");
       controls.style.setProperty("height","auto","important");
       controls.style.setProperty("align-self","stretch","important");
       controls.style.setProperty("align-items","stretch","important");
-      controls.style.setProperty("gap","6px","important");
+      controls.style.setProperty("gap","4px","important");
       for (const [selector,area] of [["[data-minus]","minus"],[".count,.cnt","count"],["[data-plus]","plus"],["[data-detail]","detail"],["[data-ex],[data-expick]","ex"],["[data-hide-toggle]","admin"]]) {
         controls.querySelectorAll(selector).forEach(control => {
           control.style.setProperty("grid-area",area,"important");
           control.style.setProperty("position","static","important");
           control.style.setProperty("margin","0","important");
-          control.style.setProperty("min-height",area === "count" ? "28px" : "44px","important");
-          control.style.setProperty("height",area === "count" ? "28px" : "44px","important");
+          control.style.setProperty("min-height",area === "detail" ? "28px" : "32px","important");
+          control.style.setProperty("height",area === "detail" ? "28px" : "32px","important");
           control.style.setProperty("align-self",area === "detail" ? "end" : "start","important");
           if (["detail","ex","admin"].includes(area)) {
             control.style.setProperty("width","100%","important");
@@ -330,7 +331,7 @@
       }
     }
     row.querySelectorAll("[data-plus],[data-minus]").forEach(button => {
-      for (const key of ["width","min-width","max-width","height","min-height"]) button.style.setProperty(key,"44px","important");
+      for (const key of ["width","min-width","max-width","height","min-height"]) button.style.setProperty(key,"32px","important");
       button.style.setProperty("padding","0","important");
       button.style.setProperty("touch-action","manipulation","important");
     });
@@ -340,7 +341,8 @@
     tidyOwnedBadge(row);
     cleanTitleText(title);
     removeLegacyMeta(row);
-    ensureSkillBox(row, title).style.setProperty("margin-top", "auto", "important");
+    const skills = ensureSkillBox(row, title);
+    for (const [key,value] of Object.entries({"margin-top":"auto",display:"-webkit-box","-webkit-box-orient":"vertical","-webkit-line-clamp":"2",overflow:"hidden","line-height":"1.35"})) skills.style.setProperty(key,value,"important");
     const detail = row.querySelector("[data-detail]");
     if (detail) {
       setText(detail, "詳細");

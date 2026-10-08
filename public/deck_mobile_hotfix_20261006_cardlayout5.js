@@ -271,6 +271,13 @@
     row.style.setProperty("min-height", "max-content", "important");
     row.style.setProperty("grid-template-rows", "auto auto", "important");
     row.style.setProperty("gap", "8px", "important");
+    // Scroll containers must size every grid track to its complete card content.
+    const list = row.parentElement;
+    if (list?.matches("#cardList,#deckList")) {
+      list.style.setProperty("grid-template-rows", "none", "important");
+      list.style.setProperty("grid-auto-rows", "max-content", "important");
+      list.style.setProperty("align-content", "start", "important");
+    }
     const controls = row.querySelector(".btns,.cardCtrl");
     if (controls) {
       controls.style.setProperty("display","grid","important");

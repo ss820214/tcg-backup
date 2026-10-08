@@ -2747,14 +2747,15 @@ ensureHomeReturnButton();
 
 function openDetail() {
   if (!detailWrap) return;
-  detailWrap.style.display = "block";
-
-  // 左下固定にするので、位置調整ロジックは不要。
+  detailWrap.style.display = "flex";
   detailWrap.style.position = "fixed";
-  detailWrap.style.left = "14px";
-  detailWrap.style.bottom = "14px";
-  detailWrap.style.right = "auto";
-  detailWrap.style.top = "auto";
+  detailWrap.style.inset = "0";
+  detailWrap.style.zIndex = "2147483000";
+  detailWrap.style.alignItems = "center";
+  detailWrap.style.justifyContent = "center";
+  detailWrap.style.background = "rgba(0,0,0,.75)";
+  detailWrap.setAttribute("aria-hidden", "false");
+  if (detailEl) { detailEl.style.maxHeight = "80dvh"; detailEl.style.overflowY = "auto"; detailEl.style.maxWidth = "min(94vw,720px)"; }
 }
 
 function closeDetail() {
@@ -7932,6 +7933,77 @@ function renderCardSectionsOldUI() {
     cardSectionsEl.innerHTML = `<div class="small" style="opacity:0.85;">該当するカードがありません</div>`;
   }
 }
+
+// Admin-only long press editor. Existing card documents are updated in place.
+let adminHoldTimer = null;
+let adminHoldStart = null;
+function openAdminCardEditor(cardId) {
+  if (!isAdminUser() || !cardDefs[cardId]) return;
+  const d = cardDefs[cardId];
+  const source = d._sourceCollection || (isSupportLike(d, cardId) ? "support_cards" : "cards");
+  const sourceId = d._sourceDocId || cardId;
+  const shade = document.createElement("div");
+  shade.style.cssText = "position:fixed;inset:0;z-index:2147483646;background:#000c;display:grid;place-items:center;padding:12px";
+  const panel = document.createElement("section");
+  panel.style.cssText = "background:#20202b;color:white;border:1px solid #777;border-radius:14px;padding:18px;width:min(94vw,650px);max-height:90dvh;overflow:auto";
+  const h = document.createElement("h3"); h.textContent = "管理者カード編集: " + (d.name || cardId); panel.appendChild(h);
+  const fields = {};
+  function field(label,key,value,type="text") {
+    const wrap=document.createElement("label");wrap.style.cssText="display:block;margin:9px 0";
+    const title=document.createElement("span");title.textContent=label;wrap.appendChild(title);
+    const inp=type==="textarea"?document.createElement("textarea"):document.createElement("input");
+    if(type!=="textarea")inp.type=type;
+    inp.value=value ?? "";inp.style.cssText="display:block;width:100%;box-sizing:border-box;padding:9px;background:#111827;color:white;border:1px solid #777;border-radius:6px";
+    if(type==="textarea")inp.rows=7;
+    wrap.appendChild(inp);panel.appendChild(wrap);fields[key]=inp;
+  }
+  field("カード名","name",d.name);
+  field("コスト","cost",d.cost,"number");
+  if(!isSupportLike(d,cardId)){field("HP","hp",d.hp,"number");field("SP","sp",d.sp,"number");}
+  field("効果説明","effect",typeof d.effect==="string"?d.effect:(d.description || d.text || ""),"textarea");
+  field("技データ（JSON配列。成功率・威力などを編集）","actions",JSON.stringify(d.actions || [],null,2),"textarea");
+  const status=document.createElement("p");status.style.color="#ffcf78";panel.appendChild(status);
+  const cancel=document.createElement("button");cancel.textContent="キャンセル";
+  const save=document.createElement("button");save.textContent="Firebaseに保存";save.style.marginLeft="12px";
+  cancel.onclick=()=>shade.remove();
+  save.onclick=async()=>{
+    if(!isAdminUser()){status.textContent="管理者権限がありません";return;}
+    try {
+      const patch={name:fields.name.value.trim(),cost:Number(fields.cost.value),actions:JSON.parse(fields.actions.value)};
+      if(!Array.isArray(patch.actions))throw Error("技データはJSON配列にしてください");
+      if(fields.hp)patch.hp=Number(fields.hp.value);
+      if(fields.sp)patch.sp=Number(fields.sp.value);
+      if(typeof d.effect==="string")patch.effect=fields.effect.value;
+      else patch.description=fields.effect.value;
+      if(!patch.name || !Number.isFinite(patch.cost) || (fields.hp&&!Number.isFinite(patch.hp)) || (fields.sp&&!Number.isFinite(patch.sp)))throw Error("数値と名前を確認してください");
+      save.disabled=true;status.textContent="保存中…";
+      await setDoc(doc(db,source,sourceId),patch,{merge:true});
+      Object.assign(d,patch);shade.remove();renderAll();
+    } catch(e){status.textContent="保存失敗: "+(e?.message||e);save.disabled=false;}
+  };
+  panel.append(cancel,save);shade.appendChild(panel);
+  shade.addEventListener("click",e=>{if(e.target===shade)shade.remove()});
+  document.body.appendChild(shade);
+}
+document.addEventListener("pointerdown",e=>{
+  if(!isAdminUser() || !(e.target instanceof Element))return;
+  const row=e.target.closest("#cardList .cardRow,#deckList .cardRow,#cardSections .cardRow");
+  if(!row || e.target.closest("button,input,textarea,select,a"))return;
+  const cardId=row.getAttribute("data-card-id") || row.querySelector("[data-detail]")?.getAttribute("data-detail");
+  if(!cardId || !cardDefs[cardId])return;
+  adminHoldStart={x:e.clientX,y:e.clientY};
+  clearTimeout(adminHoldTimer);
+  adminHoldTimer=setTimeout(()=>{adminHoldTimer=null;adminHoldStart=null;openAdminCardEditor(cardId)},5000);
+},true);
+for(const ev of ["pointerup","pointercancel","scroll"]){
+ document.addEventListener(ev,()=>{clearTimeout(adminHoldTimer);adminHoldTimer=null;adminHoldStart=null},true);
+}
+document.addEventListener("pointermove",e=>{
+ if(adminHoldStart && Math.hypot(e.clientX-adminHoldStart.x,e.clientY-adminHoldStart.y)>12){clearTimeout(adminHoldTimer);adminHoldTimer=null;adminHoldStart=null;}
+},true);
+document.addEventListener("click",e=>{
+ if(e.target===detailWrap)closeDetail();
+},true);
 
 // Detail buttons are re-rendered by mobile/card-layout hotfixes.
 document.addEventListener("click", (e) => {

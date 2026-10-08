@@ -263,6 +263,20 @@
 
   function polishRow(row) {
     if (!(row instanceof HTMLElement)) return;
+    // Legacy density rules have higher selector specificity than the modern CSS.
+    // Keep the actual tap targets and their grid tracks in sync after every render.
+    row.style.setProperty("grid-template-columns", "minmax(0,1fr) 148px", "important");
+    const controls = row.querySelector(".btns,.cardCtrl");
+    if (controls) {
+      for (const key of ["width","min-width","max-width"]) controls.style.setProperty(key,"148px","important");
+      controls.style.setProperty("grid-template-columns","44px 52px 44px","important");
+      controls.style.setProperty("gap","4px","important");
+    }
+    row.querySelectorAll("[data-plus],[data-minus]").forEach(button => {
+      for (const key of ["width","min-width","max-width","height","min-height"]) button.style.setProperty(key,"44px","important");
+      button.style.setProperty("padding","0","important");
+      button.style.setProperty("touch-action","manipulation","important");
+    });
     const title = titleOf(row);
     if (!title) return;
     tidyOwnedBadge(row);

@@ -20,11 +20,13 @@ export const auth = getAuth(app);
 
 // 匿名ログインを保証して user を返す
 export async function ensureSignedIn() {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, async (user) => {
-      if (user) return resolve(user);
-      await signInAnonymously(auth);
-      resolve(auth.currentUser);
-    });
+  const current = await new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    }, reject);
   });
+  if (current) return current;
+  const result = await signInAnonymously(auth);
+  return result.user;
 }

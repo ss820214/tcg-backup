@@ -312,6 +312,7 @@
       catch {}
       if (/^(?:効果なし|効果[:：]?\s*なし)$/u.test(text)) text = "";
     }
+    if (!text && typeof effectSource === "string" && !/^[\s]*[\[{]/u.test(effectSource)) text = compactVitals(cleanSimpleText(effectSource));
     if (!text) text = compactVitals(cleanSimpleText(def?.effectText || def?.description || def?.text || def?.desc || ""));
     const actions = Array.isArray(def?.actions) ? def.actions : Array.isArray(def?.action) ? def.action : def?.action ? [def.action] : [];
     if (!text && actions[0]) {

@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const deck = fs.readFileSync('public/deck.js', 'utf8');
+const auth = fs.readFileSync('public/auth.js', 'utf8');
+function section(start, end) {
+  return deck.slice(deck.indexOf(start), deck.indexOf(end, deck.indexOf(start)));
+}
+const support = {supportEffectTextJa: vm.runInNewContext(fs.readFileSync('public/support_text.js','utf8').replace('export function', 'function')+'\nsupportEffectTextJa', {window:{},console})};
+const summary = vm.runInNewContext(section('function supportSummaryText', 'function firstActionLine') + '\nsupportSummaryText', {
+  supportEffectTextJa: support.supportEffectTextJa, actionOneLine: a => a.name,
+});
+assert.match(summary({effect: 'カードを2枚引く'}), /2枚/);
+assert.equal(summary({effect: JSON.stringify({type:'draw',n:2})}), summary({effect:{type:'draw',n:2}}));
+assert.match(summary({effect: null, description:'マナを増やす'}), /マナ/);
+
+for (const stored of ['{}', '{"A":2}']) {
+  let fallback = 0;
+  const context = {localStorage:{getItem:()=>stored},LOCAL_KEY:'deck', normalizeDeckMap:x=>x,
+    consumePendingCloudDeck:()=>false,loadDeckFromUser:async()=>{fallback++;return true;},
+    loadDeckPreferFirestore:async()=>{fallback++;},roomId:'r',playerId:'p',deckMap:{old:3}};
+  await vm.runInNewContext('(async()=>{' + section('const loadedPendingDeck =', 'updateRoomPlayerSummary();\npruneDeckByOwnership') + '})()', context);
+  assert.equal(fallback,0);
+  assert.deepEqual(JSON.parse(JSON.stringify(context.deckMap)),JSON.parse(stored));
+}
+assert.match(section('function applySnapshotFromLibrary', 'initDeckLibrary({'), /saveLocalDeck\(\);\s*renderAll\(\)/);
+assert.match(deck, /if \(!\(await saveDeckToUser\(name\)\)\) throw/);
+
+const ensureCode = auth.slice(auth.indexOf('export async function ensureSignedIn')).replace('export ', '');
+for (const fails of [false,true]) {
+  let unsubscribed = false;
+  const context = {auth:{},onAuthStateChanged:(a,cb)=>{queueMicrotask(()=>cb(null));return ()=>{unsubscribed=true;};},
+    signInAnonymously:async()=>{if(fails)throw Error('offline');return {user:{uid:'test'}};}};
+  const ensure = vm.runInNewContext(ensureCode+'\nensureSignedIn',context);
+  if(fails) await assert.rejects(ensure(), /offline/);
+  else assert.equal((await ensure()).uid,'test');
+  assert.equal(unsubscribed,true);
+}
+const modal = section('function openDetail()', 'detailClose?.addEventListener');
+assert.match(modal,/classList.remove\("isHidden"\)/);
+assert.match(modal,/width:"100vw"/);
+assert.match(modal,/setProperty\("display", "none", "important"\)/);
+assert.match(deck,/openAdminCardEditor\(cardId\)\},5000\)/);
+assert.match(deck,/if \(!isAdminUser\(\) \|\| !cardDefs\[cardId\]\) return/);
+console.log('PASS: support text, JSON effects, empty/local deck restoration, snapshot persistence, save failures, auth rejection, modal guards, admin hold guards');

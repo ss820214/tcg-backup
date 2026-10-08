@@ -2747,20 +2747,28 @@ ensureHomeReturnButton();
 
 function openDetail() {
   if (!detailWrap) return;
-  detailWrap.style.display = "flex";
-  detailWrap.style.position = "fixed";
-  detailWrap.style.inset = "0";
-  detailWrap.style.zIndex = "2147483000";
-  detailWrap.style.alignItems = "center";
-  detailWrap.style.justifyContent = "center";
-  detailWrap.style.background = "rgba(0,0,0,.75)";
+  detailWrap.classList.remove("isHidden");
+  let panel = detailWrap.querySelector(":scope > .deckDetailDialog");
+  if (!panel) {
+    panel = document.createElement("section");
+    panel.className = "deckDetailDialog";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-label", "カード詳細");
+    while (detailWrap.firstChild) panel.appendChild(detailWrap.firstChild);
+    detailWrap.appendChild(panel);
+    panel.style.cssText = "width:min(94vw,720px);max-height:86dvh;overflow:auto;background:#101018;color:white;border:1px solid #666;border-radius:18px;box-shadow:0 22px 70px #000a";
+  }
+  const overlayStyles = {display:"flex",position:"fixed",inset:"0",width:"100vw",height:"100dvh","max-height":"none","max-width":"none","z-index":"2147483000","align-items":"center","justify-content":"center",background:"rgba(0,0,0,.75)",border:"0","border-radius":"0",padding:"0",overflow:"hidden"};
+  for (const [key,value] of Object.entries(overlayStyles)) detailWrap.style.setProperty(key,value,"important");
   detailWrap.setAttribute("aria-hidden", "false");
-  if (detailEl) { detailEl.style.maxHeight = "80dvh"; detailEl.style.overflowY = "auto"; detailEl.style.maxWidth = "min(94vw,720px)"; }
+  if (detailEl) detailEl.style.setProperty("display", "block", "important");
+  detailClose?.focus();
 }
 
 function closeDetail() {
   if (!detailWrap) return;
-  detailWrap.style.display = "none";
+  detailWrap.style.setProperty("display", "none", "important");
   detailWrap.setAttribute("aria-hidden", "true");
 }
 
@@ -5668,11 +5676,11 @@ function supportSummaryText(def = {}) {
     if (source === undefined || source === null || source === "") continue;
     let t = "";
     try {
-      t = typeof source === "object" ? supportEffectTextJa(source) : String(source);
+      t = supportEffectTextJa(source);
     } catch {
       t = String(source ?? "");
     }
-    t = String(t || "").replace(/^(?:効果[:：]?\\s*)?/u, "").trim();
+    t = String(t || "").replace(/^効果[:：]?\s*/u, "").trim();
     if (t && !/^(?:効果)?なし$/u.test(t)) return t;
   }
   const a = (Array.isArray(def?.actions) ? def.actions : [])[0];
@@ -7960,7 +7968,8 @@ function openAdminCardEditor(cardId) {
   field("カード名","name",d.name);
   field("コスト","cost",d.cost,"number");
   if(!isSupportLike(d,cardId)){field("HP","hp",d.hp,"number");field("SP","sp",d.sp,"number");}
-  field("効果説明","effect",typeof d.effect==="string"?d.effect:(d.description || d.text || ""),"textarea");
+  field("効果データ（構造化効果はJSON）","effect",typeof d.effect==="object"&&d.effect!==null?JSON.stringify(d.effect,null,2):(d.effect || ""),"textarea");
+  field("効果説明","description",d.description || d.effectText || d.text || "","textarea");
   field("技データ（JSON配列。成功率・威力などを編集）","actions",JSON.stringify(d.actions || [],null,2),"textarea");
   const status=document.createElement("p");status.style.color="#ffcf78";panel.appendChild(status);
   const cancel=document.createElement("button");cancel.textContent="キャンセル";
@@ -7973,8 +7982,9 @@ function openAdminCardEditor(cardId) {
       if(!Array.isArray(patch.actions))throw Error("技データはJSON配列にしてください");
       if(fields.hp)patch.hp=Number(fields.hp.value);
       if(fields.sp)patch.sp=Number(fields.sp.value);
-      if(typeof d.effect==="string")patch.effect=fields.effect.value;
-      else patch.description=fields.effect.value;
+      const effectValue=fields.effect.value.trim();
+      patch.effect=/^[\[{]/u.test(effectValue)?JSON.parse(effectValue):effectValue;
+      patch.description=fields.description.value;
       if(!patch.name || !Number.isFinite(patch.cost) || (fields.hp&&!Number.isFinite(patch.hp)) || (fields.sp&&!Number.isFinite(patch.sp)))throw Error("数値と名前を確認してください");
       save.disabled=true;status.textContent="保存中…";
       await setDoc(doc(db,source,sourceId),patch,{merge:true});
@@ -8071,7 +8081,7 @@ async function saveDeckOnly(rid, pid) {
       { merge: true },
     );
 
-    await saveDeckToUser(name);
+    if (!(await saveDeckToUser(name))) throw new Error("ユーザーデッキの保存に失敗しました");
     saveLocalDeck();
     saveSelectedEx(selectedExSupportId || "");
     setMsg("保存しました。", true);
@@ -8690,10 +8700,8 @@ if (!loadedPendingDeck) {
     const rawLocalDeck = localStorage.getItem(LOCAL_KEY);
     if (rawLocalDeck) {
       const parsedLocalDeck = normalizeDeckMap(JSON.parse(rawLocalDeck) || {});
-      if (Object.keys(parsedLocalDeck).length > 0) {
-        deckMap = parsedLocalDeck;
-        loadedLocalDeck = true;
-      }
+      deckMap = parsedLocalDeck;
+      loadedLocalDeck = true;
     }
   } catch {}
   if (!loadedLocalDeck) {
@@ -8753,6 +8761,7 @@ function applySnapshotFromLibrary(snap) {
     if (sel) sel.value = fid;
   }
 
+  saveLocalDeck();
   renderAll();
   const copyWarning = formatDeckCopyWarning(copyIssues);
   if (copyWarning) {

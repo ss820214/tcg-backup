@@ -29,6 +29,13 @@ jobs:
           grep -q '"default": "tcg-0bato"' .firebaserc
           grep -q '"public": "public"' firebase.json
 
+      - name: Verify deck regressions before publishing
+        run: |
+          node --check public/auth.js
+          node --check public/deck.js
+          node --check public/deck_mobile_hotfix_20261006_skills6.js
+          node tools/deck_regression_20261008.mjs
+
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

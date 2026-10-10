@@ -235,6 +235,20 @@
   </style>
   <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
   <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
+  <style id="profileAccountFix20261010">
+    .profileAccountBar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:11px;margin-bottom:10px;border:1px solid rgba(120,227,173,.22);border-radius:9px;background:rgba(120,227,173,.055)}
+    .profileAccountInfo{display:grid;gap:4px;min-width:0}
+    .profileAccountInfo b{font-size:14px}
+    .profileAccountInfo span{font-size:12px;color:var(--muted)}
+    .profileLoginLink{display:inline-flex;align-items:center;justify-content:center;max-width:100%;min-height:40px;padding:8px 13px;border-radius:8px;border:1px solid rgba(120,227,173,.42);color:var(--text);background:rgba(120,227,173,.11);text-decoration:none;font-weight:800;font-size:13px;text-align:center}
+    .profileSettings{margin-bottom:11px;border:1px solid var(--line);border-radius:9px;background:rgba(0,0,0,.18)}
+    .profileSettings summary{padding:10px 12px;cursor:pointer;font-weight:800;list-style-position:inside}
+    .profileSettingsLinks{display:flex;flex-wrap:wrap;gap:8px;padding:0 10px 11px}
+    .profileSettingsLinks a{padding:8px 11px;border:1px solid var(--line);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px}
+    .stats .stat .label{white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;font-size:clamp(11px,3vw,13px)!important;letter-spacing:0!important}
+    .stats .stat{min-width:0}
+    @media(max-width:420px){.profileAccountBar{align-items:stretch}.profileAccountInfo{flex:1 1 120px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.stats .stat{padding:10px 8px!important}.stats .stat .label{font-size:11px!important}.profileSettingsLinks a{flex:1;text-align:center}}
+  </style>
   <style id="profileMobileLayout20261009">
     /* Profile-only overflow guard: never affect deck builder or battle screens. */
     html,body { max-width:100%; overflow-x:clip; }
@@ -286,15 +300,28 @@
         <div class="sub">謇謖√き繝ｼ繝峨√ず繧ｧ繝縲∝ｯｾ謌ｦ螻･豁ｴ</div>
       </div>
       <div class="actions">
-        <button id="btnDeck" type="button">繝・ャ繧ｭ</button>
-        <button id="btnGacha" type="button">繧ｬ繝√Ε</button>
-        <button id="btnReload" type="button">譖ｴ譁ｰ</button>
+        <button id="btnStart" type="button">初期画面</button>
+        <button id="btnDeck" type="button">デッキ</button>
       </div>
     </header>
 
     <main class="grid">
       <section class="panel">
         <h2>繝励Ο繝輔ぅ繝ｼ繝ｫ</h2>
+        <div class="profileAccountBar">
+          <div class="profileAccountInfo">
+            <b>アカウント</b>
+            <span id="profileLoginStatus">確認中...</span>
+          </div>
+          <a id="profileLoginLink" class="profileLoginLink" href="./login.html?return=%2Fprofile.html">ログイン / 新規登録</a>
+        </div>
+        <details class="profileSettings">
+          <summary>⚙ 設定</summary>
+          <nav class="profileSettingsLinks" aria-label="設定ツール">
+            <a href="./ui_health.html">UI診断</a>
+            <a href="./card_audit.html">カード監査</a>
+          </nav>
+        </details>
         <div class="stats">
           <div class="stat"><div class="label">UID</div><div id="uid" class="value uid">...</div><div class="uidTools"><button id="btnCopyUid" type="button">UID繧ｳ繝斐・</button><span id="uidCopyMsg" class="uidCopyMsg"></span></div></div>
           <div class="stat"><div class="label">繧ｸ繧ｧ繝</div><div id="gems" class="value gem">0</div></div>
@@ -356,6 +383,17 @@
     </main>
   </div>
 
+<script>
+  (() => {
+    document.getElementById("btnStart")?.addEventListener("click", () => { location.href = "./index.html"; });
+    const linked = localStorage.getItem("profileLinked") === "1" && !!localStorage.getItem("uid");
+    const status = document.getElementById("profileLoginStatus");
+    const login = document.getElementById("profileLoginLink");
+    if (status) status.textContent = linked ? "ログイン済み" : "ゲストで利用中";
+    if (login && linked) login.textContent = "アカウント切替";
+    if (login) login.href = "./login.html?return=" + encodeURIComponent(location.pathname + location.search);
+  })();
+</script>
 <script type="module" src="./profile.js?v=20260828_jewel_art1"></script>
   <script src="./player_journey.js?v=20260801_journey1"></script>
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>

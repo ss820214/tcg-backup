@@ -367,9 +367,9 @@
       <div class="tcg-route-actions">
         <button class="tcg-route-btn primary" type="button" data-route="./index.html">初期画面</button>
         <button class="tcg-route-btn" type="button" data-route="./index.html#deck">デッキ</button>
-        <button class="tcg-route-btn" type="button" data-route="./profile.html">ユーザー</button>
+        ${page === "profile.html" ? "" : `<button class="tcg-route-btn" type="button" data-route="./profile.html">ユーザー</button>
         <button class="tcg-route-btn" type="button" data-route="./gacha.html">ガチャ</button>
-        <button class="tcg-route-btn" type="button" data-route="./creator.html">工房</button>
+        <button class="tcg-route-btn" type="button" data-route="./creator.html">工房</button>`}
       </div>
     `;
     strip.addEventListener("click", (ev) => {

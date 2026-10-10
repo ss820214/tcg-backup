@@ -249,6 +249,34 @@
     .stats .stat{min-width:0}
     @media(max-width:420px){.profileAccountBar{align-items:stretch}.profileAccountInfo{flex:1 1 120px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.stats .stat{padding:10px 8px!important}.stats .stat .label{font-size:11px!important}.profileSettingsLinks a{flex:1;text-align:center}}
   </style>
+  <style id="profileOwnedCompact20261010">
+    /* Hide only the duplicate diagnostics injected at page root.
+       Keep both links accessible inside the profile settings disclosure. */
+    body > .tcgUtilityLinks { display:none!important; }
+    #cards.cards { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:5px!important; }
+    #cards .card {
+      display:grid!important;
+      grid-template-columns:42px minmax(0,1fr) auto!important;
+      grid-template-rows:auto auto!important;
+      column-gap:9px!important;
+      row-gap:2px!important;
+      align-items:center!important;
+      min-height:0!important;
+      height:auto!important;
+      padding:8px 10px!important;
+      border-radius:9px!important;
+      position:relative!important;
+      width:100%!important;
+      overflow:hidden!important;
+    }
+    #cards .card .rar { grid-column:1!important; grid-row:1 / 3!important; align-self:center!important; font-size:11px!important; margin:0!important; }
+    #cards .card .name { grid-column:2!important; grid-row:1!important; margin:0!important; font-size:13px!important; line-height:1.25!important; min-width:0!important; white-space:nowrap!important; overflow:hidden!important; text-overflow:ellipsis!important; }
+    #cards .card .meta { grid-column:2!important; grid-row:2!important; margin:0!important; font-size:10px!important; min-width:0!important; line-height:1.25!important; white-space:nowrap!important; overflow:hidden!important; text-overflow:ellipsis!important; }
+    #cards .card .count { grid-column:3!important; grid-row:1 / 3!important; position:static!important; align-self:center!important; margin:0!important; padding:4px 8px!important; font-size:12px!important; min-width:37px!important; border-radius:7px!important; }
+    @media(min-width:720px) {
+      #cards.cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+    }
+  </style>
   <style id="profileMobileLayout20261009">
     /* Profile-only overflow guard: never affect deck builder or battle screens. */
     html,body { max-width:100%; overflow-x:clip; }

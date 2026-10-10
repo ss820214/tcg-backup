@@ -299,10 +299,7 @@
         <h1>繝ｦ繝ｼ繧ｶ繝ｼ諠・ｱ</h1>
         <div class="sub">謇謖√き繝ｼ繝峨√ず繧ｧ繝縲∝ｯｾ謌ｦ螻･豁ｴ</div>
       </div>
-      <div class="actions">
-        <button id="btnStart" type="button">初期画面</button>
-        <button id="btnDeck" type="button">デッキ</button>
-      </div>
+
     </header>
 
     <main class="grid">
@@ -385,7 +382,6 @@
 
 <script>
   (() => {
-    document.getElementById("btnStart")?.addEventListener("click", () => { location.href = "./index.html"; });
     const linked = localStorage.getItem("profileLinked") === "1" && !!localStorage.getItem("uid");
     const status = document.getElementById("profileLoginStatus");
     const login = document.getElementById("profileLoginLink");

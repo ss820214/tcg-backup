@@ -2561,29 +2561,25 @@ function setupDeckStartScreen(opts = {}) {
       return;
     }
     if (action === "play") {
-      run(() => {
-        close(0);
-        // Open the entry drawer explicitly. Clicking its toggle could close an
-        // already-open drawer or fail while the start overlay is being removed.
-        requestAnimationFrame(() => {
-          const drawer = document.getElementById("roomDrawer");
-          const overlay = document.getElementById("roomDrawerOverlay");
-          if (drawer) {
-            drawer.classList.add("open");
-            drawer.setAttribute("aria-hidden", "false");
-            overlay?.classList.add("open");
-            overlay?.setAttribute("aria-hidden", "false");
-            const button = document.getElementById("roomDrawerToggle");
-            if (button) button.textContent = "閉じる ◀";
-            if (sumDeck(deckMap) !== DECK_SIZE) {
-              const message = document.getElementById("deckMsg");
-              if (message) message.textContent = "ゲーム開始にはデッキ30枚が必要です。現在 " + sumDeck(deckMap) + "/30枚";
-            }
-          } else {
-            triggerExistingButton("roomDrawerToggle");
-          }
-        });
-      });
+      // Mobile hides the legacy drawer toggle. Open the actual drawer directly,
+      // without waiting for the home transition or clicking a hidden button.
+      const drawer = document.getElementById("roomDrawer");
+      const overlay = document.getElementById("roomDrawerOverlay");
+      if (!drawer) {
+        console.error("[play] room drawer missing");
+        alert("対戦ルームを開けませんでした。画面を更新してください。");
+        return;
+      }
+      close(0);
+      drawer.classList.add("open");
+      drawer.setAttribute("aria-hidden", "false");
+      overlay?.classList.add("open");
+      overlay?.setAttribute("aria-hidden", "false");
+      const toggle = document.getElementById("roomDrawerToggle");
+      if (toggle) toggle.textContent = "閉じる ◀";
+      updateRoomDeckReadiness();
+      // Ensure that home-only mobile viewport locking doesn't obscure the drawer.
+      document.body.classList.remove("mobileHomeFit");
       return;
     }
     if (action === "settings") {

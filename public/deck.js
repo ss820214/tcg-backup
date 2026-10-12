@@ -6906,6 +6906,7 @@ function polishRoomEntryPanel() {
 
   body.classList.add("roomStartBody");
   body.replaceChildren(actionGrid, joinCard, note);
+  updateRoomDeckReadiness();
 }
 
 // =====================
@@ -7561,6 +7562,24 @@ function initTabs() {
 let injectedCreateBtn = null;
 let injectedJoinBtn = null;
 
+function updateRoomDeckReadiness(total = sumDeck(deckMap)) {
+  const host = document.querySelector(".roomStartBody") || document.querySelector("#roomDrawer .roomOpCardBd:last-child");
+  if (!host) return;
+  let note = document.getElementById("roomDeckReadiness");
+  if (!note) {
+    note = document.createElement("div");
+    note.id = "roomDeckReadiness";
+    note.setAttribute("role", "status");
+    note.style.cssText = "margin:12px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.20);background:rgba(8,16,24,.85);font-size:14px;line-height:1.6;overflow-wrap:anywhere";
+    host.prepend(note);
+  }
+  const valid = total === DECK_SIZE;
+  note.style.borderColor = valid ? "rgba(120,230,165,.55)" : "rgba(255,195,100,.55)";
+  note.textContent = valid
+    ? `デッキ ${total}/${DECK_SIZE}枚 ✓ ソロ開始・ルーム作成ができます。`
+    : `デッキ ${total}/${DECK_SIZE}枚：開始するにはあと${Math.max(0,DECK_SIZE-total)}枚${total>DECK_SIZE?`（${total-DECK_SIZE}枚減らしてください）`:""}必要です。戻ってデッキを調整してください。`;
+}
+
 function updatePlayButtons() {
   const total = sumDeck(deckMap);
   const okDeck = total === DECK_SIZE;
@@ -7576,6 +7595,7 @@ function updatePlayButtons() {
 
   if (!okDeck) setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
   else setMsg("", true);
+  updateRoomDeckReadiness(total);
 
   if (injectedCreateBtn) injectedCreateBtn.disabled = !okDeck;
   if (injectedJoinBtn) injectedJoinBtn.disabled = !okJoin;
@@ -8252,6 +8272,8 @@ async function handleSoloRoom() {
     const total = sumDeck(deckMap);
     if (total !== DECK_SIZE) {
       setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
+      updateRoomDeckReadiness(total);
+      document.getElementById("roomDeckReadiness")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 

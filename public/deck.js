@@ -2563,7 +2563,26 @@ function setupDeckStartScreen(opts = {}) {
     if (action === "play") {
       run(() => {
         close(0);
-        setTimeout(() => triggerExistingButton("roomDrawerToggle"), 80);
+        // Open the entry drawer explicitly. Clicking its toggle could close an
+        // already-open drawer or fail while the start overlay is being removed.
+        requestAnimationFrame(() => {
+          const drawer = document.getElementById("roomDrawer");
+          const overlay = document.getElementById("roomDrawerOverlay");
+          if (drawer) {
+            drawer.classList.add("open");
+            drawer.setAttribute("aria-hidden", "false");
+            overlay?.classList.add("open");
+            overlay?.setAttribute("aria-hidden", "false");
+            const button = document.getElementById("roomDrawerToggle");
+            if (button) button.textContent = "閉じる ◀";
+            if (sumDeck(deckMap) !== DECK_SIZE) {
+              const message = document.getElementById("deckMsg");
+              if (message) message.textContent = "ゲーム開始にはデッキ30枚が必要です。現在 " + sumDeck(deckMap) + "/30枚";
+            }
+          } else {
+            triggerExistingButton("roomDrawerToggle");
+          }
+        });
       });
       return;
     }

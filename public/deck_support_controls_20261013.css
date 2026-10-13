@@ -1,0 +1,46 @@
+/* 2026-10-13: deck-only support controls and mobile scroll repair */
+#deckList .cardRow:has(.btns [data-ex]) .btns {
+  display: grid !important;
+  grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+  grid-template-areas: "minus minus count count plus plus" "detail detail detail ex ex ex" !important;
+  gap: 5px !important;
+  align-content: center !important;
+  min-width: 0 !important;
+}
+#deckList .cardRow:has(.btns [data-ex]) .btns [data-minus] {grid-area: minus !important;}
+#deckList .cardRow:has(.btns [data-ex]) .btns .count {grid-area:count !important;}
+#deckList .cardRow:has(.btns [data-ex]) .btns [data-plus] {grid-area:plus !important;}
+#deckList .cardRow:has(.btns [data-ex]) .btns [data-detail] {grid-area:detail !important; grid-column:auto !important;width:100% !important; min-width:0 !important; max-width:100% !important; height:32px !important;min-height:32px !important; padding:0 6px !important;}
+#deckList .cardRow:has(.btns [data-ex]) .btns [data-ex] {grid-area:ex !important;display:block !important; visibility:visible !important; width:100% !important;min-width:0 !important;max-width:100% !important;height:32px !important;min-height:32px !important;padding:0 6px !important;}
+@media(max-width:860px) {
+  body.mobileFitUi #deckList .cardRow:has(.btns [data-ex]) .btns [data-ex] {display:block !important;}
+  body.mobileFitUi #deckList .cardRow:has(.btns [data-ex]) {min-height:0 !important;}
+  body.mobileFitUi #deckList .cardRow:has(.btns [data-ex]) .btns {grid-template-columns:repeat(6,minmax(0,1fr)) !important;grid-template-areas:"minus minus count count plus plus" "detail detail detail ex ex ex" !important;}
+  #deckPanel #deckPanelMinBtn,
+  .libraryPanel #libraryPanelMinBtn {
+    width:42px !important;height:42px !important;min-width:42px !important;max-width:42px !important;
+    min-height:42px !important;flex:0 0 42px !important;padding:0 !important;
+    border-radius:50% !important;display:grid !important;place-items:center !important;
+    font-size:22px !important;line-height:1 !important;touch-action:manipulation !important;
+  }
+  #deckPanel > .hd {grid-template-columns:minmax(0,1fr) auto 42px !important;}
+  body.mobileFitUi:not(.mobileHomeFit):has(#deckPanel.isPanelCollapsed) {
+    height:auto !important;min-height:100dvh !important;overflow-y:auto !important;
+    touch-action:pan-y !important;
+  }
+  body.mobileFitUi:not(.mobileHomeFit):has(#deckPanel.isPanelCollapsed) > .wrap {
+    height:auto !important;min-height:calc(100dvh - 48px) !important;
+    overflow-y:visible !important;max-height:none !important;
+  }
+  body.mobileFitUi:not(.mobileHomeFit) #deckPanel.isPanelCollapsed {
+    flex:0 0 auto !important;min-height:0 !important;
+    height:auto !important;max-height:none !important;overflow:visible !important;
+  }
+  body.mobileFitUi:not(.mobileHomeFit) #deckPanel.isPanelCollapsed > .bd {display:none !important;}
+  body.mobileFitUi:not(.mobileHomeFit):has(#deckPanel.isPanelCollapsed) #mobileDeckStackShell {
+    overflow:visible !important;
+  }
+  body.mobileFitUi:not(.mobileHomeFit) #deckList {
+    overscroll-behavior-y:auto !important;touch-action:pan-y !important;
+  }
+}

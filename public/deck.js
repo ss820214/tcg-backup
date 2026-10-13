@@ -2561,26 +2561,8 @@ function setupDeckStartScreen(opts = {}) {
       return;
     }
     if (action === "play") {
-      // Mobile hides the legacy drawer toggle. Open the actual drawer directly,
-      // without waiting for the home transition or clicking a hidden button.
-      const drawer = document.getElementById("roomDrawer");
-      const overlay = document.getElementById("roomDrawerOverlay");
-      if (!drawer) {
-        console.error("[play] room drawer missing");
-        alert("対戦ルームを開けませんでした。画面を更新してください。");
-        return;
-      }
-      close(0);
-      document.body.classList.add("battleEntryScreen");
-      drawer.classList.add("open");
-      drawer.setAttribute("aria-hidden", "false");
-      overlay?.classList.add("open");
-      overlay?.setAttribute("aria-hidden", "false");
-      const toggle = document.getElementById("roomDrawerToggle");
-      if (toggle) toggle.textContent = "閉じる ◀";
-      updateRoomDeckReadiness();
-      // Ensure that home-only mobile viewport locking doesn't obscure the drawer.
-      document.body.classList.remove("mobileHomeFit");
+      // Dedicated battle entry; no transient drawer or home animation.
+      location.assign(new URL("./play.html", location.href).href);
       return;
     }
     if (action === "settings") {

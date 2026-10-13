@@ -2571,6 +2571,7 @@ function setupDeckStartScreen(opts = {}) {
         return;
       }
       close(0);
+      document.body.classList.add("battleEntryScreen");
       drawer.classList.add("open");
       drawer.setAttribute("aria-hidden", "false");
       overlay?.classList.add("open");

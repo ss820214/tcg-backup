@@ -31,7 +31,7 @@
 </div>
 <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
 <script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
-<script defer src="./game_mobile_tabs_20261015.js?v=20261015_tabs2"></script>
+<script defer src="./game_mobile_tabs_20261015.js?v=20261015_tabs_mana3"></script>
 <script type="module" src="./game.js?v=20261015_sfx_shared1"></script>
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
@@ -205,34 +205,21 @@
       };
     </script>
 
-    <script>
-      (() => {
-        const nav = document.getElementById("mobileBattleNav");
-        if (!nav) return;
-        const setActive = (id) => {
-          nav.querySelectorAll("button").forEach((btn) => {
-            btn.classList.toggle("active", btn.dataset.jumpTarget === id);
-          });
-        };
-        nav.addEventListener("click", (ev) => {
-          const btn = ev.target.closest("button[data-jump-target]");
-          if (!btn) return;
-          const target = document.getElementById(btn.dataset.jumpTarget);
-          if (!target) return;
-          setActive(btn.dataset.jumpTarget);
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-        setActive("centerPane");
-      })();
-    </script>
+
   <script src="./player_journey.js?v=20260801_journey1"></script>
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
   <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
   <script src="./visual_upgrade_20260805.js?v=20260806_deck_controls1"></script>
   <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
-  <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
+
 
     <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+<style id="battleHideUtilityTools">
+ body .tcgUtilityLinks{display:none!important}
+ </style>
+ <script>
+ (()=>{const clean=()=>{document.querySelectorAll("button,a,[role=button]").forEach(el=>{if(el.textContent.trim()==="次の一手"){el.style.setProperty("display","none","important");}});};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",clean);else clean();setTimeout(clean,1100);})();
+ </script>
 </body>
 </html>
 

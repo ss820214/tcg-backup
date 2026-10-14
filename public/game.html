@@ -219,23 +219,27 @@
  </style>
  <script>
  (()=>{
- const clean=()=>{
-  document.querySelectorAll("button,a,[role=button],.tcgUtilityLinks").forEach(el=>{
-   if(el.classList?.contains("tcgUtilityLinks")||el.textContent?.trim()==="次の一手") el.remove();
-  });
-  // The floating hint may wrap the label in an inner element.
-  for(const el of document.querySelectorAll("body *")){
-   if(el.children.length || el.textContent?.trim()!=="次の一手")continue;
+ const removeTargets=root=>{
+  if(!(root instanceof Element || root===document.body))return;
+  const elems=[root,...(root.querySelectorAll?.("button,a,[role=button],.tcgUtilityLinks")||[])];
+  for(const el of elems){
+   if(el.classList?.contains("tcgUtilityLinks")||el.textContent?.trim()==="次の一手")el.remove();
+  }
+  for(const el of root.querySelectorAll?.("span,div")||[]){
+   if(el.children.length||el.textContent?.trim()!=="次の一手")continue;
    const target=el.closest("button,a,[role=button]")||el.parentElement;
-   if(target&&target!==document.body&&target!==document.documentElement)target.remove();
+   if(target && target!==document.body)target.remove();
   }
  };
- let queued=false;
- const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;clean()})};
- if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{
-  clean();new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true});
- },{once:true});
- else {clean();new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true})}
+ const begin=()=>{
+  removeTargets(document.body);
+  new MutationObserver(changes=>{
+   for(const change of changes)for(const node of change.addedNodes)
+    if(node.nodeType===1)removeTargets(node);
+  }).observe(document.body,{childList:true,subtree:true});
+ };
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",begin,{once:true});
+ else begin();
 })();
  </script>
 </body>

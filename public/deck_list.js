@@ -107,4 +107,4 @@ storageProto.setItem = function patchedDeckListSetItem(key, value) {
   return originalSetItem.call(this, key, value);
 };
 
-await import("./deck_list_core_20261005.js?v=20261006_clean1");
+await import("./deck_list_core_20261005.js?v=20261015_return_play1");

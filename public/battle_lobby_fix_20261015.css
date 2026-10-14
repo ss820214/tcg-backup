@@ -44,3 +44,42 @@ html,body{max-width:100%;overflow-x:clip}
  .pongRow{display:flex!important;flex-direction:column!important;max-width:100%!important}
  .pongPanel{padding:12px!important}
 }
+
+
+/* v2: prevent narrow-column vertical text and overloaded lobby headers */
+body:has(.vsBanner) #deviceModeBadge{display:none!important}
+body:has(.vsBanner) #tcgRouteStrip{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:nowrap!important;gap:8px!important;min-width:0!important}
+body:has(.vsBanner) #tcgRouteStrip .tcg-route-title{min-width:0!important;flex:1 1 auto!important}
+body:has(.vsBanner) #tcgRouteStrip .tcg-route-actions{flex:0 0 auto!important;display:flex!important;flex-wrap:nowrap!important;gap:6px!important}
+body:has(.vsBanner) #tcgRouteStrip .tcg-route-btn{white-space:nowrap!important;padding:8px 12px!important}
+body:has(.vsBanner) .topbar,body:has(.vsBanner) .topStatus,body:has(.vsBanner) .topActions{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+body:has(.vsBanner) .topbar{position:relative!important;z-index:1!important}
+body:has(.vsBanner) .vsBanner{display:grid!important;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr)!important;align-items:stretch!important;gap:10px!important}
+body:has(.vsBanner) .vsBanner .sideCard{display:flex!important;flex-direction:column!important;justify-content:center!important;width:100%!important;min-width:0!important;overflow:hidden!important}
+body:has(.vsBanner) .vsBanner .playerName{writing-mode:horizontal-tb!important;word-break:normal!important;overflow-wrap:anywhere!important;white-space:normal!important;line-height:1.25!important;font-size:clamp(14px,3.4vw,22px)!important}
+body:has(.vsBanner) .vsBanner .readyBadge{max-width:100%!important;overflow-wrap:anywhere!important;white-space:normal!important;font-size:12px!important}
+body:has(.vsBanner) .vsBanner .vsCenter{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;min-width:0!important;width:100%!important}
+body:has(.vsBanner) .vsBanner .vsText{font-size:24px!important;letter-spacing:0!important}
+body:has(.vsBanner) .vsBanner .vsCenter .muted{display:none!important}
+@media(max-width:760px){
+ body:has(.vsBanner) #tcgRouteStrip{padding:8px!important}
+ body:has(.vsBanner) #tcgRouteStrip .tcg-route-title{font-size:14px!important;line-height:1.15!important;overflow:hidden!important}
+ body:has(.vsBanner) #tcgRouteStrip .tcg-route-sub{display:none!important}
+ body:has(.vsBanner) #tcgRouteStrip .tcg-route-actions{gap:5px!important}
+ body:has(.vsBanner) #tcgRouteStrip .tcg-route-btn{padding:7px 9px!important;font-size:12px!important}
+ body:has(.vsBanner) .topbar{position:static!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"room" "status" "ready"!important;gap:8px!important;padding:0!important;background:none!important}
+ body:has(.vsBanner) .topbar .room{grid-area:room!important;display:flex!important;justify-content:space-between!important;align-items:center!important;padding:10px 13px!important}
+ body:has(.vsBanner) .topbar .roomId{margin:0!important}
+ body:has(.vsBanner) .topbar .topStatus{grid-area:status!important;display:block!important;padding:12px!important;overflow:visible!important}
+ body:has(.vsBanner) .topbar .topActions{grid-area:ready!important;display:block!important;padding:8px!important}
+ body:has(.vsBanner) .topbar #readyBtn{display:block!important;width:100%!important;min-height:46px!important;font-size:16px!important}
+ body:has(.vsBanner) .topbar .statusText{font-size:16px!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+ body:has(.vsBanner) .vsBanner{grid-template-columns:minmax(0,1fr)!important;gap:6px!important;padding:10px!important}
+ body:has(.vsBanner) .vsBanner .sideCard{min-height:74px!important;max-width:100%!important;padding:12px 16px!important;text-align:left!important}
+ body:has(.vsBanner) .vsBanner .sideCard.right{text-align:left!important}
+ body:has(.vsBanner) .vsBanner .vsCenter{min-height:24px!important;display:flex!important;flex-direction:row!important;align-items:center!important}
+ body:has(.vsBanner) .vsBanner .vsText{font-size:18px!important}
+ body:has(.vsBanner) .vsBanner .playerName{font-size:18px!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important}
+ body:has(.vsBanner) .vsBanner .readyBadge{margin-top:6px!important}
+ body:has(.vsBanner) .page{overflow-x:hidden!important}
+}

@@ -13,13 +13,39 @@ function init(){
  function toggle(id){if(!mobile())return;if(id==="centerPane"||open===id){close();return}close();const p=panes[id];if(!p)return;open=id;document.body.append(p);p.classList.add("mobileBattlePopupActive");document.body.classList.add("mobileBattlePopupOpen");buttons.forEach(b=>{const yes=b.dataset.jumpTarget===id;b.classList.toggle("active",yes);b.setAttribute("aria-expanded",String(yes))})}
  nav.addEventListener("click",ev=>{if(!mobile())return;const b=ev.target.closest("button[data-jump-target]");if(!b)return;ev.preventDefault();ev.stopImmediatePropagation();toggle(b.dataset.jumpTarget)},true);
  shade.addEventListener("click",close);document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});window.addEventListener("resize",()=>{if(!mobile())close()});
- const meter=document.createElement("section");meter.id="battleManaQuick";meter.setAttribute("aria-label","マナ状況");meter.innerHTML='<span class="manaQuickLabel">マナ</span><strong id="battleManaQuickValue">A ?/? ｜ B ?/?</strong>';center.append(meter);
- const mana=document.getElementById("mana");const value=meter.querySelector("#battleManaQuickValue");
- const update=()=>{value.textContent=(mana?.textContent||"A ?/? ｜ B ?/?").trim().replace(/\s*\|\s*/g," ｜ ");};update();if(mana)new MutationObserver(update).observe(mana,{subtree:true,childList:true,characterData:true});
+ // Reuse the actual gameplay gauge so its illuminated diamonds, bonus mana,
+ // and spent mana always match the controls panel. Never duplicate the gauge.
+ const gauge=document.getElementById("manaGauge");
+ const gaugeHome=document.createComment("mana gauge home");
+ if(gauge)gauge.before(gaugeHome);
+ const meter=document.createElement("section");
+ meter.id="battleManaQuick";
+ meter.setAttribute("aria-label","マナ状況");
+ meter.innerHTML='<span class="manaQuickLabel">マナ</span><div id="battleManaQuickGauge"></div><strong id="battleManaQuickValue"></strong>';
+ center.append(meter);
+ const gaugeSlot=meter.querySelector("#battleManaQuickGauge");
+ const mana=document.getElementById("mana");
+ const value=meter.querySelector("#battleManaQuickValue");
+ const update=()=>{
+  const text=(mana?.textContent||"A ?/? | B ?/?").trim();
+  const my=(text.match(/A\\s*(\\d+)\\s*\\/\\s*(\\d+)/)||[]);const other=(text.match(/B\\s*(\\d+)\\s*\\/\\s*(\\d+)/)||[]);
+  const seat=(document.getElementById("you")?.textContent||"A").trim().toUpperCase();
+  const pair=seat==="B"?other:my;
+  const label=pair.length?pair[1]+"/"+pair[2]:text.replace(/\\s*\\|\\s*/g," ｜ ");
+  value.textContent=label;
+ };
+ const position=()=>{
+  if(!gauge)return;
+  if(mobile()){if(gauge.parentElement!==gaugeSlot)gaugeSlot.append(gauge)}
+  else if(gaugeHome.parentNode&&gauge.previousSibling!==gaugeHome){gaugeHome.after(gauge)}
+ };
+ update();position();
+ if(mana)new MutationObserver(update).observe(mana,{subtree:true,childList:true,characterData:true});
+ window.addEventListener("resize",position);
  const css=document.createElement("style");css.id="gameTabsAndMana20261015";css.textContent=`
  #battleManaQuick{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100%,460px);padding:10px 14px;margin:9px auto;border:1px solid rgba(241,196,95,.55);background:linear-gradient(110deg,#272012,#182d32);border-radius:13px;color:#f8e4ad;box-shadow:0 3px 18px #0006}
  #battleManaQuick .manaQuickLabel{font-weight:900;font-size:14px}
- #battleManaQuickValue{font-size:clamp(16px,4.5vw,20px);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+ #battleManaQuickGauge{flex:1;min-width:0}#battleManaQuickGauge #manaGauge{margin:0!important;display:flex!important;min-width:0!important;max-height:none!important;gap:5px!important;flex-wrap:wrap!important}#battleManaQuickValue{font-size:clamp(16px,4.5vw,20px);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
  @media(min-width:761px){#battleManaQuick{display:none}}
  @media(max-width:760px) and (orientation:portrait){
  #board .uName{font-size:clamp(10px,2.8vw,13px)!important;line-height:1.15!important;font-weight:850!important;max-height:3.5em!important;overflow-wrap:anywhere!important;text-shadow:0 1px 3px #000,0 0 3px #000!important}

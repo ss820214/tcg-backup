@@ -18,7 +18,7 @@ import {
 
 import { createCpuDriver } from "./cpu_driver.js?v=20260626_deckui_ai2";
 
-import { setBgmMode } from "./sfx.js?v=20260626";
+import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
 import {
   applySupport,

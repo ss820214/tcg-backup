@@ -1,171 +1,37 @@
-﻿<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>TCG Online - Battle</title>
-
-    <!-- Existing game.css controls the battle layout, effects, panes, log, and mana UI. -->
-    <link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1" />
-    <link rel="stylesheet" href="./game.css?v=20260919_hand_fan3" />
-    <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1" />
-    <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
-    <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
-</head>
-  <body>
-    <!-- ===== FX / Overlay ===== -->
-    <div id="turnBanner">縺ゅ↑縺溘・繧ｿ繝ｼ繝ｳ・・/div>
-    <div id="fxFlash"></div>
-    <div id="pinchFx" aria-hidden="true"></div>
-
-    <div id="enemySupportToast" class="enemySupportToast" aria-hidden="true">
-      <div class="enemySupportToastHead">
-        <b id="enemySupportToastTitle">逶ｸ謇九′繧ｵ繝昴・繝育匱蜍・/b>
-        <button id="enemySupportToastClose" type="button" aria-label="髢峨§繧・>ﾃ・/button>
-      </div>
-      <div id="enemySupportToastBody" class="enemySupportToastBody"></div>
-    </div>
-    <!-- ===== App Layout ===== -->
-    <div id="app">
-      <!-- ======================
-          LEFT PANE
-         ====================== -->
-      <aside id="leftPane">
-        <div class="paneTitle">諠・ｱ</div>
-
-        <div class="kv">
-          <div class="row small"><b>YOU:</b> <span id="you">?</span></div>
-          <div class="row small"><b>TURN:</b> <span id="turn">?</span></div>
-
-          <div class="row small" style="margin-top: 6px">
-            <span id="mana">A ?/? | B ?/?</span>
-          </div>
-
-          <!-- Mana gauge -->
-          <div id="manaGauge"></div>
-
-          <div class="row small" style="margin-top: 8px">
-            <div id="deckCount">谿九ｊ A:? / B:?</div>
-          </div>
-          <div id="scoreWrap" class="scoreWrap">
-            <div class="scoreRow">
-              <div class="scoreLabel">KILL</div>
-
-              <div class="scoreSide">
-                <div class="scoreSideName">A</div>
-                <div id="killMeterA" class="scoreMeter"></div>
-                <div id="killTextA" class="scoreText">0/3</div>
-              </div>
-
-              <div class="scoreSide">
-                <div class="scoreSideName">B</div>
-                <div id="killMeterB" class="scoreMeter"></div>
-                <div id="killTextB" class="scoreText">0/3</div>
-              </div>
-            </div>
-
-            <div class="scoreRow" style="margin-top: 6px">
-              <div class="scoreLabel">INFIL</div>
-
-              <div class="scoreSide">
-                <div class="scoreSideName">A</div>
-                <div id="infilMeterA" class="scoreMeter"></div>
-                <div id="infilTextA" class="scoreText">0/3</div>
-              </div>
-
-              <div class="scoreSide">
-                <div class="scoreSideName">B</div>
-                <div id="infilMeterB" class="scoreMeter"></div>
-                <div id="infilTextB" class="scoreText">0/3</div>
-              </div>
-            </div>
-
-            <!-- Hidden legacy spans kept for compatibility. -->
-            <span id="kills" style="display: none"></span>
-            <span id="infil" style="display: none"></span>
-          </div>
-
-          <div id="dice"></div>
-          <div
-            id="modeHint"
-            class="small"
-            style="margin-top: 8px; opacity: 0.85"
-          ></div>
-        </div>
-
-        <div class="paneTitle">謫堺ｽ・/div>
-        <div class="controls">
-          <button id="modeSummon">蜿ｬ蝟・/button>
-          <button id="modeMove">遘ｻ蜍・/button>
-          <button id="modeAttack">陦悟虚</button>
-          <button id="modeEvolve">騾ｲ蛹・/button>
-          <button id="modeSupport">繧ｵ繝昴・繝・/button>
-          <button id="doEvolve" style="display: none">騾ｲ蛹門ｮ溯｡・/button>
-          <button id="endTurn">繧ｿ繝ｼ繝ｳ邨ゆｺ・/button>
-        </div>
-
-        <!-- Quick actions -->
-        <div id="quickActions" class="quickActions" style="display: none">
-          <button id="quickMove">遘ｻ蜍・/button>
-          <button id="quickAttack">陦悟虚</button>
-          <span id="quickMsg" class="small"></span>
-        </div>
-
-        <!-- Pinch + EX UI -->
-        <div id="exWrap" class="kv" style="margin-top: 10px">
-          <div
-            class="row"
-            style="justify-content: space-between; align-items: center"
-          >
-            <b>EX</b>
-            <button id="exBtn" type="button">EX逋ｺ蜍・/button>
-          </div>
-          <div id="exInfo" class="small" style="margin-top: 6px; opacity: 0.9">
-            EX縺ｪ縺・          </div>
-          <div class="small" style="margin-top: 6px; opacity: 0.75">
-            窶ｻ繝斐Φ繝∵凾縺ｮ縺ｿ / 1蝗槭″繧・          </div>
-        </div>
-      </aside>
-
-      <!-- ======================
-          CENTER PANE
-         ====================== -->
-      <main id="centerPane" aria-label="battle-board">
-        <div id="board"></div>
-      </main>
-
-      <!-- ======================
-          RIGHT PANE
-         ====================== -->
-      <aside id="rightPane">
-        <div id="cardPreview" class="battleCardPreview" aria-live="polite"></div>
-
-        <div class="paneTitle">謇区惆</div>
-        <div id="hand"></div>
-
-        <div class="paneTitle" style="margin-top: 10px">陦悟虚</div>
-        <div id="actionPicker" class="small">
-          繝ｦ繝九ャ繝医ｒ驕ｸ謚槭☆繧九→陦悟虚縺瑚｡ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
-
-        <div class="paneTitle" style="margin-top: 10px">隧ｳ邏ｰ</div>
-        <div id="detail" class="small">
-          繝ｦ繝九ャ繝・繧ｫ繝ｼ繝峨・隧ｳ邏ｰ縺後％縺薙↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
-
-        <div class="paneTitle" style="margin-top: 10px">繝ｭ繧ｰ</div>
-        <pre id="log"></pre>
-      </aside>
-    </div>
-
-    <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="繧ｹ繝槭・逕ｨ繝舌ヨ繝ｫ遘ｻ蜍・>
-      <button type="button" data-jump-target="centerPane">逶､髱｢</button>
-      <button type="button" data-jump-target="leftPane">謫堺ｽ・/button>
-      <button type="button" data-jump-target="rightPane">隧ｳ邏ｰ</button>
-    </nav>
-
-    <!-- ===== Game code ===== -->
-<script defer src="./game_board_recovery_20261015.js?v=20261015_board1"></script>
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0バト｜対戦</title>
+<link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1">
+<link rel="stylesheet" href="./game.css?v=20260919_hand_fan3">
+<link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1">
+<link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4">
+<link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1">
+</head><body>
+<div id="turnBanner">あなたのターン</div><div id="fxFlash"></div><div id="pinchFx" aria-hidden="true"></div>
+<div id="enemySupportToast" class="enemySupportToast" aria-hidden="true">
+<div class="enemySupportToastHead"><b id="enemySupportToastTitle">相手がサポートを使用</b><button id="enemySupportToastClose" type="button" aria-label="閉じる">×</button></div>
+<div id="enemySupportToastBody" class="enemySupportToastBody"></div></div>
+<div id="app">
+<aside id="leftPane">
+ <div class="paneTitle">対戦情報</div>
+ <div class="kv"><div class="row small"><b>YOU:</b> <span id="you">?</span></div><div class="row small"><b>TURN:</b> <span id="turn">?</span></div><div class="row small" style="margin-top:6px"><span id="mana">A ?/? | B ?/?</span></div>
+ <div id="manaGauge"></div><div class="row small" style="margin-top:8px"><div id="deckCount">残り A:? / B:?</div></div>
+ <div id="scoreWrap" class="scoreWrap">
+  <div class="scoreRow"><div class="scoreLabel">KILL</div><div class="scoreSide"><div class="scoreSideName">A</div><div id="killMeterA" class="scoreMeter"></div><div id="killTextA" class="scoreText">0/3</div></div><div class="scoreSide"><div class="scoreSideName">B</div><div id="killMeterB" class="scoreMeter"></div><div id="killTextB" class="scoreText">0/3</div></div></div>
+  <div class="scoreRow"><div class="scoreLabel">INFIL</div><div class="scoreSide"><div class="scoreSideName">A</div><div id="infilMeterA" class="scoreMeter"></div><div id="infilTextA" class="scoreText">0/3</div></div><div class="scoreSide"><div class="scoreSideName">B</div><div id="infilMeterB" class="scoreMeter"></div><div id="infilTextB" class="scoreText">0/3</div></div></div>
+ </div><span id="kills" hidden></span><span id="infil" hidden></span><div id="dice"></div><div id="modeHint" class="small"></div></div>
+ <div class="paneTitle">操作</div><div class="controls">
+ <button id="modeSummon" type="button">召喚</button><button id="modeMove" type="button">移動</button><button id="modeAttack" type="button">攻撃</button><button id="modeEvolve" type="button">進化</button><button id="modeSupport" type="button">サポート</button><button id="doEvolve" type="button" style="display:none">進化実行</button><button id="endTurn" type="button">ターン終了</button></div>
+ <div id="quickActions" class="quickActions" style="display:none"><button id="quickMove" type="button">移動</button><button id="quickAttack" type="button">攻撃</button><span id="quickMsg" class="small"></span></div>
+ <div id="exWrap" class="kv" style="margin-top:10px"><div class="row" style="justify-content:space-between;align-items:center"><b>EX</b><button id="exBtn" type="button">EX発動</button></div><div id="exInfo" class="small" style="margin-top:6px">EXなし</div><div class="small">ピンチ時のみ・1回限り</div></div>
+</aside>
+<main id="centerPane" aria-label="battle-board"><div id="board"></div></main>
+<aside id="rightPane"><div id="cardPreview" class="battleCardPreview" aria-live="polite"></div><div class="paneTitle">手札</div><div id="hand"></div><div class="paneTitle">行動</div><div id="actionPicker" class="small">ユニットを選択すると行動が表示されます。</div><div class="paneTitle">詳細</div><div id="detail" class="small">カードを選択すると詳細が表示されます。</div><div class="paneTitle">ログ</div><pre id="log"></pre></aside>
+</div>
+<nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
+<script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
 <script type="module" src="./game.js?v=20260919_hand_fan3"></script>
-
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
       #joinGameBtn,
@@ -279,7 +145,7 @@
                 window.__soloConsoleOpenRequested = false;
                 await toggle();
               } else {
-                alert("繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ縺ｮ貅門ｙ縺ｫ譎る俣縺後°縺九▲縺ｦ縺・∪縺吶ょｰ代＠蠕・▲縺ｦ繧ゅ≧荳蠎ｦ謚ｼ縺励※縺ｭ縲・);
+                alert("コンソールの準備に時間がかかっています。もう一度お試しください。");
               }
             } finally {
               cbtn.disabled = false;

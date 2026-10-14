@@ -327,7 +327,7 @@ function renderDeckCard(item, slotNo) {
       if (payload.desiredField) setLS(FIELD_KEY, payload.desiredField);
       setLS(LAST_ID_KEY, id);
       setLS(PENDING_CLOUD_DECK_KEY, JSON.stringify(payload));
-      location.href = currentParamsUrl("./index.html?skipIntro=1");
+      location.href = new URL(new URLSearchParams(location.search).get("return") === "play" ? "./play.html?deckSelected=1" : "./index.html?skipIntro=1", location.href).href;
     } catch (e) {
       console.error(e);
       message(`ロードに失敗しました: ${e?.message || e}`, false);

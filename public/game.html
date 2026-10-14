@@ -31,7 +31,7 @@
 </div>
 <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
 <script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
-<script defer src="./game_mobile_tabs_20261015.js?v=20261015_tabs_mana3"></script>
+<script defer src="./game_mobile_tabs_20261015.js?v=20261015_mana_gauge4"></script>
 <script type="module" src="./game.js?v=20261015_sfx_shared1"></script>
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
@@ -218,7 +218,25 @@
  body .tcgUtilityLinks{display:none!important}
  </style>
  <script>
- (()=>{const clean=()=>{document.querySelectorAll("button,a,[role=button]").forEach(el=>{if(el.textContent.trim()==="次の一手"){el.style.setProperty("display","none","important");}});};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",clean);else clean();setTimeout(clean,1100);})();
+ (()=>{
+ const clean=()=>{
+  document.querySelectorAll("button,a,[role=button],.tcgUtilityLinks").forEach(el=>{
+   if(el.classList?.contains("tcgUtilityLinks")||el.textContent?.trim()==="次の一手") el.remove();
+  });
+  // The floating hint may wrap the label in an inner element.
+  for(const el of document.querySelectorAll("body *")){
+   if(el.children.length || el.textContent?.trim()!=="次の一手")continue;
+   const target=el.closest("button,a,[role=button]")||el.parentElement;
+   if(target&&target!==document.body&&target!==document.documentElement)target.remove();
+  }
+ };
+ let queued=false;
+ const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;clean()})};
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{
+  clean();new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true});
+ },{once:true});
+ else {clean();new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true})}
+})();
  </script>
 </body>
 </html>

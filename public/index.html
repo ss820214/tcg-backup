@@ -1,6 +1,25 @@
 ﻿<!doctype html>
 <html lang="ja">
   <head>
+<script id="directPlayNavigation20261014">
+  // PLAY is a dedicated page: intercept before legacy delegated handlers.
+  (() => {
+    let navigating = false;
+    const go = (event) => {
+      const target = event.target;
+      const button = target?.closest?.('[data-home-action="play"]');
+      if (!button || navigating) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      navigating = true;
+      window.location.replace(new URL("./play.html", window.location.href).href);
+    };
+    document.addEventListener("click", go, true);
+    document.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") go(event);
+    }, true);
+  })();
+</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>TCG Online - Deck Builder</title>
@@ -3678,7 +3697,7 @@
     <script src="./mobile_home_deck_ui_20260926.js?v=20260926_device_switch4" defer></script>
 <script src="./mobile_deck_block_final_20260927.js?v=20260930_mobile_deck_stable3" defer></script>
   <link rel="stylesheet" href="./deck_support_controls_20261013.css?v=20261013_layoutfix1" />
-  <script defer src="./battle_entry_screen_20261014.js?v=20261014_entry1"></script>
+
 </body>
 </html>
 

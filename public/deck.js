@@ -2748,18 +2748,25 @@ ensureHomeReturnButton();
 function openDetail() {
   if (!detailWrap) return;
   detailWrap.style.display = "block";
+  detailWrap.classList.add("open");
+  detailWrap.setAttribute("aria-hidden", "false");
+  detailWrap.style.zIndex = "100050";
 
-  // 左下固定にするので、位置調整ロジックは不要。
+  // 中央に詳細を表示し、所持状況に関係なく閲覧できる。
   detailWrap.style.position = "fixed";
-  detailWrap.style.left = "14px";
-  detailWrap.style.bottom = "14px";
+  detailWrap.style.left = "50%";
+  detailWrap.style.top = "50%";
+  detailWrap.style.bottom = "auto";
   detailWrap.style.right = "auto";
-  detailWrap.style.top = "auto";
+  detailWrap.style.transform = "translate(-50%, -50%)";
+  detailWrap.style.width = "min(520px, calc(100vw - 24px))";
+  detailWrap.style.maxHeight = "min(80dvh, 760px)";
 }
 
 function closeDetail() {
   if (!detailWrap) return;
   detailWrap.style.display = "none";
+  detailWrap.classList.remove("open");
   detailWrap.setAttribute("aria-hidden", "true");
 }
 
@@ -5630,7 +5637,11 @@ function cardSubLine(def, cardId = "") {
     : def?.hp !== undefined || def?.sp !== undefined
       ? `HP:${esc(def.hp)} SP:${esc(def.sp)} / `
       : "";
-  return `${kindText}${statsText}${esc(firstActionLine(def))}`;
+  const lines = (Array.isArray(def?.actions) ? def.actions : []).map((a) => `行動: ${actionOneLine(a)}`).filter(Boolean);
+  const effect = supportSummaryText(def);
+  if (effect) lines.push(`効果: ${effect}`);
+  if (!lines.length) lines.push("効果: 記載なし");
+  return `${kindText}${statsText}${esc(lines.join(" / "))}`;
 }
 function cardSmallMetaLine(def, cardId = "") {
   const kind = normalizedKindOf(def, cardId);
@@ -5683,7 +5694,7 @@ function firstActionLine(def) {
   const a = def?.actions?.[0];
   if (!a) {
     const t = supportSummaryText(def);
-    return t ? `効果: ${t}` : "効果: 詳細を確認";
+    return t ? `効果: ${t}` : "効果: 記載なし";
   }
   return `行動: ${actionOneLine(a)}`;
 }
@@ -5691,7 +5702,7 @@ function firstActionLine(def) {
 function deckRowMetaLine(def, cardId = "") {
   const cost = esc(def?.cost ?? 0);
   if (isSupportLike(def, cardId)) {
-    return `サポート / マナ:${cost} / 効果・条件は詳細へ`;
+    return `サポート / マナ:${cost} / ${esc(supportSummaryText(def) || "効果: 記載なし")}`;
   }
   const hp = esc(def?.hp ?? "?");
   const sp = esc(def?.sp ?? "?");
@@ -7386,10 +7397,10 @@ function ensureDeckDetailStyle() {
 }
 
 function showCardDetail(cardId) {
-  openDetail();
-  ensureDeckDetailStyle();
   const d = cardDefs[cardId];
   if (!d || !detailEl) return;
+  openDetail();
+  ensureDeckDetailStyle();
 
   const supportLike = isSupportLike(d, cardId);
   const ownedLabel = isAdminUser() ? "管理: 表示" : ownedReady ? `${ownedCount(cardId)}枚` : "確認中";
@@ -8876,4 +8887,17 @@ function prettyEffect(eff) {
       return join(`効果:${eff.type || "?"}`, compact, rate, target, tag);
     }
   }
+}
+
+/* 2026-10-16 mobile deck density and readable card details */
+@media (max-width: 860px) {
+  body.deckMobileStackActive .libraryPanel:not(.isPanelCollapsed) { max-height: none !important; height: auto !important; }
+  body.deckMobileStackActive .libraryPanel > .bd { display: flex !important; flex-direction: column !important; gap: 6px !important; height: auto !important; overflow: visible !important; }
+  body.deckMobileStackActive .libraryPanel .attrHintBox { margin: 0 !important; min-height: 0 !important; padding: 6px 9px !important; }
+  body.deckMobileStackActive .libraryPanel .listHead { margin: 0 !important; padding: 4px 6px !important; min-height: 0 !important; }
+  body.deckMobileStackActive #cardFilters { margin: 0 !important; padding: 8px !important; flex: 0 0 auto !important; }
+  body.deckMobileStackActive .libraryPanel #cardList,
+  body.deckMobileStackActive .libraryPanel #cardSections { flex: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
+  body.deckMobileStackActive #cardList .cardRow .sub { display: block !important; -webkit-line-clamp: unset !important; max-height: none !important; overflow-wrap: anywhere !important; white-space: normal !important; }
+  #detailWrap.open { display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; }
 }

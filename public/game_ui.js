@@ -686,8 +686,18 @@ function updateHandDrawerPosition() {
 
     // サイズ測って上に配置（CSSの扇状配置があるので、基点だけ置く）
     // quickMenu 自体は「セル中央」に置く。qBall がそこから扇状に配置される。
-    el.style.left = `${cx}px`;
-    el.style.top = `${cy}px`;
+    // Fan buttons extend 96px left/right and 106px upward.
+    // Shift the orbit inward when the unit is near a board/viewport edge.
+    const safeX = Math.min(
+      Math.max(cx, Math.max(98, 98 - br.left)),
+      Math.max(98, Math.min(br.width - 98, window.innerWidth - br.left - 98))
+    );
+    const safeY = Math.min(
+      Math.max(cy, Math.max(111, 111 - br.top)),
+      Math.max(111, Math.min(br.height - 35, window.innerHeight - br.top - 35))
+    );
+    el.style.left = `${safeX}px`;
+    el.style.top = `${safeY}px`;
 
     el.dataset.unitId = String(u?.id ?? "");
 

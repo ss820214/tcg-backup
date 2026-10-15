@@ -12,6 +12,14 @@ function init(){
  function close(){open="";document.body.classList.remove("mobileBattlePopupOpen");Object.keys(panes).forEach(restore);buttons.forEach(b=>{b.classList.remove("active");b.setAttribute("aria-expanded","false")})}
  function toggle(id){if(!mobile())return;if(id==="centerPane"||open===id){close();return}close();const p=panes[id];if(!p)return;open=id;document.body.append(p);p.classList.add("mobileBattlePopupActive");document.body.classList.add("mobileBattlePopupOpen");p.style.setProperty("display","block","important");p.style.setProperty("visibility","visible","important");p.style.setProperty("opacity","1","important");p.style.setProperty("z-index","2147483001","important");buttons.forEach(b=>{const yes=b.dataset.jumpTarget===id;b.classList.toggle("active",yes);b.setAttribute("aria-expanded",String(yes))})}
  nav.addEventListener("click",ev=>{if(!mobile())return;const b=ev.target.closest("button[data-jump-target]");if(!b)return;ev.preventDefault();ev.stopImmediatePropagation();toggle(b.dataset.jumpTarget)},true);
+ // Let the game handler receive the action click first, then return to the board.
+ panes.leftPane?.addEventListener("click",event=>{
+  if(!mobile()||open!=="leftPane")return;
+  const action=event.target.closest("button");
+  if(!action||!["modeSummon","modeMove","modeAttack","modeEvolve","modeSupport","endTurn","doEvolve","quickMove","quickAttack"].includes(action.id))return;
+  if(action.disabled)return;
+  setTimeout(close,0);
+ });
  shade.addEventListener("click",close);document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});window.addEventListener("resize",()=>{if(!mobile())close()});
  // Reuse the actual gameplay gauge so its illuminated diamonds, bonus mana,
  // and spent mana always match the controls panel. Never duplicate the gauge.
@@ -49,7 +57,7 @@ function init(){
  #battleManaQuickGauge{flex:1;min-width:0}#battleManaQuickGauge #manaGauge{margin:0!important;display:flex!important;min-width:0!important;max-height:none!important;gap:5px!important;flex-wrap:wrap!important}#battleManaQuickValue{font-size:clamp(16px,4.5vw,20px);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
  } @media(min-width:761px){#battleManaQuick{display:none}}
  @media(max-width:760px) and (orientation:portrait){
- #board .uName{font-size:clamp(10px,2.8vw,13px)!important;line-height:1.15!important;font-weight:850!important;max-height:3.5em!important;overflow-wrap:anywhere!important;text-shadow:0 1px 3px #000,0 0 3px #000!important}
+ #board .uName{font-size:clamp(9px,2.4vw,11px)!important;line-height:1.12!important;font-weight:850!important;max-height:3.4em!important;overflow-wrap:anywhere!important;text-shadow:0 1px 3px #000,0 0 3px #000!important}
  body:not(.mobileBattlePopupOpen) #leftPane,body:not(.mobileBattlePopupOpen) #rightPane{display:none!important}
  #mobileBattlePopupShade{display:none;position:fixed;inset:0;background:#0009;z-index:2147483000;pointer-events:auto}
  body.mobileBattlePopupOpen #mobileBattlePopupShade{display:block}

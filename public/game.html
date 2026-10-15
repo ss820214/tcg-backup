@@ -7,7 +7,7 @@
 
     <!-- Existing game.css controls the battle layout, effects, panes, log, and mana UI. -->
     <link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1" />
-    <link rel="stylesheet" href="./game.css?v=20261015_compact_hand1" />
+    <link rel="stylesheet" href="./game.css?v=20261016_hand_align1" />
     <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1" />
     <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
     <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
@@ -186,7 +186,7 @@
       const VOLUME = 0.35;
       const RATE = 1.0;
 
-      let bgmOn = (localStorage.getItem(BGM_KEY) ?? "1") === "1";
+      let bgmOn = (localStorage.getItem(BGM_KEY) ?? "0") === "1";
 
       function applyBgmState() {
         setBgmEnabled(false);

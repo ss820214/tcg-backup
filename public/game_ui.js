@@ -1206,7 +1206,7 @@ function updateHandDrawerPosition() {
   handDrawerEl.appendChild(head);
 
   const stack = document.createElement("div");
-  stack.className = "handStack mdHandFan";
+  stack.className = "handStack mdHandCompact";
   stack.style.setProperty("--hand-count", String(Math.max(1, hand.length)));
 
   for (let i = 0; i < hand.length; i++) {
@@ -1233,7 +1233,7 @@ function updateHandDrawerPosition() {
     const compactFan = !!window.matchMedia?.("(max-width: 760px)")?.matches;
     const drawerW =
       handDrawerEl?.getBoundingClientRect?.().width || window.innerWidth || 720;
-    const cardW = compactFan ? 90 : 116;
+    const cardW = compactFan ? 76 : 104;
     const safePad = compactFan ? 38 : 56;
     const spreadSlots = Math.max(1, hand.length - 1);
     const maxSpread =
@@ -1246,9 +1246,9 @@ function updateHandDrawerPosition() {
     const lift = Math.max(0, Math.abs(offset) * -3 + 10);
     const rot = offset * Math.max(2.4, 5.8 - hand.length * 0.22);
     card.style.setProperty("--hand-card-w", `${cardW}px`);
-    card.style.setProperty("--rot", `${rot}deg`);
-    card.style.setProperty("--x", `${offset * spread}px`);
-    card.style.setProperty("--y", `${isSelected ? -58 : -lift}px`);
+    card.style.setProperty("--rot", `0deg`);
+    card.style.setProperty("--x", `0px`);
+    card.style.setProperty("--y", `0px`);
     card.style.setProperty("--z", String(isSelected ? 200 : 80 + i));
 
     card.innerHTML = `

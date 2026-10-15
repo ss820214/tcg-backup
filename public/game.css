@@ -5427,3 +5427,53 @@ body {
     font-size:16px;
   }
 }
+
+/* 2026-10-15: compact hand, keep key stats legible on mobile */
+@media (max-width: 760px) {
+  .handStack.mdHandCompact {
+    display:flex !important;
+    position:relative !important;
+    align-items:flex-end !important;
+    justify-content:flex-start !important;
+    gap:6px !important;
+    height:190px !important;
+    min-height:190px !important;
+    padding:12px 12px 14px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x proximity !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .handStack.mdHandCompact .stackHandCard,
+  .handStack.mdHandCompact .stackHandCard.selected,
+  .handStack.mdHandCompact .stackHandCard:hover {
+    position:relative !important;
+    left:auto !important;
+    bottom:auto !important;
+    flex:0 0 76px !important;
+    width:76px !important;
+    min-width:76px !important;
+    max-width:76px !important;
+    height:152px !important;
+    margin:0 !important;
+    padding:5px !important;
+    border-radius:10px !important;
+    transform:none !important;
+    scroll-snap-align:start !important;
+  }
+  .handStack.mdHandCompact .stackHandCard.selected {
+    outline:2px solid #f5d36b !important;
+    outline-offset:-2px;
+  }
+  .handStack.mdHandCompact .shcArt { min-height:28px !important; height:28px !important; }
+  .handStack.mdHandCompact .shcText,
+  .handStack.mdHandCompact .shcKind,
+  .handStack.mdHandCompact .shcType { display:none !important; }
+  .handStack.mdHandCompact .shcName { font-size:10px !important; line-height:1.15 !important; overflow-wrap:anywhere; }
+  .handStack.mdHandCompact .shcCost,
+  .handStack.mdHandCompact .shcAttr { font-size:12px !important; }
+  .handStack.mdHandCompact .shcVitals,
+  .handStack.mdHandCompact .shcStats { font-size:9px !important; line-height:1.2 !important; white-space:normal !important; }
+  #board .unitBox { overflow:hidden !important; }
+  #board .uName { font-size:9px !important; line-height:1.1 !important; }
+}

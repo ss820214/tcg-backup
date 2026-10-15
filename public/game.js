@@ -1082,7 +1082,7 @@ async function ensureStateInitialized() {
 
       // フィールド状態を補完する。
       try {
-        ensureFieldState(s, W, H, fieldIdFromUrl);
+        ensureFieldState(s, W, H, s.fieldId ?? s.field?.id ?? fieldIdFromUrl);
         tx.set(
           stateRef,
           { fieldId: s.fieldId, field: s.field },

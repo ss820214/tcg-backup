@@ -163,7 +163,7 @@
     </nav>
 
     <!-- ===== Game code ===== -->
-<script type="module" src="./game.js?v=20261015_compact_hand1"></script>
+<script type="module" src="./game.js?v=20261016_syntax_fix1"></script>
 
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
@@ -213,7 +213,7 @@
           cbtn.id = "consoleToggleBtn";
           cbtn.type = "button";
           cbtn.style.marginLeft = "6px";
-          cbtn.textContent = "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
+          cbtn.textContent = "コンソール";
         }
 
         const leftPane = document.querySelector("#leftPane");
@@ -271,18 +271,18 @@
             const prevText = cbtn.textContent;
             window.__soloConsoleOpenRequested = true;
             cbtn.disabled = true;
-            cbtn.textContent = "隱ｭ霎ｼ荳ｭ...";
+            cbtn.textContent = "読み込み中...";
             try {
               const toggle = await waitForSoloConsole();
               if (typeof toggle === "function") {
                 window.__soloConsoleOpenRequested = false;
                 await toggle();
               } else {
-                alert("繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ縺ｮ貅門ｙ縺ｫ譎る俣縺後°縺九▲縺ｦ縺・∪縺吶ょｰ代＠蠕・▲縺ｦ繧ゅ≧荳蠎ｦ謚ｼ縺励※縺ｭ縲・);
+                alert("コンソールの準備に時間がかかっています。少し待ってからもう一度押してください。");
               }
             } finally {
               cbtn.disabled = false;
-              cbtn.textContent = prevText || "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
+              cbtn.textContent = prevText || "コンソール";
             }
           });
         }

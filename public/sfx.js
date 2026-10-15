@@ -501,7 +501,8 @@ export function stopAlert2Mp3(){
 
 // ===== BGM mode controller =====
 // ===== BGM mode controller =====
-let _bgmEnabled = true;
+let _bgmEnabled = false;
+let _bgmRequestId = 0;
 let _bgmMode = "battle"; // "battle" | "alert1" | "alert2"
 let _bgmOpts = { volume: 0.35, playbackRate: 1.0 };
 
@@ -530,6 +531,7 @@ function targetAudioByMode(mode){
 
 // ★ “必要な時だけ” 切り替える
 async function playByMode(force = false){
+  const requestId = ++_bgmRequestId;
   if (!_bgmEnabled) { stopAll(); return; }
 
   // 先に生成だけはしておく（targetAudioByMode が null を返しうるので）
@@ -544,6 +546,7 @@ async function playByMode(force = false){
     if (!force && isPlaying(alert2Audio)) return; // ✅ もう鳴ってるなら何もしない
     stopAll();
     await alert2Audio.play().catch(e=>console.warn("[Alert2 MP3] play blocked or failed", e));
+    if (!_bgmEnabled || requestId !== _bgmRequestId) stopAll();
     return;
   }
 
@@ -558,6 +561,7 @@ async function playByMode(force = false){
     if (!force && isPlaying(alert1Audio)) return;
     stopAll();
     await alert1Audio.play().catch(e=>console.warn("[Alert1 MP3] play blocked or failed", e));
+    if (!_bgmEnabled || requestId !== _bgmRequestId) stopAll();
     return;
   }
 
@@ -572,6 +576,7 @@ async function playByMode(force = false){
   if (!force && isPlaying(battleBgmAudio)) return;
   stopAll();
   await battleBgmAudio.play().catch(e=>console.warn("[BattleBGM MP3] play blocked or failed", e));
+  if (!_bgmEnabled || requestId !== _bgmRequestId) stopAll();
 }
 
 export function setBgmEnabled(on, opts = null){
@@ -588,6 +593,7 @@ export function setBgmEnabled(on, opts = null){
   _bgmEnabled = next;
 
   if (!next){
+    ++_bgmRequestId;
     stopAll();
     return;
   }

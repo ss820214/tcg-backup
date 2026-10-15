@@ -5477,3 +5477,39 @@ body {
   #board .unitBox { overflow:hidden !important; }
   #board .uName { font-size:9px !important; line-height:1.1 !important; }
 }
+
+/* 2026-10-16: align hand to the left on desktop as well as mobile. */
+.handStack.mdHandCompact {
+  display: flex !important;
+  position: relative !important;
+  justify-content: flex-start !important;
+  align-items: flex-end !important;
+  gap: 8px !important;
+  padding: 12px 10px 14px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  min-height: 174px !important;
+  scroll-snap-type: x proximity !important;
+}
+.handStack.mdHandCompact .stackHandCard,
+.handStack.mdHandCompact .stackHandCard.selected,
+.handStack.mdHandCompact .stackHandCard:hover {
+  position: relative !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  flex: 0 0 var(--hand-card-w, 104px) !important;
+  width: var(--hand-card-w, 104px) !important;
+  max-width: var(--hand-card-w, 104px) !important;
+  scroll-snap-align: start !important;
+}
+@media (max-width:760px) {
+  .handStack.mdHandCompact .stackHandCard,
+  .handStack.mdHandCompact .stackHandCard.selected,
+  .handStack.mdHandCompact .stackHandCard:hover {
+    flex-basis: 76px !important;
+    width: 76px !important;
+    max-width: 76px !important;
+  }
+}

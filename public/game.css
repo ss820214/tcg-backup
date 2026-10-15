@@ -5427,3 +5427,65 @@ body {
     font-size:16px;
   }
 }
+
+
+/* 2026-10-16: readable compact battlefield cards on phones. */
+@media (max-width:760px) {
+  #board .cell .unitBox {
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:flex-start !important;
+    gap:2px !important;
+    padding:3px 3px 4px !important;
+    overflow:hidden !important;
+    min-width:0 !important;
+    min-height:0 !important;
+  }
+  #board .unitBox .uTop {
+    position:relative !important;
+    inset:auto !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    width:100% !important;
+    flex:0 0 auto !important;
+    margin:0 !important;
+    gap:2px !important;
+  }
+  #board .unitBox .uCost {font-size:11px !important;line-height:1.1 !important;}
+  #board .unitBox .uType {font-size:10px !important;line-height:1.1 !important;}
+  #board .unitBox .uName {
+    position:relative !important;
+    inset:auto !important;
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    flex:0 0 auto !important;
+    margin:2px 0 !important;
+    padding:0 !important;
+    font-size:clamp(9px,2.7vw,12px) !important;
+    font-weight:800 !important;
+    line-height:1.15 !important;
+    overflow-wrap:anywhere !important;
+    white-space:normal !important;
+    text-overflow:clip !important;
+  }
+  #board .unitBox .uHPWrap {
+    position:relative !important;
+    inset:auto !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:3px !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    flex:0 0 auto !important;
+  }
+  #board .unitBox .uStatRow {display:grid !important;grid-template-columns:19px minmax(0,1fr) !important;gap:2px !important;width:100% !important;min-height:12px !important;margin:0 !important;}
+  #board .unitBox .uStatLabel {font-size:9px !important;line-height:12px !important;}
+  #board .unitBox .uStatBar {min-width:0 !important;height:12px !important;}
+  #board .unitBox .uStatOverlay {font-size:9px !important;line-height:12px !important;}
+  #board .unitBox .uIcons {position:relative !important;inset:auto !important;min-height:0 !important;margin:0 !important;}
+  #board .unitBox .uOwner {display:none !important;}
+}

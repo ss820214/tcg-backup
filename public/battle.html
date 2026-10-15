@@ -5,44 +5,44 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Battle Lobby</title>
 
-    <!-- 笘・ｵｶ蟇ｾ繝代せ + 繧ｭ繝｣繝・す繝･繝舌せ繧ｿ繝ｼ・・SS縺悟柑縺九↑縺・撫鬘後・蟇ｾ遲厄ｼ・-->
+    <!-- 対戦待機画面 -->
     <link rel="stylesheet" href="/battle.css?v=20260914_radar_readable1" />
     <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
   <body>
     <div class="page">
       <!-- Top bar -->
-      <header class="topbar" aria-label="蟇ｾ謌ｦ蠕・ｩ溘せ繝・・繧ｿ繧ｹ">
+      <header class="topbar" aria-label="対戦待機ステータス">
         <div class="room">
           <div class="roomLabel">ROOM</div>
           <div class="roomId" id="roomId">----</div>
         </div>
 
         <div class="topStatus">
-          <div class="statusTitle">繧ｹ繝・・繧ｿ繧ｹ</div>
-          <div class="statusText" id="status">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ窶ｦ</div>
+          <div class="statusTitle">ステータス</div>
+          <div class="statusText" id="status">読み込み中…</div>
           <div class="statusSub muted" id="readyNote"></div>
         </div>
 
         <div class="topActions">
-          <button id="readyBtn" class="btnPrimary" disabled>貅門ｙ螳御ｺ・/button>
-          <div class="hint muted">荳｡閠・READY 縺ｧ閾ｪ蜍暮幕蟋・/div>
+          <button id="readyBtn" class="btnPrimary" disabled>準備完了</button>
+          <div class="hint muted">両者READYで自動開始</div>
         </div>
       </header>
 
-      <!-- 繝輔ぅ繝ｼ繝ｫ繝蛾∈謚橸ｼ・attle.html 縺ｮ螂ｽ縺阪↑蝣ｴ謇縺ｫ・・-->
+      <!-- フィールド選択 -->
       <div id="fieldPick" class="fieldPick">
         <div class="fieldPickHead">
-          <div class="fieldPickTitle"><span class="fieldPickIcon">笳・/span>繝輔ぅ繝ｼ繝ｫ繝蛾∈謚・/div>
-          <div class="fieldPickSub">荳｡閠・・蟶梧悍縺九ｉ髢句ｧ区凾縺ｫ豎ｺ螳・/div>
+          <div class="fieldPickTitle"><span class="fieldPickIcon">★</span>フィールド選択</div>
+          <div class="fieldPickSub">両者の希望から開始時に決定</div>
         </div>
         <div class="fieldPickBtns">
           <button type="button" data-field="grass" class="fieldGrass">
             <span class="fieldArt" aria-hidden="true"><span></span></span>
             <span class="fieldText">
-              <span class="fieldEmoji">闕・/span><span class="fieldName">闕牙次</span>
+              <span class="fieldEmoji">🌿</span><span class="fieldName">草原</span>
               <span class="fieldCode">balance field</span>
-              <span class="fieldCopy">讓呎ｺ也噪縺ｧ謇ｱ縺・ｄ縺吶＞逶､髱｢</span>
+              <span class="fieldCopy">標準的で扱いやすい盤面</span>
             </span>
           </button>
           <button type="button" data-field="danger" class="fieldDanger">
@@ -50,7 +50,7 @@
             <span class="fieldText">
               <span class="fieldEmoji">蜊ｱ</span><span class="fieldName">蜊ｱ髯ｺ蝨ｰ蟶ｯ</span>
               <span class="fieldCode">high risk zone</span>
-              <span class="fieldCopy">荳豌励↓蜍晄風縺悟虚縺剰穀繧悟ｴ</span>
+              <span class="fieldCopy">中央に危険な爆弾があるフィールド</span>
             </span>
           </button>
           <button type="button" data-field="swamp" class="fieldSwamp">
@@ -58,7 +58,7 @@
             <span class="fieldText">
               <span class="fieldEmoji">豐ｼ</span><span class="fieldName">豐ｼ蝨ｰ</span>
               <span class="fieldCode">slow field</span>
-              <span class="fieldCopy">遘ｻ蜍輔→螻暮幕繧帝㍾縺上☆繧倶ｽ朱滓姶</span>
+              <span class="fieldCopy">移動に影響する沼地フィールド</span>
             </span>
           </button>
         </div>
@@ -71,7 +71,7 @@
           <div class="seatLabel">1P</div>
           <div class="playerName" id="p1Name">---</div>
 
-          <!-- READY陦ｨ遉ｺ縺ｯ縺薙％・磯崕豌玲ｼ泌・CSS縺ｯ battle.css 蛛ｴ・・-->
+          <!-- READY表示 -->
           <div class="readyBadge" id="p1Ready"></div>
 
           <div class="youTag" id="p1You"></div>
@@ -79,7 +79,7 @@
 
         <div class="vsCenter">
           <div class="vsText">VS</div>
-          <div class="muted small">貅門ｙ縺梧純縺・∪縺ｧ蠕・ｩ・/div>
+          <div class="muted small">準備が揃うまで待機</div>
         </div>
 
         <div class="sideCard right" id="p2Card">
@@ -95,20 +95,20 @@
         <!-- Deck (left) -->
         <section class="panel deckPanel">
           <div class="panelHeader">
-            <div class="panelTitle">繝・ャ繧ｭ・亥ｷｦ・壹き繝ｼ繝・/ 蜿ｳ・夊ｩｳ邏ｰ・・/div>
-            <div class="panelSub muted">繧ｯ繝ｪ繝・け縺ｧ繧ｫ繝ｼ繝芽ｩｳ邏ｰ</div>
+            <div class="panelTitle">デッキ（左：カード / 右：詳細）</div>
+            <div class="panelSub muted">クリックでカード詳細</div>
           </div>
 
           <div class="deckWrap">
             <div class="deckLeft">
-              <div class="subTitle">繧ｫ繝ｼ繝我ｸ隕ｧ</div>
+              <div class="subTitle">カード一覧</div>
               <div id="myDeck" class="deckList"></div>
             </div>
 
             <div class="deckDetail panelInner">
-              <div class="subTitle">繧ｫ繝ｼ繝芽ｩｳ邏ｰ</div>
+              <div class="subTitle">カード詳細</div>
               <div id="deckDetail" class="deckDetailBody muted">
-                繧ｫ繝ｼ繝峨ｒ驕ｸ謚槭＠縺ｦ縺上□縺輔＞
+                カードを選択してください
               </div>
             </div>
           </div>
@@ -122,7 +122,7 @@
         <!-- Deck Evaluation (right) -->
         <section class="panel evalPanel">
           <div class="panelHeader">
-            <div class="panelTitle">繝・ャ繧ｭ隧穂ｾ｡</div>
+            <div class="panelTitle">デッキ評価</div>
             <div class="panelSub muted">繝ｬ繝ｼ繝繝ｼ・句ｱ樊ｧ蛻・ｸ・/div>
           </div>
 
@@ -132,9 +132,9 @@
           </div>
 
           <div class="attrWrap">
-            <div class="subTitle">螻樊ｧ縺ｮ蛻・ｸ・/div>
+            <div class="subTitle">属性の内訳</div>
             <div id="attrDist" class="attrDist">
-              <div class="muted">繝・ャ繧ｭ縺瑚ｪｭ縺ｿ霎ｼ縺ｾ繧後ｋ縺ｨ陦ｨ遉ｺ縺輔ｌ縺ｾ縺・/div>
+              <div class="muted">デッキが読み込まれると表示されます</div>
             </div>
           </div>
         </section>
@@ -152,7 +152,7 @@
         <div class="panelHeader">
           <div>
             <div class="panelTitle">繝斐Φ繝昴Φ繝ｻ繝懊・繝翫せ</div>
-            <div class="panelSub muted">蟾ｦ遶ｯ縺ｮ蛻､螳壹Λ繧､繝ｳ縺ｧ謇薙■霑斐☆縲・0繧ｳ繝ｳ繝懊＃縺ｨ縺ｫ10繧ｸ繧ｧ繝縲・/div>
+            <div class="panelSub muted">左端の判定ラインで打ち返す。10コンボごとに10ジェム。</div>
           </div>
           <div class="pongRewardPill" id="pongRewardPill">20 COMBO = +10 Gems</div>
         </div>
@@ -174,14 +174,14 @@
               <div><span>GEMS</span><b id="pongReward">+0</b></div>
             </div>
             <button id="pingBtn" class="btnGhost">謇薙■霑斐☆・・/button>
-            <button id="pingResetBtn" class="btnGhost">繝ｪ繧ｻ繝・ヨ</button>
-            <div id="pingStatus" class="muted">繧ｹ繧ｿ繝ｼ繝茨ｼ・/div>
+            <button id="pingResetBtn" class="btnGhost">リセット</button>
+            <div id="pingStatus" class="muted">スタート！</div>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- 笘・ｵｶ蟇ｾ繝代せ + 繧ｭ繝｣繝・す繝･繝舌せ繧ｿ繝ｼ・・S繧ょ商縺・・雕上∪縺ｪ縺・ｼ・-->
+    <!-- 対戦待機画面のスクリプト -->
     <script type="module" src="/battle.js?v=20260914_radar_readable1"></script>
   <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
   <script src="./dopagaki_mode.js?v=20260728_tech1"></script>

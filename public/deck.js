@@ -8889,15 +8889,11 @@ function prettyEffect(eff) {
   }
 }
 
-/* 2026-10-16 mobile deck density and readable card details */
-@media (max-width: 860px) {
-  body.deckMobileStackActive .libraryPanel:not(.isPanelCollapsed) { max-height: none !important; height: auto !important; }
-  body.deckMobileStackActive .libraryPanel > .bd { display: flex !important; flex-direction: column !important; gap: 6px !important; height: auto !important; overflow: visible !important; }
-  body.deckMobileStackActive .libraryPanel .attrHintBox { margin: 0 !important; min-height: 0 !important; padding: 6px 9px !important; }
-  body.deckMobileStackActive .libraryPanel .listHead { margin: 0 !important; padding: 4px 6px !important; min-height: 0 !important; }
-  body.deckMobileStackActive #cardFilters { margin: 0 !important; padding: 8px !important; flex: 0 0 auto !important; }
-  body.deckMobileStackActive .libraryPanel #cardList,
-  body.deckMobileStackActive .libraryPanel #cardSections { flex: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
-  body.deckMobileStackActive #cardList .cardRow .sub { display: block !important; -webkit-line-clamp: unset !important; max-height: none !important; overflow-wrap: anywhere !important; white-space: normal !important; }
-  #detailWrap.open { display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; }
-}
+
+(() => {
+  if (document.getElementById("deckMobileDensityFix20261016")) return;
+  const style = document.createElement("style");
+  style.id = "deckMobileDensityFix20261016";
+  style.textContent = "/* 2026-10-16 mobile deck density and readable card details */\n@media (max-width: 860px) {\n  body.deckMobileStackActive .libraryPanel:not(.isPanelCollapsed) { max-height: none !important; height: auto !important; }\n  body.deckMobileStackActive .libraryPanel > .bd { display: flex !important; flex-direction: column !important; gap: 6px !important; height: auto !important; overflow: visible !important; }\n  body.deckMobileStackActive .libraryPanel .attrHintBox { margin: 0 !important; min-height: 0 !important; padding: 6px 9px !important; }\n  body.deckMobileStackActive .libraryPanel .listHead { margin: 0 !important; padding: 4px 6px !important; min-height: 0 !important; }\n  body.deckMobileStackActive #cardFilters { margin: 0 !important; padding: 8px !important; flex: 0 0 auto !important; }\n  body.deckMobileStackActive .libraryPanel #cardList,\n  body.deckMobileStackActive .libraryPanel #cardSections { flex: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }\n  body.deckMobileStackActive #cardList .cardRow .sub { display: block !important; -webkit-line-clamp: unset !important; max-height: none !important; overflow-wrap: anywhere !important; white-space: normal !important; }\n  #detailWrap.open { display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; }\n}\n";
+  document.head.appendChild(style);
+})();

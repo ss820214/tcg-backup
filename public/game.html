@@ -14,14 +14,14 @@
 </head>
   <body>
     <!-- ===== FX / Overlay ===== -->
-    <div id="turnBanner">縺ゅ↑縺溘・繧ｿ繝ｼ繝ｳ・・/div>
+    <div id="turnBanner">あなたのターン！</div>
     <div id="fxFlash"></div>
     <div id="pinchFx" aria-hidden="true"></div>
 
     <div id="enemySupportToast" class="enemySupportToast" aria-hidden="true">
       <div class="enemySupportToastHead">
-        <b id="enemySupportToastTitle">逶ｸ謇九′繧ｵ繝昴・繝育匱蜍・/b>
-        <button id="enemySupportToastClose" type="button" aria-label="髢峨§繧・>ﾃ・/button>
+        <b id="enemySupportToastTitle">相手がサポート発動</b>
+        <button id="enemySupportToastClose" type="button" aria-label="閉じる">×</button>
       </div>
       <div id="enemySupportToastBody" class="enemySupportToastBody"></div>
     </div>
@@ -31,7 +31,7 @@
           LEFT PANE
          ====================== -->
       <aside id="leftPane">
-        <div class="paneTitle">諠・ｱ</div>
+        <div class="paneTitle">情報</div>
 
         <div class="kv">
           <div class="row small"><b>YOU:</b> <span id="you">?</span></div>
@@ -45,7 +45,7 @@
           <div id="manaGauge"></div>
 
           <div class="row small" style="margin-top: 8px">
-            <div id="deckCount">谿九ｊ A:? / B:?</div>
+            <div id="deckCount">残り A:? / B:?</div>
           </div>
           <div id="scoreWrap" class="scoreWrap">
             <div class="scoreRow">
@@ -93,21 +93,21 @@
           ></div>
         </div>
 
-        <div class="paneTitle">謫堺ｽ・/div>
+        <div class="paneTitle">操作</div>
         <div class="controls">
-          <button id="modeSummon">蜿ｬ蝟・/button>
-          <button id="modeMove">遘ｻ蜍・/button>
-          <button id="modeAttack">陦悟虚</button>
-          <button id="modeEvolve">騾ｲ蛹・/button>
-          <button id="modeSupport">繧ｵ繝昴・繝・/button>
-          <button id="doEvolve" style="display: none">騾ｲ蛹門ｮ溯｡・/button>
-          <button id="endTurn">繧ｿ繝ｼ繝ｳ邨ゆｺ・/button>
+          <button id="modeSummon">召喚</button>
+          <button id="modeMove">移動</button>
+          <button id="modeAttack">攻撃</button>
+          <button id="modeEvolve">進化</button>
+          <button id="modeSupport">サポート</button>
+          <button id="doEvolve" style="display: none">進化実行</button>
+          <button id="endTurn">ターン終了</button>
         </div>
 
         <!-- Quick actions -->
         <div id="quickActions" class="quickActions" style="display: none">
-          <button id="quickMove">遘ｻ蜍・/button>
-          <button id="quickAttack">陦悟虚</button>
+          <button id="quickMove">移動</button>
+          <button id="quickAttack">攻撃</button>
           <span id="quickMsg" class="small"></span>
         </div>
 
@@ -118,12 +118,12 @@
             style="justify-content: space-between; align-items: center"
           >
             <b>EX</b>
-            <button id="exBtn" type="button">EX逋ｺ蜍・/button>
+            <button id="exBtn" type="button">EX発動</button>
           </div>
           <div id="exInfo" class="small" style="margin-top: 6px; opacity: 0.9">
-            EX縺ｪ縺・          </div>
+            EXなし
           <div class="small" style="margin-top: 6px; opacity: 0.75">
-            窶ｻ繝斐Φ繝∵凾縺ｮ縺ｿ / 1蝗槭″繧・          </div>
+            ※ピンチ時のみ / 1回きり
         </div>
       </aside>
 
@@ -140,26 +140,26 @@
       <aside id="rightPane">
         <div id="cardPreview" class="battleCardPreview" aria-live="polite"></div>
 
-        <div class="paneTitle">謇区惆</div>
+        <div class="paneTitle">手札</div>
         <div id="hand"></div>
 
-        <div class="paneTitle" style="margin-top: 10px">陦悟虚</div>
+        <div class="paneTitle" style="margin-top: 10px">行動</div>
         <div id="actionPicker" class="small">
-          繝ｦ繝九ャ繝医ｒ驕ｸ謚槭☆繧九→陦悟虚縺瑚｡ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
+          ユニットを選択すると行動が表示されます。
 
-        <div class="paneTitle" style="margin-top: 10px">隧ｳ邏ｰ</div>
+        <div class="paneTitle" style="margin-top: 10px">詳細</div>
         <div id="detail" class="small">
-          繝ｦ繝九ャ繝・繧ｫ繝ｼ繝峨・隧ｳ邏ｰ縺後％縺薙↓陦ｨ遉ｺ縺輔ｌ縺ｾ縺吶・        </div>
+          ユニット・カードの詳細がここに表示されます。
 
-        <div class="paneTitle" style="margin-top: 10px">繝ｭ繧ｰ</div>
+        <div class="paneTitle" style="margin-top: 10px">ログ</div>
         <pre id="log"></pre>
       </aside>
     </div>
 
-    <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="繧ｹ繝槭・逕ｨ繝舌ヨ繝ｫ遘ｻ蜍・>
-      <button type="button" data-jump-target="centerPane">逶､髱｢</button>
-      <button type="button" data-jump-target="leftPane">謫堺ｽ・/button>
-      <button type="button" data-jump-target="rightPane">隧ｳ邏ｰ</button>
+    <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用バトル移動">
+      <button type="button" data-jump-target="centerPane">盤面</button>
+      <button type="button" data-jump-target="leftPane">操作</button>
+      <button type="button" data-jump-target="rightPane">詳細</button>
     </nav>
 
     <!-- ===== Game code ===== -->

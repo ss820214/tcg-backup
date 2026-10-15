@@ -362,11 +362,14 @@
       .pCard.a .pill{ border-color: rgba(108,255,182,0.25); }
       .pCard.b .pill{ border-color: rgba(255,108,135,0.25); }
       }
+      /* Intro is a full-screen cinematic; suppress shared navigation overlays. */
+      body :is(a,button,[role="button"]):is([href*="index.html"],[href="/"],[aria-label*="ホーム"],[title*="ホーム"]) { display:none !important; }
+      body > :not(.wrap):not(#bgFx):not(script) { display:none !important; }
     </style>
     <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260808_deck_flow1" />
     <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 </head>
-  <body>
+  <body class="match-intro-active">
     <canvas id="bgFx" class="fx"></canvas>
 
     <div class="wrap">
@@ -443,10 +446,10 @@
 
     <script type="module" src="./match_intro.js?v=20260808_deck_flow1"></script>
   <script src="./player_journey.js?v=20260801_journey1"></script>
-  <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
-  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  
+  
   <script src="./visual_upgrade_20260805.js?v=20260808_deck_flow1"></script>
-  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+  
 
     <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
 </body>

@@ -486,8 +486,12 @@ function updateHandDrawerPosition() {
 
     el.innerHTML = "";
     el.style.display = "block";
-    el.style.left = `${cx}px`;
-    el.style.top = `${cy}px`;
+    // Keep the orbit's three buttons inside both the board and the viewport.
+    // Attack is 78px above the center and each ball is 56px.
+    const safeX = Math.max(100 - br.left, Math.min(cx, window.innerWidth - 100 - br.left));
+    const safeY = Math.max(114 - br.top, Math.min(cy, window.innerHeight - 70 - br.top));
+    el.style.left = `${Math.max(74, Math.min(br.width - 74, safeX))}px`;
+    el.style.top = `${Math.max(110, Math.min(br.height - 38, safeY))}px`;
     el.dataset.unitId = String(u?.id ?? "");
     const currentIdx = Math.max(
       0,

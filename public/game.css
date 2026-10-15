@@ -5489,3 +5489,45 @@ body {
   #board .unitBox .uIcons {position:relative !important;inset:auto !important;min-height:0 !important;margin:0 !important;}
   #board .unitBox .uOwner {display:none !important;}
 }
+
+
+/* Compact battlefield unit: reserve a fixed visible slot for both HP and SP. */
+@media(max-width:760px){
+  #board .cell .unitBox{
+    position:absolute !important;
+    inset:1px !important;
+    width:auto !important;
+    height:auto !important;
+    max-height:none !important;
+    padding:3px !important;
+    gap:1px !important;
+    display:grid !important;
+    grid-template-rows:14px minmax(0,1fr) 27px !important;
+    align-content:stretch !important;
+  }
+  #board .unitBox .uTop{grid-row:1 !important;height:14px !important;min-height:0 !important;}
+  #board .unitBox .uName{
+    grid-row:2 !important;
+    align-self:start !important;
+    margin:0 !important;
+    font-size:8px !important;
+    line-height:1.05 !important;
+    font-weight:700 !important;
+    max-height:100% !important;
+    overflow:hidden !important;
+    word-break:break-all !important;
+  }
+  #board .unitBox .uHPWrap{
+    grid-row:3 !important;
+    align-self:end !important;
+    display:grid !important;
+    grid-template-rows:12px 12px !important;
+    gap:2px !important;
+    height:26px !important;
+    min-height:26px !important;
+    max-height:26px !important;
+    overflow:visible !important;
+  }
+  #board .unitBox .uStatRow{height:12px !important;min-height:12px !important;max-height:12px !important;}
+  #board .unitBox .uIcons{display:none !important;}
+}

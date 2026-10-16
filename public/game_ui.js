@@ -92,6 +92,8 @@ export function createGameUI(ctx) {
     supportRateText,
     supportTargetText,
     supportHintText,
+    supportEffectSummary,
+    canEvolveBaseWithHand,
     supportSearchOptions,
     getSupportSearchCardId,
     setSupportSearchCardId,
@@ -113,6 +115,7 @@ export function createGameUI(ctx) {
   const detailEl = dom.detailEl; // 使うなら
 
   let handDrawerEl = null;
+  let savedHandScrollLeft = 0;
 let handDrawerToggleEl = null;
 let handDrawerOpen = false;
 let handLockCssReady = false;
@@ -247,8 +250,8 @@ function vitalDeltaText(kind, delta) {
 
 function handCardPrimaryText(def) {
   if (isSupportCard?.(def)) {
-    const eff = String(def?.effectText || def?.desc || def?.effect || "").trim();
-    return eff || "サポート効果";
+    const eff = supportEffectSummary?.(def) || def?.effectText || def?.desc || "";
+    return String(eff).trim() || "効果なし";
   }
   const acts = Array.isArray(def?.actions) ? def.actions : [];
   const a = acts[0] || null;
@@ -977,6 +980,11 @@ function updateHandDrawerPosition() {
         !u.fatigue &&
         Number(u.hp) > 0;
       if (canAct) cell.classList.add("canAct");
+      if (getMode?.() === "evolve") {
+        const handIdx = getSelectedHandIndex?.();
+        if (canEvolveBaseWithHand?.(st, u, handIdx)) cell.classList.add("evolveCandidate");
+        else cell.classList.add("evolveDimmed");
+      }
 
       const def = cardDefsRef()?.[u.cardId] || {};
       const t = def.type || "?";
@@ -1183,6 +1191,8 @@ function updateHandDrawerPosition() {
   // 手札ドロワー
   // =====================
   if (!handDrawerEl) return;
+  const previousHandStack = handDrawerEl.querySelector(".handStack");
+  if (previousHandStack) savedHandScrollLeft = previousHandStack.scrollLeft;
   handDrawerEl.innerHTML = "";
 
   const head = document.createElement("div");
@@ -1198,31 +1208,28 @@ function updateHandDrawerPosition() {
     </div>
   `;
   const topEvolveBtn = head.querySelector(".handEvolveTopBtn");
-  const topEvolveReady =
-    selectedIndex != null &&
-    !(typeof isHandCardLocked === "function" && isHandCardLocked(st, selectedIndex, seat)) &&
-    (() => {
-      try {
-        return !!canSelectedHandEvolve?.(st, selectedIndex);
-      } catch {
-        return false;
-      }
-    })();
+  const isSelectedSupport = !!selectedDef && isSupportCard(selectedDef);
+  const selectedUsable = selectedIndex != null && !selectedLocked && !!selectedDef;
   if (topEvolveBtn) {
-    topEvolveBtn.disabled = !topEvolveReady;
-    topEvolveBtn.textContent = topEvolveReady ? "進化 READY" : "進化";
-    topEvolveBtn.classList.toggle("ready", !!topEvolveReady);
-    topEvolveBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!topEvolveReady) return;
-      setMode?.("evolve");
-      try {
-        await execSelectedHandEvolve?.(st, selectedIndex);
-      } catch (err) {
-        console.warn("[hand evolve top] failed", err);
+    topEvolveBtn.textContent = isSelectedSupport ? "使用" : "進化";
+    topEvolveBtn.disabled = !selectedUsable;
+    topEvolveBtn.classList.toggle("ready", selectedUsable);
+    topEvolveBtn.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (!selectedUsable) return;
+      setMode(isSelectedSupport ? "support" : "evolve");
+      if (!isSelectedSupport) {
+        try { setHandDrawerOpen(false); } catch {}
       }
     });
+  }
+  if (getMode?.() === "evolve") {
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "handEvolveCancel";
+    cancel.textContent = "進化をキャンセル";
+    cancel.onclick = (e) => { e.preventDefault(); e.stopPropagation(); setMode(null); };
+    head.querySelector(".handDrawerControls")?.appendChild(cancel);
   }
   handDrawerEl.appendChild(head);
 
@@ -1388,6 +1395,8 @@ function updateHandDrawerPosition() {
   }
 
   handDrawerEl.appendChild(stack);
+  stack.scrollLeft = savedHandScrollLeft;
+  stack.addEventListener("scroll", () => { savedHandScrollLeft = stack.scrollLeft; }, {passive:true});
 }
 
   // ===== Action picker =====

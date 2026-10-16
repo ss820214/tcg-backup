@@ -4,9 +4,10 @@
   style.textContent = `
     /* Keep the single cloud save action visible, without duplicate save buttons. */
     #deckPanelActions [data-deck-panel-action="save"],
-    #deckSaveDock .deckSaveRow #btnSave,
-    #deckLibModeSave { display:none !important; }
-    #deckLibUploadNew { min-height:46px !important; width:100% !important; }
+    #deckLibModeSave,
+    #deckLibUploadNew { display:none !important; }
+    #deckSaveDock .deckSaveRow #btnSave { display:inline-flex !important; min-height:46px !important; align-items:center; justify-content:center; }
+    #deckSaveDock .deckSaveRow #btnSave { width:100% !important; }
     @media (min-width:861px) {
       /* Same card stats and skill presentation as mobile, without changing layout columns. */
       #cardList .cardRow .mobileInlineStats,

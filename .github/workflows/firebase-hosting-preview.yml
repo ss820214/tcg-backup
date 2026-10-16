@@ -1,0 +1,53 @@
+name: Preview 0bato on Firebase Hosting
+
+on:
+  push:
+    branches:
+      - deploy/live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-hosting-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+
+      - name: Validate site and critical scripts
+        run: |
+          test -f firebase.json
+          test -f .firebaserc
+          test -d public
+          node --check public/deck.js
+          node --check public/deck_library.js
+          node --check public/game.js
+          node --check public/game_ui.js
+          node --check public/auth.js
+          node tools/deck_regression_20261008.mjs
+
+      - name: Publish isolated preview channel
+        id: hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TCG_0BATO }}
+          channelId: preview
+          projectId: tcg-0bato
+          expires: 30d
+
+      - name: Show preview link
+        if: success()
+        env:
+          PREVIEW_URL: ${{ steps.hosting.outputs.details_url }}
+        run: |
+          echo "### 0バト プレビュー" >> "$GITHUB_STEP_SUMMARY"
+          echo "Firebase preview channel: **preview**" >> "$GITHUB_STEP_SUMMARY"
+          echo "Open the Firebase Hosting preview deployment link shown in the Publish isolated preview channel step." >> "$GITHUB_STEP_SUMMARY"

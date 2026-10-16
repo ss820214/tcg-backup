@@ -2151,10 +2151,10 @@ function startDiceRollAnimation(primary, finalLines) {
   if (diceRollAnimTimer) clearInterval(diceRollAnimTimer);
   if (diceRollAnimDoneTimer) clearTimeout(diceRollAnimDoneTimer);
 
-  const dopa = isDopagakiModeOn();
-  const maxTicks = dopa ? 36 : 9;
-  const tickMs = dopa ? 45 : 55;
-  const revealMs = dopa ? 520 : 360;
+  const dopa = false; // Keep combat dice brief even in special mode.
+  const maxTicks = 5;
+  const tickMs = 50;
+  const revealMs = 500;
 
   let tick = 0;
   diceEl.classList.remove("diceReveal", "ok", "bad", "diceDopaRolling");
@@ -2204,6 +2204,8 @@ function startDiceRollAnimation(primary, finalLines) {
       writeTick(primary.final || 0);
       diceEl.classList.remove("diceRolling");
       diceEl.classList.add("diceReveal", primary.ok ? "ok" : "bad");
+      const verdict = diceEl.querySelector(".diceRollLabel");
+      if (verdict) verdict.textContent = primary.ok ? "成功" : "失敗";
       diceRollAnimDoneTimer = setTimeout(() => {
         diceRollAnimDoneTimer = null;
         diceEl.classList.remove("diceReveal", "ok", "bad", "diceDopaRolling");

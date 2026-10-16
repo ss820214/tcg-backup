@@ -853,10 +853,23 @@ function updateHandDrawerPosition() {
     let evolveCancel = document.getElementById("battleEvolveCancel");
   if (getMode?.() === "evolve") {
     if (!evolveCancel) { evolveCancel = document.createElement("button"); evolveCancel.id = "battleEvolveCancel"; evolveCancel.type = "button"; document.body.appendChild(evolveCancel); }
-    evolveCancel.textContent = "進化対象を選択中 · キャンセル";
+    evolveCancel.textContent = "キャンセル";
     evolveCancel.onclick = () => setMode(null);
     evolveCancel.style.display = "block";
   } else if (evolveCancel) evolveCancel.style.display = "none";
+  let evolveApply = document.getElementById("battleEvolveApply");
+  if (getMode?.() === "evolve") {
+    if (!evolveApply) { evolveApply = document.createElement("button"); evolveApply.id = "battleEvolveApply"; evolveApply.type = "button"; document.body.appendChild(evolveApply); }
+    const idx = getSelectedHandIndex?.();
+    const canApply = idx != null && !!canSelectedHandEvolve?.(st, idx);
+    evolveApply.textContent = canApply ? "このキャラに進化する" : "進化元を選択";
+    evolveApply.disabled = !canApply;
+    evolveApply.style.display = "block";
+    evolveApply.onclick = async () => {
+      if (!canSelectedHandEvolve?.(st, getSelectedHandIndex?.())) return;
+      try { await execSelectedHandEvolve?.(st, getSelectedHandIndex?.()); } catch (err) { console.warn("[evolve apply]", err); }
+    };
+  } else if (evolveApply) evolveApply.style.display = "none";
   const cells = boardEl.querySelectorAll(".cell");
 
     for (let i = 0; i < cells.length; i++) {
@@ -885,6 +898,8 @@ function updateHandDrawerPosition() {
         "zoneMid",
         "zoneLine",
         "canAct",
+        "evolveCandidate",
+        "evolveDimmed",
       );
 
       const vx = Number(cell.dataset.x);

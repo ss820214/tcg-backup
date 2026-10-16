@@ -874,8 +874,11 @@ function updateHandDrawerPosition() {
     evolveApply.disabled = !canApply;
     evolveApply.style.display = "block";
     evolveApply.onclick = async () => {
-      if (!canSelectedHandEvolve?.(st, getSelectedHandIndex?.())) return;
+      if (evolveApply.disabled || !canSelectedHandEvolve?.(st, getSelectedHandIndex?.())) return;
+      evolveApply.disabled = true;
+      evolveApply.textContent = "進化処理中…";
       try { await execSelectedHandEvolve?.(st, getSelectedHandIndex?.()); } catch (err) { console.warn("[evolve apply]", err); }
+      finally { if (getMode?.() === "evolve") render(st); }
     };
   } else if (evolveApply) evolveApply.style.display = "none";
   let supportCancel = document.getElementById("battleSupportCancel");
@@ -893,7 +896,13 @@ function updateHandDrawerPosition() {
     const ready = !!supportReadyByPlan?.(plan);
     supportApply.textContent = ready ? "サポート発動" : "対象を選択";
     supportApply.disabled = !ready;
-    supportApply.onclick = async () => { if (supportReadyByPlan?.(plan)) await execSupport?.(st); };
+    supportApply.onclick = async () => {
+      if (supportApply.disabled || !supportReadyByPlan?.(plan)) return;
+      supportApply.disabled = true;
+      supportApply.textContent = "発動処理中…";
+      try { await execSupport?.(st); } catch (err) { console.warn("[support apply]", err); }
+      finally { if (getMode?.() === "support") render(st); }
+    };
     supportApply.style.display = "block";
   } else if (supportApply) supportApply.style.display = "none";
   const cells = boardEl.querySelectorAll(".cell");
@@ -1376,10 +1385,10 @@ function updateHandDrawerPosition() {
         const menu = document.createElement("div");
         menu.id = "handLongPressMenu";
         menu.className = "handLongPressMenu";
-        menu.innerHTML = '<div class="hlpmTitle">カード操作</div><div class="hlpmButtons"><button type="button" data-action="summon">召喚</button><button type="button" data-action="evolve">進化</button><button type="button" data-action="detail">詳細</button><button type="button" data-action="close">閉じる</button></div>';
+        menu.innerHTML = `<div class="hlpmTitle">カード操作</div><div class="hlpmButtons"><button type="button" data-action="summon">召喚</button><button type="button" data-action="evolve">${isSupportCard(def) ? "使用" : "進化"}</button><button type="button" data-action="detail">詳細</button><button type="button" data-action="close">閉じる</button></div>`;
         document.body.appendChild(menu);
         menu.querySelector('[data-action="summon"]').disabled = isLocked || isSupportCard(def);
-        menu.querySelector('[data-action="evolve"]').disabled = isLocked || !canSelectedHandEvolve?.(st, i);
+        menu.querySelector('[data-action="evolve"]').disabled = isLocked || (!isSupportCard(def) && !canSelectedHandEvolve?.(st, i));
         menu.addEventListener("click", (event) => {
           const action = event.target.closest("button")?.dataset.action;
           if (!action) return;
@@ -1388,7 +1397,7 @@ function updateHandDrawerPosition() {
           if (action === "detail") { showCardDetail(cid); return; }
           if (action === "close") return;
           setSelectedHandIndex(i);
-          setMode(action);
+          setMode(action === "evolve" && isSupportCard(def) ? "support" : action);
           render(st);
         });
       }, 2000);

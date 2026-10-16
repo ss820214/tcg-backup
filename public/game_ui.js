@@ -512,6 +512,14 @@ function updateHandDrawerPosition() {
     const fatigue = !!u?.fatigue;
 
     const poses = orbitPositionList(acts.length);
+    const orbitX = Number.parseFloat(el.style.left) || cx;
+    const orbitY = Number.parseFloat(el.style.top) || cy;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const halfW = window.innerWidth <= 760 ? 62 : 72;
+    const minX = 8 - br.left + halfW;
+    const maxX = window.innerWidth - 8 - br.left - halfW;
+    const minY = 66 - br.top;
+    const maxY = window.innerHeight - 66 - br.top;
 
     acts.forEach((act, i) => {
       const pos = poses[i] || poses[poses.length - 1] || { x: 0, y: -132 };
@@ -522,8 +530,8 @@ function updateHandDrawerPosition() {
       card.className =
         "actionOrbitCard" + (i === currentIdx ? " selected" : "");
       card.dataset.actionIndex = String(i);
-      card.style.setProperty("--ox", `${pos.x}px`);
-      card.style.setProperty("--oy", `${pos.y}px`);
+      card.style.setProperty("--ox", `${clamp(orbitX + pos.x, minX, maxX) - orbitX}px`);
+      card.style.setProperty("--oy", `${clamp(orbitY + pos.y, minY, maxY) - orbitY}px`);
 
       const mana = normalizeMana?.(st?.mana);
       const seatKey = getSeat();
@@ -862,7 +870,7 @@ function updateHandDrawerPosition() {
     if (!evolveApply) { evolveApply = document.createElement("button"); evolveApply.id = "battleEvolveApply"; evolveApply.type = "button"; document.body.appendChild(evolveApply); }
     const idx = getSelectedHandIndex?.();
     const canApply = idx != null && !!canSelectedHandEvolve?.(st, idx);
-    evolveApply.textContent = canApply ? "このキャラに進化する" : "進化元を選択";
+    evolveApply.textContent = canApply ? "進化を実行" : "進化元を選択";
     evolveApply.disabled = !canApply;
     evolveApply.style.display = "block";
     evolveApply.onclick = async () => {
@@ -870,6 +878,14 @@ function updateHandDrawerPosition() {
       try { await execSelectedHandEvolve?.(st, getSelectedHandIndex?.()); } catch (err) { console.warn("[evolve apply]", err); }
     };
   } else if (evolveApply) evolveApply.style.display = "none";
+  let supportCancel = document.getElementById("battleSupportCancel");
+  const supportDef = selectedHandDef?.(st);
+  if (getMode?.() === "support" && supportDef && isSupportCard(supportDef)) {
+    if (!supportCancel) { supportCancel = document.createElement("button"); supportCancel.id = "battleSupportCancel"; supportCancel.type = "button"; document.body.appendChild(supportCancel); }
+    supportCancel.textContent = "サポートをキャンセル";
+    supportCancel.onclick = () => { resetSupportPicks?.(); setMode(null); };
+    supportCancel.style.display = "block";
+  } else if (supportCancel) supportCancel.style.display = "none";
   const cells = boardEl.querySelectorAll(".cell");
 
     for (let i = 0; i < cells.length; i++) {
@@ -1240,10 +1256,8 @@ function updateHandDrawerPosition() {
       e.preventDefault(); e.stopPropagation();
       if (!selectedUsable) return;
       setMode(isSelectedSupport ? "support" : "evolve");
-      if (!isSelectedSupport) {
-        handDrawerOpen = false;
-        updateHandDrawerOpenState();
-      }
+      handDrawerOpen = false;
+      updateHandDrawerOpenState();
     });
   }
   if (getMode?.() === "evolve") {

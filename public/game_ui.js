@@ -850,7 +850,14 @@ function updateHandDrawerPosition() {
     const rangeMap = buildRangeMap(st);
     const supportMap = buildSupportMap(st);
 
-    const cells = boardEl.querySelectorAll(".cell");
+    let evolveCancel = document.getElementById("battleEvolveCancel");
+  if (getMode?.() === "evolve") {
+    if (!evolveCancel) { evolveCancel = document.createElement("button"); evolveCancel.id = "battleEvolveCancel"; evolveCancel.type = "button"; document.body.appendChild(evolveCancel); }
+    evolveCancel.textContent = "進化対象を選択中 · キャンセル";
+    evolveCancel.onclick = () => setMode(null);
+    evolveCancel.style.display = "block";
+  } else if (evolveCancel) evolveCancel.style.display = "none";
+  const cells = boardEl.querySelectorAll(".cell");
 
     for (let i = 0; i < cells.length; i++) {
       const cell = cells[i];
@@ -1219,7 +1226,8 @@ function updateHandDrawerPosition() {
       if (!selectedUsable) return;
       setMode(isSelectedSupport ? "support" : "evolve");
       if (!isSelectedSupport) {
-        try { setHandDrawerOpen(false); } catch {}
+        handDrawerOpen = false;
+        updateHandDrawerOpenState();
       }
     });
   }

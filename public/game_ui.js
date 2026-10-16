@@ -1387,6 +1387,19 @@ function updateHandDrawerPosition() {
         menu.className = "handLongPressMenu";
         menu.innerHTML = `<div class="hlpmTitle">カード操作</div><div class="hlpmButtons"><button type="button" data-action="summon">召喚</button><button type="button" data-action="evolve">${isSupportCard(def) ? "使用" : "進化"}</button><button type="button" data-action="detail">詳細</button><button type="button" data-action="close">閉じる</button></div>`;
         document.body.appendChild(menu);
+        // Keep every action reachable on narrow phones and near screen edges.
+        Object.assign(menu.style, {
+          position: "fixed",
+          left: "max(8px, env(safe-area-inset-left))",
+          right: "max(8px, env(safe-area-inset-right))",
+          bottom: "calc(12px + env(safe-area-inset-bottom))",
+          top: "auto",
+          maxWidth: "min(440px, calc(100vw - 16px))",
+          marginInline: "auto",
+          maxHeight: "min(70dvh, 500px)",
+          overflowY: "auto",
+          zIndex: "99999",
+        });
         menu.querySelector('[data-action="summon"]').disabled = isLocked || isSupportCard(def);
         menu.querySelector('[data-action="evolve"]').disabled = isLocked || (!isSupportCard(def) && !canSelectedHandEvolve?.(st, i));
         menu.addEventListener("click", (event) => {

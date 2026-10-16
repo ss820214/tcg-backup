@@ -2,7 +2,7 @@
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261015_orbit_edge2";
+import { createGameUI } from "./game_ui.js?v=20261016_support_fix8";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";

@@ -1303,7 +1303,50 @@ function updateHandDrawerPosition() {
       ${isLocked ? `<div class="shcLock">伏せ</div>` : ""}
     `;
 
+    // 2-second hold: action choices, while ordinary taps keep their existing behavior.
+    let handHoldTimer = null;
+    let handHoldFired = false;
+    let holdStartX = 0, holdStartY = 0;
+    const clearHandHold = () => { if (handHoldTimer !== null) { clearTimeout(handHoldTimer); handHoldTimer = null; } };
+    card.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0 || ev.target.closest(".hcEvoBtn")) return;
+      clearHandHold();
+      handHoldFired = false;
+      holdStartX = ev.clientX; holdStartY = ev.clientY;
+      handHoldTimer = setTimeout(() => {
+        handHoldTimer = null;
+        handHoldFired = true;
+        setSelectedHandIndex(i);
+        const old = document.getElementById("handLongPressMenu");
+        old?.remove();
+        const menu = document.createElement("div");
+        menu.id = "handLongPressMenu";
+        menu.className = "handLongPressMenu";
+        menu.innerHTML = '<div class="hlpmTitle">カード操作</div><div class="hlpmButtons"><button type="button" data-action="summon">召喚</button><button type="button" data-action="evolve">進化</button><button type="button" data-action="detail">詳細</button><button type="button" data-action="close">閉じる</button></div>';
+        document.body.appendChild(menu);
+        menu.querySelector('[data-action="summon"]').disabled = isLocked || isSupportCard(def);
+        menu.querySelector('[data-action="evolve"]').disabled = isLocked || !canSelectedHandEvolve?.(st, i);
+        menu.addEventListener("click", (event) => {
+          const action = event.target.closest("button")?.dataset.action;
+          if (!action) return;
+          event.stopPropagation();
+          menu.remove();
+          if (action === "detail") { showCardDetail(cid); return; }
+          if (action === "close") return;
+          setSelectedHandIndex(i);
+          setMode(action);
+          render(st);
+        });
+      }, 2000);
+    });
+    card.addEventListener("pointermove", (ev) => {
+      if (Math.hypot(ev.clientX - holdStartX, ev.clientY - holdStartY) > 12) clearHandHold();
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(type => card.addEventListener(type, clearHandHold));
+    card.addEventListener("contextmenu", ev => ev.preventDefault());
+
     card.addEventListener("click", (e) => {
+      if (handHoldFired) { e.preventDefault(); e.stopPropagation(); handHoldFired = false; return; }
       e.preventDefault();
       e.stopPropagation();
 

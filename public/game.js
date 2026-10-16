@@ -46,7 +46,7 @@ import {
   getManaConsts,
 } from "./game_core.js?v=20260627_mana1";
 
-import { createEvolveSystem } from "./evolve_system.js?v=20260727_evolve_inline_btn_off1";
+import { createEvolveSystem } from "./evolve_system.js?v=20261016_autoexit1";
 
 import {
   W,
@@ -5967,7 +5967,7 @@ async function execSupport(st) {
   const casterUnitIdSnap = pickCasterUnitIdSnapshot(st);
   const cellSnap = supportTargetCell ? { ...supportTargetCell } : null;
 
-  await runTransaction(db, async (tx) => {
+  const supportResult = await runTransaction(db, async (tx) => {
     const snap = await tx.get(stateRef);
     if (!snap.exists()) return;
     const s = snap.data() || {};
@@ -6067,9 +6067,15 @@ async function execSupport(st) {
     }
 
     tx.set(stateRef, s, { merge: true });
+    return true;
   });
 
-  clearCommandSelectionUI({ keepUnit: true });
+  if (supportResult === true) {
+    clearCommandSelectionUI({ keepUnit: true });
+    setMode(null);
+    render(currentState || st);
+  }
+  return supportResult === true;
 }
 
 // ---- 騾ｲ蛹・----
@@ -6958,8 +6964,12 @@ async function execSelectedHandEvolve(st = currentState, index = selectedHandInd
   selectedHandIndex = index;
   if (mode !== "evolve") setMode("evolve");
   if (!evolveSys.canExec(st, index)) return false;
-  await evolveSys.execEvolveFromHandIndex(index);
-  return true;
+  const evolved = await evolveSys.execEvolveFromHandIndex(index);
+  if (evolved) {
+    setMode(null);
+    render(currentState || st);
+  }
+  return !!evolved;
 }
 
 btnDoEvolve &&

@@ -1602,6 +1602,9 @@ function setMode(m) {
   mode = m;
 
   if (m !== "support") resetSupportPicks();
+  if (m !== "evolve") {
+    try { document.querySelectorAll("#board .evolveCandidate, #board .evolveDimmed").forEach(el => el.classList.remove("evolveCandidate", "evolveDimmed")); } catch {}
+  }
 
   // 笨・騾ｲ蛹悶・驕ｸ謚樒憾諷九・繝｢繝ｼ繝牙､画峩縺ｮ縺溘・縺ｫ螳牙・縺ｫ繝ｪ繧ｻ繝・ヨ
   try {
@@ -4462,6 +4465,18 @@ function onCellClick(x, y) {
   // =========================
   const u = unitAt(st, x, y);
   if (u) {
+    if (mode === "evolve" && canControl(st)) {
+      const cid = st?.hands?.[seat]?.[selectedHandIndex];
+      const evo = cardDefs?.[cid];
+      const baseDef = cardDefs?.[u.cardId];
+      const extra = Number(evo?.cost) - Number(baseDef?.cost);
+      const valid = u.owner === seat && Number(u.hp) > 0 && !isPanic(u) && evo && baseDef && !isSupportCard(evo) && normalizeBattleAttr(evo.type ?? evo.attr ?? "") === normalizeBattleAttr(baseDef.type ?? baseDef.attr ?? "") && extra > 0 && (normalizeMana(st.mana)?.[seat]?.cur ?? 0) >= extra;
+      if (!valid) { render(st); return; }
+      selectedUnitId = u.id;
+      evolveSys.onPickBaseUnit(u, st);
+      render(st);
+      return;
+    }
     if (shouldCancelByUnitClick(u, st)) {
       clearCommandSelectionUI({ keepUnit: true });
 
@@ -6940,8 +6955,8 @@ async function execSelectedHandEvolve(st = currentState, index = selectedHandInd
   if (!canControl(st)) return false;
   if (index == null) return false;
   if (isHandCardLocked(st, index, seat)) return false;
-  setMode("evolve");
   selectedHandIndex = index;
+  if (mode !== "evolve") setMode("evolve");
   if (!evolveSys.canExec(st, index)) return false;
   await evolveSys.execEvolveFromHandIndex(index);
   return true;

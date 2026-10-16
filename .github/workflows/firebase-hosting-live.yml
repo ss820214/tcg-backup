@@ -35,6 +35,7 @@ jobs:
           node --check public/deck.js
           node --check public/deck_detail_drag.js
           node --check public/deck_library.js
+          node --check public/deck_save_unify_20261016.js
           node --check public/deck_mobile_hotfix_20261006_cardlayout5.js
           node --check public/deck_mobile_hotfix_20261006_skills6.js
           node tools/deck_regression_20261008.mjs

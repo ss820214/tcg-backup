@@ -215,7 +215,6 @@ function injectUnifiedStyle() {
 function installUnifiedUi(opts = {}) {
   const state = sharedState();
   if (state.unifiedInstalled) return;
-  state.unifiedInstalled = true;
   injectUnifiedStyle();
 
   const btnSave = document.getElementById("btnSave");
@@ -223,6 +222,7 @@ function installUnifiedUi(opts = {}) {
   const vis = document.getElementById("deckLibVis");
   const color = document.getElementById("deckLibThemeColor");
   if (!btnSave || !box || !vis || !color) return;
+  state.unifiedInstalled = true;
 
   btnSave.textContent = "保存";
   btnSave.removeAttribute("disabled");
@@ -301,7 +301,7 @@ function installUnifiedUi(opts = {}) {
               targetId = "";
             } else {
               const d = existing.data() || {};
-              const own = String(d.ownerUid || "") === linkedUid || String(d.ownerKey || "") === deviceKey();
+              const own = String(d.ownerUid || "") === linkedUid;
               if (!own) targetId = "";
             }
           } catch (error) {

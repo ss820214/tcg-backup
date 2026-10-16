@@ -4477,7 +4477,7 @@ function onCellClick(x, y) {
       render(st);
       return;
     }
-    if (shouldCancelByUnitClick(u, st)) {
+    if (mode !== "support" && shouldCancelByUnitClick(u, st)) {
       clearCommandSelectionUI({ keepUnit: true });
 
       showUnitDetail(u, st);

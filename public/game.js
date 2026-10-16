@@ -5966,6 +5966,8 @@ async function execSupport(st) {
   const t2Snap = supportTarget2Id;
   const casterUnitIdSnap = pickCasterUnitIdSnapshot(st);
   const cellSnap = supportTargetCell ? { ...supportTargetCell } : null;
+  const targetIdsSnap = [...supportTargetIds];
+  const searchCardIdSnap = supportSearchCardId;
 
   const supportResult = await runTransaction(db, async (tx) => {
     const snap = await tx.get(stateRef);
@@ -6006,9 +6008,9 @@ async function execSupport(st) {
         casterUnitId: casterUnitIdSnap,
         targetUnitId: t1Snap,
         targetUnitId2: t2Snap,
-        targetUnitIds: supportTargetIds,
+        targetUnitIds: targetIdsSnap,
         targetCell: cellSnap,
-        searchCardId: supportSearchCardId,
+        searchCardId: searchCardIdSnap,
         rand: Math.random,
       });
 
@@ -6067,6 +6069,7 @@ async function execSupport(st) {
     }
 
     tx.set(stateRef, s, { merge: true });
+    // A resolved support attempt (including a failed roll) is complete; an invalid attempt is not.
     return true;
   });
 

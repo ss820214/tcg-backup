@@ -7047,6 +7047,18 @@ const ui = createGameUI({
   supportRateText,
   supportTargetText,
   supportHintText,
+  supportEffectSummary,
+  canEvolveBaseWithHand: (st, base, index) => {
+    if (!st || !base || index == null || base.owner !== seat || Number(base.hp) <= 0 || isPanic(base)) return false;
+    const cid = st?.hands?.[seat]?.[index];
+    const evo = cardDefs?.[cid];
+    const original = cardDefs?.[base.cardId];
+    if (!evo || !original || isSupportCard(evo) || isHandCardLocked(st,index,seat)) return false;
+    const a = normalizeBattleAttr(evo.type ?? evo.attr ?? "");
+    const b = normalizeBattleAttr(original.type ?? original.attr ?? "");
+    const extra = Number(evo.cost) - Number(original.cost);
+    return !!a && a === b && extra > 0 && (normalizeMana(st.mana)?.[seat]?.cur ?? 0) >= extra;
+  },
   supportSearchOptions,
   getSupportSearchCardId: () => supportSearchCardId,
   setSupportSearchCardId: (v) => {

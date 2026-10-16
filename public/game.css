@@ -5620,3 +5620,9 @@ body {
 
 #battleSupportCancel{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:100087;border:1px solid #f6cc81;border-radius:999px;background:rgba(30,35,47,.97);color:#fff;padding:13px 20px;font-size:14px;font-weight:800;box-shadow:0 5px 20px #0009;white-space:nowrap;}
 @media(max-width:760px){.actionOrbitCard{box-sizing:border-box !important;width:118px !important;max-width:118px !important;overflow:hidden !important;}.actionOrbitCard .aocName,.actionOrbitCard .aocEffect{overflow-wrap:anywhere !important;word-break:break-word !important;}}
+
+#battleSupportCancel{left:calc(50% + 88px) !important;bottom:90px !important;transform:translateX(-50%) !important;width:140px;max-width:44vw;padding:13px 6px;font-size:13px;}
+#battleSupportApply{position:fixed;left:calc(50% - 88px);bottom:90px;transform:translateX(-50%);z-index:100088;border:1px solid #91f5c5;border-radius:999px;background:linear-gradient(135deg,#096b52,#18a775);color:#fff;font-weight:900;padding:13px 7px;width:140px;max-width:44vw;box-shadow:0 0 18px #20f6a84d;}
+#battleSupportApply:disabled{opacity:.65;background:#33404a;border-color:#77838a;}
+.highManaEvolveBurst{position:fixed;z-index:100200;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff6ba;font-size:clamp(20px,5vw,42px);font-weight:1000;letter-spacing:.07em;text-align:center;text-shadow:0 0 10px #ffdd48,0 0 36px #ff8a00;background:radial-gradient(ellipse at center,#fff3b847 0%,#e88e2533 32%,transparent 70%);animation:highManaEvoPop 1.6s ease-out forwards;}
+@keyframes highManaEvoPop{0%{opacity:0;transform:scale(.45)}20%{opacity:1;transform:scale(1.15)}65%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}

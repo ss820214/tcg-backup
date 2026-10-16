@@ -79,3 +79,95 @@ button, [role="button"] { touch-action: manipulation; }
   22% { filter: brightness(1.35) drop-shadow(0 0 13px rgba(255,105,150,.55)); }
   100% { filter: brightness(1); }
 }
+
+/* Mobile battle: compact mana dock; reclaim space for the board. */
+@media (max-width: 760px) and (orientation: portrait) {
+  #board { --ob-board-focus: 1; }
+  #board .cell .uIcons {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    z-index: 8 !important;
+    min-height: 17px !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin-top: 2px !important;
+    padding: 1px !important;
+    gap: 2px !important;
+    pointer-events: none !important;
+  }
+  #board .cell .statusChip {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    min-width: 17px !important;
+    height: 17px !important;
+    padding: 0 2px !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    background: rgba(10,19,27,.94) !important;
+    color: #fff !important;
+    opacity: 1 !important;
+  }
+  #board .cell .statusChipIcon,
+  #board .cell .statusChipIcon .statusDoodle {
+    font-size: 13px !important;
+    width: 13px !important;
+    height: 13px !important;
+    opacity: 1 !important;
+  }
+  #manaGauge {
+    min-height: 0 !important;
+    max-height: 30px !important;
+    height: 30px !important;
+    padding: 4px 8px !important;
+    margin: 0 !important;
+    gap: 5px !important;
+    align-content: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+  #manaGauge .manaPip {
+    width: 10px !important;
+    height: 10px !important;
+    flex: 0 0 10px !important;
+  }
+  #leftPane > .kv:first-of-type {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  #leftPane > .kv:first-of-type > #manaGauge {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+  #board .cell { min-height: calc(var(--cellH, 94px) * 1.04); }
+}
+
+/* Short, top-of-screen dice animation for attacks and support rolls. */
+#dice.diceRolling,
+#dice.diceReveal {
+  position: fixed !important;
+  top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 100500 !important;
+  width: min(270px, 78vw) !important;
+  min-height: 0 !important;
+  max-height: 112px !important;
+  padding: 0 !important;
+  pointer-events: none !important;
+}
+#dice.diceRolling .diceRollBox,
+#dice.diceReveal .diceRollBox {
+  width: 100% !important;
+  min-height: 74px !important;
+  padding: 5px 12px !important;
+  border-radius: 14px !important;
+  background: rgba(9,16,26,.95) !important;
+  box-shadow: 0 6px 22px rgba(0,0,0,.5) !important;
+}
+#dice.diceRolling .diceRollNum,
+#dice.diceReveal .diceRollNum { font-size: 30px !important; line-height: 1 !important; }
+#dice.diceRolling .diceRollLabel,
+#dice.diceReveal .diceRollLabel { font-size: 12px !important; }
+#dice.diceRolling .diceRollSub,
+#dice.diceReveal .diceRollSub { font-size: 11px !important; }

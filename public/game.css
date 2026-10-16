@@ -5531,3 +5531,48 @@ body {
   #board .unitBox .uStatRow{height:12px !important;min-height:12px !important;max-height:12px !important;}
   #board .unitBox .uIcons{display:none !important;}
 }
+
+/* 2026-10-16 mobile battle usability: no overlapping hand; glow-only actionable units. */
+.cell.canAct .unitBox::after { content:none !important; display:none !important; }
+.cell.canAct .unitBox { outline:2px solid rgba(139,255,188,.65) !important; box-shadow:0 0 11px rgba(115,255,170,.4), inset 0 0 8px rgba(115,255,170,.13) !important; }
+@media(max-width:760px){
+  .handStack.mdHandCompact{
+    position:relative !important;
+    display:flex !important;
+    align-items:flex-end !important;
+    justify-content:flex-start !important;
+    gap:7px !important;
+    padding:22px 12px 8px !important;
+    height:auto !important;
+    min-height:155px !important;
+    max-height:190px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x proximity !important;
+  }
+  .handStack.mdHandCompact .stackHandCard,
+  .handStack.mdHandCompact .stackHandCard:hover{
+    position:relative !important;
+    left:auto !important;
+    bottom:auto !important;
+    flex:0 0 74px !important;
+    width:74px !important;
+    max-width:74px !important;
+    height:112px !important;
+    margin:0 !important;
+    transform:none !important;
+    scroll-snap-align:start !important;
+    transition:transform .16s ease, box-shadow .16s ease !important;
+  }
+  .handStack.mdHandCompact .stackHandCard.selected,
+  .handStack.mdHandCompact .stackHandCard.selected:hover{
+    transform:translateY(-12px) !important;
+    z-index:3 !important;
+    outline:2px solid #f5d36c !important;
+    box-shadow:0 0 13px rgba(255,212,100,.5) !important;
+  }
+  .handStack.mdHandCompact .shcArt{display:none !important;}
+  .handStack.mdHandCompact .shcName{font-size:10px !important;line-height:1.15 !important;}
+  .handStack.mdHandCompact .shcStats{font-size:9px !important;}
+  #board .cell.canAct .unitBox{animation:none !important;}
+}

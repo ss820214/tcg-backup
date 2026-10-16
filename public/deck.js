@@ -55,7 +55,7 @@ import {
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { initDeckLibrary } from "./deck_library.js?v=20261008_guest2save2";
+import { initDeckLibrary } from "./deck_library.js?v=20261016_audit3";
 
 initPostBox();
 

@@ -606,6 +606,21 @@ function ensureDeckStartStyle() {
     .deckHomeBtn[data-home-action="arcade"]{ --homeArt:url("./assets/home/menu-arcade.webp"); --homeAccent:rgba(255,92,110,.60); }
     .deckHomeBtn[data-home-action="creator"]{ --homeArt:url("./assets/home/menu-creator.webp"); --homeAccent:rgba(172,132,255,.60); }
     .deckHomeBtn[data-home-action="settings"]{ --homeArt:url("./assets/home/menu-room.webp"); --homeAccent:rgba(110,235,255,.58); }
+    .deckHomeBtn[data-home-action="arcade"]:disabled {
+      opacity:.52; cursor:not-allowed; filter:grayscale(.55);
+      transform:none !important;
+    }
+    .deckStartUnit {
+      animation: obHomeFloat 5.5s ease-in-out infinite;
+      will-change: transform;
+    }
+    @keyframes obHomeFloat {
+      0%,100% { transform:translateY(0); }
+      50% { transform:translateY(-11px); }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .deckStartUnit { animation:none !important; }
+    }
     .deckHomeBtn::before{
       content:"";
       position:absolute;
@@ -2157,8 +2172,8 @@ function ensureDeckStartElement() {
           <button class="deckHomeBtn" type="button" data-home-action="gacha">
             <span class="deckHomeIcon">G</span><span class="deckHomeLabel">ガチャ</span><span class="deckHomeSub">SUMMON</span>
           </button>
-          <button class="deckHomeBtn" type="button" data-home-action="arcade">
-            <span class="deckHomeIcon">A</span><span class="deckHomeLabel">アーケード</span><span class="deckHomeSub">SOLO</span>
+          <button class="deckHomeBtn" type="button" data-home-action="arcade" disabled aria-disabled="true" title="乞うご期待">
+            <span class="deckHomeIcon">A</span><span class="deckHomeLabel">アーケード</span><span class="deckHomeSub">乞うご期待</span>
           </button>
           <button class="deckHomeBtn" type="button" data-home-action="creator">
             <span class="deckHomeIcon">C</span><span class="deckHomeLabel">工房</span><span class="deckHomeSub">CREATE</span>
@@ -2589,10 +2604,7 @@ function setupDeckStartScreen(opts = {}) {
       run(() => navigateWithRouteTransition("./gacha.html", "gacha"));
       return;
     }
-    if (action === "arcade") {
-      run(() => navigateWithRouteTransition("./arcade.html", "arcade"));
-      return;
-    }
+    if (action === "arcade") return;
     if (action === "creator") {
       run(() => navigateWithRouteTransition("./creator.html?v=20260724_creator_templates1", "creator"));
       return;
@@ -2835,9 +2847,8 @@ const matchRef = (rid) => doc(db, "rooms", rid, "game", "match");
 const stateRef = (rid) => doc(db, "rooms", rid, "game", "state");
 
 const btnArcade = document.getElementById("btnArcade");
-btnArcade?.addEventListener("click", () => {
-  navigateWithRouteTransition("./arcade.html", "arcade");
-});
+btnArcade?.setAttribute("disabled", "");
+btnArcade?.setAttribute("title", "乞うご期待");
 
 const btnCreator = document.getElementById("btnCreator");
 btnCreator?.addEventListener("click", () => {

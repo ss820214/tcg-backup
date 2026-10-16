@@ -14,6 +14,7 @@ const STYLE_ID = "tcgPostBoxStyle";
 const ROOT_ID = "tcgPostBoxRoot";
 
 let installed = false;
+let openGeneration = 0;
 let state = {
   uid: "",
   profile: null,
@@ -203,7 +204,7 @@ function visibleGifts() {
   return state.gifts.filter((gift) => {
     const giftId = String(gift.giftId || gift.id || "").trim();
     return giftId && !claimed[giftId];
-  });
+  }, true);
 }
 
 function renderGiftList() {
@@ -264,6 +265,7 @@ async function load() {
   state.uid = uid;
   state.profile = data || {};
   state.gifts = await listOperationGifts(20);
+  if (!document.querySelector('[data-post-backdrop]')) return;
   render();
   const count = visibleGifts().length;
   setStatus(count ? `${count}件の運営ギフトがあります` : "受け取り待ちの運営ギフトはありません");
@@ -300,13 +302,16 @@ async function createGift() {
 }
 
 function close() {
+  openGeneration++;
   getRoot().innerHTML = "";
 }
 
 export function openPostBox() {
   injectStyle();
   render();
+  const generation = ++openGeneration;
   load().catch((e) => {
+    if (generation !== openGeneration) return;
     console.warn("[post_box] load failed", e);
     setStatus(e?.message || "ポストの読み込みに失敗しました", "err");
   });
@@ -320,14 +325,15 @@ export function initPostBox() {
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!(target instanceof Element)) return;
+    if (target.closest("[data-post-close]") || target.matches("[data-post-backdrop]")) {
+      e.preventDefault();
+      e.stopPropagation();
+      close();
+      return;
+    }
     if (target.closest("[data-post-open]")) {
       e.preventDefault();
       openPostBox();
-      return;
-    }
-    if (target.closest("[data-post-close]") || target.matches("[data-post-backdrop]")) {
-      e.preventDefault();
-      close();
       return;
     }
     if (target.closest("[data-post-refresh]")) {

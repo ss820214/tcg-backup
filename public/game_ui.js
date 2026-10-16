@@ -886,6 +886,16 @@ function updateHandDrawerPosition() {
     supportCancel.onclick = () => { resetSupportPicks?.(); setMode(null); };
     supportCancel.style.display = "block";
   } else if (supportCancel) supportCancel.style.display = "none";
+  let supportApply = document.getElementById("battleSupportApply");
+  if (getMode?.() === "support" && supportDef && isSupportCard(supportDef)) {
+    if (!supportApply) { supportApply = document.createElement("button"); supportApply.id = "battleSupportApply"; supportApply.type = "button"; document.body.appendChild(supportApply); }
+    const plan = supportPlan?.(supportDef) || { need: "none" };
+    const ready = !!supportReadyByPlan?.(plan);
+    supportApply.textContent = ready ? "サポート発動" : "対象を選択";
+    supportApply.disabled = !ready;
+    supportApply.onclick = async () => { if (supportReadyByPlan?.(plan)) await execSupport?.(st); };
+    supportApply.style.display = "block";
+  } else if (supportApply) supportApply.style.display = "none";
   const cells = boardEl.querySelectorAll(".cell");
 
     for (let i = 0; i < cells.length; i++) {

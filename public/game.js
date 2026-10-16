@@ -7141,6 +7141,16 @@ const ui = createGameUI({
   },
 });
 
+function showInfiltrationPulse(owner) {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+  const board = document.getElementById("board");
+  if (!board) return;
+  board.classList.remove("infiltrationPulseA", "infiltrationPulseB");
+  void board.offsetWidth;
+  board.classList.add(owner === "A" ? "infiltrationPulseA" : "infiltrationPulseB");
+  setTimeout(() => board.classList.remove("infiltrationPulseA", "infiltrationPulseB"), 950);
+}
+
 function trackDopagakiBattleEvents(st) {
   const dopa = window.TCGDopagaki;
   let fired = false;
@@ -7167,17 +7177,10 @@ function trackDopagakiBattleEvents(st) {
     lastDopaEvolveAt = evolveAt;
     const evoCost = Number(cardDefs?.[st?.lastEvolve?.to]?.cost ?? 0);
     dopa?.evolve?.({
-      label: evoCost >= 7 ? "HIGH MANA EVOLVE!!" : "EVOLVE!!",
+      label: "EVOLVE!!",
       owner: st?.lastEvolve?.owner,
       cardId: st?.lastEvolve?.to,
     });
-    if (evoCost >= 7) {
-      const flash = document.createElement("div");
-      flash.className = "highManaEvolveBurst";
-      flash.textContent = "✦ HIGH MANA EVOLVE ✦";
-      document.body.appendChild(flash);
-      flash.addEventListener("animationend", () => flash.remove(), { once: true });
-    }
     fired = true;
   }
 
@@ -7188,7 +7191,8 @@ function trackDopagakiBattleEvents(st) {
       fired = true;
     }
     if (infil[who] > Math.trunc(Number(prev.infil?.[who] ?? 0) || 0)) {
-      dopa?.score?.("infil", { owner: who, current: infil[who], max: WIN_INFIL_COUNT });
+      showInfiltrationPulse(who);
+      // No oversized score text on infiltration; use a short visual pulse instead.
       fired = true;
     }
   }
@@ -7204,10 +7208,13 @@ render = (st) => {
     if (t === seat) flashTurnBanner();
     lastSeenTurn = t;
     lastSeenTurnSeq = st.turnSeq;
-    if (t !== seat) {
-      selectedTargetId = null;
-      resetSupportPicks();
-    }
+    // Reset queued actions on both turn start and turn end to prevent accidental moves.
+    mode = null;
+    selectedUnitId = null;
+    selectedHandIndex = null;
+    selectedTargetId = null;
+    selectedActionIndex = 0;
+    resetSupportPicks();
   }
 
   ui.render(st);

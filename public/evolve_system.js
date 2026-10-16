@@ -206,7 +206,7 @@ export function createEvolveSystem(deps) {
     const seat = getSeat();
 
     // 現在表示のstateを信用しすぎず、トランザクション内で再検証する
-    await runTransaction(db, async (tx) => {
+    const evolved = await runTransaction(db, async (tx) => {
       const snap = await tx.get(stateRef);
       if (!snap.exists()) return;
 
@@ -341,7 +341,9 @@ export function createEvolveSystem(deps) {
       }
 
       tx.set(stateRef, s, { merge: true });
+      return true;
     });
+    return evolved === true;
   }
 
   return {

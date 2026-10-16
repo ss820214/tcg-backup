@@ -7152,11 +7152,19 @@ function trackDopagakiBattleEvents(st) {
 
   if (evolveAt && evolveAt !== lastDopaEvolveAt) {
     lastDopaEvolveAt = evolveAt;
+    const evoCost = Number(cardDefs?.[st?.lastEvolve?.to]?.cost ?? 0);
     dopa?.evolve?.({
-      label: "EVOLVE!!",
+      label: evoCost >= 7 ? "HIGH MANA EVOLVE!!" : "EVOLVE!!",
       owner: st?.lastEvolve?.owner,
       cardId: st?.lastEvolve?.to,
     });
+    if (evoCost >= 7) {
+      const flash = document.createElement("div");
+      flash.className = "highManaEvolveBurst";
+      flash.textContent = "✦ HIGH MANA EVOLVE ✦";
+      document.body.appendChild(flash);
+      flash.addEventListener("animationend", () => flash.remove(), { once: true });
+    }
     fired = true;
   }
 

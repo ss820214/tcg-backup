@@ -263,11 +263,14 @@ function installUnifiedUi(opts = {}) {
     event.preventDefault();
     event.stopImmediatePropagation();
     if (state.saving) return;
+    // Lock before asynchronous authentication so rapid clicks cannot start parallel saves.
+    state.saving = true;
+    btnSave.disabled = true;
 
     void (async () => {
+      try {
       const linked = isProfileLinked();
       const user = await ensureSignedIn().catch(() => null);
-      if (state.saving) return;
       const linkedUid = linked ? getLS("uid") : String(user?.uid || "");
       if (!user?.uid || !linkedUid || user.uid !== linkedUid) {
         setMsg(linked
@@ -283,8 +286,6 @@ function installUnifiedUi(opts = {}) {
         return;
       }
 
-      state.saving = true;
-      btnSave.disabled = true;
       const prev = btnSave.textContent;
       btnSave.textContent = "保存中…";
       try {
@@ -332,9 +333,14 @@ function installUnifiedUi(opts = {}) {
         console.error(e);
         setMsg(`保存に失敗しました：${e?.message || e}`, false);
       } finally {
+        btnSave.textContent = prev || "保存";
+      }
+      } catch (error) {
+        console.error("[deck save]", error);
+        setMsg(`保存に失敗しました：${error?.message || error}`, false);
+      } finally {
         state.saving = false;
         btnSave.disabled = false;
-        btnSave.textContent = prev || "保存";
       }
     })();
   }, true);

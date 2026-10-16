@@ -5617,3 +5617,6 @@ body {
 #battleEvolveCancel{left:calc(50% + 88px) !important;bottom:90px !important;transform:translateX(-50%) !important;width:130px !important;min-height:48px !important;white-space:nowrap !important;}
 #battleEvolveApply{position:fixed;left:calc(50% - 83px);bottom:90px;transform:translateX(-50%);z-index:100086;border:1px solid #91f5c5;border-radius:999px;background:#146247;color:#fff;font-size:14px;font-weight:800;padding:12px 9px;width:170px;min-height:48px;box-shadow:0 5px 20px #0009;}
 #battleEvolveApply:disabled{opacity:.6;background:#33404a;border-color:#77838a;}
+
+#battleSupportCancel{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:100087;border:1px solid #f6cc81;border-radius:999px;background:rgba(30,35,47,.97);color:#fff;padding:13px 20px;font-size:14px;font-weight:800;box-shadow:0 5px 20px #0009;white-space:nowrap;}
+@media(max-width:760px){.actionOrbitCard{box-sizing:border-box !important;width:118px !important;max-width:118px !important;overflow:hidden !important;}.actionOrbitCard .aocName,.actionOrbitCard .aocEffect{overflow-wrap:anywhere !important;word-break:break-word !important;}}

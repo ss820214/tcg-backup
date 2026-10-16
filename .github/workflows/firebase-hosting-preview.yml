@@ -46,8 +46,9 @@ jobs:
       - name: Show preview link
         if: success()
         env:
-          PREVIEW_URL: ${{ steps.hosting.outputs.details_url }}
+          PREVIEW_URLS: ${{ steps.hosting.outputs.urls }}
         run: |
           echo "### 0バト プレビュー" >> "$GITHUB_STEP_SUMMARY"
           echo "Firebase preview channel: **preview**" >> "$GITHUB_STEP_SUMMARY"
-          echo "Open the Firebase Hosting preview deployment link shown in the Publish isolated preview channel step." >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview URLs: $PREVIEW_URLS" >> "$GITHUB_STEP_SUMMARY"
+          echo "If empty, open the Firebase Hosting preview deployment link in the Publish isolated preview channel step." >> "$GITHUB_STEP_SUMMARY"

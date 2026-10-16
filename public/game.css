@@ -5576,3 +5576,30 @@ body {
   .handStack.mdHandCompact .shcStats{font-size:9px !important;}
   #board .cell.canAct .unitBox{animation:none !important;}
 }
+
+/* 2026-10-16: compact, readable action menus and hand cards. */
+@media(max-width:760px){
+ .quickMenu .qBall,.quickMenu button{min-width:52px !important;max-width:100px !important;min-height:44px !important;max-height:72px !important;width:auto !important;height:auto !important;border-radius:18px !important;writing-mode:horizontal-tb !important;white-space:normal !important;word-break:keep-all !important;line-height:1.25 !important;}
+ .actionOrbitCard{width:118px !important;min-width:118px !important;max-width:118px !important;min-height:70px !important;height:auto !important;max-height:112px !important;border-radius:20px !important;padding:8px !important;writing-mode:horizontal-tb !important;white-space:normal !important;overflow:hidden !important;overflow-wrap:anywhere !important;}
+ .actionOrbitCard *{writing-mode:horizontal-tb !important;white-space:normal !important;overflow-wrap:anywhere !important;line-height:1.25 !important;}
+ .handStack.mdHandCompact{min-height:194px !important;max-height:215px !important;padding:20px 10px 9px !important;gap:8px !important;align-items:flex-end !important;}
+ .handStack.mdHandCompact .stackHandCard,.handStack.mdHandCompact .stackHandCard:hover{flex:0 0 112px !important;width:112px !important;max-width:112px !important;height:162px !important;overflow:hidden !important;border-radius:13px !important;padding:6px !important;}
+ .handStack.mdHandCompact .stackHandCard.selected{transform:translateY(-10px) !important;}
+ .handStack.mdHandCompact .stackHandCard.selected::after{content:none !important;display:none !important;}
+ .handStack.mdHandCompact .shcTop{position:relative !important;display:flex !important;align-items:center !important;justify-content:space-between !important;gap:3px !important;height:24px !important;}
+ .handStack.mdHandCompact .shcCost{position:relative !important;inset:auto !important;width:24px !important;height:24px !important;margin:0 !important;font-size:12px !important;flex:0 0 24px !important;}
+ .handStack.mdHandCompact .shcAttr{position:relative !important;inset:auto !important;font-size:15px !important;flex:0 0 auto !important;}
+ .handStack.mdHandCompact .shcArt{display:none !important;}
+ .handStack.mdHandCompact .shcBody{position:relative !important;inset:auto !important;display:flex !important;flex-direction:column !important;gap:3px !important;width:100% !important;height:calc(100% - 27px) !important;overflow:hidden !important;padding:3px 0 0 !important;}
+ .handStack.mdHandCompact .shcKind,.handStack.mdHandCompact .shcType{display:none !important;}
+ .handStack.mdHandCompact .shcName{display:block !important;font-size:11px !important;line-height:1.18 !important;font-weight:800 !important;max-height:40px !important;min-height:0 !important;overflow:hidden !important;overflow-wrap:anywhere !important;white-space:normal !important;}
+ .handStack.mdHandCompact .shcVitals{display:block !important;position:relative !important;inset:auto !important;font-size:10px !important;line-height:1.2 !important;white-space:normal !important;}
+ .handStack.mdHandCompact .shcText{display:block !important;position:relative !important;inset:auto !important;font-size:9px !important;line-height:1.25 !important;max-height:50px !important;overflow:hidden !important;white-space:normal !important;overflow-wrap:anywhere !important;}
+ .handStack.mdHandCompact .shcStats{display:none !important;}
+ .handStack.mdHandCompact .shcPickMarker{display:none !important;}
+}
+.handLongPressMenu{position:fixed !important;z-index:100090 !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%) !important;width:min(320px,calc(100vw - 30px)) !important;padding:16px !important;border-radius:22px !important;border:1px solid rgba(160,220,255,.5) !important;background:rgba(12,23,35,.97) !important;box-shadow:0 0 0 100vmax rgba(0,0,0,.56),0 18px 48px rgba(0,0,0,.7) !important;color:#fff !important;}
+.hlpmTitle{font-size:17px;font-weight:800;margin-bottom:12px;text-align:center;}
+.hlpmButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.hlpmButtons button{border:1px solid rgba(160,210,250,.35);border-radius:15px;padding:13px 8px;background:rgba(48,68,87,.9);color:white;font-size:15px;font-weight:800;}
+.hlpmButtons button:disabled{opacity:.35;}

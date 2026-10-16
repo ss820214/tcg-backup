@@ -6392,7 +6392,7 @@ function renderLog(st) {
   if (!logEl) return;
   const lines = Array.isArray(st?.log) ? st.log : [];
   const compactLog = window.matchMedia?.("(max-width: 760px)")?.matches;
-  const tail = lines.slice(compactLog ? -8 : -30).reverse();
+  const tail = lines.slice(-5).reverse();
 
   const extra = [];
   if (nowMs() < rngMsgUntil) extra.push("乱数調整中");

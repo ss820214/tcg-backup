@@ -65,3 +65,17 @@ button, [role="button"] { touch-action: manipulation; }
     box-shadow: none !important;
   }
 }
+
+/* Infiltration: subtle color flash on the board, no textual overlay. */
+#board.infiltrationPulseA { animation: obInfilA .85s ease-out; }
+#board.infiltrationPulseB { animation: obInfilB .85s ease-out; }
+@keyframes obInfilA {
+  0% { filter: brightness(1); }
+  22% { filter: brightness(1.35) drop-shadow(0 0 13px rgba(80,210,255,.65)); }
+  100% { filter: brightness(1); }
+}
+@keyframes obInfilB {
+  0% { filter: brightness(1); }
+  22% { filter: brightness(1.35) drop-shadow(0 0 13px rgba(255,105,150,.55)); }
+  100% { filter: brightness(1); }
+}

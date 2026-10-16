@@ -5613,3 +5613,7 @@ body {
 @keyframes evoOrbitSpin{to{transform:rotate(360deg)}}
 #battleEvolveCancel{position:fixed;bottom:82px;left:50%;transform:translateX(-50%);z-index:100085;border:1px solid #f6cc81;border-radius:999px;background:rgba(30,35,47,.96);color:#fff;padding:12px 18px;font-size:14px;font-weight:800;box-shadow:0 5px 20px #0009;max-width:calc(100vw - 30px);}
 .handEvolveCancel{border-radius:14px;border:1px solid #e4b77a;background:#342a26;color:#fff;padding:9px;}
+
+#battleEvolveCancel{left:calc(50% + 88px) !important;bottom:90px !important;transform:translateX(-50%) !important;width:130px !important;min-height:48px !important;white-space:nowrap !important;}
+#battleEvolveApply{position:fixed;left:calc(50% - 83px);bottom:90px;transform:translateX(-50%);z-index:100086;border:1px solid #91f5c5;border-radius:999px;background:#146247;color:#fff;font-size:14px;font-weight:800;padding:12px 9px;width:170px;min-height:48px;box-shadow:0 5px 20px #0009;}
+#battleEvolveApply:disabled{opacity:.6;background:#33404a;border-color:#77838a;}

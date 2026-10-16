@@ -350,5 +350,5 @@ export function initPostBox() {
       e.preventDefault();
       createGift().catch((err) => setStatus(err?.message || "作成に失敗しました", "err"));
     }
-  });
+  }, true);
 }

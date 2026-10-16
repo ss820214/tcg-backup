@@ -1,0 +1,50 @@
+/* 0bato UX refinement 2026-10-17: shared accessible interaction layer.
+   No card rules, sizing of board cells, or game state behavior changed. */
+:root { color-scheme: dark; --ob-focus: #9ce8ff; }
+html { -webkit-text-size-adjust: 100%; }
+button, input, select, textarea { font: inherit; }
+button, a, select, input[type="checkbox"], input[type="radio"] { -webkit-tap-highlight-color: rgba(125,211,252,.15); }
+button, [role="button"] { touch-action: manipulation; }
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--ob-focus) !important;
+  outline-offset: 3px;
+}
+:where(button, input, select, textarea):disabled {
+  cursor: not-allowed;
+}
+:where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  max-width: 100%;
+}
+:where(.cardRow, .deckLibCard, .stackHandCard, .unitBox, .handLongPressMenu) {
+  overflow-wrap: anywhere;
+}
+.handLongPressMenu {
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.handLongPressMenu .hlpmButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+.handLongPressMenu .hlpmButtons button {
+  min-height: 46px;
+  min-width: 0;
+  white-space: normal;
+}
+@media (max-width: 760px) {
+  #battleEvolveApply, #battleEvolveCancel,
+  #battleSupportApply, #battleSupportCancel {
+    min-height: 46px;
+    touch-action: manipulation;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

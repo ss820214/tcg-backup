@@ -2048,7 +2048,7 @@ function showEnemySupportToast({ title, body, ok }) {
   if (enemySupportToastTimer) clearTimeout(enemySupportToastTimer);
   enemySupportToastTimer = setTimeout(() => {
     hideEnemySupportToast();
-  }, 5000);
+  }, 1800);
 }
 
 enemySupportToastCloseEl?.addEventListener("click", () => {
@@ -2209,7 +2209,7 @@ function startDiceRollAnimation(primary, finalLines) {
       diceRollAnimDoneTimer = setTimeout(() => {
         diceRollAnimDoneTimer = null;
         diceEl.classList.remove("diceReveal", "ok", "bad", "diceDopaRolling");
-        diceEl.textContent = finalLines.join("\n");
+        diceEl.textContent = ""; // Historical roll details stay in the battle log; no stale dice overlay.
       }, revealMs);
     }
   }, tickMs);

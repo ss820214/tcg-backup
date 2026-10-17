@@ -2218,6 +2218,20 @@ function ensureDeckStartStyle() {
       0%,100%{ transform:scale(.96); opacity:.6; }
       50%{ transform:scale(1.04); opacity:1; }
     }
+    /* Keep the dropdown inside the viewport and above the stage instead of clipping it. */
+    .deckStartStage.beginnerMenuOpen {
+      overflow:visible !important;
+      position:relative;
+      z-index:1200 !important;
+    }
+    .deckStartStage.beginnerMenuOpen .deckHomeBeginnerWrap {
+      isolation:auto !important;
+    }
+    .deckStartStage .deckHomeBeginnerWrap.is-open .deckHomeBeginnerPanel {
+      left:auto !important;
+      right:0 !important;
+      max-width:calc(100vw - 24px) !important;
+    }
     /* 20261017: icon-only, clearly tappable help on narrow screens. */
     @keyframes beginnerHelpGlow {
       0%, 100% { box-shadow: 0 0 10px rgba(65,255,208,.5), 0 0 22px rgba(65,255,208,.25); }
@@ -2870,8 +2884,10 @@ function setupDeckStartScreen(opts = {}) {
   const beginnerPanel = beginnerWrap?.querySelector(".deckHomeBeginnerPanel");
   const setBeginnerOpen = (open) => {
     if (!beginnerPanel || !beginnerToggle) return;
+    if (open) setToolsOpen(false);
     beginnerPanel.hidden = !open;
     beginnerWrap.classList.toggle("is-open", open);
+    beginnerWrap.closest(".deckStartStage")?.classList.toggle("beginnerMenuOpen", open);
     beginnerToggle.setAttribute("aria-expanded", String(open));
   };
   // Capture before legacy homepage click/gesture handlers can swallow the tap.

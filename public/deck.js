@@ -763,8 +763,9 @@ function ensureDeckStartStyle() {
       padding:18px;
       display:grid;
       grid-template-rows:auto 1fr auto;
-      overflow:hidden;
+      overflow:visible;
     }
+    .deckStartStage.deckStartPanel { overflow:visible; }
     .deckStartTopbar{
       display:flex;
       justify-content:flex-end;

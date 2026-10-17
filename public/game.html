@@ -32,7 +32,7 @@
 </div>
 <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
 <script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
-<script defer src="./game_mobile_tabs_20261015.js?v=20261015_actions_edge_fix1"></script>
+<script defer src="./game_mobile_tabs_20261015.js?v=20261017_mana_landscape_fix2"></script>
 <script type="module" src="./game.js?v=20261017_preview_label10"></script>
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
@@ -147,8 +147,13 @@
                 window.__soloConsoleOpenRequested = false;
                 await toggle();
               } else {
+                window.__soloConsoleOpenRequested = false;
                 alert("コンソールの準備に時間がかかっています。もう一度お試しください。");
               }
+            } catch (error) {
+              window.__soloConsoleOpenRequested = false;
+              console.warn("[solo console] failed to open", error);
+              alert("コンソールを開けませんでした。もう一度お試しください。");
             } finally {
               cbtn.disabled = false;
               cbtn.textContent = prevText || "コンソール";

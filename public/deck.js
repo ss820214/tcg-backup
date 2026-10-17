@@ -652,6 +652,22 @@ function ensureDeckStartStyle() {
       background:rgba(126,222,198,.2); border-color:rgba(126,222,198,.6);
     }
     .deckHomeBeginnerWrap { z-index: 2147480000 !important; isolation:isolate; }
+    .deckHomeBeginnerWrap > button.deckHomeBeginnerBtn {
+      display:grid !important; place-items:center !important;
+      width:52px !important; min-width:52px !important; height:52px !important;
+      min-height:52px !important; padding:0 !important; font-size:26px !important;
+      border-radius:50% !important; cursor:pointer !important;
+      color:#fff !important; border:1px solid rgba(126,222,198,.7) !important;
+      background:rgba(13,39,46,.94) !important; touch-action:manipulation !important;
+      pointer-events:auto !important; position:relative !important; z-index:2147480000 !important;
+    }
+    .deckHomeBeginnerPanel[hidden] { display:none !important; }
+    .deckHomeBeginnerWrap.is-open .deckHomeBeginnerPanel {
+      display:grid !important; position:absolute !important;
+      left:0 !important; right:auto !important; top:calc(100% + 8px) !important;
+      width:min(270px,80vw) !important; z-index:2147480001 !important;
+      pointer-events:auto !important;
+    }
     .deckHomeBeginnerWrap > summary {
       display:grid !important; place-items:center !important; list-style:none !important;
       cursor:pointer !important; width:48px !important; height:48px !important;
@@ -2297,14 +2313,14 @@ function ensureDeckStartElement() {
               <button class="deckStartToolItem" type="button" data-home-action="changelog" data-utility-icon="N">更新履歴</button>
             </div>
           </div>
-          <details class="deckHomeBeginnerWrap" data-home-beginner>
-            <summary class="deckHomeBeginnerBtn" aria-label="初心者ガイドを開く" title="初心者ガイド">?</summary>
-            <nav class="deckHomeBeginnerPanel" aria-label="初心者ガイド">
+          <div class="deckHomeBeginnerWrap" data-home-beginner>
+            <button class="deckHomeBeginnerBtn" type="button" data-beginner-toggle aria-expanded="false" aria-controls="deckHomeBeginnerPanel" aria-label="初心者ガイドを開く" title="初心者ガイド">🔰</button>
+            <nav class="deckHomeBeginnerPanel" id="deckHomeBeginnerPanel" aria-label="初心者ガイド" hidden>
               <button type="button" data-home-action="beginner">チュートリアル</button>
               <button type="button" data-home-action="guide">遊び方ガイド</button>
               <button type="button" data-home-action="rule">ルール</button>
             </nav>
-          </details>
+          </div>
           <span class="deckStartChip">DECK 30</span>
           <span class="deckStartChip">PLAYER ${esc(playerId ? playerId.slice(0, 6) : "------")}</span>
         </div>
@@ -2826,16 +2842,29 @@ function setupDeckStartScreen(opts = {}) {
     });
   }
 
-  // Native details/summary works with mouse, touch and keyboard without
-  // depending on a fragile JS click toggle or reparenting the dropdown.
+  // Explicit button toggle: native details was intercepted by home gesture handlers.
   const beginnerWrap = deckStartEl.querySelector("[data-home-beginner]");
+  const beginnerToggle = beginnerWrap?.querySelector("[data-beginner-toggle]");
+  const beginnerPanel = beginnerWrap?.querySelector(".deckHomeBeginnerPanel");
+  const setBeginnerOpen = (open) => {
+    if (!beginnerPanel || !beginnerToggle) return;
+    beginnerPanel.hidden = !open;
+    beginnerWrap.classList.toggle("is-open", open);
+    beginnerToggle.setAttribute("aria-expanded", String(open));
+  };
+  beginnerToggle?.addEventListener("pointerdown", (e) => e.stopPropagation());
+  beginnerToggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBeginnerOpen(beginnerPanel.hidden);
+  });
   beginnerWrap?.addEventListener("pointerdown", (e) => e.stopPropagation());
   beginnerWrap?.addEventListener("click", (e) => e.stopPropagation());
-  beginnerWrap?.querySelectorAll("[data-home-action]").forEach((btn) => {
-    btn.addEventListener("click", () => { beginnerWrap.open = false; });
+  beginnerPanel?.querySelectorAll("[data-home-action]").forEach((btn) => {
+    btn.addEventListener("click", () => setBeginnerOpen(false));
   });
   deckStartEl.addEventListener("click", (e) => {
-    if (beginnerWrap && !beginnerWrap.contains(e.target)) beginnerWrap.open = false;
+    if (beginnerWrap && !beginnerWrap.contains(e.target)) setBeginnerOpen(false);
   });
   deckStartEl.querySelectorAll("[data-home-action]").forEach((btn) => {
     btn.addEventListener("pointerdown", (e) => e.stopPropagation());

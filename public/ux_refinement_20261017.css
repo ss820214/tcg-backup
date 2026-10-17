@@ -171,3 +171,78 @@ button, [role="button"] { touch-action: manipulation; }
 #dice.diceReveal .diceRollLabel { font-size: 12px !important; }
 #dice.diceRolling .diceRollSub,
 #dice.diceReveal .diceRollSub { font-size: 11px !important; }
+
+/* Fix HP/SP clipping caused by the old 27px stat slot on narrow board cards. */
+@media (max-width:760px) {
+  #board .cell .unitBox {
+    grid-template-rows: 14px minmax(0,1fr) minmax(32px,auto) !important;
+    overflow: visible !important;
+    padding: 2px 3px 4px !important;
+  }
+  #board .unitBox .uHPWrap {
+    grid-row: 3 !important;
+    align-self:end !important;
+    display:grid !important;
+    grid-template-rows: 14px 14px !important;
+    gap:2px !important;
+    height:30px !important;
+    min-height:30px !important;
+    max-height:none !important;
+    overflow:visible !important;
+    margin:0 !important;
+    position:relative !important;
+    z-index:10 !important;
+  }
+  #board .unitBox .uStatRow {
+    height:14px !important;
+    min-height:14px !important;
+    max-height:none !important;
+    grid-template-columns: 18px minmax(0,1fr) !important;
+    overflow:visible !important;
+  }
+  #board .unitBox .uStatLabel {
+    font-size:10px !important;
+    line-height:14px !important;
+    white-space:nowrap !important;
+  }
+  #board .unitBox .uStatBar {
+    height:14px !important;
+    min-height:14px !important;
+    overflow:visible !important;
+  }
+  #board .unitBox .uStatOverlay {
+    font-size:10px !important;
+    line-height:14px !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+  #board .unitBox .uName {
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+}
+/* Desktop: use the same comfortable, wide touch-style commands as mobile. */
+@media (min-width:761px) {
+  #leftPane .controls {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:9px !important;
+    width:100% !important;
+  }
+  #leftPane .controls button {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:46px !important;
+    width:100% !important;
+    padding:10px 12px !important;
+    font-size:14px !important;
+    font-weight:800 !important;
+    line-height:1.25 !important;
+    border-radius:14px !important;
+    white-space:normal !important;
+    text-align:center !important;
+  }
+  #leftPane #endTurn {grid-column:1 / -1;}
+  #leftPane #quickActions button {min-height:42px !important;padding:9px 12px !important;font-size:13px !important;}
+}

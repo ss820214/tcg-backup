@@ -39,7 +39,7 @@ import {
   YOU_CARD_ID,
   normalizeYouCard,
 } from "./user_store.js?v=20260726_post1";
-import { initPostBox } from "./post_box.js?v=20261017_closefix2";
+import { initPostBox } from "./post_box.js?v=20261017_asyncfix3";
 
 import { TutorialSystem } from "./tutorial.js?v=20260626";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";

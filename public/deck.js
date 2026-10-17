@@ -600,7 +600,24 @@ function ensureDeckStartStyle() {
       box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(0,0,0,.18);
       transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
     }
-    .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); }
+    .deckHomeBeginnerWrap { position:relative; min-width:0; }
+    .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); width:100%; }
+    .deckHomeBeginnerPanel[hidden] { display:none !important; }
+    .deckHomeBeginnerPanel {
+      position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:100;
+      display:grid; gap:5px; padding:9px;
+      background:rgba(9,19,27,.98); border:1px solid rgba(126,222,198,.55);
+      border-radius:15px; box-shadow:0 12px 35px rgba(0,0,0,.7);
+    }
+    .deckHomeBeginnerPanel button {
+      display:block; width:100%; min-height:44px; padding:9px 12px;
+      text-align:left; border-radius:10px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.16); color:#fff;
+      background:rgba(255,255,255,.06); font:inherit; font-weight:750;
+    }
+    .deckHomeBeginnerPanel button:hover, .deckHomeBeginnerPanel button:focus-visible {
+      background:rgba(126,222,198,.2); border-color:rgba(126,222,198,.6);
+    }
     .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
     .deckHomeBtn[data-home-action="deck"]{ --homeArt:url("./assets/home/menu-deck.webp"); --homeAccent:rgba(105,180,255,.62); }
     .deckHomeBtn[data-home-action="user"]{ --homeArt:url("./assets/home/menu-user.webp"); --homeAccent:rgba(92,220,170,.58); }
@@ -2183,15 +2200,16 @@ function ensureDeckStartElement() {
           <button class="deckHomeBtn" type="button" data-home-action="settings">
             <span class="deckHomeIcon">L</span><span class="deckHomeLabel">デッキ一覧</span><span class="deckHomeSub">LOAD</span>
           </button>
-          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="beginner">
-            <span class="deckHomeIcon">?</span><span class="deckHomeLabel">チュートリアル</span><span class="deckHomeSub">初めての方へ</span>
-          </button>
-          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="guide">
-            <span class="deckHomeIcon">i</span><span class="deckHomeLabel">遊び方ガイド</span><span class="deckHomeSub">画面を見ながら学ぶ</span>
-          </button>
-          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="rule">
-            <span class="deckHomeIcon">R</span><span class="deckHomeLabel">ルール</span><span class="deckHomeSub">基本と詳細</span>
-          </button>
+          <div class="deckHomeBeginnerWrap" data-home-beginner>
+            <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-beginner-toggle aria-expanded="false" aria-controls="deckHomeBeginnerPanel">
+              <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者はこちら</span><span class="deckHomeSub">GUIDE ▾</span>
+            </button>
+            <div class="deckHomeBeginnerPanel" id="deckHomeBeginnerPanel" data-home-beginner-panel hidden>
+              <button type="button" data-home-action="beginner">チュートリアル</button>
+              <button type="button" data-home-action="guide">遊び方ガイド</button>
+              <button type="button" data-home-action="rule">ルール</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -2733,6 +2751,26 @@ function setupDeckStartScreen(opts = {}) {
     });
   }
 
+  const beginnerWrap = deckStartEl.querySelector("[data-home-beginner]");
+  const beginnerToggle = beginnerWrap?.querySelector("[data-home-beginner-toggle]");
+  const beginnerPanel = beginnerWrap?.querySelector("[data-home-beginner-panel]");
+  const setBeginnerOpen = (open) => {
+    if (!beginnerPanel || !beginnerToggle) return;
+    beginnerPanel.hidden = !open;
+    beginnerToggle.setAttribute("aria-expanded", String(open));
+  };
+  beginnerToggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setBeginnerOpen(beginnerPanel.hidden);
+  });
+  beginnerWrap?.addEventListener("pointerdown", (e) => e.stopPropagation());
+  beginnerPanel?.addEventListener("click", (e) => {
+    if (e.target.closest("[data-home-action]")) setBeginnerOpen(false);
+  });
+  deckStartEl.addEventListener("click", (e) => {
+    if (!beginnerWrap?.contains(e.target)) setBeginnerOpen(false);
+  });
   deckStartEl.querySelectorAll("[data-home-action]").forEach((btn) => {
     btn.addEventListener("pointerdown", (e) => e.stopPropagation());
     btn.addEventListener("click", (e) => {

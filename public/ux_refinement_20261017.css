@@ -286,3 +286,47 @@ button, [role="button"] { touch-action: manipulation; }
   #enemySupportToast .enemySupportToastHead { padding:7px 10px !important; font-size:12px !important; }
   #enemySupportToast .enemySupportToastBody { padding:7px 10px !important; font-size:11px !important; }
 }
+
+
+/* Desktop battle controls: match the rounded, finger-friendly mobile command UI. */
+@media (min-width: 761px) {
+  #leftPane .controls {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 10px !important;
+  }
+  #leftPane .controls button,
+  #leftPane #quickActions button {
+    border-radius: 999px !important;
+    min-height: 44px !important;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    font-weight: 850 !important;
+    margin: 0 !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 3px 12px rgba(0,0,0,.22) !important;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease !important;
+  }
+  #leftPane .controls button:hover:not(:disabled),
+  #leftPane #quickActions button:hover:not(:disabled) {
+    border-color: rgba(125,220,255,.68) !important;
+    background: linear-gradient(180deg,rgba(75,121,148,.37),rgba(24,29,39,.95)) !important;
+    box-shadow: 0 0 14px rgba(75,180,255,.15) !important;
+  }
+  #leftPane .controls button:focus-visible,
+  #leftPane #quickActions button:focus-visible {
+    outline: 2px solid #8fd5ff !important;
+    outline-offset: 2px !important;
+  }
+  #leftPane #endTurn { grid-column: 1 / -1 !important; }
+  #leftPane #exBtn,
+  #leftPane #bgmToggleBtn,
+  #leftPane #consoleToggleBtn {
+    border-radius: 999px !important;
+  }
+}
+/* Distinguish field-card status from the card's printed mana cost. */
+#cardPreview.battleCardPreview .bcCost {
+  max-width: 72px;
+  text-align: center;
+  white-space: nowrap;
+}

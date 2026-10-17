@@ -82,7 +82,7 @@
           cbtn.id = "consoleToggleBtn";
           cbtn.type = "button";
           cbtn.style.marginLeft = "6px";
-          cbtn.textContent = "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
+          cbtn.textContent = "コンソール";
         }
 
         const leftPane = document.querySelector("#leftPane");
@@ -140,7 +140,7 @@
             const prevText = cbtn.textContent;
             window.__soloConsoleOpenRequested = true;
             cbtn.disabled = true;
-            cbtn.textContent = "隱ｭ霎ｼ荳ｭ...";
+            cbtn.textContent = "読み込み中...";
             try {
               const toggle = await waitForSoloConsole();
               if (typeof toggle === "function") {
@@ -151,7 +151,7 @@
               }
             } finally {
               cbtn.disabled = false;
-              cbtn.textContent = prevText || "繧ｳ繝ｳ繧ｽ繝ｼ繝ｫ";
+              cbtn.textContent = prevText || "コンソール";
             }
           });
         }
@@ -181,7 +181,12 @@
       if (bgmOn) armAutoStartOnce();
 
       document.addEventListener("visibilitychange", () => {
-        if (document.hidden) setBgmEnabled(false);
+        if (document.hidden) {
+          setBgmEnabled(false);
+        } else if (bgmOn) {
+          setBgmEnabled(true, { volume: VOLUME, playbackRate: RATE });
+          setBgmMode(modeByLevel(_pinchLevel), { volume: VOLUME, playbackRate: RATE });
+        }
       });
       window.addEventListener("beforeunload", () => setBgmEnabled(false));
 

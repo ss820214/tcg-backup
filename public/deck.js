@@ -2161,6 +2161,30 @@ function ensureDeckStartStyle() {
       0%,100%{ transform:scale(.96); opacity:.6; }
       50%{ transform:scale(1.04); opacity:1; }
     }
+    /* 20261017: icon-only, clearly tappable help on narrow screens. */
+    @keyframes beginnerHelpGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(65,255,208,.5), 0 0 22px rgba(65,255,208,.25); }
+      50% { box-shadow: 0 0 18px rgba(65,255,208,.95), 0 0 35px rgba(65,255,208,.55); }
+    }
+    .deckHomeBeginnerBtn.active { border-color:#84ffe0 !important; }
+    @media (max-width: 760px) {
+      .deckHomeBeginnerWrap { flex: 0 0 46px !important; width:46px !important; }
+      .deckHomeBeginnerBtn {
+        width:46px !important; height:46px !important; min-height:46px !important;
+        padding:0 !important; border-radius:14px !important;
+        display:grid !important; place-items:center !important;
+        animation:beginnerHelpGlow 2.1s ease-in-out infinite !important;
+        touch-action:manipulation; position:relative; z-index:2;
+      }
+      .deckHomeBeginnerBtn .deckHomeLabel, .deckHomeBeginnerBtn .deckHomeSub { display:none !important; }
+      .deckHomeBeginnerBtn .deckHomeIcon {
+        width:32px !important; height:32px !important; font-size:20px !important;
+        pointer-events:none;
+      }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .deckHomeBeginnerBtn { animation:none !important; }
+    }
   `;
   document.head.appendChild(css);
 }
@@ -2788,10 +2812,28 @@ function setupDeckStartScreen(opts = {}) {
   const beginnerWrap = deckStartEl.querySelector("[data-home-beginner]");
   const beginnerToggle = beginnerWrap?.querySelector("[data-home-beginner-toggle]");
   const beginnerPanel = beginnerWrap?.querySelector("[data-home-beginner-panel]");
+  // Move the dropdown out of the clipped stage panel, but keep it within the home overlay.
+  if (beginnerPanel) deckStartEl.appendChild(beginnerPanel);
+  const placeBeginnerPanel = () => {
+    if (!beginnerToggle || !beginnerPanel) return;
+    const rect = beginnerToggle.getBoundingClientRect();
+    const width = Math.min(270, window.innerWidth - 24);
+    beginnerPanel.style.position = "fixed";
+    beginnerPanel.style.width = width + "px";
+    beginnerPanel.style.left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12)) + "px";
+    beginnerPanel.style.top = Math.min(rect.bottom + 8, window.innerHeight - 174) + "px";
+    beginnerPanel.style.right = "auto";
+    beginnerPanel.style.zIndex = "2147482000";
+  };
   const setBeginnerOpen = (open) => {
     if (!beginnerPanel || !beginnerToggle) return;
+    if (open) {
+      setToolsOpen(false);
+      placeBeginnerPanel();
+    }
     beginnerPanel.hidden = !open;
     beginnerToggle.setAttribute("aria-expanded", String(open));
+    beginnerToggle.classList.toggle("active", open);
   };
   beginnerToggle?.addEventListener("click", (e) => {
     e.preventDefault();
@@ -2799,11 +2841,19 @@ function setupDeckStartScreen(opts = {}) {
     setBeginnerOpen(beginnerPanel.hidden);
   });
   beginnerWrap?.addEventListener("pointerdown", (e) => e.stopPropagation());
+  beginnerPanel?.addEventListener("pointerdown", (e) => e.stopPropagation());
   beginnerPanel?.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (e.target.closest("[data-home-action]")) setBeginnerOpen(false);
   });
   deckStartEl.addEventListener("click", (e) => {
-    if (!beginnerWrap?.contains(e.target)) setBeginnerOpen(false);
+    if (!beginnerWrap?.contains(e.target) && !beginnerPanel?.contains(e.target)) setBeginnerOpen(false);
+  });
+  deckStartEl.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") setBeginnerOpen(false);
+  });
+  window.addEventListener("resize", () => {
+    if (beginnerPanel && !beginnerPanel.hidden) placeBeginnerPanel();
   });
   deckStartEl.querySelectorAll("[data-home-action]").forEach((btn) => {
     btn.addEventListener("pointerdown", (e) => e.stopPropagation());

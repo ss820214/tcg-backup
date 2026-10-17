@@ -44,7 +44,7 @@ function init(){
  };
  const position=()=>{
   if(!gauge)return;
-  if(mobile()){if(gauge.parentElement!==gaugeSlot)gaugeSlot.append(gauge)}
+  if(window.matchMedia("(max-width: 760px) and (orientation: portrait)").matches){if(gauge.parentElement!==gaugeSlot)gaugeSlot.append(gauge)}
   else if(gaugeHome.parentNode&&gauge.previousSibling!==gaugeHome){gaugeHome.after(gauge)}
  };
  const reposition=()=>{const note=document.getElementById("boardRecoveryStatus");if(note&&note.parentNode===center){if(meter.nextElementSibling!==note)meter.after(note);note.classList.add("battleSyncSmall");}};reposition();new MutationObserver(reposition).observe(center,{childList:true});

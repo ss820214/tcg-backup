@@ -686,6 +686,28 @@ function ensureDeckStartStyle() {
     }
     .deckHomeBeginnerWrap:not([open]) .deckHomeBeginnerPanel { display:none !important; }
     .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
+    .deckStartTopbar .deckHomeBeginnerWrap {
+      position:relative !important; display:inline-flex !important;
+      width:52px !important; height:52px !important; flex:0 0 52px !important;
+      min-width:52px !important; min-height:52px !important;
+      overflow:visible !important; z-index:2147480000 !important;
+      pointer-events:auto !important;
+    }
+    .deckStartTopbar .deckHomeBeginnerWrap > button[data-beginner-toggle] {
+      display:flex !important; align-items:center !important; justify-content:center !important;
+      width:52px !important; height:52px !important; min-width:52px !important;
+      min-height:52px !important; max-width:52px !important; max-height:52px !important;
+      box-sizing:border-box !important; padding:0 !important; margin:0 !important;
+      font-size:26px !important; line-height:1 !important; border-radius:15px !important;
+      cursor:pointer !important; touch-action:manipulation !important;
+      pointer-events:auto !important; position:relative !important; z-index:2147480001 !important;
+    }
+    .deckStartTopbar .deckHomeBeginnerPanel:not([hidden]) {
+      display:grid !important; position:absolute !important;
+      top:calc(100% + 8px) !important; left:0 !important; right:auto !important;
+      min-width:205px !important; width:min(260px,78vw) !important;
+      z-index:2147480002 !important; pointer-events:auto !important;
+    }
     .deckHomeBtn[data-home-action="deck"]{ --homeArt:url("./assets/home/menu-deck.webp"); --homeAccent:rgba(105,180,255,.62); }
     .deckHomeBtn[data-home-action="user"]{ --homeArt:url("./assets/home/menu-user.webp"); --homeAccent:rgba(92,220,170,.58); }
     .deckHomeBtn[data-home-action="gacha"]{ --homeArt:url("./assets/home/menu-gacha.webp"); --homeAccent:rgba(255,210,90,.62); }
@@ -2852,6 +2874,12 @@ function setupDeckStartScreen(opts = {}) {
     beginnerWrap.classList.toggle("is-open", open);
     beginnerToggle.setAttribute("aria-expanded", String(open));
   };
+  // Capture before legacy homepage click/gesture handlers can swallow the tap.
+  beginnerToggle?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    setBeginnerOpen(beginnerPanel.hidden);
+  }, true);
   beginnerToggle?.addEventListener("pointerdown", (e) => e.stopPropagation());
   beginnerToggle?.addEventListener("click", (e) => {
     e.preventDefault();

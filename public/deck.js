@@ -684,7 +684,7 @@ function ensureDeckStartStyle() {
       width:min(270px,80vw) !important; z-index:2147480001 !important;
       pointer-events:auto !important;
     }
-    .deckHomeBeginnerWrap:not([open]) .deckHomeBeginnerPanel { display:none !important; }
+    .deckHomeBeginnerPanel[hidden] { display:none !important; }
     .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
     .deckStartTopbar .deckHomeBeginnerWrap {
       position:relative !important; display:inline-flex !important;
@@ -2881,11 +2881,6 @@ function setupDeckStartScreen(opts = {}) {
     setBeginnerOpen(beginnerPanel.hidden);
   }, true);
   beginnerToggle?.addEventListener("pointerdown", (e) => e.stopPropagation());
-  beginnerToggle?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setBeginnerOpen(beginnerPanel.hidden);
-  });
   beginnerWrap?.addEventListener("pointerdown", (e) => e.stopPropagation());
   beginnerWrap?.addEventListener("click", (e) => e.stopPropagation());
   beginnerPanel?.querySelectorAll("[data-home-action]").forEach((btn) => {

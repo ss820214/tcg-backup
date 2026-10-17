@@ -260,12 +260,13 @@ function render() {
 }
 
 async function load() {
+  const generation = openGeneration;
   setStatus("確認中...");
   const { uid, data } = await ensureUserProfile();
   state.uid = uid;
   state.profile = data || {};
   state.gifts = await listOperationGifts(20);
-  if (!document.querySelector('[data-post-backdrop]')) return;
+  if (generation !== openGeneration || !document.querySelector('[data-post-backdrop]')) return;
   render();
   const count = visibleGifts().length;
   setStatus(count ? `${count}件の運営ギフトがあります` : "受け取り待ちの運営ギフトはありません");
@@ -286,6 +287,7 @@ async function claim() {
   state.uid = refreshed.uid;
   state.profile = refreshed.data || {};
   state.gifts = await listOperationGifts(20);
+  if (!document.querySelector("[data-post-backdrop]")) return;
   render();
   setStatus(message, tone);
 }

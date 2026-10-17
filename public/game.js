@@ -3283,7 +3283,7 @@ function renderCardPreview(st) {
   const maxSp = round10(def?.sp ?? unit?.maxSp ?? unit?.sp ?? 0);
   const hpNow = unit ? round10(unit.hp) : maxHp;
   const spNow = unit ? round10(unit.sp) : maxSp;
-  const costLabel = kind === "support" ? baseCost : unit ? "場" : baseCost;
+  const costLabel = kind === "support" ? baseCost : unit ? "配置中" : baseCost;
   const canPay = source === "hand" ? curMana >= baseCost : true;
 
   const chipKind = kind === "support" ? "サポート" : "ユニット";

@@ -32,6 +32,7 @@ jobs:
           node --check public/game_ui.js
           node --check public/auth.js
           node tools/deck_regression_20261008.mjs
+          node tools/ui_regression_20261017.mjs
 
       - name: Publish isolated preview channel
         id: hosting

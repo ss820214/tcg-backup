@@ -651,6 +651,24 @@ function ensureDeckStartStyle() {
     .deckHomeBeginnerPanel button:hover, .deckHomeBeginnerPanel button:focus-visible {
       background:rgba(126,222,198,.2); border-color:rgba(126,222,198,.6);
     }
+    .deckHomeBeginnerWrap { z-index: 2147480000 !important; isolation:isolate; }
+    .deckHomeBeginnerWrap > summary {
+      display:grid !important; place-items:center !important; list-style:none !important;
+      cursor:pointer !important; width:48px !important; height:48px !important;
+      min-width:48px !important; min-height:48px !important;
+      border-radius:15px !important; color:#fff !important; font-size:24px !important;
+      font-weight:950 !important; border:1px solid rgba(126,222,198,.6) !important;
+      background:rgba(13,39,46,.9) !important; box-shadow:0 0 14px rgba(126,222,198,.2);
+      touch-action:manipulation !important; pointer-events:auto !important;
+    }
+    .deckHomeBeginnerWrap > summary::-webkit-details-marker { display:none; }
+    .deckHomeBeginnerWrap[open] .deckHomeBeginnerPanel {
+      display:grid !important; position:absolute !important;
+      left:0 !important; right:auto !important; top:calc(100% + 8px) !important;
+      width:min(270px,80vw) !important; z-index:2147480001 !important;
+      pointer-events:auto !important;
+    }
+    .deckHomeBeginnerWrap:not([open]) .deckHomeBeginnerPanel { display:none !important; }
     .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
     .deckHomeBtn[data-home-action="deck"]{ --homeArt:url("./assets/home/menu-deck.webp"); --homeAccent:rgba(105,180,255,.62); }
     .deckHomeBtn[data-home-action="user"]{ --homeArt:url("./assets/home/menu-user.webp"); --homeAccent:rgba(92,220,170,.58); }
@@ -2278,16 +2296,14 @@ function ensureDeckStartElement() {
               <button class="deckStartToolItem" type="button" data-home-action="changelog" data-utility-icon="N">更新履歴</button>
             </div>
           </div>
-          <div class="deckHomeBeginnerWrap" data-home-beginner>
-            <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-beginner-toggle aria-expanded="false" aria-controls="deckHomeBeginnerPanel">
-              <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者</span><span class="deckHomeSub">GUIDE ▾</span>
-            </button>
-            <div class="deckHomeBeginnerPanel" id="deckHomeBeginnerPanel" data-home-beginner-panel hidden>
+          <details class="deckHomeBeginnerWrap" data-home-beginner>
+            <summary class="deckHomeBeginnerBtn" aria-label="初心者ガイドを開く" title="初心者ガイド">?</summary>
+            <nav class="deckHomeBeginnerPanel" aria-label="初心者ガイド">
               <button type="button" data-home-action="beginner">チュートリアル</button>
               <button type="button" data-home-action="guide">遊び方ガイド</button>
               <button type="button" data-home-action="rule">ルール</button>
-            </div>
-          </div>
+            </nav>
+          </details>
           <span class="deckStartChip">DECK 30</span>
           <span class="deckStartChip">PLAYER ${esc(playerId ? playerId.slice(0, 6) : "------")}</span>
         </div>
@@ -2809,51 +2825,16 @@ function setupDeckStartScreen(opts = {}) {
     });
   }
 
+  // Native details/summary works with mouse, touch and keyboard without
+  // depending on a fragile JS click toggle or reparenting the dropdown.
   const beginnerWrap = deckStartEl.querySelector("[data-home-beginner]");
-  const beginnerToggle = beginnerWrap?.querySelector("[data-home-beginner-toggle]");
-  const beginnerPanel = beginnerWrap?.querySelector("[data-home-beginner-panel]");
-  // Move the dropdown out of the clipped stage panel, but keep it within the home overlay.
-  if (beginnerPanel) deckStartEl.appendChild(beginnerPanel);
-  const placeBeginnerPanel = () => {
-    if (!beginnerToggle || !beginnerPanel) return;
-    const rect = beginnerToggle.getBoundingClientRect();
-    const width = Math.min(270, window.innerWidth - 24);
-    beginnerPanel.style.position = "fixed";
-    beginnerPanel.style.width = width + "px";
-    beginnerPanel.style.left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12)) + "px";
-    beginnerPanel.style.top = Math.min(rect.bottom + 8, window.innerHeight - 174) + "px";
-    beginnerPanel.style.right = "auto";
-    beginnerPanel.style.zIndex = "2147482000";
-  };
-  const setBeginnerOpen = (open) => {
-    if (!beginnerPanel || !beginnerToggle) return;
-    if (open) {
-      setToolsOpen(false);
-      placeBeginnerPanel();
-    }
-    beginnerPanel.hidden = !open;
-    beginnerToggle.setAttribute("aria-expanded", String(open));
-    beginnerToggle.classList.toggle("active", open);
-  };
-  beginnerToggle?.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setBeginnerOpen(beginnerPanel.hidden);
-  });
   beginnerWrap?.addEventListener("pointerdown", (e) => e.stopPropagation());
-  beginnerPanel?.addEventListener("pointerdown", (e) => e.stopPropagation());
-  beginnerPanel?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (e.target.closest("[data-home-action]")) setBeginnerOpen(false);
+  beginnerWrap?.addEventListener("click", (e) => e.stopPropagation());
+  beginnerWrap?.querySelectorAll("[data-home-action]").forEach((btn) => {
+    btn.addEventListener("click", () => { beginnerWrap.open = false; });
   });
   deckStartEl.addEventListener("click", (e) => {
-    if (!beginnerWrap?.contains(e.target) && !beginnerPanel?.contains(e.target)) setBeginnerOpen(false);
-  });
-  deckStartEl.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") setBeginnerOpen(false);
-  });
-  window.addEventListener("resize", () => {
-    if (beginnerPanel && !beginnerPanel.hidden) placeBeginnerPanel();
+    if (beginnerWrap && !beginnerWrap.contains(e.target)) beginnerWrap.open = false;
   });
   deckStartEl.querySelectorAll("[data-home-action]").forEach((btn) => {
     btn.addEventListener("pointerdown", (e) => e.stopPropagation());
@@ -9141,3 +9122,5 @@ function prettyEffect(eff) {
     }
   }
 }
+
+/* beginner dropdown: native, click-safe, above all home art layers */

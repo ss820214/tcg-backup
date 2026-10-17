@@ -600,6 +600,8 @@ function ensureDeckStartStyle() {
       box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(0,0,0,.18);
       transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
     }
+    .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); grid-column:1 / -1; }
+    .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
     .deckHomeBtn[data-home-action="deck"]{ --homeArt:url("./assets/home/menu-deck.webp"); --homeAccent:rgba(105,180,255,.62); }
     .deckHomeBtn[data-home-action="user"]{ --homeArt:url("./assets/home/menu-user.webp"); --homeAccent:rgba(92,220,170,.58); }
     .deckHomeBtn[data-home-action="gacha"]{ --homeArt:url("./assets/home/menu-gacha.webp"); --homeAccent:rgba(255,210,90,.62); }
@@ -2181,6 +2183,9 @@ function ensureDeckStartElement() {
           <button class="deckHomeBtn" type="button" data-home-action="settings">
             <span class="deckHomeIcon">L</span><span class="deckHomeLabel">デッキ一覧</span><span class="deckHomeSub">LOAD</span>
           </button>
+          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="beginner" aria-haspopup="dialog">
+            <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者ガイド</span><span class="deckHomeSub">はじめての方へ</span>
+          </button>
         </div>
       </section>
 
@@ -2602,6 +2607,10 @@ function setupDeckStartScreen(opts = {}) {
     }
     if (action === "gacha") {
       run(() => navigateWithRouteTransition("./gacha.html", "gacha"));
+      return;
+    }
+    if (action === "beginner") {
+      tutorial.openMenu();
       return;
     }
     if (action === "arcade") return;

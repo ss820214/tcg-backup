@@ -600,6 +600,39 @@ function ensureDeckStartStyle() {
       box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(0,0,0,.18);
       transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
     }
+    /* Beginner help belongs next to POST and TOOLS, not among PLAY actions. */
+    .deckHomeBeginnerWrap { position:relative; display:inline-flex; min-width:0; z-index:1125; }
+    .deckHomeBeginnerBtn {
+      width:auto !important; min-height:38px !important; height:auto !important;
+      display:inline-flex !important; flex-direction:row !important;
+      align-items:center !important; justify-content:center !important;
+      gap:8px !important; padding:7px 13px !important;
+      border-radius:999px !important; background:rgba(10,29,38,.8) !important;
+      border:1px solid rgba(126,222,198,.48) !important;
+      box-shadow:inset 0 0 16px rgba(126,222,198,.08) !important;
+    }
+    .deckHomeBeginnerBtn .deckHomeIcon {
+      width:23px !important; height:23px !important; min-width:23px !important;
+      border-radius:50% !important; display:grid !important; place-items:center !important;
+      font-size:15px !important; font-weight:900 !important;
+      background:rgba(126,222,198,.17) !important; color:#d2fff3 !important;
+    }
+    .deckHomeBeginnerBtn .deckHomeLabel {
+      font-size:14px !important; font-weight:900 !important;
+      line-height:1.2 !important; white-space:nowrap !important;
+    }
+    .deckHomeBeginnerBtn .deckHomeSub { display:none !important; }
+    .deckHomeBeginnerPanel {
+      left:auto !important; right:0 !important; top:calc(100% + 8px) !important;
+      width:min(270px,82vw) !important; min-width:205px !important;
+      z-index:1140 !important;
+    }
+    @media (max-width:760px) {
+      .deckStartTopbar { justify-content:flex-start !important; flex-wrap:nowrap !important; gap:8px !important; }
+      .deckHomeBeginnerBtn { padding:7px 11px !important; }
+      .deckHomeBeginnerBtn .deckHomeLabel { font-size:13px !important; }
+      .deckStartTopbar .deckStartChip { display:none !important; }
+    }
     .deckHomeBeginnerWrap { position:relative; min-width:0; }
     .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); width:100%; }
     .deckHomeBeginnerPanel[hidden] { display:none !important; }
@@ -2200,16 +2233,7 @@ function ensureDeckStartElement() {
           <button class="deckHomeBtn" type="button" data-home-action="settings">
             <span class="deckHomeIcon">L</span><span class="deckHomeLabel">デッキ一覧</span><span class="deckHomeSub">LOAD</span>
           </button>
-          <div class="deckHomeBeginnerWrap" data-home-beginner>
-            <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-beginner-toggle aria-expanded="false" aria-controls="deckHomeBeginnerPanel">
-              <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者はこちら</span><span class="deckHomeSub">GUIDE ▾</span>
-            </button>
-            <div class="deckHomeBeginnerPanel" id="deckHomeBeginnerPanel" data-home-beginner-panel hidden>
-              <button type="button" data-home-action="beginner">チュートリアル</button>
-              <button type="button" data-home-action="guide">遊び方ガイド</button>
-              <button type="button" data-home-action="rule">ルール</button>
-            </div>
-          </div>
+
         </div>
       </section>
 
@@ -2228,6 +2252,16 @@ function ensureDeckStartElement() {
               <button class="deckStartToolItem" type="button" data-home-action="dice" data-utility-icon="D">ダイス</button>
               <button class="deckStartToolItem" type="button" data-home-action="status" data-utility-icon="S">状態異常</button>
               <button class="deckStartToolItem" type="button" data-home-action="changelog" data-utility-icon="N">更新履歴</button>
+            </div>
+          </div>
+          <div class="deckHomeBeginnerWrap" data-home-beginner>
+            <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-beginner-toggle aria-expanded="false" aria-controls="deckHomeBeginnerPanel">
+              <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者</span><span class="deckHomeSub">GUIDE ▾</span>
+            </button>
+            <div class="deckHomeBeginnerPanel" id="deckHomeBeginnerPanel" data-home-beginner-panel hidden>
+              <button type="button" data-home-action="beginner">チュートリアル</button>
+              <button type="button" data-home-action="guide">遊び方ガイド</button>
+              <button type="button" data-home-action="rule">ルール</button>
             </div>
           </div>
           <span class="deckStartChip">DECK 30</span>

@@ -600,7 +600,7 @@ function ensureDeckStartStyle() {
       box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 14px 30px rgba(0,0,0,.18);
       transition:transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
     }
-    .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); grid-column:1 / -1; }
+    .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); }
     .deckHomeBeginnerBtn .deckHomeIcon { background:rgba(126,222,198,.18); }
     .deckHomeBtn[data-home-action="deck"]{ --homeArt:url("./assets/home/menu-deck.webp"); --homeAccent:rgba(105,180,255,.62); }
     .deckHomeBtn[data-home-action="user"]{ --homeArt:url("./assets/home/menu-user.webp"); --homeAccent:rgba(92,220,170,.58); }
@@ -2183,8 +2183,14 @@ function ensureDeckStartElement() {
           <button class="deckHomeBtn" type="button" data-home-action="settings">
             <span class="deckHomeIcon">L</span><span class="deckHomeLabel">デッキ一覧</span><span class="deckHomeSub">LOAD</span>
           </button>
-          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="beginner" aria-haspopup="dialog">
-            <span class="deckHomeIcon">?</span><span class="deckHomeLabel">初心者ガイド</span><span class="deckHomeSub">はじめての方へ</span>
+          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="beginner">
+            <span class="deckHomeIcon">?</span><span class="deckHomeLabel">チュートリアル</span><span class="deckHomeSub">初めての方へ</span>
+          </button>
+          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="guide">
+            <span class="deckHomeIcon">i</span><span class="deckHomeLabel">遊び方ガイド</span><span class="deckHomeSub">画面を見ながら学ぶ</span>
+          </button>
+          <button class="deckHomeBtn deckHomeBeginnerBtn" type="button" data-home-action="rule">
+            <span class="deckHomeIcon">R</span><span class="deckHomeLabel">ルール</span><span class="deckHomeSub">基本と詳細</span>
           </button>
         </div>
       </section>
@@ -2611,6 +2617,15 @@ function setupDeckStartScreen(opts = {}) {
     }
     if (action === "beginner") {
       tutorial.openMenu();
+      return;
+    }
+    if (action === "guide") {
+      close(0);
+      setTimeout(() => window.openTcgBeginnerGuide?.(), 50);
+      return;
+    }
+    if (action === "rule") {
+      navigateWithRouteTransition("./rule.html", "settings");
       return;
     }
     if (action === "arcade") return;

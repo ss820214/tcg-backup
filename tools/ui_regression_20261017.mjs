@@ -12,8 +12,9 @@ const game = read("public/game.js");
 const gameHtml = read("public/game.html");
 const css = read("public/ux_refinement_20261017.css");
 
-assert.match(deck, /data-home-beginner-toggle/);
-assert.match(deck, /data-home-beginner-panel/);
+assert.match(deck, /<details class="deckHomeBeginnerWrap"/);
+assert.match(deck, /<summary class="deckHomeBeginnerBtn"/);
+assert.match(deck, /<nav class="deckHomeBeginnerPanel"/);
 assert.match(deck, /deckHomeBeginnerPanel\[hidden\]/);
 assert.match(deck, /data-home-action="beginner"/);
 assert.match(deck, /data-home-action="guide"/);

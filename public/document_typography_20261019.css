@@ -1,0 +1,29 @@
+/* 0バト documentation typography / 2026-10-19
+   Avoid awkward Japanese line breaks without changing gameplay UI. */
+:root { --doc-reading-width: 42em; }
+html { -webkit-text-size-adjust: 100%; }
+body { line-break: strict; overflow-wrap: normal; word-break: normal; }
+:where(main, section, article, aside, header, div) { min-width: 0; }
+:where(h1,h2,h3,h4,.sectionTitle,.panelSummary h3,.intro h2,.titleBlock h1) {
+  line-height: 1.34;
+  word-break: normal;
+  overflow-wrap: normal;
+  line-break: strict;
+  text-wrap: balance;
+  hanging-punctuation: allow-end;
+}
+:where(p,li,.lead,.sectionSub,.panelIntro,.panelSummary p,.topic p,.term span,.quick span,.note,.small) {
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: strict;
+  text-wrap: pretty;
+  line-height: 1.8;
+  hanging-punctuation: allow-end;
+}
+:where(p,.lead,.sectionSub,.panelIntro,.panelSummary p) { max-width: var(--doc-reading-width); }
+:where(.btn,button,.filter,.chipBtn,.ruleTab b) { word-break: keep-all; overflow-wrap: normal; }
+:where(.hero,.panelShowcase,.topicGrid,.judgeGrid,.main,.quickGrid) > * { min-width: 0; }
+@media (max-width: 640px) {
+  :where(h1,h2,h3,h4,.sectionTitle,.panelSummary h3,.intro h2) { line-height: 1.4; }
+  :where(p,li,.lead,.panelIntro,.sectionSub) { line-height: 1.78; }
+}

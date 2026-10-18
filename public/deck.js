@@ -2345,7 +2345,7 @@ function ensureDeckStartElement() {
               <button class="deckStartToolItem" type="button" data-home-action="tier" data-utility-icon="T">ティア表</button>
               <button class="deckStartToolItem" type="button" data-home-action="carddex" data-utility-icon="C">カード図鑑</button>
               <button class="deckStartToolItem" type="button" data-home-action="dice" data-utility-icon="D">ダイス</button>
-              <button class="deckStartToolItem" type="button" data-home-action="status" data-utility-icon="S">状態異常</button>
+              <button class="deckStartToolItem" type="button" data-home-action="status" data-utility-icon="S">状態効果</button>
               <button class="deckStartToolItem" type="button" data-home-action="changelog" data-utility-icon="N">更新履歴</button>
             </div>
           </div>

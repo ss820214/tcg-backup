@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>繧ｫ繝ｼ繝牙峙髑・- OBATO</title>
+  <title>0バト｜カード図鑑</title>
   <style>
     :root {
       color-scheme: dark;
@@ -335,85 +335,20 @@
   </style>
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-      <div class="titleBlock">
-        <h1>繧ｫ繝ｼ繝牙峙髑・/h1>
-        <p>謇謖√・譛ｪ謇謖√∝ｱ樊ｧ縲√す繝ｪ繝ｼ繧ｺ繧偵∪縺ｨ繧√※遒ｺ隱阪〒縺阪∪縺吶・/p>
-      </div>
-      <nav class="navBtns" aria-label="遘ｻ蜍・>
-        <a class="btn" href="./index.html">繝医ャ繝励∈</a>
-        <a class="btn primary" href="./index.html#deck">繝・ャ繧ｭ縺ｸ</a>
-      </nav>
-    </header>
-
-    <section class="statbar" id="stats" aria-label="髮・ｨ・>
-      <div class="stat"><span>陦ｨ遉ｺ</span><b>--</b></div>
-      <div class="stat"><span>謇謖∵ｸ医∩</span><b>--</b></div>
-      <div class="stat"><span>譛ｪ謇謖・/span><b>--</b></div>
-      <div class="stat"><span>邱上き繝ｼ繝・/span><b>--</b></div>
-    </section>
-
-    <section class="filters" aria-label="讀懃ｴ｢縺ｨ邨槭ｊ霎ｼ縺ｿ">
-      <div class="filterTop">
-        <input class="search" id="carddexSearch" type="search" placeholder="繧ｫ繝ｼ繝牙錐 / ID / 繧ｷ繝ｪ繝ｼ繧ｺ縺ｧ讀懃ｴ｢" autocomplete="off" />
-        <select class="selectBox" id="seriesFilter" aria-label="繧ｷ繝ｪ繝ｼ繧ｺ">
-          <option value="all">蜈ｨ繧ｷ繝ｪ繝ｼ繧ｺ</option>
-          <option value="starter">蛻晄悄</option>
-          <option value="gacha">繧ｬ繝√Ε</option>
-          <option value="fairy">遶･隧ｱ</option>
-          <option value="jewel">螳晉浹</option>
-          <option value="support">繧ｵ繝昴・繝・/option>
-          <option value="custom">蟾･謌ｿ/縺昴・莉・/option>
-        </select>
-      </div>
-      <div class="filterLine" data-kind-filters>
-        <button class="chipBtn active" type="button" data-kind="all">蜈ｨ驛ｨ</button>
-        <button class="chipBtn" type="button" data-kind="unit">繧ｭ繝｣繝ｩ</button>
-        <button class="chipBtn" type="button" data-kind="support">繧ｵ繝昴・繝・/button>
-      </div>
-      <div class="filterLine" data-attr-filters style="margin-top:10px">
-        <button class="chipBtn attr-active" type="button" data-attr="all">蜈ｨ螻樊ｧ</button>
-        <button class="chipBtn" type="button" data-attr="轣ｫ">轣ｫ</button>
-        <button class="chipBtn" type="button" data-attr="豌ｴ">豌ｴ</button>
-        <button class="chipBtn" type="button" data-attr="髮ｷ">髮ｷ</button>
-        <button class="chipBtn" type="button" data-attr="闕・>闕・/button>
-        <button class="chipBtn" type="button" data-attr="鬚ｨ">鬚ｨ</button>
-        <button class="chipBtn" type="button" data-attr="驪ｼ">驪ｼ</button>
-        <button class="chipBtn" type="button" data-attr="蜈・>蜈・/button>
-        <button class="chipBtn" type="button" data-attr="髣・>髣・/button>
-        <button class="chipBtn" type="button" data-attr="蟷ｻ">蟷ｻ</button>
-        <button class="chipBtn" type="button" data-attr="蜻ｪ">蜻ｪ</button>
-        <button class="chipBtn" type="button" data-attr="謾ｯ謠ｴ">謾ｯ謠ｴ</button>
-      </div>
-      <div class="filterLine" data-owned-filters style="margin-top:10px">
-        <button class="chipBtn active" type="button" data-owned="all">縺吶∋縺ｦ</button>
-        <button class="chipBtn" type="button" data-owned="owned">謇謖∵ｸ医∩</button>
-        <button class="chipBtn" type="button" data-owned="missing">譛ｪ謇謖・/button>
-      </div>
-    </section>
-
-    <section class="main">
-      <section class="gridPanel">
-        <div class="panelHead">
-          <h2>繧ｫ繝ｼ繝我ｸ隕ｧ</h2>
-          <small id="gridNote">隱ｭ縺ｿ霎ｼ縺ｿ荳ｭ...</small>
-        </div>
-        <div class="cardGrid" id="cardGrid" aria-live="polite"></div>
-      </section>
-
-      <aside class="detailPanel" aria-label="隧ｳ邏ｰ">
-        <div class="panelHead">
-          <h2>隧ｳ邏ｰ</h2>
-          <small id="detailNote">繧ｫ繝ｼ繝峨ｒ驕ｸ謚・/small>
-        </div>
-        <div class="detailBody" id="detail">
-          <div class="empty">蟾ｦ縺ｮ繧ｫ繝ｼ繝峨ｒ驕ｸ縺ｶ縺ｨ縲√％縺薙↓蝗ｳ髑第ュ蝣ｱ縺悟・縺ｾ縺吶・/div>
-        </div>
-      </aside>
-    </section>
-  </main>
-  <script type="module" src="./carddex.js?v=20260913_carddex1"></script>
-</body>
-</html>
-
+<main class="shell">
+<header class="topbar"><div class="titleBlock"><h1>カード図鑑</h1><p>所有・未所有のカードを、属性やシリーズから探せます。</p></div><nav class="navBtns" aria-label="ページ移動"><a class="btn" href="./index.html">ホームへ</a><a class="btn primary" href="./index.html#deck">デッキへ</a></nav></header>
+<section class="statbar" id="stats" aria-label="カード集計"><div class="stat"><span>表示中</span><b>--</b></div><div class="stat"><span>所有済み</span><b>--</b></div><div class="stat"><span>未所有</span><b>--</b></div><div class="stat"><span>総カード数</span><b>--</b></div></section>
+<section class="filters" aria-label="検索と絞り込み">
+<div class="filterTop"><input class="search" id="carddexSearch" type="search" placeholder="カード名 / ID / シリーズで検索" autocomplete="off">
+<select class="selectBox" id="seriesFilter" aria-label="シリーズ"><option value="all">全シリーズ</option><option value="starter">初期</option><option value="gacha">ガチャ</option><option value="fairy">童話</option><option value="jewel">宝石</option><option value="support">サポート</option><option value="custom">工房 / その他</option></select></div>
+<div class="filterLine" data-kind-filters><button class="chipBtn active" type="button" data-kind="all">全部</button><button class="chipBtn" type="button" data-kind="unit">キャラ</button><button class="chipBtn" type="button" data-kind="support">サポート</button></div>
+<div class="filterLine" data-attr-filters style="margin-top:10px">
+<button class="chipBtn attr-active" type="button" data-attr="all">全属性</button>
+<button class="chipBtn" type="button" data-attr="火">火</button><button class="chipBtn" type="button" data-attr="水">水</button><button class="chipBtn" type="button" data-attr="雷">雷</button><button class="chipBtn" type="button" data-attr="草">草</button><button class="chipBtn" type="button" data-attr="風">風</button><button class="chipBtn" type="button" data-attr="鋼">鋼</button><button class="chipBtn" type="button" data-attr="光">光</button><button class="chipBtn" type="button" data-attr="闇">闇</button><button class="chipBtn" type="button" data-attr="幻">幻</button><button class="chipBtn" type="button" data-attr="呪">呪</button><button class="chipBtn" type="button" data-attr="支援">支援</button>
+</div><div class="filterLine" data-owned-filters style="margin-top:10px"><button class="chipBtn active" type="button" data-owned="all">すべて</button><button class="chipBtn" type="button" data-owned="owned">所有済み</button><button class="chipBtn" type="button" data-owned="missing">未所有</button></div>
+</section>
+<section class="main"><section class="gridPanel"><div class="panelHead"><h2>カード一覧</h2><small id="gridNote">読み込み中...</small></div><div class="cardGrid" id="cardGrid" aria-live="polite"></div></section>
+<aside class="detailPanel" aria-label="詳細"><div class="panelHead"><h2>詳細</h2><small id="detailNote">カードを選択</small></div><div class="detailBody" id="detail"><div class="empty">左のカードを選ぶと、ここに図鑑情報が表示されます。</div></div></aside></section>
+</main>
+<script type="module" src="./carddex.js?v=20260913_carddex1"></script>
+</body></html>

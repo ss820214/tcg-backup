@@ -27,6 +27,14 @@ for(const path of ["status_guide.html","carddex.html","tutorial.html","changelog
    if(match[1].trim())new vm.Script(match[1],{filename:path});
  }
 }
+const typography=read("public/document_typography_20261019.css");
+assert.match(typography,/line-break:\s*strict/);
+assert.match(typography,/text-wrap:\s*balance/);
+for(const path of ["status_guide.html","rule.html","carddex.html","tutorial.html","changelog.html","tier.html"]){
+ assert.match(read("public/"+path),/document_typography_20261019\.css\?v=/);
+}
+assert.match(deck,/data-home-action="status"[^>]*>状態効果<\/button>/);
+assert.match(read("public/status_guide.html"),/<h1>状態効果ガイド<\/h1>/);
 const status=read("public/status_guide.html");
 assert.match(status,/const statuses=/);
 assert.match(status,/data-filter="buff"/);

@@ -34,6 +34,7 @@ jobs:
           node --check public/auth.js
           node tools/deck_regression_20261008.mjs
           node tools/ui_regression_20261017.mjs
+          node tools/tools_links_regression_20261018.mjs
 
       - name: Publish isolated preview channel
         id: hosting

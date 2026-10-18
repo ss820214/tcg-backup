@@ -3,14 +3,14 @@ function init(){
  const nav=document.getElementById("mobileBattleNav"), board=document.getElementById("board"), center=document.getElementById("centerPane");
  if(!nav||!board||!center)return;
  const panes={leftPane:document.getElementById("leftPane"),rightPane:document.getElementById("rightPane")};
- const mobile=()=>window.innerWidth<=760;
- const slots=new Map(); let open="";
+ const mobile=()=>window.matchMedia("(max-width: 760px) and (orientation: portrait)").matches;
+ const slots=new Map(); let open=""; let focusReturn=null;
  for(const [id,p] of Object.entries(panes)){if(!p)continue;const marker=document.createComment(id+" position");p.before(marker);slots.set(id,marker)}
  const shade=document.createElement("div");shade.id="mobileBattlePopupShade";shade.setAttribute("aria-hidden","true");document.body.append(shade);
  const buttons=[...nav.querySelectorAll("button[data-jump-target]")];
- function restore(id){const el=panes[id],marker=slots.get(id);if(el&&marker&&el.parentElement!==marker.parentElement)marker.after(el);el?.classList.remove("mobileBattlePopupActive");for(const prop of ["display","visibility","opacity","z-index"])el?.style.removeProperty(prop)}
- function close(){open="";document.body.classList.remove("mobileBattlePopupOpen");Object.keys(panes).forEach(restore);buttons.forEach(b=>{b.classList.remove("active");b.setAttribute("aria-expanded","false")})}
- function toggle(id){if(!mobile())return;if(id==="centerPane"||open===id){close();return}close();const p=panes[id];if(!p)return;open=id;document.body.append(p);p.classList.add("mobileBattlePopupActive");document.body.classList.add("mobileBattlePopupOpen");p.style.setProperty("display","block","important");p.style.setProperty("visibility","visible","important");p.style.setProperty("opacity","1","important");p.style.setProperty("z-index","2147483001","important");buttons.forEach(b=>{const yes=b.dataset.jumpTarget===id;b.classList.toggle("active",yes);b.setAttribute("aria-expanded",String(yes))})}
+ function restore(id){const el=panes[id],marker=slots.get(id);if(el&&marker&&el.parentElement!==marker.parentElement)marker.after(el);el?.classList.remove("mobileBattlePopupActive");el?.removeAttribute("tabindex");for(const prop of ["display","visibility","opacity","z-index"])el?.style.removeProperty(prop)}
+ function close(){const previous=open;open="";document.body.classList.remove("mobileBattlePopupOpen");Object.keys(panes).forEach(restore);buttons.forEach(b=>{b.classList.remove("active");b.setAttribute("aria-expanded","false")});if(previous&&focusReturn?.isConnected){focusReturn.focus({preventScroll:true})}focusReturn=null}
+ function toggle(id){if(!mobile())return;if(id==="centerPane"||open===id){close();return}close();const p=panes[id];if(!p)return;open=id;focusReturn=buttons.find(b=>b.dataset.jumpTarget===id)||null;document.body.append(p);p.classList.add("mobileBattlePopupActive");document.body.classList.add("mobileBattlePopupOpen");p.style.setProperty("display","block","important");p.style.setProperty("visibility","visible","important");p.style.setProperty("opacity","1","important");p.style.setProperty("z-index","2147483001","important");p.setAttribute("tabindex","-1");p.focus({preventScroll:true});buttons.forEach(b=>{const yes=b.dataset.jumpTarget===id;b.classList.toggle("active",yes);b.setAttribute("aria-expanded",String(yes))})}
  nav.addEventListener("click",ev=>{if(!mobile())return;const b=ev.target.closest("button[data-jump-target]");if(!b)return;ev.preventDefault();ev.stopImmediatePropagation();toggle(b.dataset.jumpTarget)},true);
  // Let the game handler receive the action click first, then return to the board.
  panes.leftPane?.addEventListener("click",event=>{

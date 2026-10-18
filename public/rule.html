@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OBATo - 繝ｫ繝ｼ繝ｫ</title>
+  <title>0バト | ルールブック</title>
   <style>
     :root {
       color-scheme: dark;
@@ -804,328 +804,173 @@
         padding: 0 14px;
       }
     }
-  </style>
+  
+/* Rulebook polish: readable typography and restrained, editorial layout. */
+html { scroll-padding-top: 85px; }
+body { background: linear-gradient(180deg,#0e1520,#080d14 65%); }
+body::before { opacity:.05; }
+.page { width:min(1100px,calc(100% - 36px)); padding-top:30px; }
+.topbar { background:rgba(10,15,22,.97); backdrop-filter:none; }
+.hero { grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr); border-radius:10px; padding:clamp(24px,4vw,42px); background:#131c28; box-shadow:none; gap:35px; }
+.hero::after { display:none; }
+h1 { font-size:clamp(38px,5.3vw,62px); line-height:1.1; letter-spacing:-.035em; font-weight:850; }
+.lead { font-size:15px; line-height:1.85; max-width:58ch; }
+.eyebrow { padding:0; border:0; border-radius:0; background:transparent; letter-spacing:.15em; font-size:11px; }
+.heroCard { border-radius:6px; background:rgba(0,0,0,.12); padding:21px; border-color:rgba(255,255,255,.14); }
+.heroCard h2 { font-size:18px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.quickGrid { gap:0; border-top:1px solid rgba(255,255,255,.09); }
+.quick { border:0; border-radius:0; padding:12px 10px; background:transparent; border-bottom:1px solid rgba(255,255,255,.1); }
+.quick:nth-child(odd) { border-right:1px solid rgba(255,255,255,.1); }
+.section { border-radius:8px; background:#121a24; box-shadow:none; padding:clamp(17px,2.8vw,28px); margin-top:20px; }
+.visualSection { padding:0; overflow:hidden; }
+.ruleVisual { border:0; border-radius:0; box-shadow:none; }
+.ruleVisual img { object-fit:cover; }
+.visualPill { border-radius:4px; }
+.btn { border-radius:7px; min-height:40px; padding:0 15px; box-shadow:none; background:rgba(255,255,255,.055); }
+.btn.primary { background:rgba(105,169,138,.21); }
+.sectionTitle { font-size:21px; }
+.ruleSwitch { gap:0; border-bottom:1px solid rgba(255,255,255,.18); }
+.ruleTab { border:0; border-bottom:3px solid transparent; border-radius:0; min-height:68px; padding:14px 16px; background:transparent; box-shadow:none; }
+.ruleTab:hover { transform:none; background:rgba(255,255,255,.04); }
+.ruleTab[aria-selected="true"] { border-color:#9dff7a; box-shadow:none; background:rgba(157,255,122,.065); }
+.panelArt,.panelSummary,.topic,.judgeNote,.term,.mini,.callout,.attributeStrategy { border-radius:6px; box-shadow:none; }
+.topic,.judgeNote,.term,.mini { background:rgba(0,0,0,.12); }
+.topic h3,.judgeNote h3,.mini h3 { border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:9px; }
+.panelArtLabel { border-radius:4px; }
+.attributeList { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.attrProfile { min-width:0; }
+:where(p,li,span,h3,h4) { overflow-wrap:anywhere; }
+@media(max-width:760px) {
+ .hero { grid-template-columns:1fr; gap:20px; }
+ .page { width:calc(100% - 20px); padding-top:14px; }
+ .topbar { flex-wrap:wrap; padding:10px; }
+ .brand span { display:none; }
+ .nav { gap:5px; }
+ .nav .btn { padding:0 10px; min-height:35px; font-size:12px; }
+ .ruleSwitch { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .ruleTab { padding:9px 6px; min-height:64px; }
+ .ruleTab b { font-size:12px; }
+ .ruleTab span { font-size:10px; }
+ .panelShowcase,.judgeGrid,.topicGrid,.attributeList { grid-template-columns:1fr; }
+ .quickGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+</style>
   <link rel="stylesheet" href="./ui_stability_20260825.css?v=20260826_deckspace1" />
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./index.html">
-      <b>OBATo Rulebook</b>
-      <span>TTCG / TRPG x TCG</span>
-    </a>
-    <nav class="nav" aria-label="繝壹・繧ｸ遘ｻ蜍・>
-      <a class="btn" href="./index.html">蛻晄悄逕ｻ髱｢</a>
-      <a class="btn" href="./deck.html">繝・ャ繧ｭ縺ｸ</a>
-      <a class="btn primary" href="./tutorial.html">繝√Η繝ｼ繝医Μ繧｢繝ｫ</a>
+    <a class="brand" href="./index.html"><b>0バト ルールブック</b><span>OBATo / RULEBOOK</span></a>
+    <nav class="nav" aria-label="ページ移動">
+      <a class="btn" href="./index.html">ホーム</a>
+      <a class="btn" href="./deck.html">デッキ</a>
+      <a class="btn primary" href="./tutorial.html">チュートリアル</a>
     </nav>
   </header>
 
   <main class="page">
-    <section class="hero">
+    <section class="hero" aria-labelledby="ruleHeading">
       <div>
-        <span class="eyebrow">TTCG RULE</span>
-        <h1>驕九□縺代〒邨ゅｏ繧峨○縺ｪ縺・き繝ｼ繝峨ヰ繝医Ν縲・/h1>
-        <p class="lead">
-          OBATo縺ｯ縲√き繝ｼ繝峨・蠑輔″縺縺代〒縺ｪ縺上∫乢髱｢遘ｻ蜍輔∝ｰ・ｨ九∝ｱ樊ｧ縲・ｲ蛹悶∫憾諷狗焚蟶ｸ繧定ｪｭ縺ｿ蜷医≧謌ｦ陦薙き繝ｼ繝峨ご繝ｼ繝縺ｧ縺吶・          縺ｾ縺壹・蝓ｺ譛ｬ縲∵・繧後※縺阪◆繧牙ｿ懃畑縲∬ｿｷ縺｣縺溘ｉ陬∝ｮ壹ｒ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲・        </p>
+        <span class="eyebrow">HOW TO PLAY</span>
+        <h1 id="ruleHeading">0バトの<br>遊び方</h1>
+        <p class="lead">0バトは、カードの強さだけでなく、盤面での移動・射程・属性・進化・状態異常を読み合う対戦カードゲームです。まず基本を確認し、慣れたら応用と裁定を参照してください。</p>
         <div class="tagRow">
-          <a class="btn primary" href="#ruleModes">繝ｫ繝ｼ繝ｫ繧帝∈縺ｶ</a>
-          <button class="btn" id="btnDetail" type="button">隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧偵・繧峨￥</button>
+          <a class="btn primary" href="#ruleModes">ルールを読む</a>
+          <button class="btn" id="btnDetail" type="button">詳細ルールを開く</button>
         </div>
       </div>
-      <aside class="heroCard">
-        <h2>蜍晏茜譚｡莉ｶ</h2>
-        <p>
-          逶ｸ謇九・繧ｭ繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縺九∫嶌謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺吶ｋ縺ｨ蜍晏茜縺ｧ縺吶・          KILL縺ｨINFIL縲√←縺｡繧峨ｒ迢吶≧縺九〒繝・ャ繧ｭ讒狗ｯ峨→逶､髱｢縺ｮ蜍輔°縺玲婿縺悟､峨ｏ繧翫∪縺吶・        </p>
+      <aside class="heroCard" aria-label="勝利条件">
+        <h2>勝利条件</h2>
+        <p>相手のキャラを3体撃破するか、自分のキャラを相手陣地へ3体侵入させると勝利です。KILLとINFIL、どちらを狙うかでデッキ構築と盤面の動かし方が変わります。</p>
         <div class="quickGrid">
-          <div class="quick"><b>KILL</b><span>逶ｸ謇九く繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縲・/span></div>
-          <div class="quick"><b>INFIL</b><span>逶ｸ謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺吶ｋ縲・/span></div>
-          <div class="quick"><b>Mana</b><span>蛻晄悄繝槭リ縺ｯ2縲ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ+2縲・/span></div>
-          <div class="quick"><b>Deck</b><span>30譫壹ょ酔蜷阪き繝ｼ繝峨・譛螟ｧ4譫壹・/span></div>
+          <div class="quick"><b>KILL</b><span>相手のキャラを3体撃破する</span></div>
+          <div class="quick"><b>INFIL</b><span>相手陣地へ3体侵入する</span></div>
+          <div class="quick"><b>Mana</b><span>マナは行動や召喚に使う</span></div>
+          <div class="quick"><b>Deck</b><span>30枚構築・同名カード4枚まで</span></div>
         </div>
       </aside>
     </section>
 
-    <section class="section" aria-label="繝ｫ繝ｼ繝ｫ蜈ｨ菴薙・繝薙ず繝･繧｢繝ｫ">
+    <section class="section visualSection" aria-label="ルールのイラスト">
       <div class="ruleVisual">
-        <img src="./assets/rule/rule_modes_banner.webp" alt="蝓ｺ譛ｬ繝ｫ繝ｼ繝ｫ縲∝ｿ懃畑謌ｦ逡･縲∬｣∝ｮ壹ｒ3縺､縺ｮ邨ｵ縺ｧ陦ｨ縺励◆繝ｫ繝ｼ繝ｫ繧ｬ繧､繝・ loading="eager" decoding="async" />
-        <div class="visualCaption" aria-hidden="true">
-          <span class="visualPill">逶､髱｢縺ｧ謌ｦ縺・/span>
-          <span class="visualPill">騾ｲ蛹悶→驟咲ｽｮ縺ｧ隱ｭ繧</span>
-          <span class="visualPill">霑ｷ縺｣縺溘ｉ陬∝ｮ壹ｒ隕九ｋ</span>
-        </div>
+        <img src="./assets/rule/rule_modes_banner.webp" alt="基本・応用・裁定のルール紹介イラスト" loading="eager" decoding="async">
+        <div class="visualCaption" aria-hidden="true"><span class="visualPill">盤面で戦う</span><span class="visualPill">進化と配置で読み合う</span><span class="visualPill">迷ったら裁定を見る</span></div>
       </div>
     </section>
 
     <section class="section" id="ruleModes">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">隱ｭ縺ｿ縺溘＞繝ｫ繝ｼ繝ｫ繧帝∈縺ｶ</h2>
-          <p class="sectionSub">蝓ｺ譛ｬ縲∝ｿ懃畑縲∬｣∝ｮ壹ｒ蛻・ｊ譖ｿ縺医※遒ｺ隱阪〒縺阪∪縺吶・/p>
-        </div>
-      </div>
-
-      <div class="ruleSwitch" role="tablist" aria-label="繝ｫ繝ｼ繝ｫ繧ｫ繝・ざ繝ｪ">
-        <button class="ruleTab" id="ruleTabBasic" type="button" role="tab" aria-selected="true" aria-controls="rulePanelBasic" data-rule-tab="basic">
-          <b>蝓ｺ譛ｬ逧・↑繝ｫ繝ｼ繝ｫ</b>
-          <span>蜍晏茜譚｡莉ｶ縲∝渕譛ｬ蜍穂ｽ懊∵橿縺ｮ隕区婿</span>
-        </button>
-        <button class="ruleTab" id="ruleTabAdvanced" type="button" role="tab" aria-selected="false" aria-controls="rulePanelAdvanced" data-rule-tab="advanced">
-          <b>蠢懃畑逧・↑繝ｫ繝ｼ繝ｫ</b>
-          <span>騾ｲ蛹門・陦悟虚縲√ョ繝・く縺ｮ菴懊ｊ譁ｹ</span>
-        </button>
-        <button class="ruleTab" id="ruleTabJudgement" type="button" role="tab" aria-selected="false" aria-controls="rulePanelJudgement" data-rule-tab="judgement">
-          <b>陬∝ｮ・/b>
-          <span>髮ｻ蟄千沿縲∫ｴ咏沿縲∬｡ｨ險倥・謇ｱ縺・/span>
-        </button>
+      <div class="sectionHeader"><div><h2 class="sectionTitle">ルール一覧</h2><p class="sectionSub">基本から順番に読めます。気になる項目だけ選んでもOK。</p></div></div>
+      <div class="ruleSwitch" role="tablist" aria-label="ルールの分類">
+        <button class="ruleTab" id="ruleTabBasic" type="button" role="tab" aria-selected="true" aria-controls="rulePanelBasic" data-rule-tab="basic"><b>基本ルール</b><span>勝利条件・ターン・マナ</span></button>
+        <button class="ruleTab" id="ruleTabAdvanced" type="button" role="tab" aria-selected="false" aria-controls="rulePanelAdvanced" data-rule-tab="advanced"><b>応用ルール</b><span>進化・デッキ・属性</span></button>
+        <button class="ruleTab" id="ruleTabJudgement" type="button" role="tab" aria-selected="false" aria-controls="rulePanelJudgement" data-rule-tab="judgement"><b>裁定・用語</b><span>迷いやすい処理と表記</span></button>
       </div>
 
       <div class="rulePanel" id="rulePanelBasic" role="tabpanel" aria-labelledby="ruleTabBasic" data-rule-panel="basic">
-        <p class="panelIntro">縺ｾ縺壼ｯｾ謌ｦ荳ｭ縺ｫ豈主屓菴ｿ縺・Ν繝ｼ繝ｫ縺ｧ縺吶ゅ％縺薙□縺題ｪｭ繧√・縲√→繧翫≠縺医★驕翫∋縺ｾ縺吶・/p>
-        <div class="panelShowcase">
-          <div class="panelArt basic" role="img" aria-label="逶､髱｢縲√き繝ｼ繝峨√・繝翫ｒ菴ｿ縺｣縺溷渕譛ｬ繝ｫ繝ｼ繝ｫ縺ｮ繧､繝ｩ繧ｹ繝・>
-            <span class="panelArtLabel">BASIC</span>
-          </div>
-          <div class="panelSummary">
-            <h3>縺ｾ縺夊ｦ九ｋ縺ｨ縺薙ｍ縺ｯ逶､髱｢縲√・繝翫∝享蛻ｩ繧ｫ繧ｦ繝ｳ繝医・/h3>
-            <p>髮｣縺励＞隱ｬ譏弱ｈ繧雁・縺ｫ縲√←縺ｮ繧ｫ繝ｼ繝峨′縺ｩ縺薙↓縺・※縲√←繧後□縺代・繝翫ｒ菴ｿ縺医ｋ縺九ｒ隕九∪縺吶・ILL縺ｨINFIL縺ｮ縺ｩ縺｡繧峨′霑代＞縺九ｒ遒ｺ隱阪☆繧九→縲∵ｬ｡縺ｮ荳謇九′豎ｺ繧√ｄ縺吶￥縺ｪ繧翫∪縺吶・/p>
-          </div>
-        </div>
+        <p class="panelIntro">対戦中によく使うルールです。ここを覚えれば、まず対戦を始められます。</p>
+        <div class="panelShowcase"><div class="panelArt basic" role="img" aria-label="基本ルールのイラスト"><span class="panelArtLabel">BASIC</span></div>
+          <div class="panelSummary"><h3>盤面・マナ・勝利カウントを見る</h3><p>カードをどこに置き、どの技を使うかが大切です。KILLとINFILの進み具合を見ながら次の行動を決めましょう。</p></div></div>
         <div class="topicGrid">
-          <article class="topic">
-            <h3>蜍晏茜譚｡莉ｶ</h3>
-            <ul>
-              <li>逶ｸ謇九く繝｣繝ｩ繧・菴楢｡悟虚荳崎・縺ｫ縺吶ｋ縺ｨKILL蜍晏茜縲・/li>
-              <li>閾ｪ蛻・・繧ｭ繝｣繝ｩ繧堤嶌謇矩劵蝨ｰ縺ｸ3菴謎ｾｵ蜈･縺輔○繧九→INFIL蜍晏茜縲・/li>
-              <li>逶､髱｢縺ｧ縺ｯKILL縺ｨINFIL縺ｮ繧ｫ繧ｦ繝ｳ繝医ｒ蟶ｸ縺ｫ遒ｺ隱阪＠縺ｾ縺吶・/li>
-            </ul>
-          </article>
-          <article class="topic">
-            <h3>蝓ｺ譛ｬ蜍穂ｽ・/h3>
-            <ul>
-              <li>蜿ｬ蝟壹∫ｧｻ蜍輔∵橿縲・ｲ蛹悶↓縺ｯ繝槭リ繧剃ｽｿ縺・∪縺吶・/li>
-              <li>蛻晄悄繝槭リ縺ｯ2縲ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ隧ｲ蠖薙・繝ｬ繧､繝､繝ｼ縺ｮ繝槭リ縺・蠅励∴縺ｾ縺吶・/li>
-              <li>遘ｻ蜍輔・蝓ｺ譛ｬ1繝槭リ縲らｧｻ蜍輔□縺代〒縺ｯ逍ｲ蜉ｴ縺励∪縺帙ｓ縲・/li>
-              <li>謾ｻ謦・ｄ謾ｯ謠ｴ縺ｮ謚繧剃ｽｿ縺・→縲∝渕譛ｬ逧・↓縺昴・繧ｭ繝｣繝ｩ縺ｯ逍ｲ蜉ｴ縺励∪縺吶・/li>
-            </ul>
-          </article>
-          <article class="topic">
-            <h3>謚縺ｫ縺､縺・※</h3>
-            <ul>
-              <li>謚縺ｫ縺ｯ豸郁ｲｻ繝槭リ縲∝ｰ・ｨ九∵・蜉溽紫縺後≠繧翫∪縺吶・/li>
-              <li>謌仙粥縺吶ｋ縺ｨHP/SP繝繝｡繝ｼ繧ｸ縲∝屓蠕ｩ縲∫憾諷倶ｻ倅ｸ弱∫ｧｻ蜍輔↑縺ｩ縺檎匱逕溘＠縺ｾ縺吶・/li>
-              <li>蟆・ｨ九・繧ｫ繝ｼ繝峨°繧芽ｦ九◆譁ｹ蜷代→霍晞屬縺ｧ縺吶ょｱ翫￥繝槭せ繧帝∈繧薙〒螳溯｡後＠縺ｾ縺吶・/li>
-            </ul>
-          </article>
+          <article class="topic"><h3>勝利条件</h3><ul><li>相手キャラを3体撃破するとKILL勝利。</li><li>自分のキャラを相手陣地へ3体侵入させるとINFIL勝利。</li><li>盤面のKILL・INFILカウントを確認しましょう。</li></ul></article>
+          <article class="topic"><h3>基本操作</h3><ul><li>召喚、移動、攻撃、進化、サポート使用を選んで行動します。</li><li>移動は基本1マナを使います。移動だけでは行動済みになりません。</li><li>攻撃や技の使用では、基本的にそのキャラは行動済みになります。</li></ul></article>
+          <article class="topic"><h3>技について</h3><ul><li>技ごとに消費マナ、射程、成功率があります。</li><li>成功するとダメージ、回復、状態異常などの効果が発生します。</li><li>射程や対象を確認してから技を使いましょう。</li></ul></article>
         </div>
       </div>
 
       <div class="rulePanel" id="rulePanelAdvanced" role="tabpanel" aria-labelledby="ruleTabAdvanced" data-rule-panel="advanced" hidden>
-        <p class="panelIntro">蝓ｺ譛ｬ謫堺ｽ懊↓諷｣繧後◆繧峨・ｲ蛹悶→繝・ャ繧ｭ險ｭ險医〒蜍昴■遲九ｒ菴懊ｊ縺ｾ縺吶・/p>
-        <div class="panelShowcase">
-          <div class="panelArt advanced" role="img" aria-label="騾ｲ蛹悶・・鄂ｮ縲√ョ繝・く讒狗ｯ峨ｒ陦ｨ縺吝ｿ懃畑謌ｦ逡･縺ｮ繧､繝ｩ繧ｹ繝・>
-            <span class="panelArtLabel">ADVANCED</span>
-          </div>
-          <div class="panelSummary">
-            <h3>蠑ｷ縺・き繝ｼ繝峨ｒ荳ｦ縺ｹ繧九□縺代〒縺ｯ縺ｪ縺上・ｲ蛹門・縺ｨ菴咲ｽｮ繧呈ｮ九☆縲・/h3>
-            <p>逍ｲ蜉ｴ縺励◆繧ｭ繝｣繝ｩ繧帝ｲ蛹悶〒蜀崎｡悟虚縺輔○繧九∽ｾｵ蜈･繝ｫ繝ｼ繝医ｒ菴懊ｋ縲√し繝昴・繝医〒逶ｸ謇九・險育判繧偵★繧峨☆縲ょｿ懃畑繝ｫ繝ｼ繝ｫ縺ｯ縲梧ｬ｡縺ｮ繧ｿ繝ｼ繝ｳ繧剃ｽ懊ｋ縲阪◆繧√・繝ｫ繝ｼ繝ｫ縺ｧ縺吶・/p>
-          </div>
-        </div>
-        <section class="attributeStrategy" aria-label="螻樊ｧ縺斐→縺ｮ譛牙茜荳榊茜">
-          <div class="attributeStrategyHead">
-            <h3>螻樊ｧ縺斐→縺ｮ蠑ｷ縺ｿ縺ｨ蠑ｱ縺ｿ繧定ｪｭ繧</h3>
-            <p>螻樊ｧ逶ｸ諤ｧ縺ｯ蝗ｺ螳壹・蠑ｱ轤ｹ陦ｨ縺ｧ縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲・P縲ヾP縲∵橿縺ｮ蟆・ｨ九√し繝昴・繝医・邨・∩蜷医ｏ縺帙〒縲梧款縺励ｄ縺吶＞逶ｸ謇九阪→縲悟ｯｾ遲悶′蠢・ｦ√↑逶ｸ謇九阪′逕溘∪繧後∪縺吶・/p>
-          </div>
-          <div class="attrBattleBoard">
-            <div class="attrOrbMap" role="img" aria-label="螻樊ｧ縺斐→縺ｮ譛牙茜荳榊茜縺ｮ蛯ｾ蜷大峙">
-              <svg class="attrOrbLines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                <defs>
-                  <marker id="ruleAttrArrowGood" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                    <path d="M0 0 L8 4 L0 8 Z" fill="rgba(128,255,170,.86)"></path>
-                  </marker>
-                  <marker id="ruleAttrArrowBad" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                    <path d="M0 0 L8 4 L0 8 Z" fill="rgba(255,105,125,.82)"></path>
-                  </marker>
-                </defs>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 10 C35 18 20 34 11 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 10 C68 18 84 34 89 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 24 C30 16 40 11 50 10"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 24 C34 45 27 62 23 76"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 24 C62 21 42 22 23 24"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 24 C65 34 56 42 50 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M11 50 C28 38 55 27 78 24"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M11 50 C14 35 18 27 23 24"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M89 50 C72 58 45 68 23 76"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M89 50 C87 62 83 71 78 76"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 76 C43 62 61 44 78 24"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M23 76 C32 86 41 91 50 90"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 76 C68 86 59 91 50 90"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M78 76 C68 63 58 54 50 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 90 C50 62 50 35 50 10"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 90 C34 76 20 62 11 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 50 C36 48 23 49 11 50"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M50 50 C40 62 31 71 23 76"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M58 90 C47 65 34 39 23 24"></path>
-                <path class="good" marker-end="url(#ruleAttrArrowGood)" d="M58 90 C66 86 73 81 78 76"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M48 12 C39 15 31 19 23 24"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M52 12 C55 36 53 64 50 90"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M24 26 C45 23 63 23 78 24"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M76 28 C54 35 31 44 11 50"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M13 48 C25 32 37 18 50 10"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M87 48 C80 37 67 21 50 10"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M25 74 C22 56 22 38 23 24"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M76 74 C66 64 58 56 50 50"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M48 88 C39 80 28 63 11 50"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M58 88 C56 55 53 23 50 10"></path>
-                <path class="bad" marker-end="url(#ruleAttrArrowBad)" d="M58 88 C67 72 78 58 89 50"></path>
-              </svg>
-              <div class="attrOrbCenter"><b>螻樊ｧ謌ｦ逡･</b><span>蠑ｷ縺ｿ縺ｧ謚ｼ縺・br>蠑ｱ縺ｿ繧定｣懊≧</span></div>
-              <span class="attrOrb" style="--x:50%;--y:10%;--c:#ff6b6b;">轣ｫ<small>謾ｻ謦・/small></span>
-              <span class="attrOrb" style="--x:23%;--y:24%;--c:#7dd3fc;">豌ｴ<small>閠蝉ｹ・/small></span>
-              <span class="attrOrb" style="--x:78%;--y:24%;--c:#facc15;">髮ｷ<small>SP</small></span>
-              <span class="attrOrb" style="--x:11%;--y:50%;--c:#78e3ad;">闕・small>蝗槫ｾｩ</small></span>
-              <span class="attrOrb" style="--x:89%;--y:50%;--c:#9de7c5;">鬚ｨ<small>遘ｻ蜍・/small></span>
-              <span class="attrOrb" style="--x:23%;--y:76%;--c:#b8c0cc;">驪ｼ<small>蛻ｶ蝨ｧ</small></span>
-              <span class="attrOrb" style="--x:78%;--y:76%;--c:#ffe29b;">蜈・small>謾ｯ謠ｴ</small></span>
-              <span class="attrOrb" style="--x:42%;--y:90%;--c:#b889ff;">髣・small>螯ｨ螳ｳ</small></span>
-              <span class="attrOrb" style="--x:58%;--y:90%;--c:#c084fc;">蜻ｪ<small>SP</small></span>
-              <span class="attrOrb" style="--x:50%;--y:50%;--c:#f0abfc;">蟷ｻ<small>螟牙援</small></span>
-              <div class="attrLegend" aria-hidden="true">
-                <span><i class="good"></i>謚ｼ縺励ｄ縺吶＞</span>
-                <span><i class="bad"></i>闍ｦ謇九↓縺ｪ繧翫ｄ縺吶＞</span>
-              </div>
-            </div>
-            <div class="attrProfileGrid">
-              <article class="attrProfile" style="--c:#ff6b6b;"><h4><i>轣ｫ</i>轣ｫ蜉帙→螳牙ｮ・/h4><p>HP繧貞炎繧句鴨縺碁ｫ倥￥縲∽ｽ惹ｽ灘鴨逶ｸ謇九↓蠑ｷ縺・・/p><div class="match">譛牙茜: 闕峨・鬚ｨ / 闍ｦ謇・ 豌ｴ繝ｻ髣・/div></article>
-              <article class="attrProfile" style="--c:#7dd3fc;"><h4><i>豌ｴ</i>閠蝉ｹ・→蝗槫ｾｩ</h4><p>蜿励￠縺ｨ遶九※逶ｴ縺励′蠕玲э縲る聞譛滓姶縺ｧ蠑ｷ縺・・/p><div class="match">譛牙茜: 轣ｫ繝ｻ驪ｼ / 闍ｦ謇・ 髮ｷ繝ｻ闕・/div></article>
-              <article class="attrProfile" style="--c:#facc15;"><h4><i>髮ｷ</i>螻暮幕縺ｨSP蝨ｧ</h4><p>SP繧貞炎繧翫↑縺後ｉ繝・Φ繝昴〒謚ｼ縺吶・/p><div class="match">譛牙茜: 豌ｴ繝ｻ蟷ｻ / 闍ｦ謇・ 驪ｼ繝ｻ闕・/div></article>
-              <article class="attrProfile" style="--c:#78e3ad;"><h4><i>闕・/i>蝗槫ｾｩ縺ｨ螳牙ｮ・/h4><p>蝗槫ｾｩ縺ｨ莠区腐蝗樣∩縺ｧ豸郁玲姶縺ｫ蠑ｷ縺・・/p><div class="match">譛牙茜: 髮ｷ繝ｻ豌ｴ / 闍ｦ謇・ 轣ｫ繝ｻ髣・/div></article>
-              <article class="attrProfile" style="--c:#9de7c5;"><h4><i>鬚ｨ</i>遘ｻ蜍輔→螂・･ｲ</h4><p>菴咲ｽｮ蜿悶ｊ縺ｧ逶ｸ謇九・蟆・ｨ玖ｨ育ｮ励ｒ蟠ｩ縺吶・/p><div class="match">譛牙茜: 驪ｼ繝ｻ蜈・/ 闍ｦ謇・ 轣ｫ繝ｻ髮ｷ</div></article>
-              <article class="attrProfile" style="--c:#b8c0cc;"><h4><i>驪ｼ</i>閠蝉ｹ・→蛻ｶ蝨ｧ</h4><p>蜑咲ｷ壹ｒ蝗ｺ螳壹＠縲∫乢髱｢繧呈款縺輔∴繧九・/p><div class="match">譛牙茜: 髮ｷ繝ｻ髣・/ 闍ｦ謇・ 豌ｴ繝ｻ鬚ｨ</div></article>
-              <article class="attrProfile" style="--c:#ffe29b;"><h4><i>蜈・/i>謾ｯ謠ｴ縺ｨ螳牙ｮ・/h4><p>蜻ｳ譁ｹ繧呈紛縺医∝ｱ樊ｧ螟画峩縺ｧ蟇ｾ蠢懷ｹ・ｒ菴懊ｋ縲・/p><div class="match">譛牙茜: 髣・・蟷ｻ / 闍ｦ謇・ 鬚ｨ繝ｻ轣ｫ</div></article>
-              <article class="attrProfile" style="--c:#b889ff;"><h4><i>髣・/i>螯ｨ螳ｳ縺ｨ繝ｪ繧ｹ繧ｯ</h4><p>SP謾ｻ謦・→迥ｶ諷狗焚蟶ｸ縺ｧ逶ｸ謇九・險育判繧貞ｴｩ縺吶・/p><div class="match">譛牙茜: 轣ｫ繝ｻ闕・/ 闍ｦ謇・ 蜈峨・驪ｼ</div></article>
-              <article class="attrProfile" style="--c:#f0abfc;"><h4><i>蟷ｻ</i>螟牙援縺ｨ蟷ｲ貂・/h4><p>莨上○縲∝・繧梧崛縺医∫音谿雁・逅・〒逶､髱｢繧呈昭繧峨☆縲・/p><div class="match">譛牙茜: 闕峨・驪ｼ / 闍ｦ謇・ 髮ｷ繝ｻ蜈・/div></article>
-              <article class="attrProfile" style="--c:#c084fc;"><h4><i>蜻ｪ</i>SP謾ｻ謦・→蜻ｪ蝨ｧ</h4><p>SP繧貞炎縺｣縺ｦ陦悟虚繧帝・繧峨○繧九ら↓蜉帙→閠蝉ｹ・・謗ｧ縺医ａ縲・/p><div class="match">譛牙茜: 豌ｴ繝ｻ蜈・/ 闍ｦ謇・ 轣ｫ繝ｻ鬚ｨ</div></article>
-            </div>
+        <p class="panelIntro">基本操作に慣れたら、進化とデッキ設計で勝ち筋を増やしましょう。</p>
+        <div class="panelShowcase"><div class="panelArt advanced" role="img" aria-label="応用ルールのイラスト"><span class="panelArtLabel">ADVANCED</span></div>
+          <div class="panelSummary"><h3>強いカードを並べるだけではない</h3><p>進化後の再行動、侵入ルートづくり、サポートによる妨害。次のターンを意識した位置取りが重要です。</p></div></div>
+        <section class="attributeStrategy" aria-label="属性ごとの特徴">
+          <div class="attributeStrategyHead"><h3>属性ごとの特徴</h3><p>属性に応じて得意な戦法が変わります。組み合わせて戦いましょう。</p></div>
+          <div class="attrProfileGrid attributeList">
+            <article class="attrProfile" style="--c:#ff6b6b"><h4><i>火</i>高い攻撃力</h4><p>攻撃を重視。素早く相手のHPを削る。</p></article>
+            <article class="attrProfile" style="--c:#7dd3fc"><h4><i>水</i>守りと耐久</h4><p>HPの高さを生かして前線を支える。</p></article>
+            <article class="attrProfile" style="--c:#78e3ad"><h4><i>草</i>回復と補助</h4><p>味方のHP・SPを回復して粘り強く戦う。</p></article>
+            <article class="attrProfile" style="--c:#9de7c5"><h4><i>風</i>移動と奇襲</h4><p>回避や位置取りを生かして攻める。</p></article>
+            <article class="attrProfile" style="--c:#facc15"><h4><i>雷</i>SPと攻め</h4><p>SPへの圧力を利用する。</p></article>
+            <article class="attrProfile" style="--c:#ffe29b"><h4><i>光</i>支援と精度</h4><p>成功率の調整など、技の使い分けが得意。</p></article>
+            <article class="attrProfile" style="--c:#b889ff"><h4><i>闇</i>妨害とリスク</h4><p>高い攻撃力や状態異常で相手を崩す。</p></article>
           </div>
         </section>
         <div class="topicGrid">
-          <article class="topic">
-            <h3>騾ｲ蛹悶〒蜀崎｡悟虚</h3>
-            <ul>
-              <li>逍ｲ蜉ｴ縺励※縺・ｋ繧ｭ繝｣繝ｩ縺ｧ繧ゅ∵擅莉ｶ繧呈ｺ縺溘○縺ｰ騾ｲ蛹悶〒縺阪∪縺吶・/li>
-              <li>騾ｲ蛹門ｾ後・謚繧剃ｽｿ縺医ｋ迥ｶ諷九↓縺ｪ繧翫∪縺吶・/li>
-              <li>縺溘□縺礼ｧｻ蜍募屓謨ｰ縺ｯ繝ｪ繧ｻ繝・ヨ縺輔ｌ縺ｾ縺帙ｓ縲るｲ蛹悶〒蜀崎｡悟虚縺ｧ縺阪※繧ゅ∫ｧｻ蜍輔・縺ｧ縺阪∪縺帙ｓ縲・/li>
-              <li>騾ｲ蛹門ｾ後ｂ菴咲ｽｮ縺ｯ縺昴・縺ｾ縺ｾ縺ｧ縺吶・/li>
-            </ul>
-          </article>
-          <article class="topic">
-            <h3>繝・ャ繧ｭ讒狗ｯ峨・蠢懃畑</h3>
-            <ul>
-              <li>30譫壹■繧・≧縺ｩ縺ｧ讒狗ｯ峨＠縺ｾ縺吶ょ酔蜷阪き繝ｼ繝峨・譛螟ｧ4譫壹〒縺吶・/li>
-              <li>繧ｭ繝｣繝ｩ縺悟ｰ代↑縺吶℃繧九→逶､髱｢縺御ｽ懊ｌ縺壹√し繝昴・繝医′蟆代↑縺吶℃繧九→騾・ｻ｢蜉帙′關ｽ縺｡縺ｾ縺吶・/li>
-              <li>蜊伜ｱ樊ｧ縺ｯ蠑ｷ縺ｿ縺碁強縺上∝ｼｱ轤ｹ繧ゅ・縺｣縺阪ｊ縺励∪縺吶よｷｷ濶ｲ縺ｯ蟇ｾ蠢懷鴨縺御ｸ翫′繧翫∪縺吶・/li>
-              <li>蠎冗乢縺ｮ菴弱さ繧ｹ繝医∽ｸｭ逶､縺ｮ荳ｻ蜉帙∫ｵら乢縺ｮ騾ｲ蛹門・繧呈э隴倥＠縺ｾ縺吶・/li>
-            </ul>
-          </article>
-          <article class="topic">
-            <h3>蜍昴■遲九・險ｭ險・/h3>
-            <ul>
-              <li>KILL迢吶＞縺ｯ轣ｫ蜉帙∝宛蝨ｧ縲ヾP蜑翫ｊ縺碁㍾隕√〒縺吶・/li>
-              <li>INFIL迢吶＞縺ｯ遘ｻ蜍輔∝ｦｨ螳ｳ縲∬蝉ｹ・∽ｽ咲ｽｮ蜈･繧梧崛縺医′驥崎ｦ√〒縺吶・/li>
-              <li>SP繝繝｡繝ｼ繧ｸ縺ｯHP繝繝｡繝ｼ繧ｸ縺ｮ邏・蛟阪・萓｡蛟､縺ｨ縺励※隧穂ｾ｡縺励∪縺吶・/li>
-              <li>迥ｶ諷狗焚蟶ｸ縺ｯ蜊ｳ蜉ｹ諤ｧ繧医ｊ縲∵ｬ｡縺ｮ繧ｿ繝ｼ繝ｳ縺ｮ驕ｸ謚櫁い繧貞炎繧九◆繧√↓菴ｿ縺・∪縺吶・/li>
-            </ul>
-          </article>
+          <article class="topic"><h3>進化と再行動</h3><ul><li>条件を満たせば、行動済みのキャラも進化できます。</li><li>進化後は再び技を使えますが、移動回数はリセットされません。</li><li>進化しても盤面での位置は変わりません。</li></ul></article>
+          <article class="topic"><h3>デッキ構築</h3><ul><li>30枚構築、同名カードは最大4枚。</li><li>低・中・高マナのカードとサポートを組み合わせましょう。</li><li>侵入と撃破、どちらを狙うか考えて構築すると戦いやすくなります。</li></ul></article>
+          <article class="topic"><h3>戦術の組み立て</h3><ul><li>KILLを狙うなら攻撃範囲と火力が重要。</li><li>INFILを狙うなら移動と妨害、位置取りが重要。</li><li>SPや状態異常も相手の次の行動を左右します。</li></ul></article>
         </div>
-        <div class="callout">
-          騾ｲ蛹悶・縲檎夢蜉ｴ繧貞・繧願ｿ斐☆謇区ｮｵ縲阪〒縺吶′縲∫ｧｻ蜍輔∪縺ｧ縺ｯ謌ｻ繧翫∪縺帙ｓ縲ゆｾｵ蜈･繝ｫ繝ｼ繝医ｒ菴懊ｋ縺ｪ繧峨・ｲ蛹門燕縺ｮ菴咲ｽｮ蜿悶ｊ縺悟､ｧ莠九〒縺吶・        </div>
+        <div class="callout">進化は「行動を取り返す手段」でもありますが、移動まで巻き戻るわけではありません。侵入を狙うなら進化前の位置取りが重要です。</div>
       </div>
 
       <div class="rulePanel" id="rulePanelJudgement" role="tabpanel" aria-labelledby="ruleTabJudgement" data-rule-panel="judgement" hidden>
-        <p class="panelIntro">髮ｻ蟄千沿縺ｨ邏咏沿縺ｧ霑ｷ縺・ｄ縺吶＞蜃ｦ逅・√き繝ｼ繝峨ユ繧ｭ繧ｹ繝医・隱ｭ縺ｿ譁ｹ繧偵∪縺ｨ繧√∪縺吶・/p>
-        <div class="panelShowcase">
-          <div class="panelArt judgement" role="img" aria-label="繝ｫ繝ｼ繝ｫ繝悶ャ繧ｯ縲∝､ｩ遘､縲∝・逅・Ο繧ｰ繧定｡ｨ縺呵｣∝ｮ壹・繧､繝ｩ繧ｹ繝・>
-            <span class="panelArtLabel">JUDGEMENT</span>
-          </div>
-          <div class="panelSummary">
-            <h3>霑ｷ縺｣縺溘ｉ縲・崕蟄千沿縺ｯ繝ｭ繧ｰ縲らｴ咏沿縺ｯ繧ｫ繝ｼ繝画悽譁・・/h3>
-            <p>閾ｪ蜍募・逅・′縺ゅｋ髮ｻ蟄千沿縺ｯ繝ｭ繧ｰ繧貞━蜈医＠縲∫ｴ咏沿縺ｧ縺ｯ繧ｫ繝ｼ繝画悽譁・→蜈ｱ騾壹Ν繝ｼ繝ｫ縺ｧ蛻､譁ｭ縺励∪縺吶ょ・驛ｨ繧ｿ繧ｰ縺ｯ繝励Ξ繧､繝､繝ｼ蜷代￠陦ｨ險倥〒縺ｯ縺ｪ縺上∵律譛ｬ隱槭・蜉ｹ譫懊→縺励※隱ｭ縺ｿ譖ｿ縺医∪縺吶・/p>
-          </div>
-        </div>
+        <p class="panelIntro">迷いやすい処理やカードテキストの読み方をまとめました。</p>
+        <div class="panelShowcase"><div class="panelArt judgement" role="img" aria-label="裁定ルールのイラスト"><span class="panelArtLabel">JUDGEMENT</span></div>
+          <div class="panelSummary"><h3>迷ったらログとカード本文を見る</h3><p>対戦ログとカード効果文を照らし合わせて、対象、効果、成功率を確かめましょう。</p></div></div>
         <div class="judgeGrid">
-          <article class="judgeNote">
-            <h3>髮ｻ蟄千沿縺ｨ邏咏沿</h3>
-            <ul>
-              <li>髮ｻ蟄千沿縺ｧ縺ｯ縲∫判髱｢縺ｮ蜃ｦ逅・・→繝ｭ繧ｰ繧貞━蜈医＠縺ｾ縺吶り・蜍募・逅・＆繧後◆蜀・ｮｹ繧貞・蠑丞・逅・→縺励※謇ｱ縺・∪縺吶・/li>
-              <li>邏咏沿縺ｧ縺ｯ縲√き繝ｼ繝画悽譁・∝・騾壹Ν繝ｼ繝ｫ縲√ち繝ｼ繝ｳ繝励Ξ繧､繝､繝ｼ縺ｮ鬆・↓遒ｺ隱阪＠縺ｾ縺吶・/li>
-              <li>蜷梧凾縺ｫ隍・焚縺ｮ蜉ｹ譫懊′隕九∴繧句ｴ蜷医・縲√ち繝ｼ繝ｳ繝励Ξ繧､繝､繝ｼ蛛ｴ縺ｮ蜃ｦ逅・ｒ蜈医↓隗｣豎ｺ縺励∪縺吶・/li>
-              <li>繧ｫ繝ｼ繝画悽譁・′蜈ｱ騾壹Ν繝ｼ繝ｫ縺ｨ遏帷崟縺吶ｋ蝣ｴ蜷医・縲√き繝ｼ繝画悽譁・ｒ蜆ｪ蜈医＠縺ｾ縺吶・/li>
-            </ul>
-          </article>
+          <article class="judgeNote"><h3>裁定の確認</h3><ul><li>自動処理がある場合は、まず画面の結果とログを確認します。</li><li>同時に効果が起きる場合は、ターンプレイヤー側の処理を先に確認します。</li><li>カード本文と共通ルールの記載が異なる場合は、個別のカード本文を優先します。</li></ul></article>
           <div class="termGrid">
-            <div class="term">
-              <b>蟆・ｨ玖｡ｨ險・/b>
-              <span>front1縺ｯ蜑・繝槭せ縲《ide1縺ｯ讓ｪ1繝槭せ縲〉f1縺ｯ蜿ｳ蜑・繝槭せ縲∥ll縺ｯ蜈ｨ菴薙｝ierce縺ｯ雋ｫ騾壹ｒ陦ｨ縺励∪縺吶・/span>
-            </div>
-            <div class="term">
-              <b>繝繝｡繝ｼ繧ｸ/蝗槫ｾｩ</b>
-              <span>襍､縺・ワ繝ｼ繝医・HP螟牙喧縲・搨縺・ワ繝ｼ繝医・SP螟牙喧縲∫ｷ代・繝上・繝医・蝗槫ｾｩ繧定｡ｨ縺励∪縺吶・/span>
-            </div>
-            <div class="term">
-              <b>迥ｶ諷倶ｻ倅ｸ・/b>
-              <span>迥ｶ諷句錐縲∝､縲√ち繝ｼ繝ｳ謨ｰ縺後≠繧句ｴ蜷医・繧ｫ繝ｼ繝画悽譁・ｒ蜆ｪ蜈医＠縺ｾ縺吶ょ､縺後↑縺・憾諷九・騾壼ｸｸ縺ｮ譌｢螳壼､縺ｧ蜃ｦ逅・＠縺ｾ縺吶・/span>
-            </div>
-            <div class="term">
-              <b>蜀・Κ繧ｿ繧ｰ</b>
-              <span>attr縲〉ole縲｝ower縺ｪ縺ｩ縺ｯ蜀・Κ蜃ｦ逅・畑縺ｧ縺吶ょ・髢九ユ繧ｭ繧ｹ繝医〒縺ｯ譌･譛ｬ隱槭・蜉ｹ譫懆ｪｬ譏弱↓鄂ｮ縺肴鋤縺医∪縺吶・/span>
-            </div>
+            <div class="term"><b>射程表記</b><span>front1＝手前1マス、side1＝横1マス、all＝全体、pierce＝貫通など。</span></div>
+            <div class="term"><b>ダメージと回復</b><span>HP・SPのどちらに影響するかを確認します。</span></div>
+            <div class="term"><b>状態異常</b><span>効果内容、残りターン、解除条件をカード本文で確認します。</span></div>
+            <div class="term"><b>内部タグ</b><span>attr、role、powerなどは内部処理用の表記です。</span></div>
           </div>
         </div>
-        <div class="callout">
-          陬∝ｮ壹・繧ｫ繝ｼ繝芽ｿｽ蜉縺ｫ蜷医ｏ縺帙※譖ｴ譁ｰ縺励∪縺吶ょ・縺九ｊ縺ｫ縺上＞繝・く繧ｹ繝医・縲・崕蟄千沿縺ｮ螳滄圀縺ｮ繝ｭ繧ｰ縺ｨ縺薙・陬∝ｮ夊｡ｨ繧貞粋繧上○縺ｦ遒ｺ隱阪＠縺ｦ縺上□縺輔＞縲・        </div>
+        <div class="callout">裁定とカード効果は更新される場合があります。気になる点は最新のゲーム内表示も確認してください。</div>
       </div>
     </section>
 
-    <section class="section" id="ruleGuideMount">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">繝ｫ繝ｼ繝ｫ讀懃ｴ｢</h2>
-          <p class="sectionSub">繧ｭ繝ｼ繝ｯ繝ｼ繝峨°繧臥｢ｺ隱阪＠縺溘＞鬆・岼繧呈爾縺帙∪縺吶・/p>
-        </div>
-      </div>
-    </section>
-
+    <section class="section" id="ruleGuideMount"><div class="sectionHeader"><div><h2 class="sectionTitle">ルール検索</h2><p class="sectionSub">キーワードから確認したい項目を探せます。</p></div></div></section>
     <section class="section detailArea hidden" id="detailArea">
-      <div class="sectionHeader">
-        <div>
-          <h2 class="sectionTitle">隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ</h2>
-          <p class="sectionSub">繧ｲ繝ｼ繝荳ｭ縺ｮ蛻､譁ｭ縺ｫ菴ｿ縺・｣懆ｶｳ縺ｧ縺吶・/p>
-        </div>
-      </div>
+      <div class="sectionHeader"><div><h2 class="sectionTitle">詳細ルール</h2><p class="sectionSub">対戦中の判断に使う補足です。</p></div></div>
       <div class="ruleCards">
-        <article class="mini">
-          <h3>繧ｿ繝ｼ繝ｳ縺ｮ豬√ｌ</h3>
-          <p>髢句ｧ句・逅・∝小蝟・遘ｻ蜍・謚/騾ｲ蛹悶√し繝昴・繝井ｽｿ逕ｨ縲√お繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｮ鬆・〒陦後＞縺ｾ縺吶ゅお繝ｳ繝峨ヵ繧ｧ繧､繧ｺ縺ｧ隧ｲ蠖薙・繝ｬ繧､繝､繝ｼ縺ｮ繝槭リ縺・蠅励∴縺ｾ縺吶・/p>
-        </article>
-        <article class="mini">
-          <h3>蠅灘慍</h3>
-          <p>菴ｿ逕ｨ貂医∩繧ｵ繝昴・繝医∫ｴ螢翫＆繧後◆繧ｫ繝ｼ繝峨∵昏縺ｦ縺溘き繝ｼ繝峨′蜈･繧翫∪縺吶ょ｢灘慍繝懊ち繝ｳ縺九ｉ荳ｭ霄ｫ繧堤｢ｺ隱阪〒縺阪∪縺吶・/p>
-        </article>
-        <article class="mini">
-          <h3>迥ｶ諷狗焚蟶ｸ</h3>
-          <p>蜃ｺ陦縲√↓縺翫＞縲∫峇逶ｮ縲∝ｰ∝魂縲・ｪｨ謚倥∵ｯ偵∝､ｱ鬲ゅ√ち繧､繝槭Φ縲∵ｿ諤偵∵ｴ苓┻縲√・繝峨Ο縲√き繧ｦ繝ｳ繧ｿ繝ｼ縲∝屓驕ｿ縲∬｣・抜縲∝多荳ｭ蠅怜刈縲∵判謦・｢怜刈縺ｪ縺ｩ縺後≠繧翫∪縺吶ゅ↓縺翫＞縺ｯ繧ｿ繝ｼ繝ｳ邨ゆｺ・凾縺ｫSP-10縲∵ｯ偵・繧ｿ繝ｼ繝ｳ髢句ｧ区凾縺ｫ50%隗｣髯､/螟ｱ謨励〒HP-10縲∫峇逶ｮ縺ｯ謚謌仙粥邇・濠貂帙・ｪｨ謚倥・遘ｻ蜍穂ｸ榊庄縲ょ､ｱ鬲ゅ・陬懷勧繧貞女縺代★縲√ち繧､繝槭Φ縺ｯ豁｣髱｢縺ｮ謨ｵ縺九ｉ縺励°繝繝｡繝ｼ繧ｸ繧貞女縺代∪縺帙ｓ縲りｩｳ縺励￥縺ｯ迥ｶ諷狗焚蟶ｸ霎槫・縺ｧ遒ｺ隱阪〒縺阪∪縺吶・/p>
-        </article>
-        <article class="mini">
-          <h3>繧ｫ繝ｼ繝牙柑譫・/h3>
-          <p>蝣ｴ縺ｫ蜃ｺ縺滓凾縲∝小蝟壽凾縲・ｲ蛹匁凾縲∬・髯｣/謨ｵ髯｣縺ｫ縺・ｋ譎ゅ∽ｸｭ螟ｮ邱壹ｒ雜翫∴縺滓凾縺ｪ縺ｩ縲∵擅莉ｶ繧呈ｺ縺溘＠縺滓凾縺ｫ逋ｺ蜍輔＠縺ｾ縺吶・/p>
-        </article>
+        <article class="mini"><h3>ターンの流れ</h3><p>ターン開始、召喚、移動、技・進化、サポート使用、ターン終了の順に考えます。ターン開始時にマナが増加・回復します。</p></article>
+        <article class="mini"><h3>墓地</h3><p>使用済みのサポートや撃破されたカード、捨てたカードが入ります。墓地ボタンから内容を確認できます。</p></article>
+        <article class="mini"><h3>状態異常</h3><p>毒、骨折、パニックなどは行動やHP・SPに影響します。各状態の効果と解除条件はカード本文・状態異常ガイドで確認してください。</p></article>
+        <article class="mini"><h3>カード効果</h3><p>場に出たとき、召喚時、進化時、自陣・敵陣にいるときなど、指定の条件で効果が発動します。</p></article>
       </div>
     </section>
-
     <div class="footerNav">
-      <a class="btn primary" href="./tutorial.html">繝√Η繝ｼ繝医Μ繧｢繝ｫ縺ｸ</a>
-      <a class="btn" href="./deck.html">繝・ャ繧ｭ邱ｨ謌舌∈</a>
-      <a class="btn" href="./index.html">蛻晄悄逕ｻ髱｢縺ｸ</a>
+      <a class="btn primary" href="./tutorial.html">チュートリアル</a>
+      <a class="btn" href="./deck.html">デッキ編集へ</a>
+      <a class="btn" href="./index.html">ホームへ</a>
     </div>
   </main>
 
@@ -1136,7 +981,7 @@
       if (detailBtn && detailArea) {
         detailBtn.addEventListener("click", () => {
           const hidden = detailArea.classList.toggle("hidden");
-          detailBtn.textContent = hidden ? "隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧偵・繧峨￥" : "隧ｳ邏ｰ繝ｫ繝ｼ繝ｫ繧帝哩縺倥ｋ";
+          detailBtn.textContent = hidden ? "詳細ルールを開く" : "詳細ルールを閉じる";
           if (!hidden) detailArea.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       }

@@ -33,7 +33,7 @@ assert.doesNotMatch(game, /HIGH MANA EVOLVE/);
 assert.match(game, /const maxTicks = 5/);
 assert.match(css, /infiltrationPulseA/);
 assert.match(css, /uHPWrap/);
-assert.match(gameHtml, /ux_refinement_20261017\.css\?v=20261017_pc_round10/);
+assert.match(gameHtml, /ux_refinement_20261017\.css\?v=20261018_ui_stability11/);
 const mobileTabs = read("public/game_mobile_tabs_20261015.js");
 assert.match(mobileTabs, /orientation: portrait/);
 assert.match(mobileTabs, /focusReturn/);

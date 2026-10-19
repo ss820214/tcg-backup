@@ -3510,6 +3510,10 @@ function updateQuickActions(st) {
   else if (mode === "attack")
     quickMsgEl.textContent = "対象を選んで「行動実行」で確定";
   else quickMsgEl.textContent = "";
+
+  // The duplicate quick command buttons were removed; only show this panel
+  // when there is meaningful selection feedback.
+  quickActionsEl.style.display = quickMsgEl.textContent ? "block" : "none";
 }
 
 // =====================

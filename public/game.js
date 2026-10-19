@@ -26,7 +26,7 @@ import {
   isSupportCard,
   resolveSupportEffect,
   applyExSupport,
-} from "./support_core.js?v=20260904_status_rules1";
+} from "./support_core.js?v=20261019_spatial1";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {

@@ -7617,6 +7617,7 @@ onSnapshot(
               };
               indicator.textContent="CPU: "+(label[stage]||stage)+
                 (info?.kind ? " ("+info.kind+")" : "")+
+                (stage==="no-action" ? " / 手札"+String(info?.hand??"?")+"枚・マナ"+String(info?.mana??"?") : "")+
                 (info?.message ? " / "+info.message : "");
             }
           },

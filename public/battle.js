@@ -173,7 +173,8 @@ function selectedCpuStyle() {
 }
 function updateCpuStylePanel(isReady = false) {
   if (cpuStylePanel) cpuStylePanel.hidden = !isSolo;
-  document.getElementById("aiToggleRow")?.toggleAttribute("hidden", isSolo);
+  const toggleRow = document.getElementById("aiToggleRow");
+  if (toggleRow) toggleRow.style.display = isSolo ? "none" : "";
   for (const input of cpuStyleInputs) input.disabled = isReady;
   if (cpuStyleNote) cpuStyleNote.textContent = isReady
     ? "準備完了：対戦が始まるまで戦術を変更できません。"
@@ -551,8 +552,8 @@ function renderVs(players) {
     return;
   }
 
-  p1NameEl.textContent = p1?.name || "---";
-  p2NameEl.textContent = p2?.name || "（相手待ち）";
+  p1NameEl.textContent = (isSolo && (p1?.id === CPU_ID || p1?.isCpu)) ? "CPU" : (p1?.name || "---");
+  p2NameEl.textContent = (isSolo && (p2?.id === CPU_ID || p2?.isCpu)) ? "CPU" : (p2?.name || "（相手待ち）");
 
   setReadyBadge(p1ReadyEl, !!p1?.ready);
   setReadyBadge(p2ReadyEl, !!p2?.ready);
@@ -873,7 +874,8 @@ onSnapshot(playersRef, async (snap) => {
       else beep(440, 70, 0.03); // 解除音（さらに低め）
 
       // 画面表示だけ更新したいなら statusEl/readyNote を軽く変えるのが良い
-      const name = players.find((x) => x.id === id)?.name || "相手";
+      const p = players.find((x) => x.id === id);
+    const name = (isSolo && (id === CPU_ID || p?.isCpu)) ? "CPU" : (p?.name || "相手");
       statusEl.textContent = nowReady
         ? `${name} が準備OK！`
         : `${name} が準備解除`;

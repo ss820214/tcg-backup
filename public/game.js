@@ -19,7 +19,7 @@ import {
   normalizeYouCard,
 } from "./user_store.js?v=20260723_starter_series1";
 
-import { createCpuDriver } from "./cpu_driver.js?v=20261019_advanced_cpu1";
+import { createCpuDriver } from "./cpu_driver.js?v=20261020_cpu_deck_fix1";
 import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix2";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
@@ -7701,7 +7701,7 @@ onSnapshot(
               };
               indicator.textContent="CPU: "+(label[stage]||stage)+
                 (info?.kind ? " ("+info.kind+")" : "")+
-                (stage==="no-action" ? " / 手札"+String(info?.hand??"?")+"枚・マナ"+String(info?.mana??"?") : "")+
+                (stage==="no-action" ? " / 手札"+String(info?.hand??"?")+"枚・山札"+String(info?.deck??"?")+"枚・マナ"+String(info?.mana??"?") : "")+
                 (info?.message ? " / "+info.message : "");
             }
           },

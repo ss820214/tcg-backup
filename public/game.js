@@ -2,7 +2,7 @@
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261017_mobilemenu1";
+import { createGameUI } from "./game_ui.js?v=20261020_readability_hook1";
 import { createBattleReadability } from "./battle_readability.js?v=20261020a";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
@@ -7232,6 +7232,7 @@ const ui = createGameUI({
   setTurnUI,
   renderLog,
   fxOnHit,
+  onAfterRender: st=>updateBattleReadability(st),
 
   actFlags,
   isSelfRange,
@@ -7382,9 +7383,7 @@ const ui = createGameUI({
   },
 });
 
-// Command selection and Firestore updates both refresh battle hints.
-const originalUiRender=ui.render;
-render=(st)=>{originalUiRender(st);updateBattleReadability(st);};
+render=ui.render;
 
 function showInfiltrationPulse(owner) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;

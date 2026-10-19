@@ -1215,6 +1215,45 @@ async function ensureStateInitialized() {
 }
 await ensureStateInitialized();
 
+// Heal *existing* solo rooms that were previously created with an empty CPU
+// hand AND deck. Never refill a CPU that has already used/drawn its cards.
+async function recoverUnseededCpuDeck() {
+  if (!isSoloMode || !cpuSeat) return false;
+  const player=await getDoc(playerRef(playerId));
+  if(!player.exists()) return false;
+  const fallback=player.data()?.deck;
+  const validity=inspectCpuDeck(fallback,{defs:cardDefs});
+  if(!validity.ok) {
+    console.warn("[cpu deck] cannot recover old room: player's deck invalid",validity.reason);
+    return false;
+  }
+  const allCards=expandCpuDeck(fallback);
+  let recovered=false;
+  await runTransaction(db,async tx=>{
+    const snap=await tx.get(stateRef);
+    if(!snap.exists()) return;
+    const state=snap.data()||{};
+    const hand=Array.isArray(state.hands?.[cpuSeat])?state.hands[cpuSeat]:[];
+    const deck=Array.isArray(state.decks?.[cpuSeat])?state.decks[cpuSeat]:[];
+    const discarded=Array.isArray(state.discards?.[cpuSeat])?state.discards[cpuSeat]:[];
+    const units=Array.isArray(state.units)?state.units:[];
+    if(state.winner || Number(state.turnSeq??1)>8 ||
+       hand.length || deck.length || discarded.length ||
+       units.some(u=>u && u.owner===cpuSeat)) return;
+    const hands={...(state.hands||{}),[cpuSeat]:allCards.slice(0,5)};
+    const decks={...(state.decks||{}),[cpuSeat]:allCards.slice(5)};
+    const log=Array.isArray(state.log)?state.log.slice(-190):[];
+    log.push("[CPU] デッキ読み込みを復旧（30枚）");
+    tx.set(stateRef,{hands,decks,log},{merge:true});
+    recovered=true;
+  });
+  if(recovered) console.info("[cpu deck] recovered missing cards in old solo room",{initialHand:5,remainingDeck:25});
+  return recovered;
+}
+try { await recoverUnseededCpuDeck(); }
+catch(error) {console.warn("[cpu deck] old room recovery skipped",error);}
+
+
 // =====================
 // drawCards のシグネチャ差異を吸収する
 // =====================

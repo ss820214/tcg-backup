@@ -64,6 +64,10 @@ export function createCpuAI(options = {}) {
     const bestAtk = findBestAttack(st, ctx, myUnits, enUnits);
     if (bestAtk) return bestAtk;
 
+    // Summon a unit from hand: an empty CPU board must not cause endless passes.
+    const summonPlan = findBestSummon(st, ctx, myUnits);
+    if (summonPlan) return summonPlan;
+
     // 3) サポート候補（任意：ctx.helpers がある時だけ）
     const bestSup = findBestSupport(st, ctx, myUnits, enUnits);
     if (bestSup) return bestSup;
@@ -74,6 +78,21 @@ export function createCpuAI(options = {}) {
 
     // 5) 何もしない
     return { type: "end" };
+  }
+
+  // ====== Summon ======
+  function findBestSummon(st, ctx, myUnits) {
+    const list = ctx?.helpers?.listLegalSummons?.(st) || [];
+    if (!list.length) return null;
+    // Prefer efficient units and a front-row deployment, without spending mana we lack.
+    const available = list.filter(x => x && x.cardId && Number.isInteger(x.handIndex) && x.to);
+    if (!available.length) return null;
+    available.sort((a,b) => (
+      (Number(b.cost || 0) * 1.5 + Number(b.to.y || 0) * (ctx.mySeat === "B" ? 1 : -1)) -
+      (Number(a.cost || 0) * 1.5 + Number(a.to.y || 0) * (ctx.mySeat === "B" ? 1 : -1))
+    ));
+    const chosen = available[0];
+    return { type: "summon", cardId: chosen.cardId, handIndex: chosen.handIndex, to: chosen.to };
   }
 
   // ====== Attack ======

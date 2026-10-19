@@ -1,0 +1,52 @@
+/* Enemy hand is a visual indicator, not an interactive hand or a card reveal.
+   Mount within #centerPane so the board still owns its normal layout. */
+#centerPane{position:relative}
+#enemyHandOverlay{
+ position:absolute;z-index:14;top:12px;left:50%;transform:translateX(-50%);
+ width:min(92%,550px);pointer-events:none;
+ display:flex;flex-direction:column;gap:5px;align-items:center;justify-content:center;
+ opacity:.78;filter:drop-shadow(0 2px 5px #0008);
+ user-select:none;-webkit-user-select:none;
+}
+#enemyHandOverlay[hidden]{display:none!important}
+#enemyHandOverlay.enemyHandLeaving{opacity:.25;transition:opacity .32s}
+.enemyHandCaption{
+ color:#d9eeee;letter-spacing:.045em;font-size:10px;line-height:1.4;
+ padding:2px 8px;border-radius:9px;background:rgba(8,20,30,.54);
+}
+.enemyHandCards{
+ display:flex;align-items:center;justify-content:center;gap:clamp(0px,.5vw,4px);
+ width:100%;max-width:100%;padding:1px 10px;min-height:39px;overflow:visible;
+}
+.enemyHandBack{
+ position:relative;flex:0 1 25px;width:25px;min-width:10px;max-width:25px;
+ height:36px;border-radius:3px;
+ border:1px solid rgba(207,241,240,.65);
+ background:linear-gradient(150deg,rgba(85,124,157,.84),rgba(33,54,81,.82));
+ box-shadow:0 1px 4px rgba(0,0,0,.4),inset 0 0 0 2px rgba(14,25,49,.7);
+ transform:rotate(var(--enemy-tilt,0deg));
+}
+.enemyHandBack:nth-child(4n+1){--enemy-tilt:-4deg}
+.enemyHandBack:nth-child(4n+2){--enemy-tilt:2deg}
+.enemyHandBack:nth-child(4n+3){--enemy-tilt:-1deg}
+.enemyHandBack::before{
+ content:"";position:absolute;inset:5px 4px;border:1px solid rgba(195,220,232,.55);
+ border-radius:2px;background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(212,234,239,.08) 3px 5px);
+}
+.enemyHandCards.enemyHandCompact{gap:0}
+.enemyHandCards.enemyHandCompact .enemyHandBack{min-width:6px;flex-basis:18px}
+.enemyHandBackDrawn{animation:enemyHandDraw .3s ease-out both}
+.enemyHandBackPlayed{position:relative;animation:enemyHandPlay .32s ease-in both;pointer-events:none}
+@keyframes enemyHandDraw{from{opacity:0;transform:translateY(-28px) scale(.7)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes enemyHandPlay{to{opacity:0;transform:translateY(36px) scale(.62)}}
+@media(max-width:760px){
+ #enemyHandOverlay{top:5px;width:96%;opacity:.65}
+ .enemyHandCaption{font-size:9px;padding:0 5px}
+ .enemyHandCards{min-height:29px;padding:0 5px}
+ .enemyHandBack{flex-basis:18px;width:18px;max-width:18px;height:26px;border-radius:2px}
+ .enemyHandBack::before{inset:3px}
+}
+@media(prefers-reduced-motion:reduce){
+ .enemyHandBackDrawn,.enemyHandBackPlayed{animation-duration:.01ms}
+ #enemyHandOverlay.enemyHandLeaving{transition:none}
+}

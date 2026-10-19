@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import {validSpatialMove,validSpatialSwap,spatialEffect} from "../public/support_spatial_rules.js";
+const island={effect:{type:"moveTo",maxDist:2}};
+const dispatch={effect:{type:"swapPos",maxDist:3}};
+const lottery={effect:{table:[{effect:{type:"swapPos",maxDist:2}}]}};
+const u={id:"u",x:2,y:2,hp:40};
+const v={id:"v",x:4,y:3,hp:40};
+const move=(to,units=[u])=>validSpatialMove({from:u,to,effect:spatialEffect(island,"moveTo"),units,W:5,H:7});
+assert.equal(move({x:4,y:2}),true,"island accepts exactly two steps");
+assert.equal(move({x:4,y:3}),false,"island rejects three steps");
+assert.equal(move({x:2,y:2}),false,"cannot move to same cell");
+assert.equal(move({x:3,y:2},[u,{id:"block",x:3,y:2,hp:30}]),false,"cannot overlap units");
+assert.equal(move({x:5,y:2}),false,"cannot move off board");
+assert.equal(validSpatialSwap({first:u,second:v,effect:spatialEffect(dispatch,"swapPos")}),true,"dispatch within three");
+assert.equal(validSpatialSwap({first:u,second:v,effect:spatialEffect(lottery,"swapPos")}),false,"lottery swap beyond two");
+assert.equal(validSpatialSwap({first:u,second:u,effect:spatialEffect(dispatch,"swapPos")}),false,"cannot swap with self");
+assert.equal(validSpatialSwap({first:u,second:{...v,hp:0},effect:spatialEffect(dispatch,"swapPos")}),false,"dead targets rejected");
+console.log("Spatial support rules: moveTo and swapPos pass.");

@@ -6508,6 +6508,93 @@ function listCpuLegalAttacks(st, u) {
   return out;
 }
 
+// CPU uses the same summon rules and unit record format as the player.
+// Candidate generation is side-effect-free; validation is repeated in Firestore.
+function listCpuLegalSummons(st) {
+  const actor = cpuSeat;
+  if (!st || !actor || normSeat(st.turn) !== actor || st.winner) return [];
+  if (countMyAliveUnits(st.units || [], actor) >= MAX_UNITS_PER_PLAYER) return [];
+  const hand = Array.isArray(st.hands?.[actor]) ? st.hands[actor] : [];
+  const available = Number(normalizeMana(st.mana)?.[actor]?.cur ?? 0);
+  const cells = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (inSummonAreaForSeat(x, y, actor) && !unitAt(st, x, y)) cells.push({ x, y });
+  }
+  if (!cells.length) return [];
+  const plans = [];
+  hand.forEach((cardId, handIndex) => {
+    const def = cardDefs?.[cardId];
+    if (!def || isSupportCard(def) || isHandCardLocked(st, handIndex, actor)) return;
+    const cost = Math.max(0, Math.trunc(Number(def.cost ?? 0)));
+    if (cost > available) return;
+    // Forward summon row first; center of the board preferred.
+    const positions = [...cells].sort((a,b) =>
+      (actor === "B" ? b.y - a.y : a.y - b.y) ||
+      Math.abs(a.x - Math.floor(W/2)) - Math.abs(b.x - Math.floor(W/2))
+    );
+    plans.push({ cardId, handIndex, cost, to: positions[0] });
+  });
+  return plans;
+}
+
+function listCpuLegalMoves(st, u) {
+  if (!u || Number(u.hp) <= 0 || isPanic(u) ||
+      isMoveBlockedByStatus(u) || moveUsedThisTurn(u, st) >= 2 ||
+      Number(normalizeMana(st.mana)?.[cpuSeat]?.cur ?? 0) < 1) return [];
+  const moves=[];
+  for (const [dx,dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+    const x=u.x+dx, y=u.y+dy;
+    if(x>=0 && x<W && y>=0 && y<H && !unitAt(st,x,y)) moves.push({to:{x,y}});
+  }
+  return moves;
+}
+
+async function executeCpuSummon(actorSeat, plan) {
+  const actor=normSeat(actorSeat);
+  if (!actor || !plan?.to) return false;
+  let succeeded=false;
+  await runTransaction(db, async tx => {
+    const snap=await tx.get(stateRef);
+    if (!snap.exists()) return;
+    const s=snap.data() || {};
+    if (normSeat(s.turn)!==actor || s.winner) return;
+    s.units=Array.isArray(s.units)?s.units:[];
+    if(countMyAliveUnits(s.units,actor)>=MAX_UNITS_PER_PLAYER) return;
+    const x=Math.trunc(Number(plan.to.x)),y=Math.trunc(Number(plan.to.y));
+    if(!Number.isFinite(x)||!Number.isFinite(y)||
+       x<0||x>=W||y<0||y>=H||
+       !inSummonAreaForSeat(x,y,actor)||unitAt(s,x,y)) return;
+    s.hands=s.hands||{A:[],B:[]};
+    const hand=Array.isArray(s.hands[actor])?s.hands[actor]:[];
+    const idx=plan.handIndex;
+    if(!Number.isInteger(idx)||idx<0||idx>=hand.length||
+       hand[idx]!==plan.cardId||isHandCardLocked(s,idx,actor)) return;
+    const cd=cardDefs?.[plan.cardId];
+    if(!cd||isSupportCard(cd)) return;
+    const cost=Math.max(0,Math.trunc(Number(cd.cost??0)));
+    if(Number(normalizeMana(s.mana)?.[actor]?.cur??0)<cost) return;
+    s.mana=spendManaMut(s.mana,actor,cost);
+    const hp=round10(cd.hp??0),sp=round10(cd.sp??0);
+    const unit={
+      id:uid(),cardId:plan.cardId,owner:actor,x,y,
+      hp:Math.trunc(hp/10)*10,sp:Math.trunc(sp/10)*10,
+      maxHp:hp,maxSp:sp,fatigue:false,
+      moveTurnSeq:Number(s.turnSeq??1),moveUsed:0,
+      status:{},statuses:{},panic:false,countedAsKill:false,panicKillSeat:null
+    };
+    s.units.push(unit);
+    hand.splice(idx,1);
+    s.hands[actor]=hand;
+    logPush(s,"["+actor+"] CPU 召喚："+cardName(plan.cardId)+" ("+x+","+y+")");
+    fireCardEffects(s,"onSummon",unit);
+    fireCardEffects(s,"onEnter",unit);
+    s.lastSummon={at:nowMs(),owner:actor,cardId:plan.cardId};
+    tx.set(stateRef,s,{merge:true});
+    succeeded=true;
+  });
+  return succeeded;
+}
+
 async function executeCpuMove(actorSeat, unitId, toSnap) {
   const actor = normSeat(actorSeat);
   if (!actor || !unitId || !toSnap) return false;
@@ -6931,27 +7018,11 @@ function updateEvolveConfirmBtn(st) {
 
 async function execCpuPlan(plan) {
   const actor = cpuSeat || (seat === "A" ? "B" : "A");
-
-  if (!plan || plan.type === "end") {
-    return finishCpuTurn();
-  }
-
-  if (plan.type === "move") {
-    await executeCpuMove(actor, plan.unitId, plan.to);
-    return finishCpuTurn();
-  }
-
-  if (plan.type === "attack") {
-    await executeCpuAttack(actor, plan.attackerId, plan.actionIndex, plan.targetId);
-    return finishCpuTurn();
-  }
-
-  if (plan.type === "support") {
-    await executeSupport(plan);
-    return finishCpuTurn();
-  }
-
-  return finishCpuTurn();
+  if (!plan || plan.type === "end") return false;
+  if (plan.type === "summon") return executeCpuSummon(actor, plan);
+  if (plan.type === "move") return executeCpuMove(actor, plan.unitId, plan.to);
+  if (plan.type === "attack") return executeCpuAttack(actor, plan.attackerId, plan.actionIndex, plan.targetId);
+  return false;
 }
 
 // =====================
@@ -7368,10 +7439,19 @@ onSnapshot(
     // CPUはソロモードのみ動かす。
     try {
       if (cpuDriver && cpuSeat && isSoloMode) {
-        cpuDriver.tick(st, {
+        void cpuDriver.tick(st, {
           cpuSeat,
           execCpuPlan,
-          helpers: { listLegalAttacks: listCpuLegalAttacks },
+          readState: async () => {
+            const snap = await getDoc(stateRef);
+            return snap.exists() ? snap.data() : null;
+          },
+          finishTurn: finishCpuTurn,
+          helpers: {
+            listLegalAttacks: listCpuLegalAttacks,
+            listLegalMoves: listCpuLegalMoves,
+            listLegalSummons: listCpuLegalSummons,
+          },
         });
       }
     } catch (e) {

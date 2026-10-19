@@ -961,6 +961,20 @@ readyBtn.onclick = async () => {
   const me = await getDoc(myRef);
   if (!me.exists()) return;
 
+  // Persist the selected strategy before READY triggers match creation.
+  if (isSolo && !me.data()?.ready) {
+    try {
+      await setDoc(cpuRef, {
+        cpuStyle: selectedCpuStyle(),
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    } catch (error) {
+      console.warn("[cpu style] could not save before ready", error);
+      if (readyNote) readyNote.textContent = "CPU戦術を保存できませんでした。再試行してください。";
+      return;
+    }
+  }
+
   await setDoc(
     myRef,
     { ready: !me.data().ready, updatedAt: serverTimestamp() },

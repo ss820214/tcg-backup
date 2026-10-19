@@ -3,7 +3,7 @@
 // ...
 
 import { createGameUI } from "./game_ui.js?v=20261020_readability_hook1";
-import { createBattleReadability } from "./battle_readability.js?v=20261020a";
+import { createBattleReadability } from "./battle_readability.js?v=20261020b";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";

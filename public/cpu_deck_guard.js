@@ -59,7 +59,13 @@ export function chooseCpuDeck(publicDecks, fallbackDeck, defs = null, rng = Math
   if (acceptable.length) {
     const i = Math.min(acceptable.length - 1, Math.max(0, Math.floor(rng() * acceptable.length)));
     const chosen = acceptable[i];
-    return { deck: { ...chosen.deck }, source: "public", title: String(chosen.title || "公開デッキ") };
+    return {
+      deck: { ...chosen.deck },
+      source: "public",
+      title: String(chosen.title || "公開デッキ").slice(0,32),
+      exSupport: String(chosen.exSupport || ""),
+      desiredField: String(chosen.desiredField || ""),
+    };
   }
   const report = inspectCpuDeck(fallbackDeck, { defs });
   if (report.ok) return { deck: { ...fallbackDeck }, source: "fallback", title: "CPU" };

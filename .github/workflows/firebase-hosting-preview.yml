@@ -41,6 +41,7 @@ jobs:
           node tools/cpu_styles_regression_20261019.mjs
           node --check public/cpu_tactics.js
           node tools/cpu_advanced_regression_20261019.mjs
+          node tools/cpu_evolve_integration_regression_20261019.mjs
 
       - name: Publish isolated preview channel
         id: hosting

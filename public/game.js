@@ -358,7 +358,7 @@ function ensureSettingsButton() {
 const params = new URLSearchParams(location.search);
 const roomId = params.get("room");
 const playerId = params.get("player");
-const isSoloMode = params.get("solo") === "1" || params.get("mode") === "solo";
+let isSoloMode = params.get("solo") === "1" || params.get("mode") === "solo";
 const fieldIdFromUrl = normalizeFieldId(params.get("field") || "grass");
 console.log("[field param]", params.get("field"), "=>", fieldIdFromUrl);
 
@@ -808,6 +808,8 @@ async function resolveSeat() {
     throw new Error("match missing");
   }
   const m = ms.data();
+  // Match metadata is authoritative. Intermediate transitions may lose URL flags.
+  if (m.seatA === "cpu" || m.seatB === "cpu") isSoloMode = true;
   if (isSoloMode && ["aggressive","balanced","defensive","infiltration"].includes(m.cpuStyle)) {
     cpuTacticalStyle = m.cpuStyle;
   }

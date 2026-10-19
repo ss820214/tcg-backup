@@ -213,6 +213,15 @@ function deckProfileFromPlayerData(p = {}) {
 function renderDeckProfile(slot, data) {
   const el = $(`deckProfile${slot}`);
   if (!el) return;
+  if (isSolo && data?.isCpu) {
+    const meta = el.querySelector(".matchDeckMeta");
+    const rail = el.querySelector(".matchAttrRail");
+    const featured = el.querySelector(".matchFeaturedCards");
+    if (meta) meta.textContent = "デッキ：？？？";
+    if (rail) rail.innerHTML = '<span class="matchAttrDot">？？？</span>';
+    if (featured) featured.innerHTML = '<span class="matchFeaturedEmpty">カード情報は対戦開始まで非公開</span>';
+    return;
+  }
   const profile = deckProfileFromPlayerData(data || {});
   const meta = el.querySelector(".matchDeckMeta");
   const rail = el.querySelector(".matchAttrRail");
@@ -476,10 +485,10 @@ async function resolveSeatAndNames(){
   const playerA = await loadPlayer(seatAPlayerId);
   const playerB = await loadPlayer(seatBPlayerId);
 
-  if ($("nameA")) $("nameA").textContent = playerA.name || "---";
-  if ($("nameB")) $("nameB").textContent = playerB.name || "---";
-  renderDeckProfile("A", playerA.data);
-  renderDeckProfile("B", playerB.data);
+  if ($("nameA")) $("nameA").textContent = isSolo && (seatAPlayerId === "cpu" || playerA.data?.isCpu) ? "CPU" : (playerA.name || "---");
+  if ($("nameB")) $("nameB").textContent = isSolo && (seatBPlayerId === "cpu" || playerB.data?.isCpu) ? "CPU" : (playerB.name || "---");
+  renderDeckProfile("A", isSolo && seatAPlayerId === "cpu" ? {...playerA.data, isCpu:true} : playerA.data);
+  renderDeckProfile("B", isSolo && seatBPlayerId === "cpu" ? {...playerB.data, isCpu:true} : playerB.data);
 
   if (seat === "A") $("youA")?.classList.add("on");
   if (seat === "B") $("youB")?.classList.add("on");

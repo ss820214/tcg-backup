@@ -25,6 +25,7 @@
  <div class="paneTitle">操作</div><div class="controls">
  <button id="modeSummon" type="button">召喚</button><button id="modeMove" type="button">移動</button><button id="modeAttack" type="button">攻撃</button><button id="modeEvolve" type="button">進化</button><button id="modeSupport" type="button">サポート</button><button id="doEvolve" type="button" style="display:none">進化実行</button><button id="endTurn" type="button">ターン終了</button></div>
  <div id="quickActions" class="quickActions" style="display:none"><span id="quickMsg" class="small" role="status"></span></div>
+ <div id="cpuTurnDiagnostic" class="small" role="status" aria-live="polite" style="font-size:11px;color:#91c7bd;margin:4px 0 8px;overflow-wrap:anywhere"></div>
  <div id="exWrap" class="kv" style="margin-top:10px"><div class="row" style="justify-content:space-between;align-items:center"><b>EX</b><button id="exBtn" type="button">EX発動</button></div><div id="exInfo" class="small" style="margin-top:6px">EXなし</div><div class="small">ピンチ時のみ・1回限り</div></div>
 </aside>
 <main id="centerPane" aria-label="battle-board"><div id="board"></div></main>
@@ -33,7 +34,7 @@
 <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
 <script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
 <script defer src="./game_mobile_tabs_20261015.js?v=20261018_focus_portrait3"></script>
-<script type="module" src="./game.js?v=20261019_support_spatial1"></script>
+<script type="module" src="./game.js?v=20261020_cpu_diagnostics1"></script>
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
       #joinGameBtn,

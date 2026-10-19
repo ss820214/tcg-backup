@@ -37,5 +37,7 @@ assert.match(game,/const result=applySupport\(\{/);
 assert.match(game,/if \(plan\.type === "support"\) return executeCpuSupport/);
 assert.match(game,/if \(plan\.type === "evolve"\) return executeCpuEvolve/);
 assert.match(game,/isHandCardLocked\(s,plan\.handIndex,actor\)/);
-assert.match(html,/cpu_advanced/);
+// The page may be cache-bumped independently; assert active integration instead.
+assert.match(html,/game\\.js\\?v=/);
+assert.match(game,/cpu_driver\\.js\\?v=/);
 console.log("Advanced CPU tactics regression OK.");

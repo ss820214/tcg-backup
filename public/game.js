@@ -20,7 +20,7 @@ import {
 } from "./user_store.js?v=20260723_starter_series1";
 
 import { createCpuDriver } from "./cpu_driver.js?v=20261020_cpu_deck_fix1";
-import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix2";
+import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix3";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -1103,9 +1103,14 @@ async function ensureStateInitialized() {
         const humanDeck=humanSnap.exists()?humanSnap.data()?.deck:null;
         const cpuReport=inspectCpuDeck(cpuDeck,{defs:cardDefs});
         const humanReport=inspectCpuDeck(humanDeck,{defs:cardDefs});
-        if (cpuReport.ok || humanReport.ok) {
+        const currentPile=Array.isArray(s.decks?.[cpuSeat]) ? s.decks[cpuSeat] : [];
+        const keepPile=currentPile.length>0 && currentPile.length<=30 &&
+          currentPile.every(id=>typeof id==="string" && !!cardDefs?.[id]);
+        if (cpuReport.ok || humanReport.ok || keepPile) {
           const savedDeck=cpuReport.ok ? cpuDeck : humanDeck;
-          const shuffled=expandCpuDeck(savedDeck);
+          // If the draw pile already contains valid cards, preserve it.
+          // Otherwise rebuild exactly 30 from the validated saved deck.
+          const shuffled=keepPile ? [...currentPile] : expandCpuDeck(savedDeck);
           const hand=[];
           for(let i=0;i<5&&shuffled.length;i++) hand.push(shuffled.pop());
           s.hands=s.hands||{A:[],B:[]};
@@ -1119,10 +1124,10 @@ async function ensureStateInitialized() {
             hands:s.hands,decks:s.decks,log:s.log,
             cpuDeckRecovered:true,cpuDeckRecoveryAtSeq:Number(s.turnSeq??1)
           },{merge:true});
-          if(!cpuReport.ok)
+          if(!keepPile && !cpuReport.ok && humanReport.ok)
             tx.set(playerRef(cpuId),{deck:{...humanDeck},deckSource:"fallbackRepair"},{merge:true});
           console.warn("[cpu deck] restored missing opening hand",{
-            cpuSeat,source:cpuReport.ok?"cpu":"fallback",count:hand.length,remaining:shuffled.length
+            cpuSeat,source:keepPile?"existing-pile":cpuReport.ok?"cpu":"fallback",count:hand.length,remaining:shuffled.length
           });
         } else {
           console.warn("[cpu deck] could not repair empty CPU state",{

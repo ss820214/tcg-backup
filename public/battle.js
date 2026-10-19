@@ -358,11 +358,9 @@ async function ensureCpuPlayerDocFromPublicDeck() {
     deck:chosen.deck,
     deckTitle:chosen.title,
     deckSource:chosen.source,
-    exSupport:chosen.source==="public" ?
-      (candidates.find(p=>p.title===chosen.title&&p.deck&&
-        JSON.stringify(p.deck)===JSON.stringify(chosen.deck))?.exSupport||"") :
-      (me.exSupport||""),
-    desiredField:me.desiredField||myDesiredField(),
+    exSupport:chosen.source==="public" ? chosen.exSupport : (me.exSupport||""),
+    desiredField:chosen.source==="public" && chosen.desiredField
+      ? normalizeFieldId(chosen.desiredField) : (me.desiredField||myDesiredField()),
     cpuStyle:selectedCpuStyle(),
     updatedAt:serverTimestamp(),
   };

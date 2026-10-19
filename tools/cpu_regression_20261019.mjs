@@ -8,7 +8,11 @@ const driverSource = fs.readFileSync("public/cpu_driver.js", "utf8");
 const gameSource = fs.readFileSync("public/game.js", "utf8");
 const battleHtml = fs.readFileSync("public/game.html", "utf8");
 const createCpuAI = vm.runInNewContext(aiSource.replace("export function createCpuAI","function createCpuAI")+"\ncreateCpuAI");
-const createCpuDriver = vm.runInNewContext(driverSource.replace(/^import .*$/gm,"").replace("export function createCpuDriver","function createCpuDriver")+"\ncreateCpuDriver",{createCpuAI,console});
+const tacticsSource = fs.readFileSync("public/cpu_tactics.js", "utf8");
+const pickAdvancedCpuPlan = vm.runInNewContext(
+ tacticsSource.replace("export function pickAdvancedCpuPlan","function pickAdvancedCpuPlan")+"\npickAdvancedCpuPlan"
+);
+const createCpuDriver = vm.runInNewContext(driverSource.replace(/^import .*$/gm,"").replace("export function createCpuDriver","function createCpuDriver")+"\ncreateCpuDriver",{createCpuAI,pickAdvancedCpuPlan,console});
 const definitions={unit1:{cost:2,actions:[{name:"attack",damage:10,success:100}]}};
 const state={turn:"B",turnSeq:1,winner:null,hands:{A:[],B:["unit1"]},mana:{A:{cur:2},B:{cur:3}},units:[{id:"enemy",owner:"A",cardId:"enemy",hp:40,x:2,y:4}]};
 const actions=[];

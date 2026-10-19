@@ -1,5 +1,5 @@
 // public/cpu_driver.js
-import { createCpuAI } from "./cpu_ai.js?v=20260626_deckui_ai2";
+import { createCpuAI } from "./cpu_ai.js?v=20261019_solo_summon1";
 
 export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
   const aiBySeat = {};
@@ -70,6 +70,7 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
             listLegalMoves: ctx?.helpers?.listLegalMoves || listLegalMoves,
             listLegalAttacks: ctx?.helpers?.listLegalAttacks || listLegalAttacksFallback,
             listLegalSummons: ctx?.helpers?.listLegalSummons || (() => []),
+            goalProgress: ctx?.helpers?.goalProgress,
           },
         });
         if (!plan || plan.type === "end") break;

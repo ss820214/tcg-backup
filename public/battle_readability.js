@@ -37,7 +37,7 @@ export function latestEnemyAction(previous,current,seat) {
       const line=String(additions[i]||"");
       if(!line.startsWith("["+enemy+"]"))continue;
       if(/(?:サポート|Support|EX|進化|召喚|move|移動|attack|攻撃)/i.test(line)){
-        return {kind:"log",label:line.replace(/^\\[[AB]\\]\\s*/,"").slice(0,58),cardId:null};
+        return {kind:"log",label:line.replace(/^\[[AB]\]\s*/,"").slice(0,58),cardId:null};
       }
     }
   }

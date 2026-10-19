@@ -52,6 +52,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 import { renderDeckRadar } from "./deck_radar.js?v=20260914_radar_readable1";
+import { inspectCpuDeck, chooseCpuDeck } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix1";
 import { grantGems } from "./user_store.js?v=20260730_user_support30";
 
 // =====================
@@ -192,6 +193,7 @@ if (isSolo) {
 updateCpuStylePanel(false);
 
 let cpuBooted = false;
+let cpuBootPromise = null;
 
 // =====================
 // Firestore refs
@@ -321,98 +323,68 @@ function goToMatchIntro() {
 // =====================
 // Helpers
 // =====================
-async function ensureCpuPlayerDocFromMe() {
-  const meSnap = await getDoc(myRef);
-  if (!meSnap.exists()) return;
-  const me = meSnap.data() || {};
-
-  const cpuSnap = await getDoc(cpuRef);
-  const patch = {
-    name: "CPU",
-    ready: true,
-    isCpu: true,
-    deck: safeObj(me.deck),
-    exSupport: me.exSupport || "",
-    desiredField: me.desiredField || myDesiredField(),
-    cpuStyle: selectedCpuStyle(),
-    updatedAt: serverTimestamp(),
-    joinedAt: serverTimestamp(),
-  };
-
-  if (!cpuSnap.exists()) {
-    await setDoc(cpuRef, patch, { merge: true });
-  } else {
-    await setDoc(cpuRef, patch, { merge: true });
-  }
-}
-
-async function loadRandomPublicDeck() {
-  const decksCol = collection(db, "decks");
-
-  const q1 = query(
-    decksCol,
+// Public decks may include old empty records: validate before ever overwriting
+// the initial CPU deck that deck.js created.
+async function loadPublicDeckCandidates() {
+  const snap = await getDocs(query(
+    collection(db, "decks"),
     where("visibility", "==", "public"),
     limit(100),
-  );
-
-  const snap = await getDocs(q1);
-  const items = [];
-
-  snap.forEach((d) => {
-    const v = d.data() || {};
-    if (v.deck && typeof v.deck === "object" && !Array.isArray(v.deck)) {
-      items.push({
-        id: d.id,
-        ...v,
-      });
-    }
+  ));
+  const items=[];
+  snap.forEach(d=>{
+    const record=d.data()||{};
+    if(record.deck && typeof record.deck==="object" && !Array.isArray(record.deck))
+      items.push({id:d.id,...record});
   });
-
-  if (!items.length) return null;
-  return items[Math.floor(Math.random() * items.length)] || null;
+  return items;
 }
 
-async function ensureCpuPlayerDocFromPublicDeck({ db, cpuRef }) {
-  const picked = await loadRandomPublicDeck();
-
-  // 公開デッキが1件も無い時だけ、自分のデッキコピーにフォールバック
-  if (!picked) {
-    await ensureCpuPlayerDocFromMe();
-    return;
+async function ensureCpuPlayerDocFromPublicDeck() {
+  const meSnap=await getDoc(myRef);
+  if(!meSnap.exists()) throw new Error("自分のデッキ情報が見つかりません");
+  const me=meSnap.data()||{};
+  const fallback=safeObj(me.deck);
+  let candidates=[];
+  try {candidates=await loadPublicDeckCandidates();}
+  catch(error){
+    console.warn("[cpu deck] public list unavailable; using own deck",error);
   }
-
-  const patch = {
-    name: picked?.title
-      ? `CPU:${picked.title}${picked?.ownerName ? ` (${picked.ownerName})` : ""}`
-      : "CPU",
-    ready: true,
-    isCpu: true,
-    deck: safeObj(picked?.deck),
-    exSupport: picked?.exSupport || "",
-    desiredField: picked?.desiredField || myDesiredField(),
-    cpuStyle: selectedCpuStyle(),
-    updatedAt: serverTimestamp(),
-    joinedAt: serverTimestamp(),
+  const chosen=chooseCpuDeck(candidates,fallback,cardDefs);
+  const patch={
+    name:chosen.source==="public" ? "CPU:"+chosen.title : "CPU",
+    ready:true,
+    isCpu:true,
+    deck:chosen.deck,
+    deckTitle:chosen.title,
+    deckSource:chosen.source,
+    exSupport:chosen.source==="public" ?
+      (candidates.find(p=>p.title===chosen.title&&p.deck&&
+        JSON.stringify(p.deck)===JSON.stringify(chosen.deck))?.exSupport||"") :
+      (me.exSupport||""),
+    desiredField:me.desiredField||myDesiredField(),
+    cpuStyle:selectedCpuStyle(),
+    updatedAt:serverTimestamp(),
   };
-
-  await setDoc(cpuRef, patch, { merge: true });
+  await setDoc(cpuRef,patch,{merge:true});
+  console.info("[cpu deck] prepared",{source:chosen.source,cards:inspectCpuDeck(chosen.deck).total});
+  return chosen;
 }
 
 async function bootCpuIfEnabled() {
-  // ソロ以外は何もしない
-  if (!isSolo) return;
-  // UIが無い/未チェックなら何もしない（=従来通り人待ち）
-  if (!aiToggle || !aiToggle.checked) return;
-
-  if (cpuBooted) return;
-  cpuBooted = true;
-
-  try {
-    await ensureCpuPlayerDocFromPublicDeck({ db, cpuRef });
-  } catch (e) {
-    cpuBooted = false;
-    console.warn("[cpu] boot failed", e);
-  }
+  if(!isSolo || !aiToggle?.checked) return;
+  if(cpuBooted) return;
+  if(cpuBootPromise) return cpuBootPromise;
+  cpuBootPromise=ensureCpuPlayerDocFromPublicDeck().then(result=>{
+    cpuBooted=true;
+    return result;
+  }).catch(error=>{
+    cpuBooted=false;
+    console.warn("[cpu deck] preparation failed",error);
+    if(readyNote) readyNote.textContent="CPUデッキ準備エラー："+(error?.message||error);
+    throw error;
+  }).finally(()=>{cpuBootPromise=null;});
+  return cpuBootPromise;
 }
 
 function safeObj(o) {

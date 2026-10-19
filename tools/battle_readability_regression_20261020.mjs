@@ -16,6 +16,7 @@ const previous={units:st.units,lastMove:{at:1,owner:"B"}};
 const current={units:st.units,lastMove:{at:2,owner:"B",from:{x:2,y:4},to:{x:2,y:3}}};
 assert.equal(battle.latestEnemyAction(previous,current,"A").label,"移動");
 assert.equal(battle.latestEnemyAction(previous,{...current,lastMove:{...current.lastMove,owner:"A"}},"A"),null);
+assert.equal(battle.latestEnemyAction({log:["start"]},{log:["start","[B] サポート成功：回復 (-2)"]},"A").label,"サポート成功：回復 (-2)");
 const report=results.summarizeBattle({log:[
  "[A] 召喚：カードA (1,5)",
  "[B] CPU 召喚：カードB (2,1)",

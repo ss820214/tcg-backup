@@ -26,8 +26,22 @@ export function latestEnemyAction(previous,current,seat) {
       changes.push({kind:field,label,at:Number(cur.at),cardId:cur.cardId||null,from:cur.from||null,to:cur.to||null});
     }
   }
-  // Prefer event metadata to log text; never display hidden cards from hand.
-  return changes.sort((a,b)=>b.at-a.at)[0]||null;
+  // Events are first choice. Some historical support/evolution effects have
+  // no owner field; in those cases use only *new* already-public battle log lines.
+  if (changes.length) return changes.sort((a,b)=>b.at-a.at)[0];
+  const before=Array.isArray(previous.log)?previous.log:[];
+  const after=Array.isArray(current.log)?current.log:[];
+  if(after.length>before.length){
+    const additions=after.slice(before.length);
+    for(let i=additions.length-1;i>=0;i--){
+      const line=String(additions[i]||"");
+      if(!line.startsWith("["+enemy+"]"))continue;
+      if(/(?:サポート|Support|EX|進化|召喚|move|移動|attack|攻撃)/i.test(line)){
+        return {kind:"log",label:line.replace(/^\\[[AB]\\]\\s*/,"").slice(0,58),cardId:null};
+      }
+    }
+  }
+  return null;
 }
 export function createBattleReadability({board,notice,seat,getCardName,toView}) {
   let previous=null;

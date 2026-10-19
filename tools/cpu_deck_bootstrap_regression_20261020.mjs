@@ -55,7 +55,7 @@ assert.match(lobby,/cpuBootPromise=ensureCpuPlayerDocFromPublicDeck\(\)/);
 assert.match(game,/inspectCpuDeck\(cpuDeck,\{defs:cardDefs\}\)/);
 assert.match(game,/needsCpuOpeningRepair\(s,cpuSeat\)/);
 assert.match(game,/s\.cpuDeckRecovered=true/);
-assert.match(game,/const shuffled=expandCpuDeck\(savedDeck\)/);
+assert.match(game,/const shuffled=keepPile \? \[\.\.\.currentPile\] : expandCpuDeck\(savedDeck\)/);
 assert.match(game,/ret = fn\(s\.decks,s\.hands,who,cnt\)/);
 
 // Verify real turn-start drawCards signature and the adapter together.

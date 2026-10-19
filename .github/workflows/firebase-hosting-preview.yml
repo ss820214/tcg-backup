@@ -39,6 +39,9 @@ jobs:
           node --check public/cpu_driver.js
           node tools/cpu_regression_20261019.mjs
           node tools/cpu_live_reliability_20261020.mjs
+          node --check public/cpu_deck_guard.js
+          node --check public/battle.js
+          node tools/cpu_deck_bootstrap_regression_20261020.mjs
           node --check public/battle.js
           node --check public/cpu_deck_guard.js
           node tools/cpu_deck_recovery_regression_20261020.mjs

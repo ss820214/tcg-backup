@@ -47,34 +47,41 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
   }
 
   async function tick(st, ctx) {
-    if (!st || busy) return;
-    if (st.winner) return;
-
+    if (!st || busy || st.winner) return;
     const cpuSeat = ctx?.cpuSeat ?? "B";
     if (st.turn !== cpuSeat) return;
-
-    // 同じturnSeqで多重実行しない
-    if (lastTurnSeq === st.turnSeq) return;
-    lastTurnSeq = st.turnSeq;
-
+    const seq = Number(st.turnSeq ?? 1);
+    if (lastTurnSeq === seq) return;
+    lastTurnSeq = seq;
     busy = true;
     try {
-      // CPU思考
-      const plan = getAi(cpuSeat).pickAction(st, {
-        mySeat: cpuSeat,
-        enemySeat: cpuSeat === "A" ? "B" : "A",
-        helpers: {
-          getUnitById: (id) => getUnitById(st, id),
-          getActionsForUnit: (u) => cardDefs?.[u?.cardId]?.actions || [],
-          listLegalMoves: (s, u) => listLegalMoves(s, u),
-          listLegalAttacks: ctx?.helpers?.listLegalAttacks
-            ? (s, u) => ctx.helpers.listLegalAttacks(s, u)
-            : (s, u) => listLegalAttacksFallback(s, u),
-        }
-      });
-
-      // 実行（ここは game.js 側に「CPUでも叩けるトランザクションAPI」を用意して呼ぶのが安全）
-      await ctx.execCpuPlan(plan);
+      let state = st;
+      // One CPU turn can include summoning, moving and attacking. Bound the
+      // actions and re-read Firestore after every successful transaction.
+      for (let step = 0; step < 8; step++) {
+        if (!state || state.winner || state.turn !== cpuSeat ||
+            Number(state.turnSeq ?? 1) !== seq) break;
+        const plan = getAi(cpuSeat).pickAction(state, {
+          mySeat: cpuSeat,
+          enemySeat: cpuSeat === "A" ? "B" : "A",
+          helpers: {
+            getUnitById: id => getUnitById(state, id),
+            getActionsForUnit: u => cardDefs?.[u?.cardId]?.actions || [],
+            listLegalMoves: ctx?.helpers?.listLegalMoves || listLegalMoves,
+            listLegalAttacks: ctx?.helpers?.listLegalAttacks || listLegalAttacksFallback,
+            listLegalSummons: ctx?.helpers?.listLegalSummons || (() => []),
+          },
+        });
+        if (!plan || plan.type === "end") break;
+        const changed = await ctx.execCpuPlan(plan);
+        if (!changed) break; // Invalid plans must not loop forever.
+        state = await ctx.readState();
+      }
+      if (ctx.finishTurn) await ctx.finishTurn();
+    } catch (error) {
+      console.warn("[cpu] turn failed", error);
+      // Do not strand solo play if one action fails.
+      try { await ctx.finishTurn?.(); } catch (e) { console.warn("[cpu] end turn failed", e); }
     } finally {
       busy = false;
     }

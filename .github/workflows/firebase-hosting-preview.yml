@@ -38,6 +38,7 @@ jobs:
           node --check public/cpu_ai.js
           node --check public/cpu_driver.js
           node tools/cpu_regression_20261019.mjs
+          node tools/cpu_styles_regression_20261019.mjs
 
       - name: Publish isolated preview channel
         id: hosting

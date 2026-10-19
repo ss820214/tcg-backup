@@ -81,8 +81,9 @@ export function needsCpuOpeningRepair(state,cpuSeat) {
   if (!state || state.winner || state.cpuDeckRecovered || !["A","B"].includes(cpuSeat)) return false;
   const seq=Number(state.turnSeq ?? 1);
   if (!Number.isFinite(seq) || seq < 1 || seq > 12) return false;
+  // Some legacy matches have a draw pile but no opening hand; they also need
+  // a one-off 5-card draw. A legitimate consumed hand leaves units/discards/logs.
   if ((state.hands?.[cpuSeat]||[]).length ||
-      (state.decks?.[cpuSeat]||[]).length ||
       (state.discards?.[cpuSeat]||[]).length) return false;
   if ((state.units||[]).some(u=>u?.owner===cpuSeat)) return false;
   // CPU turn-end logs alone do not imply it ever received a card.

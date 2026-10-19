@@ -20,6 +20,7 @@ import {
 } from "./user_store.js?v=20260723_starter_series1";
 
 import { createCpuDriver } from "./cpu_driver.js?v=20261019_advanced_cpu1";
+import { inspectCpuDeck, expandCpuDeck } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix1";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -1132,8 +1133,25 @@ async function ensureStateInitialized() {
     const pB = await tx.get(playerRef(seatBPlayerId));
     if (!pA.exists() || !pB.exists()) throw new Error("players missing");
 
-    const deckA_simple = pA.data().deck || {};
-    const deckB_simple = pB.data().deck || {};
+    let deckA_simple = pA.data().deck || {};
+    let deckB_simple = pB.data().deck || {};
+
+    // Last safety net if a legacy lobby saved an empty/invalid CPU deck.
+    // Use the human player's validated deck rather than start with zero cards.
+    if (isSoloMode && (seatAPlayerId === "cpu" || seatBPlayerId === "cpu")) {
+      const cpuIsA=seatAPlayerId==="cpu";
+      const cpuDeck=cpuIsA?deckA_simple:deckB_simple;
+      const report=inspectCpuDeck(cpuDeck,{defs:cardDefs});
+      if (!report.ok) {
+        const humanDeck=cpuIsA?deckB_simple:deckA_simple;
+        const fallback=inspectCpuDeck(humanDeck,{defs:cardDefs});
+        if (!fallback.ok)
+          throw new Error("CPU初期手札を用意できません: "+report.reason+" / 自分のデッキ: "+fallback.reason);
+        if (cpuIsA) deckA_simple={...humanDeck};
+        else deckB_simple={...humanDeck};
+        console.warn("[cpu deck] invalid lobby CPU deck; using a validated copy of the player deck",report.reason);
+      }
+    }
 
     const exA = pA.data().exCardId || null;
     const exB = pB.data().exCardId || null;
@@ -1148,8 +1166,10 @@ async function ensureStateInitialized() {
       return shuffle(arr);
     }
 
-    const deckA = buildDeck(deckA_simple);
-    const deckB = buildDeck(deckB_simple);
+    const deckA = seatAPlayerId==="cpu" && isSoloMode
+      ? expandCpuDeck(deckA_simple) : buildDeck(deckA_simple);
+    const deckB = seatBPlayerId==="cpu" && isSoloMode
+      ? expandCpuDeck(deckB_simple) : buildDeck(deckB_simple);
 
     const hands = { A: [], B: [] };
     for (let i = 0; i < 5; i++) {

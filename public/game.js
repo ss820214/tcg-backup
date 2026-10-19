@@ -16,7 +16,7 @@ import {
   normalizeYouCard,
 } from "./user_store.js?v=20260723_starter_series1";
 
-import { createCpuDriver } from "./cpu_driver.js?v=20261019_solo_ai_fix1";
+import { createCpuDriver } from "./cpu_driver.js?v=20261019_solo_attack_score2";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====

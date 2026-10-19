@@ -7596,6 +7596,28 @@ onSnapshot(
             return snap.exists() ? snap.data() : null;
           },
           finishTurn: finishCpuTurn,
+          onDebug: (stage, info) => {
+            const detail={...info,room:roomId,cpuSeat,turn:st.turn,turnSeq:st.turnSeq};
+            if (stage==="action-error" || stage==="driver-error" || stage==="rejected") {
+              console.warn("[cpu diagnostic]",stage,detail);
+            } else {
+              console.info("[cpu diagnostic]",stage,detail);
+            }
+            // Non-invasive debug: show the latest cause in the small loading
+            // status region; no popups and no new battle buttons.
+            const indicator = document.getElementById("cpuTurnDiagnostic");
+            if (indicator) {
+              const label={
+                start:"思考開始",plan:"行動選択",rejected:"行動を再検討中",
+                "no-action":"実行可能な行動なし", "action-error":"行動エラー",
+                "driver-error":"CPU処理エラー","repeated-plan":"同じ候補を再検討",
+                finished:"ターン終了"
+              };
+              indicator.textContent="CPU: "+(label[stage]||stage)+
+                (info?.kind ? " ("+info.kind+")" : "")+
+                (info?.message ? " / "+info.message : "");
+            }
+          },
           helpers: {
             listLegalAttacks: listCpuLegalAttacks,
             listLegalMoves: listCpuLegalMoves,

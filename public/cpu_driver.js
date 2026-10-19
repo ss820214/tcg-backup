@@ -1,5 +1,5 @@
 // public/cpu_driver.js
-import { createCpuAI } from "./cpu_ai.js?v=20261019_solo_summon1";
+import { createCpuAI } from "./cpu_ai.js?v=20261019_solo_attack_score2";
 
 export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
   const aiBySeat = {};

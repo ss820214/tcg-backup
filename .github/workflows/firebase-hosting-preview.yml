@@ -39,6 +39,8 @@ jobs:
           node --check public/cpu_driver.js
           node tools/cpu_regression_20261019.mjs
           node tools/cpu_live_reliability_20261020.mjs
+          node --check public/opponent_hand_ui.js
+          node tools/opponent_hand_regression_20261020.mjs
           node tools/cpu_styles_regression_20261019.mjs
           node --check public/cpu_tactics.js
           node tools/cpu_advanced_regression_20261019.mjs

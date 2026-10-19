@@ -29,7 +29,7 @@ assert.equal(report.opponent.moves,1);
 assert.equal(report.mine.spentMana,2);
 const game=read("public/game.js"),html=read("public/game.html"),victory=read("public/victory_screen.js");
 assert.match(game,/updateBattleReadability\(st\)/);
-assert.match(game,/originalUiRender\(st\)/);
+assert.match(game,/onAfterRender: st=>updateBattleReadability\(st\)/);
 assert.match(html,/id="battleRecentAction"/);
 assert.match(html,/<details id="battleLogDetails">/);
 assert.match(victory,/renderBattleDetails\(document\.getElementById\("battleActionDetails"\)/);

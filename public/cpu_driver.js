@@ -58,7 +58,7 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
     const tried = new Set();
     try {
       let state = st;
-      ctx?.onDebug?.("start", {seq,seat:cpuSeat,hand:(st.hands?.[cpuSeat]||[]).length,mana:st.mana?.[cpuSeat]?.cur});
+      ctx?.onDebug?.("start", {seq,seat:cpuSeat,hand:(st.hands?.[cpuSeat]||[]).length,mana:st.mana?.[cpuSeat]?.cur,deck:(st.decks?.[cpuSeat]||[]).length});
       // Bound successful actions AND failed plan attempts.
       for (let step = 0; step < 12; step++) {
         if (!state || state.winner || state.turn !== cpuSeat ||
@@ -83,7 +83,7 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
           },
         }) || basePlan;
         if (!plan || plan.type === "end") {
-          ctx?.onDebug?.("no-action",{step,hand:(state.hands?.[cpuSeat]||[]).length,mana:state.mana?.[cpuSeat]?.cur});
+          ctx?.onDebug?.("no-action",{step,hand:(state.hands?.[cpuSeat]||[]).length,mana:state.mana?.[cpuSeat]?.cur,deck:(state.decks?.[cpuSeat]||[]).length});
           break;
         }
         const signature = JSON.stringify([plan.type,plan.cardId,plan.handIndex,plan.unitId,plan.attackerId,plan.targetId,plan.baseUnitId,plan.to]);

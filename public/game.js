@@ -6202,8 +6202,9 @@ function clearFatigueAndStatusesAtTurnEnd(s, who) {
 // 繧ｿ繝ｼ繝ｳ邨ゆｺ・// =====================
 async function endTurnForSeat(actorSeat) {
   const actor = normSeat(actorSeat);
-  const st = currentState;
-  if (!actor || !st || normSeat(st.turn) !== actor || st.winner) return false;
+  // Snapshot UI state can lag behind Firestore during a CPU action chain.
+  // The transaction below is the authoritative turn check.
+  if (!actor) return false;
 
   let changed = false;
 
@@ -7542,8 +7543,9 @@ onSnapshot(
       console.warn("[victory redirect] failed", e);
     }
 
-    // 先に描画する。
-    render(st);
+    // A rendering exception must never prevent the CPU's turn runner.
+    try { render(st); }
+    catch (error) { console.error("[battle render] failed",error); }
 
     try {
       const ls = st?.lastSupportRoll;

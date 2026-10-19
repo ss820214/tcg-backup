@@ -8,6 +8,7 @@ export function createGameUI(ctx) {
     setTurnUI,
     renderLog,
     fxOnHit,
+    onAfterRender,
 
     // basic
     W,
@@ -1754,6 +1755,8 @@ function updateHandDrawerPosition() {
         }
       } catch {}
     } catch {}
+
+    try { onAfterRender?.(st); } catch (err) { console.warn("[ui after render]",err); }
   }
 
   // ダミーrenderを本物へ

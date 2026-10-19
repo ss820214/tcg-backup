@@ -1,5 +1,6 @@
 // public/cpu_driver.js
 import { createCpuAI } from "./cpu_ai.js?v=20261019_four_styles3";
+import { pickAdvancedCpuPlan } from "./cpu_tactics.js?v=20261019_cpu_advanced1";
 
 export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style = "balanced" }) {
   const aiBySeat = {};
@@ -61,7 +62,7 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
       for (let step = 0; step < 8; step++) {
         if (!state || state.winner || state.turn !== cpuSeat ||
             Number(state.turnSeq ?? 1) !== seq) break;
-        const plan = getAi(cpuSeat).pickAction(state, {
+        const basePlan = getAi(cpuSeat).pickAction(state, {
           mySeat: cpuSeat,
           enemySeat: cpuSeat === "A" ? "B" : "A",
           helpers: {
@@ -73,6 +74,15 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
             goalProgress: ctx?.helpers?.goalProgress,
           },
         });
+        const plan = pickAdvancedCpuPlan(state, {
+          seat: cpuSeat,
+          style,
+          basePlan,
+          helpers: {
+            listLegalEvolves: ctx?.helpers?.listLegalEvolves,
+            listLegalSupports: ctx?.helpers?.listLegalSupports,
+          },
+        }) || basePlan;
         if (!plan || plan.type === "end") break;
         const changed = await ctx.execCpuPlan(plan);
         if (!changed) break; // Invalid plans must not loop forever.

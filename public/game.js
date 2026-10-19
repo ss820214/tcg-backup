@@ -16,7 +16,7 @@ import {
   normalizeYouCard,
 } from "./user_store.js?v=20260723_starter_series1";
 
-import { createCpuDriver } from "./cpu_driver.js?v=20261019_four_styles3";
+import { createCpuDriver } from "./cpu_driver.js?v=20261019_advanced_cpu1";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -6560,6 +6560,134 @@ function listCpuLegalMoves(st, u) {
   return moves;
 }
 
+// CPU advanced tactics: generate only affordable, verifiable choices.
+// Execution below uses the same evolve_system and support_core as human players.
+function listCpuLegalEvolves(st) {
+  if (!isSoloMode || !cpuSeat || normSeat(st?.turn) !== cpuSeat) return [];
+  const hand = Array.isArray(st.hands?.[cpuSeat]) ? st.hands[cpuSeat] : [];
+  const mana = Number(normalizeMana(st.mana)?.[cpuSeat]?.cur ?? 0);
+  const result = [];
+  const attr = d => {
+    const raw = String(d?.type ?? d?.attr ?? "").trim().toLowerCase();
+    const map = {fire:"火",water:"水",thunder:"雷",lightning:"雷",grass:"草",wind:"風",steel:"鋼",metal:"鋼",light:"光",dark:"闇",dream:"幻",illusion:"幻"};
+    return map[raw] || raw;
+  };
+  for (const unit of st.units || []) {
+    if (!unit || normSeat(unit.owner) !== cpuSeat || Number(unit.hp) <= 0 || isPanic(unit)) continue;
+    const from = cardDefs?.[unit.cardId];
+    if (!from || !attr(from)) continue;
+    hand.forEach((cardId, handIndex) => {
+      if (isHandCardLocked(st, handIndex, cpuSeat)) return;
+      const to = cardDefs?.[cardId];
+      if (!to || isSupportCard(to) || attr(to) !== attr(from) || Number(to.cost) <= Number(from.cost)) return;
+      const cost = Math.max(0, Math.trunc(Number(to.cost) - Number(from.cost)));
+      if (cost > mana) return;
+      // Evolving cannot heal away previous wounds: avoid lethal evolution.
+      const damageHp = Math.max(0, Number(unit.maxHp ?? from.hp ?? unit.hp) - Number(unit.hp));
+      const damageSp = Math.max(0, Number(unit.maxSp ?? from.sp ?? unit.sp) - Number(unit.sp));
+      if (Number(to.hp) <= damageHp || Number(to.sp) <= damageSp) return;
+      result.push({ type:"evolve", baseUnitId:unit.id, cardId, handIndex, cost });
+    });
+  }
+  return result;
+}
+
+function listCpuLegalSupports(st) {
+  if (!isSoloMode || !cpuSeat || normSeat(st?.turn) !== cpuSeat) return [];
+  const hand = Array.isArray(st.hands?.[cpuSeat]) ? st.hands[cpuSeat] : [];
+  const mana = Number(normalizeMana(st.mana)?.[cpuSeat]?.cur ?? 0);
+  const friends = (st.units || []).filter(u => u && normSeat(u.owner) === cpuSeat && Number(u.hp) > 0 && !isPanic(u));
+  const foes = (st.units || []).filter(u => u && normSeat(u.owner) !== cpuSeat && Number(u.hp) > 0 && !isPanic(u));
+  const plans=[];
+  for (let handIndex=0; handIndex<hand.length; handIndex++) {
+    if (isHandCardLocked(st, handIndex, cpuSeat)) continue;
+    const cardId=hand[handIndex], def=cardDefs?.[cardId];
+    if (!def || !isSupportCard(def)) continue;
+    const cost=Math.max(0,Math.trunc(Number(def.cost ?? 0)));
+    if (cost>mana) continue;
+    const eff=def.effect;
+    // Complex randomized tables, multi-target and positional effects are skipped
+    // until a safe candidate generator handles their target constraints.
+    if (!eff || typeof eff !== "object" || Array.isArray(eff.table)) continue;
+    const effectType=String(eff.type||"");
+    const targetMode=String(eff.target||"").toLowerCase();
+    let candidates=[];
+    if (effectType==="heal") {
+      candidates=friends.filter(u => Number(u.hp)<Number(u.maxHp ?? cardDefs?.[u.cardId]?.hp ?? u.hp)
+        || Number(u.sp)<Number(u.maxSp ?? cardDefs?.[u.cardId]?.sp ?? u.sp));
+    } else if (["dmg","addStatus","lostSoul"].includes(effectType)) {
+      candidates=foes;
+    } else if (["powerUp","modRate","grantEvade","cleanse"].includes(effectType)) {
+      candidates=friends;
+    } else if (["draw","search"].includes(effectType)) {
+      if (targetMode==="selected" || targetMode==="unit") continue;
+      plans.push({type:"support",cardId,handIndex,cost,effectType,targetId:null});
+      continue;
+    } else continue;
+    for (const u of candidates) {
+      if ((targetMode==="enemy" || targetMode==="opponent") && normSeat(u.owner) === cpuSeat) continue;
+      if ((targetMode==="ally" || targetMode==="self" || targetMode==="friend") && normSeat(u.owner) !== cpuSeat) continue;
+      plans.push({type:"support",cardId,handIndex,cost,effectType,targetId:u.id});
+    }
+  }
+  return plans;
+}
+
+async function executeCpuEvolve(actorSeat, plan) {
+  if (!isSoloMode || normSeat(actorSeat) !== cpuSeat || !plan?.baseUnitId) return false;
+  const snap=await getDoc(stateRef);
+  if (!snap.exists()) return false;
+  const st=snap.data();
+  if (normSeat(st.turn)!==cpuSeat || st.winner || st.hands?.[cpuSeat]?.[plan.handIndex]!==plan.cardId ||
+      isHandCardLocked(st,plan.handIndex,cpuSeat)) return false;
+  const unit=(st.units||[]).find(u=>u?.id===plan.baseUnitId);
+  if (!unit) return false;
+  // Separate instance prevents sharing the human player's evolution selection.
+  const system=createEvolveSystem({
+    db,stateRef,getSeat:()=>cpuSeat,
+    canControl:s=>normSeat(s?.turn)===cpuSeat && !s?.winner,
+    normalizeMana,spendManaMut,nowMs,round10,clampUnitStats10,
+    cardDefsRef:()=>cardDefs,cardName,logPush,checkWinLocal,isPanic,fireCardEffects,
+  });
+  system.onPickBaseUnit(unit,st);
+  if (!system.canExec(st,plan.handIndex)) return false;
+  return !!(await system.execEvolveFromHandIndex(plan.handIndex));
+}
+
+async function executeCpuSupport(actorSeat, plan) {
+  const actor=normSeat(actorSeat);
+  if (!isSoloMode || actor!==cpuSeat || !plan?.cardId) return false;
+  let changed=false;
+  await runTransaction(db,async tx=>{
+    const snap=await tx.get(stateRef);
+    if(!snap.exists()) return;
+    const s=snap.data()||{};
+    if(normSeat(s.turn)!==actor||s.winner) return;
+    const hand=s.hands?.[actor]||[];
+    if(hand[plan.handIndex]!==plan.cardId||isHandCardLocked(s,plan.handIndex,actor)) return;
+    const def=cardDefs?.[plan.cardId];
+    if(!isSupportCard(def)) return;
+    const allowed=listCpuLegalSupports(s).some(p=>p.cardId===plan.cardId &&
+      p.handIndex===plan.handIndex && p.effectType===plan.effectType && p.targetId===plan.targetId);
+    if(!allowed) return;
+    const result=applySupport({
+      s,seat:actor,cardDefs,supportCardId:plan.cardId,
+      supportHandIndex:plan.handIndex,targetUnitId:plan.targetId||null,
+      casterUnitId:(s.units||[]).find(u=>u && normSeat(u.owner)===actor && Number(u.hp)>0)?.id||null,
+      rand:Math.random,
+    });
+    if(!result?.ok) return;
+    for(const key of ["mana","hands","decks","discards","units","kills","handLocks","log","lastSupportRoll"]) {
+      if(result[key]!==undefined) s[key]=result[key];
+    }
+    const winner=checkWinLocal(s);
+    if(winner){s.winner=winner;logPush(s,"勝者："+winner);}
+    tx.set(stateRef,s,{merge:true});
+    changed=true;
+  });
+  return changed;
+}
+
 async function executeCpuSummon(actorSeat, plan) {
   const actor=normSeat(actorSeat);
   if (!actor || !plan?.to) return false;
@@ -7033,6 +7161,8 @@ async function execCpuPlan(plan) {
   if (plan.type === "summon") return executeCpuSummon(actor, plan);
   if (plan.type === "move") return executeCpuMove(actor, plan.unitId, plan.to);
   if (plan.type === "attack") return executeCpuAttack(actor, plan.attackerId, plan.actionIndex, plan.targetId);
+  if (plan.type === "evolve") return executeCpuEvolve(actor, plan);
+  if (plan.type === "support") return executeCpuSupport(actor, plan);
   return false;
 }
 
@@ -7462,6 +7592,8 @@ onSnapshot(
             listLegalAttacks: listCpuLegalAttacks,
             listLegalMoves: listCpuLegalMoves,
             listLegalSummons: listCpuLegalSummons,
+            listLegalEvolves: listCpuLegalEvolves,
+            listLegalSupports: listCpuLegalSupports,
             goalProgress: (_state, unit, to) => cpuSeat === "B" ? to.y - unit.y : unit.y - to.y,
           },
         });

@@ -45,6 +45,7 @@ jobs:
           node --check public/battle.js
           node --check public/cpu_deck_guard.js
           node tools/cpu_deck_recovery_regression_20261020.mjs
+          node tools/cpu_bootstrap_integration_20261020.mjs
           node --check public/opponent_hand_ui.js
           node tools/opponent_hand_regression_20261020.mjs
           node --check public/battle_readability.js

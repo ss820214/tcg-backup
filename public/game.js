@@ -16,7 +16,7 @@ import {
   normalizeYouCard,
 } from "./user_store.js?v=20260723_starter_series1";
 
-import { createCpuDriver } from "./cpu_driver.js?v=20260626_deckui_ai2";
+import { createCpuDriver } from "./cpu_driver.js?v=20261019_solo_ai_fix1";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -6483,6 +6483,8 @@ function listCpuLegalAttacks(st, u) {
   for (let i = 0; i < acts.length; i++) {
     const act = acts[i];
     if (!act) continue;
+    if (Number(normalizeMana(st.mana)?.[actor]?.cur ?? 0) < effectiveActionCost(u, act)) continue;
+    if (!canUseActionByStatus(u, act)) continue;
     const flags = actFlags(act);
 
     if (isSelfRange(act.range)) {
@@ -7451,6 +7453,7 @@ onSnapshot(
             listLegalAttacks: listCpuLegalAttacks,
             listLegalMoves: listCpuLegalMoves,
             listLegalSummons: listCpuLegalSummons,
+            goalProgress: (_state, unit, to) => cpuSeat === "B" ? to.y - unit.y : unit.y - to.y,
           },
         });
       }

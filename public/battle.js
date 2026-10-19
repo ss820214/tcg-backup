@@ -158,6 +158,38 @@ roomIdEl.textContent = roomId;
 const aiToggle = document.getElementById("aiToggle");
 // battle.js
 const CPU_ID = "cpu";
+const CPU_STYLES = Object.freeze({
+  aggressive: "攻撃的",
+  balanced: "バランス",
+  defensive: "守備的",
+  infiltration: "侵入",
+});
+const cpuStylePanel = document.getElementById("cpuStrategyPanel");
+const cpuStyleInputs = [...document.querySelectorAll('input[name="cpuStyle"]')];
+const cpuStyleNote = document.getElementById("cpuStrategyNote");
+function selectedCpuStyle() {
+  const selected = cpuStyleInputs.find(input => input.checked)?.value;
+  return Object.hasOwn(CPU_STYLES, selected) ? selected : "balanced";
+}
+function updateCpuStylePanel(isReady = false) {
+  if (cpuStylePanel) cpuStylePanel.hidden = !isSolo;
+  document.getElementById("aiToggleRow")?.toggleAttribute("hidden", isSolo);
+  for (const input of cpuStyleInputs) input.disabled = isReady;
+  if (cpuStyleNote) cpuStyleNote.textContent = isReady
+    ? "準備完了：対戦が始まるまで戦術を変更できません。"
+    : "選択中：" + CPU_STYLES[selectedCpuStyle()];
+}
+if (isSolo) {
+  for (const input of cpuStyleInputs) input.addEventListener("change", () => {
+    updateCpuStylePanel(false);
+    if (cpuBooted) {
+      void setDoc(cpuRef, { cpuStyle: selectedCpuStyle(), updatedAt: serverTimestamp() }, {merge:true})
+        .catch(e => console.warn("[cpu style] failed to save",e));
+    }
+  });
+}
+updateCpuStylePanel(false);
+
 let cpuBooted = false;
 
 // =====================
@@ -301,6 +333,7 @@ async function ensureCpuPlayerDocFromMe() {
     deck: safeObj(me.deck),
     exSupport: me.exSupport || "",
     desiredField: me.desiredField || myDesiredField(),
+    cpuStyle: selectedCpuStyle(),
     updatedAt: serverTimestamp(),
     joinedAt: serverTimestamp(),
   };
@@ -356,6 +389,7 @@ async function ensureCpuPlayerDocFromPublicDeck({ db, cpuRef }) {
     deck: safeObj(picked?.deck),
     exSupport: picked?.exSupport || "",
     desiredField: picked?.desiredField || myDesiredField(),
+    cpuStyle: selectedCpuStyle(),
     updatedAt: serverTimestamp(),
     joinedAt: serverTimestamp(),
   };
@@ -375,6 +409,7 @@ async function bootCpuIfEnabled() {
   try {
     await ensureCpuPlayerDocFromPublicDeck({ db, cpuRef });
   } catch (e) {
+    cpuBooted = false;
     console.warn("[cpu] boot failed", e);
   }
 }
@@ -775,6 +810,7 @@ if (isSolo && aiToggle?.checked) {
 
   readyBtn.disabled = false;
   readyBtn.textContent = me.ready ? "準備解除" : "準備完了";
+  updateCpuStylePanel(!!me.ready);
   readyNote.textContent = me.ready
     ? "✅ 準備OK（解除もできます）"
     : "⏳ 準備中";
@@ -807,7 +843,7 @@ onSnapshot(playersRef, async (snap) => {
     players.push({ id: d.id, ...p });
 
     const li = document.createElement("li");
-    li.textContent = `${p.name} ${p.ready ? "✅ 準備OK" : "⏳ 準備中"}`;
+    li.textContent = `${isSolo && (d.id === CPU_ID || p.isCpu) ? "CPU（デッキ：？？？）" : p.name} ${p.ready ? "✅ 準備OK" : "⏳ 準備中"}`;
     playersUl.appendChild(li);
 
     if (p.ready) readyCount++;
@@ -905,6 +941,8 @@ onSnapshot(playersRef, async (snap) => {
         diceB,
         field: finalField,
         fieldRule: "dice_if_diff",
+        ...(isSolo ? {cpuStyle: Object.hasOwn(CPU_STYLES, (seatA === CPU_ID ? aData : bData).cpuStyle)
+          ? (seatA === CPU_ID ? aData : bData).cpuStyle : selectedCpuStyle()} : {}),
         startedAt: serverTimestamp(),
       });
     });

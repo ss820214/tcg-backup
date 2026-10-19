@@ -23,6 +23,7 @@ import {
   isAssistStatusKey,
 } from "./game_state.js?v=20260904_status_rules1";
 import { normalizeMana, spendMana } from "./game_core.js?v=20260627_mana1";
+import { validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 
 export function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
@@ -1319,6 +1320,21 @@ export function applySupport({
     }
   }
 
+  // Revalidate spatial targets before consuming the card or mana.
+  // The random table's chosen effect is authoritative for this attempt.
+  if (res.chosen && typeForRules === "moveTo") {
+    const c=targetCell;
+    const x=Number(c?.x),y=Number(c?.y);
+    if (!Number.isInteger(x) || !Number.isInteger(y) ||
+      !validSpatialMove({from:t1,to:{x,y},effect:effForRules,units,W:5,H:7})) {
+      return {ok:false,reason:"移動先が射程外・盤外・使用中"};
+    }
+  }
+  if (res.chosen && typeForRules === "swapPos" &&
+    !validSpatialSwap({first:t1,second:t2,effect:effForRules,W:5,H:7})) {
+    return {ok:false,reason:"位置入れ替えの距離または対象が不正"};
+  }
+
   // ===== Restrictions (generic) =====
   // Apply on the resolved chosen effect (table can change chosen)
     // ===== Restrictions (generic) =====
@@ -1922,7 +1938,7 @@ export function applySupport({
       );
     }
   } else if (type === "swapPos") {
-    if (!isAlive(t2) || t1.id === t2.id) {
+    if (!validSpatialSwap({first:t1,second:t2,effect:eff,W:5,H:7})) {
       logLines.push(`[${seat}] サポート不発：対象2体が必要`);
       return {
         ok: true,
@@ -1979,6 +1995,10 @@ export function applySupport({
         log: logLines.slice(-200),
         lastSupportRoll,
       };
+    }
+    if (!validSpatialMove({from:t1,to:{x,y},effect:eff,units,W:5,H:7})) {
+      logLines.push(`[${seat}] サポート不発：移動範囲外または使用中`);
+      return {ok:false,reason:"移動先が不正"};
     }
     if (isOccupied(units, x, y)) {
       logLines.push(`[${seat}] サポート不発：そのマスは埋まっている`);

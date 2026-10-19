@@ -20,16 +20,39 @@
   </style>
   <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
 <link rel="stylesheet" href="./document_typography_20261019.css?v=20261019a" />
+<style>
+.backLink { display:inline-flex; align-items:center; padding:10px 13px; border:1px solid #4c5b67; border-radius:6px; text-decoration:none; color:#e3f5ff; }
+.wrap { max-width:700px; padding-top:22px; }
+.card h1 { margin:0 0 12px; font-size:clamp(22px,4vw,32px); }
+.card .small { line-height:1.75; }
+#openTutorial { min-height:44px; margin-top:16px; padding:9px 18px; background:#254d52; border:1px solid #75c9c3; border-radius:6px; color:#fff; font-weight:700; }
+#tutorialNotice { min-height:1em; }
+</style>
 </head>
-<body><header><div><b>0バト チュートリアル</b><div class="small">ゲームの基本操作をステップごとに確認しよう。</div></div><button id="backBtn" type="button">← デッキに戻る</button></header>
-<div class="wrap"><div class="pill">Step <span id="stepNum">1</span> / <span id="stepMax">9</span></div><div id="stepBox" class="card"></div>
-<div class="nav"><button id="prevBtn" type="button">← 前へ</button><button id="nextBtn" type="button">次へ →</button></div>
-<div class="small" style="margin-top:10px">ゲーム内の初心者ガイドからも基本操作を確認できます。</div></div>
-  <script type="module" src="./tutorial.js?v=20260626"></script>
-  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
-  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
-
-  <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
-</body>
-</html>
-
+<body>
+<header><div><b>0バト チュートリアル</b><div class="small">ホーム画面と共通のチュートリアルを利用できます。</div></div><a class="backLink" href="./index.html">← ホームへ戻る</a></header>
+<main class="wrap">
+  <div class="card">
+    <h1>遊び方を学ぶ</h1>
+    <p class="small">「チュートリアルを開く」を押すと、キャラクターの解説や実戦形式の練習メニューを選べます。</p>
+    <button id="openTutorial" type="button">チュートリアルを開く</button>
+    <p class="small" id="tutorialNotice" role="status" aria-live="polite"></p>
+  </div>
+</main>
+<script type="module">
+import { TutorialSystem } from "./tutorial.js?v=20260626";
+const tutorial = new TutorialSystem();
+const opener = document.getElementById("openTutorial");
+const notice = document.getElementById("tutorialNotice");
+opener?.addEventListener("click", () => {
+  try { tutorial.openMenu(); notice.textContent = ""; }
+  catch (error) {
+    console.error("[tutorial] could not open menu", error);
+    notice.textContent = "チュートリアルを開けませんでした。ホームからもお試しください。";
+  }
+});
+</script>
+<script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+<script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+<script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
+</body></html>

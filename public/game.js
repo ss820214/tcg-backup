@@ -3,6 +3,7 @@
 // ...
 
 import { createGameUI } from "./game_ui.js?v=20261017_mobilemenu1";
+import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
@@ -3892,6 +3893,7 @@ function applyPinchFxAndBgm(st) {
 // Snapshot + main loop
 // =====================
 let currentState = null;
+const opponentHandView = createOpponentHandView(document.getElementById("enemyHandOverlay"));
 let dopaEventReady = false;
 let lastDopaEvolveAt = 0;
 let lastDopaScore = null;
@@ -7543,6 +7545,8 @@ onSnapshot(
       console.warn("[victory redirect] failed", e);
     }
 
+    // The opponent's hidden hand follows the same realtime snapshot as the board.
+    try { opponentHandView.update(st, seat); } catch (error) { console.warn("[opponent hand]", error); }
     // A rendering exception must never prevent the CPU's turn runner.
     try { render(st); }
     catch (error) { console.error("[battle render] failed",error); }

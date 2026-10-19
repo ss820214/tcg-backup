@@ -16,6 +16,7 @@
 // - Original layout/FX/buttons intact as much as possible
 
 import { computeInfil } from "./game_state.js?v=20260228_5";
+import { renderBattleDetails } from "./battle_result_details.js?v=20261020a";
 import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20260801_radar_clamp1";
 import { db } from "./auth.js?v=20260627_perm1";
 import { recordMatchResult } from "./user_store.js?v=20260723_starter_series1";
@@ -239,6 +240,12 @@ function injectBaseStyles() {
   .v{ font-size:20px; font-weight:800; margin-top:4px; }
   .mini{ font-size:12px; color: rgba(255,255,255,0.76); margin-top:4px; }
 
+  #battleActionDetails{font-size:13px;line-height:1.5;max-height:230px;overflow-y:auto}
+  #battleActionDetails h3{font-size:16px;margin:0 0 8px}
+  #battleActionDetails p{font-size:11px;opacity:.8}
+  .resultActionTable{border-collapse:collapse;width:100%;font-size:12px}
+  .resultActionTable th,.resultActionTable td{border-bottom:1px solid #ffffff22;padding:5px;text-align:left}
+  #battleActionDetails pre{white-space:pre-wrap;font-size:10px;max-height:140px;overflow:auto}
   .resultReport{
     margin-top:14px;
     padding:14px;
@@ -490,6 +497,7 @@ function mountLayout() {
             </div>
 
             <div id="resultReport" class="resultReport"></div>
+            <section id="battleActionDetails" class="resultReport" aria-label="詳細対戦レポート"><p>対戦行動を読み込み中…</p></section>
           </div>
 
           <div class="right">
@@ -1060,6 +1068,15 @@ async function recordUserResultOnce(stats = {}) {
 injectBaseStyles();
 mountLayout();
 renderResultReport();
+if (roomId) {
+  getDoc(stateRef).then(snap=>{
+    if(snap.exists()) renderBattleDetails(document.getElementById("battleActionDetails"),snap.data(),seat);
+    else document.getElementById("battleActionDetails").textContent="対戦履歴が見つかりませんでした";
+  }).catch(err=>{
+    console.warn("[result detail]",err);
+    document.getElementById("battleActionDetails").textContent="詳細ログを読み込めませんでした";
+  });
+}
 wireButtons();
 startBg();
 startConfettiAndFireworks();

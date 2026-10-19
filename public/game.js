@@ -20,7 +20,7 @@ import {
 } from "./user_store.js?v=20260723_starter_series1";
 
 import { createCpuDriver } from "./cpu_driver.js?v=20261019_advanced_cpu1";
-import { inspectCpuDeck, expandCpuDeck } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix1";
+import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix2";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -1091,6 +1091,46 @@ async function ensureStateInitialized() {
     if (st.exists()) {
       const s = st.data() || {};
 
+      // A previous build could create a CPU with no opening hand or draw pile.
+      // Recover only an untouched/early empty CPU side, NEVER refill a real
+      // exhausted deck or add cards to a normal PvP match.
+      if (isSoloMode && cpuSeat && needsCpuOpeningRepair(s,cpuSeat)) {
+        const cpuId=cpuSeat==="A"?seatAPlayerId:seatBPlayerId;
+        const humanId=cpuSeat==="A"?seatBPlayerId:seatAPlayerId;
+        const cpuSnap=await tx.get(playerRef(cpuId));
+        const humanSnap=await tx.get(playerRef(humanId));
+        const cpuDeck=cpuSnap.exists()?cpuSnap.data()?.deck:null;
+        const humanDeck=humanSnap.exists()?humanSnap.data()?.deck:null;
+        const cpuReport=inspectCpuDeck(cpuDeck,{defs:cardDefs});
+        const humanReport=inspectCpuDeck(humanDeck,{defs:cardDefs});
+        if (cpuReport.ok || humanReport.ok) {
+          const savedDeck=cpuReport.ok ? cpuDeck : humanDeck;
+          const shuffled=expandCpuDeck(savedDeck);
+          const hand=[];
+          for(let i=0;i<5&&shuffled.length;i++) hand.push(shuffled.pop());
+          s.hands=s.hands||{A:[],B:[]};
+          s.decks=s.decks||{A:[],B:[]};
+          s.hands[cpuSeat]=hand;
+          s.decks[cpuSeat]=shuffled;
+          s.cpuDeckRecovered=true;
+          s.log=Array.isArray(s.log)?s.log:[];
+          logPush(s,"["+cpuSeat+"] CPUの初期手札を修復（5枚）");
+          tx.set(stateRef,{
+            hands:s.hands,decks:s.decks,log:s.log,
+            cpuDeckRecovered:true,cpuDeckRecoveryAtSeq:Number(s.turnSeq??1)
+          },{merge:true});
+          if(!cpuReport.ok)
+            tx.set(playerRef(cpuId),{deck:{...humanDeck},deckSource:"fallbackRepair"},{merge:true});
+          console.warn("[cpu deck] restored missing opening hand",{
+            cpuSeat,source:cpuReport.ok?"cpu":"fallback",count:hand.length,remaining:shuffled.length
+          });
+        } else {
+          console.warn("[cpu deck] could not repair empty CPU state",{
+            cpu:cpuReport.reason,own:humanReport.reason
+          });
+        }
+      }
+
       // フィールド状態を補完する。
       try {
         ensureFieldState(s, W, H, s.fieldId ?? s.field?.id ?? fieldIdFromUrl);
@@ -1272,10 +1312,8 @@ function safeDrawCards(s, who, n) {
       const L = fn.length;
       let ret;
 
-      if (L >= 4) ret = fn(s, who, cnt, cardDefs);
-      else if (L === 3) ret = fn(s, who, cnt);
-      else if (L === 2) ret = fn(s, who);
-      else ret = fn(s);
+      // game_state.drawCards receives (decks,hands,seat,n), not (state,seat,n).
+      ret = fn(s.decks,s.hands,who,cnt);
 
       if (ret && typeof ret === "object") {
         if (ret.decks || ret.hands) {

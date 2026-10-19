@@ -35,6 +35,22 @@ export function createCpuAI(options = {}) {
     ...options,
   };
 
+  // Each strategy changes both tactical priorities and positional scoring.
+  const validStyles = new Set(["aggressive","balanced","defensive","infiltration"]);
+  const style = validStyles.has(options.style) ? options.style : "balanced";
+  const profiles = {
+    aggressive: { killBonus: 220, hpDmg: 1.6, spDmg: 1.2, status: 12,
+      advance: 1.55, goalRush: 0.45, selfPreserve: 0.45, exposePenalty: 0.35, panicAvoid: 1.5 },
+    balanced: { killBonus: 120, hpDmg: 1, spDmg: 1.15, status: 14,
+      advance: 0.9, goalRush: 2, selfPreserve: 1.2, exposePenalty: 0.9, panicAvoid: 2 },
+    defensive: { killBonus: 130, hpDmg: 1.05, spDmg: 1.1, status: 18,
+      advance: 0.12, goalRush: 0.1, selfPreserve: 2.7, exposePenalty: 2.5, panicAvoid: 3.5 },
+    infiltration: { killBonus: 70, hpDmg: 0.8, spDmg: 0.8, status: 6,
+      advance: 0.35, goalRush: 9.0, selfPreserve: 0.6, exposePenalty: 0.3, panicAvoid: 1.0 },
+  };
+  cfg.style = style;
+  Object.assign(cfg.w, profiles[style]);
+
   // ====== Public API ======
  return {
   pickAction,
@@ -55,29 +71,43 @@ export function createCpuAI(options = {}) {
     const myUnits = (st.units || []).filter(u => u && u.owner === mySeat && u.hp > 0);
     const enUnits = (st.units || []).filter(u => u && u.owner === enemySeat && u.hp > 0);
 
-    // 1) 侵入勝ちが近いなら、ゴール優先（盤面ルールがあるならここを強くする）
-    //    ※ ctx.helpers で「ゴール判定」「前進距離」が取れるならもっと正確にできる
+    // Always take an immediately winning infiltration move if the helper finds one.
     const rushPlan = tryGoalRush(st, ctx, myUnits, enUnits);
     if (rushPlan) return rushPlan;
 
-    // 2) 攻撃候補（期待値最大）
     const bestAtk = findBestAttack(st, ctx, myUnits, enUnits);
-    if (bestAtk) return bestAtk;
-
-    // Summon a unit from hand: an empty CPU board must not cause endless passes.
-    const summonPlan = findBestSummon(st, ctx, myUnits);
-    if (summonPlan) return summonPlan;
-
-    // 3) サポート候補（任意：ctx.helpers がある時だけ）
+    const bestSummon = findBestSummon(st, ctx, myUnits);
     const bestSup = findBestSupport(st, ctx, myUnits, enUnits);
-    if (bestSup) return bestSup;
-
-    // 4) 移動候補（敵に近づく/安全に前進）
     const bestMv = findBestMove(st, ctx, myUnits, enUnits);
-    if (bestMv) return bestMv;
 
-    // 5) 何もしない
-    return { type: "end" };
+    // Prevent passive empty turns, no matter which strategy was chosen.
+    if (!myUnits.length && bestSummon) return bestSummon;
+
+    if (style === "aggressive") {
+      if (bestAtk) return bestAtk;
+      if (bestSummon) return bestSummon;
+      if (bestMv) return bestMv;
+    } else if (style === "defensive") {
+      // Reinforce home territory before pushing towards the enemy.
+      if (bestAtk && Number(bestAtk.meta?.score ?? 0) >= 12) return bestAtk;
+      if (bestSummon && myUnits.length < 3) return bestSummon;
+      if (bestSup) return bestSup;
+      if (bestMv && Number(bestMv.meta?.score ?? -1e18) > -6) return bestMv;
+      if (bestAtk) return bestAtk;
+    } else if (style === "infiltration") {
+      // Race to the far side; only take clearly decisive attacks on the way.
+      if (bestAtk && Number(bestAtk.meta?.score ?? 0) >= 95) return bestAtk;
+      if (bestSummon && myUnits.length < 3) return bestSummon;
+      if (bestMv) return bestMv;
+      if (bestAtk) return bestAtk;
+    } else {
+      // Balanced stays closest to the original implementation.
+      if (bestAtk) return bestAtk;
+      if (bestSummon) return bestSummon;
+      if (bestSup) return bestSup;
+      if (bestMv) return bestMv;
+    }
+    return bestSup || bestSummon || bestMv || { type: "end" };
   }
 
   // ====== Summon ======
@@ -262,6 +292,16 @@ export function createCpuAI(options = {}) {
     // ゴールへ前進
     if (goalProgress) {
       score += cfg.w.goalRush * goalProgress(st, u, to);
+    }
+
+    if (style === "defensive") {
+      // Keep a defensive shape near home and punish overextension.
+      const homeY = ctx?.mySeat === "B" ? 0 : (Number(st?.boardH ?? 7) - 1);
+      score -= Math.abs(Number(to.y) - homeY) * 1.9;
+    }
+    if (style === "infiltration") {
+      const goalY = ctx?.mySeat === "B" ? (Number(st?.boardH ?? 7) - 1) : 0;
+      score += (6 - Math.abs(Number(to.y) - goalY)) * 2.5;
     }
 
     // 危険地回避

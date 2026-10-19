@@ -240,6 +240,8 @@ function injectBaseStyles() {
   .v{ font-size:20px; font-weight:800; margin-top:4px; }
   .mini{ font-size:12px; color: rgba(255,255,255,0.76); margin-top:4px; }
 
+  /* Keep extended stats reachable on narrow screens, without changing layout. */
+  .hero{max-height:calc(100dvh - 54px);overflow-y:auto;overscroll-behavior:contain}
   #battleActionDetails{font-size:13px;line-height:1.5;max-height:230px;overflow-y:auto}
   #battleActionDetails h3{font-size:16px;margin:0 0 8px}
   #battleActionDetails p{font-size:11px;opacity:.8}

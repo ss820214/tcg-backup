@@ -21,8 +21,8 @@ export function latestEnemyAction(previous,current,seat) {
   const changes=[];
   for(const [field,label] of types){
     const cur=current[field],old=previous[field];
-    if(cur?.at && Number(cur.at)!==Number(old?.at) &&
-       (cur.owner==null || cur.owner===enemy || cur.seat===enemy)) {
+    const actor=cur?.owner||cur?.seat||(cur?.attackerId ? (current.units||[]).find(u=>u.id===cur.attackerId)?.owner : null);
+    if(cur?.at && Number(cur.at)!==Number(old?.at) && actor===enemy) {
       changes.push({kind:field,label,at:Number(cur.at),cardId:cur.cardId||null,from:cur.from||null,to:cur.to||null});
     }
   }
@@ -85,7 +85,7 @@ export function createBattleReadability({board,notice,seat,getCardName,toView}) 
     const event=latestEnemyAction(previous,state,seat);
     if(event){
       showNotice("相手の行動："+event.label+(event.cardId?"（"+String(getCardName(event.cardId)).slice(0,28)+"）":""));
-      if(event.kind==="lastMove"&&event.from&&event.to)moveGhost(event.from,event.to);
+      // Regular movement already uses the existing game.js move trail effect.
     }
     if(previous&&Array.isArray(previous.units)&&Array.isArray(state.units)){
       for(const before of previous.units){

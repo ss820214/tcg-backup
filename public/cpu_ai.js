@@ -153,7 +153,7 @@ export function createCpuAI(options = {}) {
       const t = getUnitById ? getUnitById(tid) : (st.units || []).find(x => x?.id === tid);
       if (!t) continue;
 
-      const expected = (hpD * cfg.w.hpD + spD * cfg.w.spDmg) * hit * cfg.w.hitRate;
+      const expected = (hpD * cfg.w.hpDmg + spD * cfg.w.spDmg) * hit * cfg.w.hitRate;
       score += expected;
 
       // 追い打ち（トドメ）

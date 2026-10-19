@@ -776,7 +776,8 @@ onSnapshot(myRef, (snap) => {
   
   /// ソロ＆AI ONならCPUを用意（公開デッキから取得）
 if (isSolo && aiToggle?.checked) {
-    bootCpuIfEnabled().catch(() => {});
+    void bootCpuIfEnabled().catch(error=>
+      console.warn("[cpu deck] waiting for a valid deck",error));
 }
 
   renderFieldPick(me.desiredField || "");
@@ -804,7 +805,11 @@ let alreadyMoved = false;
 
 onSnapshot(playersRef, async (snap) => {
   // ソロ＆AI ONならCPUを部屋に入れてREADYにする（2人条件を満たす）
-  await bootCpuIfEnabled();
+  try { await bootCpuIfEnabled(); }
+  catch(error) {
+    statusEl.textContent="CPUデッキ準備に失敗："+(error?.message||error);
+    return;
+  }
 
   playersUl.innerHTML = "";
 
@@ -888,6 +893,13 @@ onSnapshot(playersRef, async (snap) => {
       const aData = aSnap.exists() ? aSnap.data() || {} : {};
       const bData = bSnap.exists() ? bSnap.data() || {} : {};
 
+      // A failed CPU-deck bootstrap must never silently create an empty match.
+      if (isSolo) {
+        const cpuData=seatA===CPU_ID?aData:bData;
+        const inspection=inspectCpuDeck(cpuData.deck,{defs:cardDefs});
+        if(!inspection.ok) throw new Error("CPUデッキ未準備: "+inspection.reason);
+      }
+
       const fieldA = normalizeFieldId(aData.desiredField, { fallback: randField() });
       const fieldB = normalizeFieldId(bData.desiredField, { fallback: randField() });
 
@@ -933,16 +945,21 @@ readyBtn.onclick = async () => {
   const me = await getDoc(myRef);
   if (!me.exists()) return;
 
-  // Persist the selected strategy before READY triggers match creation.
+  // READY is the barrier: the CPU deck must be fully written and playable.
+  // Merely saving cpuStyle on a bare "cpu" document is not sufficient.
   if (isSolo && !me.data()?.ready) {
     try {
-      await setDoc(cpuRef, {
-        cpuStyle: selectedCpuStyle(),
-        updatedAt: serverTimestamp(),
-      }, { merge: true });
+      await bootCpuIfEnabled();
+      const prepared=await getDoc(cpuRef);
+      const deckReport=inspectCpuDeck(prepared.exists()?prepared.data()?.deck:null,{defs:cardDefs});
+      if(!deckReport.ok) throw new Error("CPUデッキ未準備: "+deckReport.reason);
+      await setDoc(cpuRef,{
+        cpuStyle:selectedCpuStyle(),
+        updatedAt:serverTimestamp(),
+      },{merge:true});
     } catch (error) {
-      console.warn("[cpu style] could not save before ready", error);
-      if (readyNote) readyNote.textContent = "CPU戦術を保存できませんでした。再試行してください。";
+      console.warn("[cpu ready] refused invalid deck",error);
+      if (readyNote) readyNote.textContent="CPUデッキを準備できません："+(error?.message||error);
       return;
     }
   }

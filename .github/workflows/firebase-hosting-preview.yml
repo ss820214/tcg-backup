@@ -42,6 +42,9 @@ jobs:
           node --check public/cpu_tactics.js
           node tools/cpu_advanced_regression_20261019.mjs
           node tools/cpu_evolve_integration_regression_20261019.mjs
+          node --check public/support_spatial_rules.js
+          node --check public/support_core.js
+          node tools/support_spatial_regression_20261019.mjs
 
       - name: Publish isolated preview channel
         id: hosting

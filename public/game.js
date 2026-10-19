@@ -16,7 +16,7 @@ import {
   normalizeYouCard,
 } from "./user_store.js?v=20260723_starter_series1";
 
-import { createCpuDriver } from "./cpu_driver.js?v=20261019_solo_attack_score2";
+import { createCpuDriver } from "./cpu_driver.js?v=20261019_four_styles3";
 
 import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
 // ===== Support core (Support + EX) =====
@@ -798,6 +798,7 @@ let seat = null;
 let opponentSeat = null;
 let seatAPlayerId = null;
 let seatBPlayerId = null;
+let cpuTacticalStyle = "balanced";
 
 async function resolveSeat() {
   const ms = await getDoc(matchRef);
@@ -806,6 +807,9 @@ async function resolveSeat() {
     throw new Error("match missing");
   }
   const m = ms.data();
+  if (isSoloMode && ["aggressive","balanced","defensive","infiltration"].includes(m.cpuStyle)) {
+    cpuTacticalStyle = m.cpuStyle;
+  }
   seatAPlayerId = m.seatA;
   seatBPlayerId = m.seatB;
 
@@ -841,6 +845,7 @@ if (isSoloMode) {
     cardDefs,
     W,
     H,
+    style: cpuTacticalStyle,
   });
 }
 

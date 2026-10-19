@@ -27,6 +27,7 @@ assert.equal(pile.length,25);
 const init={turn:"B",turnSeq:4,hands:{A:["mine"],B:[]},decks:{A:["mine"],B:[]},
   discards:{A:[],B:[]},units:[],log:["[B] ターン終了：疲労/状態異常を回復"]};
 assert.equal(needsCpuOpeningRepair(init,"B"),true,"empty historical match may be rescued");
+assert.equal(needsCpuOpeningRepair({...init,decks:{A:[],B:["known-card"]}},"B"),true,"missing hand may be recovered from an existing pile");
 assert.equal(needsCpuOpeningRepair({...init,turnSeq:13},"B"),false,"long matches are not refilled");
 assert.equal(needsCpuOpeningRepair({...init,discards:{B:["usedCard"]}},"B"),false,"an exhausted deck is never refilled");
 assert.equal(needsCpuOpeningRepair({...init,units:[{owner:"B",id:"dead",hp:0}]},"B"),false,"a prior summon prevents refill");

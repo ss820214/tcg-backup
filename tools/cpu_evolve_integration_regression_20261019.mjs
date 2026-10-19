@@ -36,7 +36,7 @@ assert.equal(engine.canExec(state,0),true);
 assert.equal(await engine.execEvolveFromHandIndex(0),true);
 assert.equal(state.units[0].cardId,"upgrade");
 assert.equal(state.units[0].hp,70,"preserves accumulated damage");
-assert.equal(state.units[0].fatigue,false,"evolution clears fatigue");
+assert.ok(!state.units[0].fatigue,"evolution clears fatigue");
 assert.equal(state.mana.B.cur,2,"charges mana difference");
 assert.equal(state.hands.B.length,0,"consumes evolution card");
 console.log("CPU-shared evolution engine integration OK.");

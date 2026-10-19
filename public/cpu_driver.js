@@ -1,14 +1,14 @@
 // public/cpu_driver.js
-import { createCpuAI } from "./cpu_ai.js?v=20261019_solo_attack_score2";
+import { createCpuAI } from "./cpu_ai.js?v=20261019_four_styles3";
 
-export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H }) {
+export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style = "balanced" }) {
   const aiBySeat = {};
   let busy = false;
   let lastTurnSeq = null;
 
   function getAi(seat) {
     const key = seat === "A" ? "A" : "B";
-    if (!aiBySeat[key]) aiBySeat[key] = createCpuAI({ seat: key });
+    if (!aiBySeat[key]) aiBySeat[key] = createCpuAI({ seat: key, style });
     return aiBySeat[key];
   }
 

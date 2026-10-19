@@ -23,8 +23,11 @@ for(const path of ["status_guide.html","carddex.html","tutorial.html","changelog
    const closes=(html.match(new RegExp("</"+tag+">","g"))||[]).length;
    assert.equal(opens,closes,tag+" mismatch in "+path);
  }
- for(const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)){
-   if(match[1].trim())new vm.Script(match[1],{filename:path});
+ for(const match of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){
+   if(!match[2].trim())continue;
+   // Module imports require a module parser; vm.Script only accepts classic scripts.
+   if(/type\s*=\s*["']module["']/i.test(match[1]))continue;
+   new vm.Script(match[2],{filename:path});
  }
 }
 const typography=read("public/document_typography_20261019.css");

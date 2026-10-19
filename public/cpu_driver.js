@@ -53,13 +53,14 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
     if (st.turn !== cpuSeat) return;
     const seq = Number(st.turnSeq ?? 1);
     if (lastTurnSeq === seq) return;
-    lastTurnSeq = seq;
     busy = true;
+    let finishSucceeded = false;
+    const tried = new Set();
     try {
       let state = st;
-      // One CPU turn can include summoning, moving and attacking. Bound the
-      // actions and re-read Firestore after every successful transaction.
-      for (let step = 0; step < 8; step++) {
+      ctx?.onDebug?.("start", {seq,seat:cpuSeat,hand:(st.hands?.[cpuSeat]||[]).length,mana:st.mana?.[cpuSeat]?.cur});
+      // Bound successful actions AND failed plan attempts.
+      for (let step = 0; step < 12; step++) {
         if (!state || state.winner || state.turn !== cpuSeat ||
             Number(state.turnSeq ?? 1) !== seq) break;
         const basePlan = getAi(cpuSeat).pickAction(state, {
@@ -75,26 +76,46 @@ export function createCpuDriver({ db, stateRef, matchRef, cardDefs, W, H, style 
           },
         });
         const plan = pickAdvancedCpuPlan(state, {
-          seat: cpuSeat,
-          style,
-          basePlan,
+          seat: cpuSeat,style,basePlan,
           helpers: {
             listLegalEvolves: ctx?.helpers?.listLegalEvolves,
             listLegalSupports: ctx?.helpers?.listLegalSupports,
           },
         }) || basePlan;
-        if (!plan || plan.type === "end") break;
-        const changed = await ctx.execCpuPlan(plan);
-        if (!changed) break; // Invalid plans must not loop forever.
+        if (!plan || plan.type === "end") {
+          ctx?.onDebug?.("no-action",{step,hand:(state.hands?.[cpuSeat]||[]).length,mana:state.mana?.[cpuSeat]?.cur});
+          break;
+        }
+        const signature = JSON.stringify([plan.type,plan.cardId,plan.handIndex,plan.unitId,plan.attackerId,plan.targetId,plan.baseUnitId,plan.to]);
+        if (tried.has(signature)) {
+          ctx?.onDebug?.("repeated-plan",{step,plan:plan.type});
+          break;
+        }
+        tried.add(signature);
+        ctx?.onDebug?.("plan",{step,kind:plan.type});
+        let changed=false;
+        try { changed=!!(await ctx.execCpuPlan(plan)); }
+        catch (error) { ctx?.onDebug?.("action-error",{kind:plan.type,message:String(error?.message||error)}); }
+        if (!changed) {
+          ctx?.onDebug?.("rejected",{step,kind:plan.type});
+          // A failed candidate cannot occupy the whole turn silently.
+          // Retry only after refreshing the state; give up on repeated candidates.
+          state = await ctx.readState();
+          continue;
+        }
+        tried.clear();
         state = await ctx.readState();
       }
-      if (ctx.finishTurn) await ctx.finishTurn();
+      if (ctx.finishTurn) finishSucceeded=!!(await ctx.finishTurn());
+      ctx?.onDebug?.("finished",{ok:finishSucceeded});
     } catch (error) {
-      console.warn("[cpu] turn failed", error);
-      // Do not strand solo play if one action fails.
-      try { await ctx.finishTurn?.(); } catch (e) { console.warn("[cpu] end turn failed", e); }
+      console.warn("[cpu] turn failed",error);
+      ctx?.onDebug?.("driver-error",{message:String(error?.message||error)});
+      try {finishSucceeded=!!(await ctx.finishTurn?.());} catch(e){console.warn("[cpu] end turn failed",e);}
     } finally {
-      busy = false;
+      // Mark the turn processed only when it advanced successfully.
+      if (finishSucceeded) lastTurnSeq=seq;
+      busy=false;
     }
   }
 

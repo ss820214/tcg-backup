@@ -3,6 +3,7 @@
 // ...
 
 import { createGameUI } from "./game_ui.js?v=20261017_mobilemenu1";
+import { createBattleReadability } from "./battle_readability.js?v=20261020a";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
@@ -3894,6 +3895,21 @@ function applyPinchFxAndBgm(st) {
 // =====================
 let currentState = null;
 const opponentHandView = createOpponentHandView(document.getElementById("enemyHandOverlay"));
+const readability = createBattleReadability({
+  board: boardEl,notice:document.getElementById("battleRecentAction"),seat,
+  getCardName:cardName,toView:p=>toViewXY(p.x,p.y),
+});
+function updateBattleReadability(st) {
+  try {
+    const su=getSelectedUnit(st);
+    readability.update(st,{
+      mode,selectedId:selectedUnitId,
+      attackMap:mode==="attack"&&su?buildRangeMap(st):null,
+      moveBlocked:su?(isMoveBlockedByStatus(su)||isPanic(su)):false,
+    });
+  } catch(error){console.warn("[battle readable UI]",error);}
+}
+
 let dopaEventReady = false;
 let lastDopaEvolveAt = 0;
 let lastDopaScore = null;
@@ -7365,6 +7381,10 @@ const ui = createGameUI({
     }
   },
 });
+
+// Command selection and Firestore updates both refresh battle hints.
+const originalUiRender=ui.render;
+render=(st)=>{originalUiRender(st);updateBattleReadability(st);};
 
 function showInfiltrationPulse(owner) {
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;

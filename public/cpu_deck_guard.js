@@ -65,3 +65,23 @@ export function chooseCpuDeck(publicDecks, fallbackDeck, defs = null, rng = Math
   if (report.ok) return { deck: { ...fallbackDeck }, source: "fallback", title: "CPU" };
   throw new Error("CPUの30枚デッキを準備できません（公開デッキに有効なものがなく、自分のデッキも " + report.reason + "）");
 }
+
+/**
+ * Recover ONLY a solo match that literally started without CPU cards.
+ * A legitimately exhausted deck, played unit or discard is never refilled.
+ * The low turn-sequence bound avoids giving new cards to long-running matches.
+ */
+export function needsCpuOpeningRepair(state,cpuSeat) {
+  if (!state || state.winner || state.cpuDeckRecovered || !["A","B"].includes(cpuSeat)) return false;
+  const seq=Number(state.turnSeq ?? 1);
+  if (!Number.isFinite(seq) || seq < 1 || seq > 12) return false;
+  if ((state.hands?.[cpuSeat]||[]).length ||
+      (state.decks?.[cpuSeat]||[]).length ||
+      (state.discards?.[cpuSeat]||[]).length) return false;
+  if ((state.units||[]).some(u=>u?.owner===cpuSeat)) return false;
+  // CPU turn-end logs alone do not imply it ever received a card.
+  if ((state.log||[]).some(line=>typeof line==="string" &&
+      line.startsWith("["+cpuSeat+"]") &&
+      /(?:召喚|進化|サポート|Support|EX使用|CPU move|CPU attack|移動：|攻撃：)/.test(line))) return false;
+  return true;
+}

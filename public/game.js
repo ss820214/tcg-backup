@@ -3,6 +3,7 @@
 // ...
 
 import { createGameUI } from "./game_ui.js?v=20261017_mobilemenu1";
+import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
@@ -1863,18 +1864,23 @@ function supportTargetText(def) {
   return "対象: 任意";
 }
 
+function supportLegalCell(st, def, unitId, x, y) {
+  const from = (st?.units || []).find(u => u?.id === unitId);
+  const effect = spatialEffect(def, "moveTo");
+  return !!effect && validSpatialMove({from,to:{x,y},effect,units:st?.units||[],W,H});
+}
+function supportLegalPair(st, def, firstId, secondId) {
+  const first=(st?.units||[]).find(u=>u?.id===firstId);
+  const second=(st?.units||[]).find(u=>u?.id===secondId);
+  const effect=spatialEffect(def,"swapPos");
+  return !!effect && validSpatialSwap({first,second,effect,W,H});
+}
 function supportReadyByPlan(plan) {
   const need = plan?.need || "none";
   if (need === "none") return true;
   if (need === "unit") return !!supportTarget1Id;
-  if (need === "unit2") {
-    return (
-      !!supportTarget1Id &&
-      !!supportTarget2Id &&
-      supportTarget1Id !== supportTarget2Id
-    );
-  }
-  if (need === "unitCell") return !!supportTarget1Id && !!supportTargetCell;
+  if (need === "unit2") return !!supportTarget1Id && !!supportTarget2Id && supportLegalPair(currentState,selectedHandDef(currentState),supportTarget1Id,supportTarget2Id);
+  if (need === "unitCell") return !!supportTarget1Id && !!supportTargetCell && supportLegalCell(currentState,selectedHandDef(currentState),supportTarget1Id,supportTargetCell.x,supportTargetCell.y);
   if (need === "units") {
     const cnt = Math.max(1, Number(plan?.count ?? 1) || 1);
     return Array.isArray(supportTargetIds) && supportTargetIds.length >= cnt;
@@ -2826,7 +2832,7 @@ function buildSupportMap(st) {
   if (plan.need === "unit2") {
     for (const u of units) {
       if (!u || Number(u.hp) <= 0) continue;
-      if (supportTarget1Id && u.id === supportTarget1Id) continue;
+      if (supportTarget1Id && !supportLegalPair(st,def,supportTarget1Id,u.id)) continue;
       if (!supportCanPickUnit(u, seat, tMode)) continue;
       map.set(String(u.x) + "," + String(u.y), { ok: true, kind: "unit2" });
     }
@@ -2857,7 +2863,7 @@ function buildSupportMap(st) {
         const occ = units.find(
           (v) => v && Number(v.hp) > 0 && v.x === x && v.y === y,
         );
-        if (occ) continue;
+        if (occ || !supportLegalCell(st,def,supportTarget1Id,x,y)) continue;
         map.set(String(x) + "," + String(y), { ok: true, kind: "pickCell" });
       }
     }
@@ -4463,7 +4469,7 @@ function onCellClick(x, y) {
     const plan = supportPlan(handDef);
     if (plan.need === "unitCell" && supportTarget1Id) {
       const occ = unitAt(st, x, y);
-      if (!occ) {
+      if (!occ && supportLegalCell(st,handDef,supportTarget1Id,x,y)) {
         supportTargetCell = { x, y };
         render(st);
         return;
@@ -4513,7 +4519,7 @@ function onCellClick(x, y) {
 
       if (plan.need === "unit2") {
         if (!supportTarget1Id) supportTarget1Id = u.id;
-        else if (!supportTarget2Id && u.id !== supportTarget1Id)
+        else if (!supportTarget2Id && supportLegalPair(st,handDef,supportTarget1Id,u.id))
           supportTarget2Id = u.id;
         else if (u.id === supportTarget1Id) supportTarget2Id = null;
         render(st);

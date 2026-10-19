@@ -1113,3 +1113,21 @@ body.lobbyReadyAll .topActions{
 @media (max-width: 780px){
   .fieldPickBtns{ grid-template-columns: 1fr; }
 }
+
+
+/* Solo CPU style picker */
+.cpuStrategyPanel{width:min(1200px,calc(100% - 24px));margin:14px auto;padding:18px;background:#132027;border:1px solid #486a69;border-radius:10px;color:#edf9f5}
+.cpuStrategyPanel[hidden]{display:none!important}
+.cpuStrategyHeading{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.cpuStrategyHeading h2{margin:0;font-size:18px}
+.cpuStrategyHeading p,.cpuStrategyNote{color:#b3d1ce;font-size:12px;line-height:1.65}
+.cpuHiddenDeck{font-size:12px;color:#cef4dd;font-weight:800;letter-spacing:.1em;border:1px dashed #679d95;padding:6px 10px}
+.cpuStrategyGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.cpuStrategyChoice{min-width:0;position:relative;display:flex;flex-direction:column;gap:7px;padding:14px;border:1px solid #536568;border-radius:7px;background:#1c272b;cursor:pointer}
+.cpuStrategyChoice:has(input:checked){border-color:#81e5bd;background:#244336}
+.cpuStrategyChoice:focus-within{outline:2px solid #8ff9d5;outline-offset:2px}
+.cpuStrategyChoice input{position:absolute;top:12px;right:10px;accent-color:#8fe4bc}
+.cpuStrategyChoice b{padding-right:20px}
+.cpuStrategyChoice small{font-size:12px;color:#bfd0d1;line-height:1.5}
+.cpuStrategyChoice:has(input:disabled){opacity:.5;cursor:not-allowed}
+@media(max-width:760px){.cpuStrategyPanel{padding:12px}.cpuStrategyGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.cpuStrategyChoice{padding:11px}.cpuStrategyChoice b{font-size:14px}.cpuStrategyChoice small{font-size:11px}}

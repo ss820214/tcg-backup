@@ -31,7 +31,17 @@
 <section class="panel deckPanel"><div class="panelHeader"><div class="panelTitle">デッキ確認</div><div class="panelSub muted">カードを押すと詳細を表示</div></div><div class="deckWrap"><div class="deckLeft"><div class="subTitle">採用カード一覧</div><div id="myDeck" class="deckList"></div></div><div class="deckDetail panelInner"><div class="subTitle">カード詳細</div><div id="deckDetail" class="deckDetailBody muted">カードを選択してください</div></div></div><details class="compatBox"><summary>参加プレイヤー一覧</summary><ul id="players" class="playersList"></ul></details></section>
 <section class="panel evalPanel"><div class="panelHeader"><div class="panelTitle">デッキ評価</div><div class="panelSub muted">レーダー・属性分布</div></div><div class="radarWrap"><canvas id="battleDeckRadar" width="360" height="260"></canvas><div id="battleDeckRadarText" class="muted small"></div></div><div class="attrWrap"><div class="subTitle">属性の分布</div><div id="attrDist" class="attrDist"><div class="muted">デッキ読み込み後に表示</div></div></div></section>
 </main>
-<label class="aiSwitch"><input id="aiToggle" type="checkbox"><span>AI対戦（CPU）</span></label>
+<section class="cpuStrategyPanel" id="cpuStrategyPanel" hidden aria-labelledby="cpuStrategyTitle">
+  <div class="cpuStrategyHeading"><div><h2 id="cpuStrategyTitle">CPUの戦術を選択</h2><p>戦い方に合わせて、CPUの判断が変わります。</p></div><span class="cpuHiddenDeck">相手デッキ：？？？</span></div>
+  <div class="cpuStrategyGrid" id="cpuStrategyGrid" role="radiogroup" aria-label="CPUの戦術">
+    <label class="cpuStrategyChoice"><input type="radio" name="cpuStyle" value="aggressive"><b>攻撃的</b><small>火力と撃破を優先。積極的に接近。</small></label>
+    <label class="cpuStrategyChoice"><input type="radio" name="cpuStyle" value="balanced" checked><b>バランス</b><small>攻撃・展開・前進を状況で判断。</small></label>
+    <label class="cpuStrategyChoice"><input type="radio" name="cpuStyle" value="defensive"><b>守備的</b><small>自陣維持と安全を重視して迎撃。</small></label>
+    <label class="cpuStrategyChoice"><input type="radio" name="cpuStyle" value="infiltration"><b>侵入</b><small>前進と突破を優先し、敵陣を目指す。</small></label>
+  </div>
+  <p class="cpuStrategyNote" id="cpuStrategyNote" role="status" aria-live="polite">選択中：バランス</p>
+</section>
+<label class="aiSwitch" id="aiToggleRow"><input id="aiToggle" type="checkbox"><span>AI対戦（CPU）</span></label>
 <section class="panel pongPanel"><div class="panelHeader"><div><div class="panelTitle">ピンポン・ボーナス</div><div class="panelSub muted">待機中のミニゲーム</div></div><div class="pongRewardPill" id="pongRewardPill">20 COMBO = +10 Gems</div></div><div class="pongRow"><div class="pong"><div class="wall wallL"></div><div class="wall wallR"></div><div class="pongLane"></div><div class="pongJudgeLine"></div><div class="paddle"></div><div class="ball" id="ball"></div></div><div class="pongControls"><div class="pongStats"><div><span>SCORE</span><b id="pongScore">0</b></div><div><span>COMBO</span><b id="pongCombo">0</b></div><div><span>GEMS</span><b id="pongReward">+0</b></div></div><button id="pingBtn" class="btnGhost">打ち返す</button><button id="pingResetBtn" class="btnGhost">リセット</button><div id="pingStatus" class="muted">スタート！</div></div></div></section>
 </div>
 <script type="module" src="./battle.js?v=20260914_radar_readable1"></script>

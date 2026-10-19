@@ -7,8 +7,8 @@ const read=path=>readFileSync(path,"utf8");
 const code=read("public/cpu_deck_guard.js")
   .replace(/export const/g,"const")
   .replace(/export function/g,"function")
-  +"\n({inspectCpuDeck,expandCpuDeck,chooseCpuDeck})";
-const {inspectCpuDeck,expandCpuDeck,chooseCpuDeck}=vm.runInNewContext(code);
+  +"\n({inspectCpuDeck,expandCpuDeck,chooseCpuDeck,needsCpuOpeningRepair})";
+const {inspectCpuDeck,expandCpuDeck,chooseCpuDeck,needsCpuOpeningRepair}=vm.runInNewContext(code);
 const valid={a:4,b:4,c:4,d:4,e:4,f:4,g:4,h:2};
 const defs={a:{hp:50,cost:2,kind:"character"},b:{hp:60,cost:3}};
 assert.equal(inspectCpuDeck({}).ok,false,"empty deck must be rejected");
@@ -38,6 +38,13 @@ assert.equal(pile.slice(5).length,25);
 const countById=Object.fromEntries(Object.keys(valid).map(id=>[id,pile.filter(x=>x===id).length]));
 for(const [id,n] of Object.entries(valid))assert.equal(countById[id],n);
 assert.throws(()=>chooseCpuDeck(publicInvalid,{},defs),/CPUの30枚デッキを準備できません/);
+const emptyCpu={turnSeq:4,winner:null,hands:{B:[]},decks:{B:[]},discards:{B:[]},units:[],log:[]};
+assert.equal(needsCpuOpeningRepair(emptyCpu,"B"),true);
+assert.equal(needsCpuOpeningRepair({...emptyCpu,hands:{B:["a"]}},"B"),false,"valid hand never refilled");
+assert.equal(needsCpuOpeningRepair({...emptyCpu,units:[{owner:"B",id:"used"}]},"B"),false,"used units never refilled");
+assert.equal(needsCpuOpeningRepair({...emptyCpu,discards:{B:["a"]}},"B"),false,"used discards never refilled");
+assert.equal(needsCpuOpeningRepair({...emptyCpu,turnSeq:100},"B"),false,"late game never refilled");
+
 
 const lobby=read("public/battle.js");
 const game=read("public/game.js");
@@ -46,8 +53,28 @@ assert.match(lobby,/const inspection=inspectCpuDeck\(cpuData\.deck,\{defs:cardDe
 assert.match(lobby,/chooseCpuDeck\(candidates,fallback,cardDefs\)/);
 assert.match(lobby,/cpuBootPromise=ensureCpuPlayerDocFromPublicDeck\(\)/);
 assert.match(game,/inspectCpuDeck\(cpuDeck,\{defs:cardDefs\}\)/);
-assert.match(game,/async function recoverUnseededCpuDeck\(\)/);
-assert.match(game,/hand\.length \|\| deck\.length \|\| discarded\.length/);
-assert.match(game,/turnSeq\?\?1\)>8/);
-assert.match(game,/allCards\.slice\(0,5\)/);
+assert.match(game,/needsCpuOpeningRepair\(s,cpuSeat\)/);
+assert.match(game,/s\.cpuDeckRecovered=true/);
+assert.match(game,/const shuffled=expandCpuDeck\(savedDeck\)/);
+assert.match(game,/ret = fn\(s\.decks,s\.hands,who,cnt\)/);
+
+// Verify real turn-start drawCards signature and the adapter together.
+const stateSource=read("public/game_state.js");
+const drawStart=stateSource.indexOf("export function drawCards(");
+const drawEnd=stateSource.indexOf("export function goToDeck(",drawStart);
+assert.ok(drawStart>=0&&drawEnd>drawStart);
+const draw=vm.runInNewContext(stateSource.slice(drawStart,drawEnd)
+  .replace("export function drawCards","function drawCards")+"\ndrawCards");
+const adapterStart=game.indexOf("function safeDrawCards(s, who, n)");
+const adapterEnd=game.indexOf("function otherSeatOf(",adapterStart);
+assert.ok(adapterStart>=0&&adapterEnd>adapterStart);
+const adapted=vm.runInNewContext(game.slice(adapterStart,adapterEnd)+"\nsafeDrawCards",{drawCards:draw});
+const sim={decks:{A:[],B:["second","first"]},hands:{A:[],B:[]}};
+adapted(sim,"B",1);
+assert.equal(sim.hands.B.length,1,"one card must be drawn at CPU turn start");
+assert.equal(sim.decks.B.length,1,"drawing exactly one card");
+adapted(sim,"B",1);
+assert.equal(sim.hands.B.length,2);
+assert.equal(sim.decks.B.length,0);
+
 console.log("CPU deck bootstrap: empty/public validation, ready/match guards and 5+25 seeding OK.");

@@ -5636,3 +5636,79 @@ body {
   #actionPicker .apFooter .btnExec { flex: 1 1 130px; min-height: 44px; font-weight: 700; }
   #actionPicker .apFooter .btnGhost { flex: 1 1 100px; min-height: 44px; }
 }
+
+/* 2026-10-21: show the entire hand without horizontal scrolling (desktop + mobile). */
+#handDrawer.handDrawer {
+  width: min(1200px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: min(82dvh, 640px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+#handDrawer .handStack.mdHandCompact {
+  display: grid !important;
+  grid-template-columns: repeat(var(--hand-columns, 5), minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  gap: 9px !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 12px 6px 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  scroll-snap-type: none !important;
+  box-sizing: border-box;
+}
+#handDrawer .handStack.mdHandCompact .stackHandCard,
+#handDrawer .handStack.mdHandCompact .stackHandCard:hover {
+  position: relative !important;
+  left: auto !important;
+  bottom: auto !important;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: clamp(150px, 19vw, 218px) !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-sizing: border-box;
+}
+#handDrawer .handStack.mdHandCompact .stackHandCard.selected,
+#handDrawer .handStack.mdHandCompact .stackHandCard.selected:hover {
+  transform: translateY(-4px) !important;
+  outline: 2px solid #87caff;
+  outline-offset: -2px;
+}
+#handDrawer .handStack.mdHandCompact .shcName {
+  font-size: clamp(10px, 1.05vw, 14px) !important;
+}
+#handDrawer .handStack.mdHandCompact .shcText {
+  font-size: clamp(9px, .9vw, 12px) !important;
+  max-height: 70px !important;
+}
+@media (max-width: 760px) {
+  #handDrawer.handDrawer {
+    width: calc(100vw - 12px) !important;
+    max-width: calc(100vw - 12px) !important;
+    max-height: 75dvh !important;
+    padding: 9px !important;
+  }
+  #handDrawer .handStack.mdHandCompact {
+    gap: 4px !important;
+    padding: 9px 0 !important;
+  }
+  #handDrawer .handStack.mdHandCompact .stackHandCard,
+  #handDrawer .handStack.mdHandCompact .stackHandCard:hover {
+    height: 155px !important;
+    padding: 4px !important;
+    border-radius: 9px !important;
+  }
+  #handDrawer .handStack.mdHandCompact .shcName {
+    font-size: 9px !important;
+  }
+  #handDrawer .handStack.mdHandCompact .shcText {
+    font-size: 8px !important;
+  }
+}

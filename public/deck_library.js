@@ -234,6 +234,8 @@ function installUnifiedUi(opts = {}) {
   const color = document.getElementById("deckLibThemeColor");
   if (!btnSave || !box || !vis || !color) return;
   state.unifiedInstalled = true;
+  // Privacy-first: every newly opened save screen starts private.
+  vis.value = "private";
 
   btnSave.textContent = "保存";
   btnSave.removeAttribute("disabled");
@@ -333,6 +335,15 @@ function installUnifiedUi(opts = {}) {
             entry.id !== targetId && normalizeTitle(entry.data()?.title) === wanted
           );
           if (duplicate) throw new Error("同じ名前の公開デッキがあります。別の名前に変更してください。");
+        }
+
+        // Prevent duplicate public titles without affecting private decks or overwriting this deck.
+        if (payload.visibility === "public") {
+          const normalizeTitle = value => String(value || "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ja");
+          const normalized = normalizeTitle(payload.title);
+          const publicDocs = await getDocs(query(collection(db, "decks"), where("visibility", "==", "public"), limit(1000)));
+          const duplicate = publicDocs.docs.some(item => item.id !== targetId && normalizeTitle(item.data()?.title) === normalized);
+          if (duplicate) throw new Error("同じ名前の公開デッキがあります。別のデッキ名に変更してください。");
         }
 
         if (targetId) {

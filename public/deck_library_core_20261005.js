@@ -744,7 +744,7 @@ export function initDeckLibrary(opts) {
               <select id="deckLibVis" class="deckLibSelect" title="公開範囲">
                 <option value="public">公開（みんなに表示）</option>
                 <option value="unlisted">限定公開（ID知ってる人）</option>
-                <option value="private">非公開（自分だけ）</option>
+                <option value="private" selected>非公開（自分だけ）</option>
               </select>
               <div class="deckLibColorWrap">
                 <label for="deckLibThemeColor">テーマカラー</label>
@@ -854,7 +854,7 @@ export function initDeckLibrary(opts) {
   // vis restore
   if (elVis) {
     const last = getLS(LS_LAST_VIS);
-    if (last) elVis.value = last;
+    elVis.value = "private"; // Always begin with safe default; explicit public selection is required.
     elVis.addEventListener("change", () => setLS(LS_LAST_VIS, elVis.value));
   }
   if (elThemeColor) {
@@ -1255,7 +1255,7 @@ async function uploadDeck({ overwrite }) {
   const exSupport = String(snap?.exSupport || "");
   const desiredField = String(snap?.desiredField || "");
   const title = String(snap?.title || pickTitle()).trim() || "無題デッキ";
-  const visibility = String(elVis?.value || "public");
+  const visibility = String(elVis?.value || "private");
   const themeColor = /^#[0-9a-f]{6}$/i.test(String(elThemeColor?.value || ""))
     ? String(elThemeColor.value)
     : "#70c7ff";
@@ -1272,6 +1272,14 @@ async function uploadDeck({ overwrite }) {
   try {
     const decksCol = collection(db, "decks");
 
+    if (visibility === "public") {
+      const sameName = await getDocs(query(decksCol,where("title","==",title),limit(50)));
+      const currentId = overwrite ? getLS(LS_LAST_ID) : "";
+      if (sameName.docs.some(d=>d.id!==currentId && d.data()?.visibility==="public")) {
+        setNg("同じ名前の公開デッキがあります。別のデッキ名にしてください。");
+        return;
+      }
+    }
     const { total, publicCount } = await countMyDecks();
 
     if (!overwrite && total >= 10) {

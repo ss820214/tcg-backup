@@ -1651,7 +1651,7 @@ function updateHandDrawerPosition() {
             : (curAct?.cost ?? "?")
         }）\n` +
         `対象：${tgt ? cardName(tgt.cardId) : "未選択"}\n` +
-        `手順：対象ユニットをクリック → 「行動実行」\n` +
+        `手順：技を選択 → 対象をクリック → 「攻撃決定」\n` +
         (allowAlly ? `※この技は味方も対象OK\n` : "") +
         (su.fatigue ? `\n※疲労中：行動できません` : "");
       panel.appendChild(hint);
@@ -1661,7 +1661,7 @@ function updateHandDrawerPosition() {
 
       const execBtn = document.createElement("button");
       execBtn.className = "btnExec";
-      execBtn.textContent = "行動実行";
+      execBtn.textContent = "攻撃決定";
       execBtn.addEventListener("click", () => execAttack?.(st));
 
       const mana = normalizeMana?.(st.mana);

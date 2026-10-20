@@ -2,7 +2,7 @@
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261020_readability_hook1";
+import { createGameUI } from "./game_ui.js?v=20261021_hand_grid1";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";

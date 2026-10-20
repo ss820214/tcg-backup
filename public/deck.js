@@ -7374,7 +7374,7 @@ async function saveDeckToUser(name) {
         desiredField: desiredField(),
         updatedAt: serverTimestamp(),
       },
-      { merge: true },
+      { mergeFields: ["name", "nameLower", "playerName", "playerNameLower", "displayName", "displayNameLower", "deck", "exSupport", "deckTitle", "desiredField", "updatedAt"] },
     );
 
     return true;
@@ -7943,6 +7943,7 @@ function renderCardListNewUI() {
   cardListEl.innerHTML = "";
   const nameQ = (filterName || "").trim().normalize("NFKC").toLowerCase();
 
+  const fragment = document.createDocumentFragment();
   for (const cardId of cardIdsSorted) {
     const def = cardDefs[cardId] || {};
     const notOwned = isOwnedSystemActive() && ownedCount(cardId) <= 0;
@@ -8051,8 +8052,9 @@ function renderCardListNewUI() {
       if (isSelEx) clearExSupport();
       else selectExSupport(cardId);
     });
-    cardListEl.appendChild(row);
+    fragment.appendChild(row);
   }
+  cardListEl.appendChild(fragment);
 }
 
 function renderCardSectionsOldUI() {
@@ -8286,13 +8288,14 @@ async function ensurePlayerDoc(rid, pid, name) {
       ready: false,
       updatedAt: serverTimestamp(),
     },
-    { merge: true },
+    { mergeFields: ["uid", "name", "deck", "exSupport", "desiredField", "deckTitle", "ready", "updatedAt"] },
   );
 }
 
 async function saveDeckOnly(rid, pid) {
   try {
     const name = askNameIfNeeded();
+    if (btnSave) { btnSave.disabled = true; btnSave.setAttribute("aria-busy", "true"); }
 
     const title = normalizeDeckTitle(
       deckTitleInput?.value || loadDeckTitle() || "",
@@ -8309,7 +8312,7 @@ async function saveDeckOnly(rid, pid) {
         desiredField: desiredField(),
         updatedAt: serverTimestamp(),
       },
-      { merge: true },
+      { mergeFields: ["name", "deck", "exSupport", "deckTitle", "desiredField", "updatedAt"] },
     );
 
     if (!(await saveDeckToUser(name))) throw new Error("ユーザーデッキの保存に失敗しました");
@@ -8322,6 +8325,8 @@ async function saveDeckOnly(rid, pid) {
     saveLocalDeck();
     saveSelectedEx(selectedExSupportId || "");
     setMsg("保存に失敗しました（ローカル保存は完了）。", false);
+  } finally {
+    if (btnSave) { btnSave.disabled = false; btnSave.removeAttribute("aria-busy"); }
   }
 }
 

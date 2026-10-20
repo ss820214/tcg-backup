@@ -2,7 +2,7 @@
 // v20261008_guest_save_limit2
 // Single-save UI + guest 2-deck / registered 10-deck cloud save + copy-safe overwrite semantics.
 
-import { initDeckLibrary as initDeckLibraryCore } from "./deck_library_core_20261005.js?v=20260822_deck_meta1";
+import { initDeckLibrary as initDeckLibraryCore } from "./deck_library_core_20261005.js?v=20261020_private_names1";
 import { ensureSignedIn } from "./auth.js?v=20260627_perm1";
 import {
   collection,

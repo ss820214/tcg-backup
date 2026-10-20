@@ -1293,6 +1293,7 @@ function updateHandDrawerPosition() {
   const stack = document.createElement("div");
   stack.className = "handStack mdHandCompact";
   stack.style.setProperty("--hand-count", String(Math.max(1, hand.length)));
+  stack.style.setProperty("--hand-columns", String(Math.max(1, Math.min(6, hand.length))));
 
   for (let i = 0; i < hand.length; i++) {
     const cid = hand[i];

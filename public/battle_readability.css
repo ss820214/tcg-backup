@@ -13,3 +13,8 @@ color:#a4f7fc;font-size:clamp(18px,4vw,32px);font-weight:900;text-shadow:0 2px 1
 #battleLogDetails #log{max-height:170px;overflow:auto;white-space:pre-wrap}
 @media(max-width:760px){#battleRecentAction{top:38px;font-size:11px;padding:5px 8px;max-width:94%}#battlePredictionLegend{font-size:10px}}
 @media(prefers-reduced-motion:reduce){#board .battleReadableGhost{display:none!important}}
+
+/* 2026-10-20: no large battle log overlay; retain event data for results. */
+#battleLogDetails{display:none!important}
+#battleRecentAction{top:12px;max-width:min(82%,310px);padding:4px 9px;border-color:#8ce8cc44;background:#10232c9c;color:#d8f4ed;font-size:11px;font-weight:500;box-shadow:none;opacity:.78}
+@media(max-width:760px){#battleRecentAction{top:8px;max-width:78%;font-size:10px;padding:3px 7px}}

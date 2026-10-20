@@ -7394,7 +7394,7 @@ async function loadDeckPreferFirestore(rid, pid) {
       deckMap = normalizeDeckMap(dm);
     }
 
-      if (d.exSupport) selectedExSupportId = String(d.exSupport || "");
+      selectedExSupportId = String(d.exSupport || "");
       if (d.desiredField) {
         const fid = saveDesiredField(d.desiredField);
         const sel = document.getElementById("fieldSelect");
@@ -7944,16 +7944,19 @@ function renderCardListNewUI() {
   const nameQ = (filterName || "").trim().normalize("NFKC").toLowerCase();
 
   const fragment = document.createDocumentFragment();
+  const deckTotal = sumDeck(deckMap);
+  const ownedActive = isOwnedSystemActive();
+  const adminMode = isAdminUser();
   for (const cardId of cardIdsSorted) {
     const def = cardDefs[cardId] || {};
-    const notOwned = isOwnedSystemActive() && ownedCount(cardId) <= 0;
+    const notOwned = ownedActive && ownedCount(cardId) <= 0;
     if (!passesCurrentCardFilters(cardId, def, notOwned)) continue;
     if (nameQ && !cardSearchText(cardId, def).includes(nameQ)) continue;
     const cnt = Number(deckMap[cardId] || 0);
     const limit = deckLimitForCard(cardId);
 
     const exOnly = isExSupport(def, cardId);
-    const canAddMore = !exOnly && limit > 0 && cnt < limit && sumDeck(deckMap) < DECK_SIZE;
+    const canAddMore = !exOnly && limit > 0 && cnt < limit && deckTotal < DECK_SIZE;
     const isSelEx = exOnly && selectedExSupportId === cardId;
 
     const row = document.createElement("div");
@@ -7964,7 +7967,7 @@ function renderCardListNewUI() {
     const rowAttr = cardAttrForFilter(def);
     if (rowAttr) row.dataset.type = rowAttr;
     row.style.outline = isSelEx ? "2px solid rgba(90,170,255,.7)" : "";
-    const adminHiddenUi = isAdminUser()
+    const adminHiddenUi = adminMode
       ? `
         <button
           class="miniBtn adminHideToggle ${def.hidden ? "isHidden" : ""}"
@@ -8292,10 +8295,13 @@ async function ensurePlayerDoc(rid, pid, name) {
   );
 }
 
+let deckSavePending = false;
 async function saveDeckOnly(rid, pid) {
+  if (deckSavePending) return;
+  deckSavePending = true;
+  if (btnSave) { btnSave.disabled = true; btnSave.setAttribute("aria-busy", "true"); }
   try {
     const name = askNameIfNeeded();
-    if (btnSave) { btnSave.disabled = true; btnSave.setAttribute("aria-busy", "true"); }
 
     const title = normalizeDeckTitle(
       deckTitleInput?.value || loadDeckTitle() || "",
@@ -8326,6 +8332,7 @@ async function saveDeckOnly(rid, pid) {
     saveSelectedEx(selectedExSupportId || "");
     setMsg("保存に失敗しました（ローカル保存は完了）。", false);
   } finally {
+    deckSavePending = false;
     if (btnSave) { btnSave.disabled = false; btnSave.removeAttribute("aria-busy"); }
   }
 }

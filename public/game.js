@@ -2189,11 +2189,11 @@ function currentDiceLines(lastRoll, lastSupportRoll) {
   const lines = [];
   if (lastRoll) {
     const age = nowMs() - (lastRoll.at || 0);
-    if (age <= 2600) lines.push(diceRollLine(lastRoll));
+    if (age <= 5000) lines.push(diceRollLine(lastRoll));
   }
   if (lastSupportRoll) {
     const age2 = nowMs() - (lastSupportRoll.at || 0);
-    if (age2 <= 2600) lines.push(supportRollLine(lastSupportRoll));
+    if (age2 <= 5000) lines.push(supportRollLine(lastSupportRoll));
   }
   return lines;
 }

@@ -337,15 +337,6 @@ function installUnifiedUi(opts = {}) {
           if (duplicate) throw new Error("同じ名前の公開デッキがあります。別の名前に変更してください。");
         }
 
-        // Prevent duplicate public titles without affecting private decks or overwriting this deck.
-        if (payload.visibility === "public") {
-          const normalizeTitle = value => String(value || "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ja");
-          const normalized = normalizeTitle(payload.title);
-          const publicDocs = await getDocs(query(collection(db, "decks"), where("visibility", "==", "public"), limit(1000)));
-          const duplicate = publicDocs.docs.some(item => item.id !== targetId && normalizeTitle(item.data()?.title) === normalized);
-          if (duplicate) throw new Error("同じ名前の公開デッキがあります。別のデッキ名に変更してください。");
-        }
-
         if (targetId) {
           await setDoc(doc(db, "decks", targetId), payload, { merge:true });
           setMsg(`保存しました：${payload.title}（${size}/30枚）`, true);

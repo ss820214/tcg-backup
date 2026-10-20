@@ -364,7 +364,8 @@ async function ensureCpuPlayerDocFromPublicDeck() {
     cpuStyle:selectedCpuStyle(),
     updatedAt:serverTimestamp(),
   };
-  // Replace the entire deck map; setDoc merge:true would retain stale card IDs.\n  await updateDoc(cpuRef,patch);
+  // Replace the entire deck map; setDoc merge:true would retain stale card IDs.
+  await updateDoc(cpuRef,patch);
   console.info("[cpu deck] prepared",{source:chosen.source,cards:inspectCpuDeck(chosen.deck).total});
   return chosen;
 }

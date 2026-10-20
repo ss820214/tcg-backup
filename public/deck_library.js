@@ -229,6 +229,8 @@ function installUnifiedUi(opts = {}) {
   const btnSave = document.getElementById("btnSave");
   const box = document.getElementById("deckLibBox");
   const vis = document.getElementById("deckLibVis");
+  // Privacy first: do not reuse an old public selection as the save default.
+  if (vis) vis.value = "private";
   const color = document.getElementById("deckLibThemeColor");
   if (!btnSave || !box || !vis || !color) return;
   state.unifiedInstalled = true;
@@ -320,6 +322,18 @@ function installUnifiedUi(opts = {}) {
         }
 
         if (payload.visibility === "public") await ensureUniquePublicTitle(db, payload.title, targetId);
+
+        // Public titles are unique (case and full-width differences ignored).
+        // Updating the same document is allowed; other titles are rejected.
+        if (payload.visibility === "public") {
+          const normalizeTitle = value => String(value || "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ja");
+          const wanted = normalizeTitle(payload.title);
+          const publicDocs = await getDocs(query(collection(db, "decks"), where("visibility", "==", "public")));
+          const duplicate = publicDocs.docs.some(entry =>
+            entry.id !== targetId && normalizeTitle(entry.data()?.title) === wanted
+          );
+          if (duplicate) throw new Error("同じ名前の公開デッキがあります。別の名前に変更してください。");
+        }
 
         if (targetId) {
           await setDoc(doc(db, "decks", targetId), payload, { merge:true });

@@ -87,8 +87,17 @@ async function ownDeckCount(db, uid) {
     throw new Error("保存デッキ数を確認できません。通信状態を確認してください。", { cause: error });
   }
 }
+// Public names are shared across creators. Reject collisions before saving.
+async function ensureUniquePublicTitle(db, title, excludeId="") {
+  const name=String(title||"").trim().normalize("NFKC").toLocaleLowerCase("ja");
+  if (!name) throw new Error("公開デッキには名前を付けてください。");
+  // Title equality is indexed by Firestore without requiring a composite index.
+  const docs=await getDocs(query(collection(db,"decks"),where("title","==",title),limit(50)));
+  if(docs.docs.some(d=>d.id!==excludeId&&d.data()?.visibility==="public"))
+    throw new Error("同じ名前の公開デッキがすでにあります。別の名前を付けてください。");
+}
 function makePayload(opts, snap, uid, size) {
-  const visibility = String(document.getElementById("deckLibVis")?.value || getLS(LS_LAST_VIS) || "private");
+  const visibility = String(document.getElementById("deckLibVis")?.value || "private");
   const themeColor = String(document.getElementById("deckLibThemeColor")?.value || getLS(LS_LAST_THEME) || "#70c7ff");
   const titleInput = document.getElementById(opts.deckTitleInputId || "deckTitle");
   const title = String(titleInput?.value || snap.title || "無題デッキ").trim().slice(0, 32) || "無題デッキ";
@@ -309,6 +318,8 @@ function installUnifiedUi(opts = {}) {
             throw new Error("更新先デッキを確認できません。通信状態を確認してください。", { cause: error });
           }
         }
+
+        if (payload.visibility === "public") await ensureUniquePublicTitle(db, payload.title, targetId);
 
         if (targetId) {
           await setDoc(doc(db, "decks", targetId), payload, { merge:true });

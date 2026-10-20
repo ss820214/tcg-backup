@@ -326,7 +326,7 @@ function installUnifiedUi(opts = {}) {
         // Public titles are unique (case and full-width differences ignored).
         // Updating the same document is allowed; other titles are rejected.
         if (payload.visibility === "public") {
-          const normalizeTitle = value => String(value || "").normalize("NFKC").trim().replace(/\\s+/g, " ").toLocaleLowerCase("ja");
+          const normalizeTitle = value => String(value || "").normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("ja");
           const wanted = normalizeTitle(payload.title);
           const publicDocs = await getDocs(query(collection(db, "decks"), where("visibility", "==", "public")));
           const duplicate = publicDocs.docs.some(entry =>

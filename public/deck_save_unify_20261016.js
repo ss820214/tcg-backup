@@ -27,8 +27,17 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", update, {once:true});
   else update();
-  const mo = new MutationObserver(() => {
-    if (document.getElementById("deckLibUploadNew")?.textContent.trim() !== "保存") update();
-  });
-  mo.observe(document.documentElement, {childList:true,subtree:true});
+  // Watch only the save UI when present; avoid a document-wide observer on every card redraw.
+  const saveHost = document.getElementById("deckSaveDock") || document.getElementById("deckPanel");
+  if (saveHost) {
+    let queued = false;
+    const mo = new MutationObserver(() => {
+      const button = document.getElementById("deckLibUploadNew");
+      if (!button || button.textContent.trim() === "保存" || queued) return;
+      queued = true;
+      queueMicrotask(() => { queued = false; update(); });
+    });
+    mo.observe(saveHost, {childList:true,subtree:true});
+    window.addEventListener("pagehide", () => mo.disconnect(), {once:true});
+  }
 })();

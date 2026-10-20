@@ -2518,6 +2518,8 @@
       grid-column:1/-1 !important; width:100% !important; min-height:40px !important;
     }
   }
+  /* The home opening scene owns the viewport: hide underlying top navigation. */
+  body:has(> #deckStart:not(.hide)) > header{visibility:hidden!important;pointer-events:none!important}
   </style>
   <link rel="stylesheet" href="./ux_refinement_20261017.css?v=1">
 </head>
@@ -2686,7 +2688,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261017_beginner_overflow_fix9"></script>
+  <script type="module" src="./deck.js?v=20261020_private_deck_names1"></script>
 
     <script>
       (() => {

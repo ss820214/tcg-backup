@@ -2235,7 +2235,7 @@ function startDiceRollAnimation(primary, finalLines) {
   const dopa = false; // Keep combat dice brief even in special mode.
   const maxTicks = 5;
   const tickMs = 50;
-  const revealMs = 500;
+  const revealMs = 1900; // Keep the actual rolled value readable on phones.
 
   let tick = 0;
   diceEl.classList.remove("diceReveal", "ok", "bad", "diceDopaRolling");
@@ -2290,7 +2290,7 @@ function startDiceRollAnimation(primary, finalLines) {
       diceRollAnimDoneTimer = setTimeout(() => {
         diceRollAnimDoneTimer = null;
         diceEl.classList.remove("diceReveal", "ok", "bad", "diceDopaRolling");
-        diceEl.textContent = ""; // Historical roll details stay in the battle log; no stale dice overlay.
+        diceEl.textContent = ""; // Cleared after the result has remained readable.
       }, revealMs);
     }
   }, tickMs);

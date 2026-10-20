@@ -994,3 +994,12 @@ input[type="checkbox"] {
     border-radius: 10px;
   }
 }
+
+/* Mobile deck controls: readable tap targets and stable card layout */
+@media (max-width: 760px) {
+  #cardList .cardRow, #deckList .cardRow { min-width: 0; overflow-wrap: anywhere; }
+  #cardList .cardRow .btns, #deckList .cardRow .btns { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+  #cardList .cardRow .miniBtn, #deckList .cardRow .miniBtn { min-height: 40px; min-width: 40px; touch-action: manipulation; }
+  #cardList .cardRow .name, #deckList .cardRow .name { overflow-wrap: anywhere; }
+  #btnSave[aria-busy="true"] { opacity: .65; cursor: wait; }
+}

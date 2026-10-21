@@ -2359,7 +2359,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip">PLAYER ${esc(playerId ? playerId.slice(0, 6) : "------")}</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.2</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">

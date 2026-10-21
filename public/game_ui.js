@@ -75,6 +75,7 @@ export function createGameUI(ctx) {
     // detail helpers
     selectedIsSupport,
     showCardDetail,
+    showUnitDetail,
 
     // action text helpers
     actionDetailPartsJa,
@@ -717,7 +718,7 @@ function updateHandDrawerPosition() {
     const alive = Number(u?.hp ?? 0) > 0;
 
     const canMove = myTurn && mine && alive && !u?.panic;
-    const canAttack = myTurn && mine && alive && !u?.panic && !u?.fatigue;
+    const canAttack = myTurn && mine && alive && !isPanic?.(u) && !u?.fatigue && (getActionChoices?.(u, st)?.length || 0) > 0;
     const canEvolve = myTurn && mine && alive && !u?.panic;
 
     const bAttack = el.querySelector('button[data-mode="attack"]');
@@ -729,6 +730,7 @@ function updateHandDrawerPosition() {
     if (bMove) bMove.disabled = !canMove;
     if (bEvolve) bEvolve.disabled = !canEvolve;
     if (bDetail) bDetail.disabled = !u;
+    if (bAttack) bAttack.title = canAttack ? "攻撃・技を選択" : "攻撃不可（自分のターン・未行動・SPを確認）";
 
     // board内座標
     const br = boardEl.getBoundingClientRect();

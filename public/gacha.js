@@ -971,31 +971,13 @@ function watchUser() {
     liveUser.gems = clampInt(d.gems ?? 0, 0, 999999);
     liveUser.pity = clampInt(d.pity ?? 0, 0, 999999);
     liveUser.gachaPity = clampInt(d.gachaPity ?? 0, 0, 999999);
-    renderUserBar();
-  });
-}
-
-function watchOwned() {
-  onSnapshot(userRef, (snap) => {
-    const m = new Map();
-    const counts = snap.exists() ? (snap.data()?.ownedCounts || {}) : {};
-    for (const [cardId, count] of Object.entries(counts)) {
-      const c = clampInt(count, 0, 999999);
-      if (c > 0) m.set(cardId, c);
+    const nextOwned = new Map();
+    for (const [cardId, value] of Object.entries(d.ownedCounts || {})) {
+      const count = clampInt(value, 0, 999999);
+      if (count > 0) nextOwned.set(cardId, count);
     }
-    liveOwned = m;
-  });
-  return;
-  // ownedは増えると重いので、本来は「図鑑の取得済みID一覧」等にするのが良い。
-  // とりあえず今は onSnapshot でカウントだけ持つ。
-  onSnapshot(ownedCol, (snap) => {
-    const m = new Map();
-    snap.forEach((d) => {
-      const v = d.data() || {};
-      const c = clampInt(v.count ?? 0, 0, 999999);
-      if (c > 0) m.set(d.id, c);
-    });
-    liveOwned = m;
+    liveOwned = nextOwned;
+    renderUserBar();
   });
 }
 
@@ -1170,7 +1152,6 @@ btnClear?.addEventListener("click", async () => {
       Object.fromEntries(cardCatalog.map((c) => [c.id, c])),
     );
     watchUser();
-    watchOwned();
     renderUserBar();
     setStatus("準備OK", "good");
   } catch (e) {

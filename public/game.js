@@ -2697,15 +2697,17 @@ function statusIconsHtml(unit, opts = {}) {
   const items = statusIconItems(unit);
   if (!items.length) return "";
   const compact = opts.compact !== false;
-  return items
-    .map((it) => {
-      const title = escapeStatusHtml(it.title || it.text || it.label || it.key);
-      const value = compact ? "" : '<span class="statusChipText">' + escapeStatusHtml(it.text) + "</span>";
-      return '<span class="statusChip ' + escapeStatusHtml(it.tone || "neutral") + '" title="' + title + '" aria-label="' + title + '">' +
-        '<span class="statusChipIcon">' + statusIconSketchHtml(it.key, it.icon) + "</span>" + value +
-        "</span>";
-    })
-    .join("");
+  const visible = compact ? items.slice(0, 3) : items;
+  const html = visible.map((it) => {
+    const title = escapeStatusHtml(it.title || it.text || it.label || it.key);
+    const value = compact ? "" : '<span class="statusChipText">' + escapeStatusHtml(it.text) + "</span>";
+    const shortLabel = compact ? '<span class="statusBoardLabel">' + escapeStatusHtml((it.label || it.key || "").slice(0, 2)) + "</span>" : "";
+    return '<span class="statusChip ' + escapeStatusHtml(it.tone || "neutral") + ' statusType-' + escapeStatusHtml(statusIconClassName(it.key)) + '" title="' + title + '" aria-label="' + title + '">' +
+      '<span class="statusChipIcon">' + statusIconSketchHtml(it.key, it.icon) + "</span>" + shortLabel + value +
+      "</span>";
+  }).join("");
+  if (!compact || items.length <= visible.length) return html;
+  return html + '<span class="statusChip statusChipMore" title="' + escapeStatusHtml(items.slice(visible.length).map(it => it.text || it.label).join(" / ")) + '" aria-label="ほか' + (items.length - visible.length) + '種類の状態効果">+' + (items.length - visible.length) + "</span>";
 }
 
 btnSummon && (btnSummon.onclick = () => setMode("summon"));

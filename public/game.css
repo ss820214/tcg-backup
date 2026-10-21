@@ -5891,3 +5891,31 @@ body {
   #handDrawer .handStack.mdHandCompact .shcStats{font-size:8px!important}
   #handDrawer .handStack.mdHandCompact .shcText{font-size:8px!important;line-height:1.2!important;max-height:40px!important;-webkit-line-clamp:4}
 }
+
+/* Hand card information hierarchy: mana diamond / attribute / art / stats / skill. */
+#handDrawer .handStack.mdHandCompact .stackHandCard{display:flex!important;flex-direction:column!important;gap:5px!important;isolation:isolate}
+#handDrawer .handStack.mdHandCompact .shcTop{order:0!important;flex:0 0 28px!important;min-height:28px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 3px!important}
+#handDrawer .handStack.mdHandCompact .shcCost{display:grid!important;place-items:center!important;position:relative!important;width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;margin:0!important;border-radius:3px!important;transform:rotate(45deg)!important;background:linear-gradient(145deg,#315273,#0a1727)!important;border:1px solid #a4d9ff!important;color:transparent!important;font-size:0!important;box-shadow:0 2px 5px #0009!important}
+#handDrawer .handStack.mdHandCompact .shcCost::after{content:attr(data-cost);position:absolute;inset:0;display:grid;place-items:center;transform:rotate(-45deg);font-size:13px;font-weight:900;color:#fff}
+#handDrawer .handStack.mdHandCompact .shcAttr{position:static!important;display:grid!important;place-items:center!important;min-width:25px!important;min-height:25px!important;width:25px!important;height:25px!important;margin:0!important;border-radius:50%!important;font-size:14px!important;line-height:1!important;background:#091420d9!important;border:1px solid #ffffff57!important}
+#handDrawer .handStack.mdHandCompact .shcArt{order:1!important;flex:0 0 74px!important;height:74px!important;min-height:74px!important;max-height:74px!important;width:100%!important;margin:0!important;box-sizing:border-box!important}
+#handDrawer .handStack.mdHandCompact .shcArtSymbol{display:none!important}
+#handDrawer .handStack.mdHandCompact .shcBody{order:2!important;display:flex!important;flex-direction:column!important;flex:1!important;min-height:0!important;gap:4px!important;padding:0 2px!important}
+#handDrawer .handStack.mdHandCompact .shcKind{order:0!important;flex:0 0 auto!important}
+#handDrawer .handStack.mdHandCompact .shcName{order:1!important;flex:0 0 auto!important;font-size:13px!important;line-height:1.25!important;max-height:34px!important}
+#handDrawer .handStack.mdHandCompact .shcVitals{order:2!important;flex:0 0 auto!important;display:block!important;padding:3px 5px!important;border-radius:5px!important;background:#071522b8!important;border:1px solid #ffffff30!important;font-size:11px!important;white-space:normal!important}
+#handDrawer .handStack.mdHandCompact .shcText{order:3!important;flex:1 1 auto!important;display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:3!important;max-height:54px!important;min-height:0!important;margin-top:auto!important;padding:4px 3px!important;border-top:1px solid #ffffff3c!important;font-size:11px!important;line-height:1.35!important;overflow:hidden!important}
+#handDrawer .handStack.mdHandCompact .shcDetailControl{position:absolute!important;right:8px!important;bottom:7px!important;z-index:12!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:42px!important;min-height:23px!important;padding:2px 6px!important;border:1px solid #9ed5ff9c!important;border-radius:6px!important;background:#10273bea!important;color:#e9f7ff!important;font-size:10px!important;font-weight:800!important;cursor:pointer!important}
+#handDrawer .handStack.mdHandCompact .shcText{padding-right:46px!important}
+#handDrawer .handStack.mdHandCompact .shcPickMarker{top:32px!important;right:7px!important;bottom:auto!important;transform:none!important}
+@media(max-width:760px){
+#handDrawer .handStack.mdHandCompact .shcTop{flex-basis:20px!important;min-height:20px!important}
+#handDrawer .handStack.mdHandCompact .shcCost{width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important}
+#handDrawer .handStack.mdHandCompact .shcCost::after{font-size:10px!important}
+#handDrawer .handStack.mdHandCompact .shcAttr{width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;font-size:10px!important}
+#handDrawer .handStack.mdHandCompact .shcArt{flex-basis:43px!important;height:43px!important;min-height:43px!important;max-height:43px!important}
+#handDrawer .handStack.mdHandCompact .shcName{font-size:9px!important;max-height:22px!important}
+#handDrawer .handStack.mdHandCompact .shcVitals{font-size:8px!important;padding:2px!important}
+#handDrawer .handStack.mdHandCompact .shcText{font-size:8px!important;line-height:1.2!important;padding:2px 1px!important;padding-right:0!important;max-height:44px!important}
+#handDrawer .handStack.mdHandCompact .shcDetailControl{right:3px!important;bottom:3px!important;min-width:31px!important;min-height:18px!important;padding:1px 3px!important;font-size:8px!important}
+}

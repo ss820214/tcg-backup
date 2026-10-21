@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.9</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.10</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -4928,10 +4928,11 @@ function ensureDeckPanelLayoutGuardCss() {
     }
     @media (max-width:720px){
       #deckPanel > .hd{
-        grid-template-columns:minmax(88px, 1fr) auto 36px !important;
+        grid-template-columns:minmax(0, 1fr) 44px !important;
         grid-template-areas:
-          "title clear min"
-          "actions actions actions" !important;
+          "title min"
+          "clear clear"
+          "actions actions" !important;
         gap:7px !important;
         padding:9px 10px !important;
       }
@@ -4939,10 +4940,13 @@ function ensureDeckPanelLayoutGuardCss() {
         display:none !important;
       }
       #deckPanel #btnClearDeck{
-        min-width:64px !important;
-        min-height:34px !important;
-        padding:6px 9px !important;
+        grid-area:clear !important;
+        justify-self:end !important;
+        min-width:94px !important;
+        min-height:42px !important;
+        padding:8px 14px !important;
         font-size:12px !important;
+        margin:0 !important;
       }
       #deckPanel #deckPanelMinBtn{
         width:34px !important;

@@ -5900,13 +5900,23 @@ function supportSummaryText(def = {}) {
   return "";
 }
 
+function compactEffectPreview(text) {
+  const raw = String(text ?? "");
+  // In the card list, show a single semantic label instead of ten ailment icons.
+  // The unabridged effect remains available in Card Details.
+  if (/(状態異常|状態効果|ステータス異常)/.test(raw) && /(回復|解除|治療|浄化)/.test(raw)) {
+    return "状態異常を回復・解除（対象や条件は詳細）";
+  }
+  const chars = Array.from(raw);
+  return chars.length > 95 ? chars.slice(0, 92).join("") + "…（詳細で全文）" : raw;
+}
 function firstActionLine(def) {
   const a = def?.actions?.[0];
   if (!a) {
     const t = supportSummaryText(def);
-    return t ? `効果: ${t}` : "効果: 詳細を確認";
+    return t ? `効果: ${compactEffectPreview(t)}` : "効果: 詳細を確認";
   }
-  return `行動: ${actionOneLine(a)}`;
+  return `行動: ${compactEffectPreview(actionOneLine(a))}`;
 }
 
 function deckRowMetaLine(def, cardId = "") {

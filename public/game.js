@@ -4580,6 +4580,17 @@ function onCellClick(x, y) {
       render(st);
       return;
     }
+    // In attack mode, enemy clicks must select the target before generic cancellation.
+    if (mode === "attack" && canControl(st) && getSelectedUnit(st)?.owner === seat) {
+      const attacker = getSelectedUnit(st);
+      const act = unitActionChoices(attacker, st)[selectedActionIndex];
+      if (act && (u.owner !== seat || actAllowsAllyTarget(act))) {
+        selectedTargetId = u.id;
+        showUnitDetail(u, st);
+        render(st);
+        return;
+      }
+    }
     if (mode !== "support" && shouldCancelByUnitClick(u, st)) {
       clearCommandSelectionUI({ keepUnit: true });
 

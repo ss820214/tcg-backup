@@ -724,7 +724,7 @@ function renderRevealResults(results, meta) {
       c.style.minHeight = "95px";
       c.style.setProperty("--delay", `${idx * (count >= 10 ? 55 : 120)}ms`);
       c.style.setProperty("--fall-x", `${(idx - (count - 1) / 2) * (count >= 10 ? 12 : 34)}px`);
-      c.style.setProperty("--spin", `${720 + Math.random() * 720}deg`);
+      c.style.setProperty("--spin", "0deg");
 
       const rarEl = document.createElement("div");
       rarEl.className = "rar";

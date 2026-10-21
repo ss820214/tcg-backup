@@ -1371,19 +1371,19 @@ function updateHandDrawerPosition() {
             ? ""
             : `<div class="shcVitals">HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}</div>`
         }
-        <div class="shcType">${isSupportCard(def) ? "Support" : String(def.type ?? "?")}</div>
+
         <div class="shcText">${handCardPrimaryText(def)}</div>
-        <div class="shcStats">
-          ${
-            isSupportCard(def)
-              ? "SUPPORT"
-              : `HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}`
-          }
-        </div>
+
       </div>
+      <span class="shcDetailControl" role="button" tabindex="0" aria-label="カード詳細">詳細</span>
       ${isSelected ? `<div class="shcPickMarker" aria-hidden="true"><span>☝</span></div>` : ""}
       ${isLocked ? `<div class="shcLock">伏せ</div>` : ""}
     `;
+
+    const detailControl = card.querySelector(".shcDetailControl");
+    const openHandDetail = (ev) => { ev.preventDefault(); ev.stopPropagation(); showCardDetail(cid); };
+    detailControl?.addEventListener("click", openHandDetail);
+    detailControl?.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") openHandDetail(ev); });
 
     // 2-second hold: action choices, while ordinary taps keep their existing behavior.
     let handHoldTimer = null;
@@ -1391,7 +1391,7 @@ function updateHandDrawerPosition() {
     let holdStartX = 0, holdStartY = 0;
     const clearHandHold = () => { if (handHoldTimer !== null) { clearTimeout(handHoldTimer); handHoldTimer = null; } };
     card.addEventListener("pointerdown", (ev) => {
-      if (ev.button !== 0 || ev.target.closest(".hcEvoBtn")) return;
+      if (ev.button !== 0 || ev.target.closest(".hcEvoBtn, .shcDetailControl")) return;
       clearHandHold();
       handHoldFired = false;
       holdStartX = ev.clientX; holdStartY = ev.clientY;

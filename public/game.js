@@ -2223,7 +2223,7 @@ function latestRollForAnimation(lastRoll, lastSupportRoll) {
   candidates.sort((a, b) => b.at - a.at);
   const picked = candidates[0] || null;
   if (!picked) return null;
-  if (nowMs() - picked.at > 760) return null;
+  if (nowMs() - picked.at > 1600) return null;
   return picked;
 }
 
@@ -2233,7 +2233,7 @@ function startDiceRollAnimation(primary, finalLines) {
   if (diceRollAnimDoneTimer) clearTimeout(diceRollAnimDoneTimer);
 
   const dopa = false; // Keep combat dice brief even in special mode.
-  const maxTicks = 5;
+  const maxTicks = 20; // About one second of visible rolling.
   const tickMs = 50;
   const revealMs = 1900; // Keep the actual rolled value readable on phones.
 

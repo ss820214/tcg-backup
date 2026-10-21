@@ -1,3 +1,4 @@
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/battle.js
 // v20260210_fieldpick_fix_keep_all
 // - Keep all existing features
@@ -501,7 +502,7 @@ function effectText(a) {
 // =====================
 let cardDefs = {};
 async function loadCards() {
-  const snap = await getDocs(collection(db, "cards"));
+  const snap = await getCachedCardCollection("cards", () => getDocs(collection(db, "cards")));
   const m = {};
   snap.forEach((d) => (m[d.id] = d.data()));
   cardDefs = m;

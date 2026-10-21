@@ -415,6 +415,7 @@ async function uploadCardToCloud(card, options = {}) {
   if (options.isOverwrite && options.oldCollection && options.oldCollection !== col) {
     try {
       await deleteDoc(doc(db, options.oldCollection, card.id));
+      invalidateCardCatalogCache(options.oldCollection);
     } catch (deleteErr) {
       console.warn("[creator] old card collection cleanup failed", deleteErr?.message || deleteErr);
     }

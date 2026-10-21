@@ -1,3 +1,4 @@
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 import { db, ensureSignedIn } from "./auth.js?v=20260627_perm1";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { cardArtImgHtml } from "./card_art.js?v=20260828_jewel_art1";
@@ -134,7 +135,7 @@ function normalizeCard(id, def = {}) {
 
 async function loadCollectionSafe(name, forcedKind = "") {
   try {
-    const snap = await getDocs(collection(db, name));
+    const snap = await getCachedCardCollection(name, () => getDocs(collection(db, name)));
     const out = {};
     snap.forEach((doc) => {
       const data = doc.data() || {};

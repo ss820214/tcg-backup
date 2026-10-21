@@ -8659,9 +8659,14 @@ document.querySelectorAll("[data-owned-filter], [data-owned]").forEach((btn) => 
     renderAll();
   });
 });
+let deckSearchTimer = null;
 searchEl?.addEventListener("input", () => {
   filterName = searchEl.value || "";
-  renderAll();
+  if (deckSearchTimer !== null) clearTimeout(deckSearchTimer);
+  deckSearchTimer = setTimeout(() => {
+    deckSearchTimer = null;
+    renderAll();
+  }, 130);
 });
 joinCodeInput?.addEventListener("input", updatePlayButtons);
 

@@ -2736,7 +2736,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261022_v103_layout_cache"></script>
+  <script type="module" src="./deck.js?v=20261022_v104_mobile_layout"></script>
 
     <script>
       (() => {
@@ -3867,6 +3867,50 @@
   @media(max-width:620px){
     body #cardList .cardRow,body #deckList .cardRow{
       grid-template-columns:minmax(0,1fr) minmax(105px,37%)!important;
+    }
+  }
+
+  /* V1.0.4 mobile deck layout */
+  @media (max-width:900px), (pointer:coarse) and (max-width:1180px) {
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow {
+      display:grid!important;
+      grid-template-columns:minmax(0,1fr) minmax(104px,36%)!important;
+      grid-template-areas:"main ctrl"!important;
+      align-items:start!important;align-content:start!important;
+      height:auto!important;min-height:0!important;max-height:none!important;
+      padding:10px!important;gap:8px!important;overflow:hidden!important;
+    }
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow>div:first-child,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow>div:first-child {
+      grid-area:main!important;display:flex!important;flex-direction:column!important;
+      align-items:flex-start!important;justify-content:flex-start!important;
+      gap:4px!important;min-height:0!important;height:auto!important;min-width:0!important;
+    }
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow .name,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow .name {
+      display:block!important;height:auto!important;max-width:100%!important;
+      white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.45!important;
+    }
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow .sub,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow .sub {
+      display:block!important;height:auto!important;max-height:none!important;
+      margin:2px 0 0!important;white-space:normal!important;overflow:visible!important;
+      text-overflow:clip!important;overflow-wrap:anywhere!important;
+      font-size:11px!important;line-height:1.65!important;
+      -webkit-line-clamp:unset!important;
+    }
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow .btns,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow .btns {
+      grid-area:ctrl!important;display:grid!important;
+      grid-template-columns:minmax(25px,1fr) minmax(35px,1.4fr) minmax(25px,1fr)!important;
+      grid-template-areas:"minus count plus" "admin admin admin" "detail detail detail"!important;
+      grid-template-rows:auto!important;align-self:start!important;
+      align-content:start!important;min-width:0!important;max-width:100%!important;width:100%!important;
+    }
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #cardList .cardRow .sub *,
+    body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow .sub * {
+      vertical-align:middle!important;line-height:1.4!important;
     }
   }
 </style>

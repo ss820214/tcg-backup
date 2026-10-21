@@ -1,3 +1,4 @@
+import { invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/settings.js
 // v2.0.5-b - Deluxe Settings + Admin lock (password) + gear FX
 
@@ -330,6 +331,7 @@ function wireAdmin(ctx, setTab){
       if (!getAdminUnlocked()) throw new Error("管理者ロックが解除されていません");
       const { id, data } = readForm();
       await setDoc(doc(db, "cards", id), data, { merge:false });
+      invalidateCardCatalogCache("cards");
       setMiniMsg(amsg, `cards に追加しました: ${id}`, true);
       if (typeof reloadCards === "function") await reloadCards();
     } catch(e){

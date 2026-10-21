@@ -2736,7 +2736,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261022_v107_notification"></script>
+  <script type="module" src="./deck.js?v=20261022_v108_restore_ui"></script>
 
     <script>
       (() => {
@@ -3912,6 +3912,58 @@
     body.mobileFitUi.mobileDeckUi:not(.mobileHomeFit) #deckList .cardRow .sub * {
       vertical-align:middle!important;line-height:1.4!important;
     }
+  }
+
+  /* V1.0.8 restore existing panel expand/collapse controls on phones. */
+  @media (max-width: 900px) {
+    body .libraryPanel > .hd,
+    body #deckPanel > .hd {
+      position:relative!important;
+      padding-right:58px!important;
+      min-height:58px!important;
+      overflow:visible!important;
+    }
+    body .libraryPanel #libraryPanelMinBtn,
+    body #deckPanel #deckPanelMinBtn {
+      display:inline-flex!important;
+      visibility:visible!important;
+      opacity:1!important;
+      pointer-events:auto!important;
+      position:absolute!important;
+      right:10px!important;top:50%!important;left:auto!important;bottom:auto!important;
+      transform:translateY(-50%)!important;
+      width:38px!important;height:38px!important;
+      min-width:38px!important;min-height:38px!important;
+      justify-content:center!important;align-items:center!important;
+      z-index:30!important;
+      color:#fff!important;
+      background:rgba(26,43,55,.98)!important;
+      border:1px solid rgba(145,215,240,.60)!important;
+    }
+    body #deckPanel > .hd > .row{padding-right:0!important;min-width:0!important}
+    body #deckPanel #deckInfoMinBtn {
+      display:inline-flex!important;visibility:visible!important;
+      opacity:1!important;pointer-events:auto!important;
+      position:relative!important;z-index:20!important;flex-shrink:0!important;
+    }
+    body .libraryPanel.isPanelCollapsed > .bd,
+    body #deckPanel.isPanelCollapsed > .bd,
+    body #deckInfoDock.isCollapsed > .deckInfoBody {display:none!important}
+  }
+  /* Restore subtle attribute-tinted gradient without changing compact row sizing. */
+  body #cardList .cardRow,
+  body #deckList .cardRow {
+    background:
+      linear-gradient(115deg,
+        color-mix(in srgb,var(--typeColor, #6bbde3) 18%, rgba(15,24,34,.95)) 0%,
+        color-mix(in srgb,var(--typeColor, #6bbde3) 7%, rgba(13,19,29,.94)) 55%,
+        rgba(8,13,22,.98) 100%)!important;
+    border-color:color-mix(in srgb,var(--typeColor, #6bbde3) 30%, rgba(255,255,255,.12))!important;
+  }
+  body #cardList .cardRow::before,
+  body #deckList .cardRow::before {
+    background:var(--typeColor, #65bde5)!important;
+    opacity:.85!important;
   }
 </style>
 

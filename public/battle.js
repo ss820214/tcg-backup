@@ -65,8 +65,26 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+function showLobbyFailure(stage, error) {
+  const message = String(error?.message || error || "不明なエラー");
+  console.error("[battle] " + stage, error);
+  const status = document.getElementById("status");
+  if (status) status.textContent = stage + "に失敗しました：" + message;
+  let panel = document.getElementById("lobbyBootError");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "lobbyBootError";
+    panel.setAttribute("role", "alert");
+    panel.style.cssText = "position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483000;max-width:620px;margin:auto;padding:14px;border:1px solid #f89a9a;border-radius:12px;background:#261520f5;color:white;box-shadow:0 8px 30px #000b;font:14px/1.5 system-ui,sans-serif";
+    panel.innerHTML = '<strong>対戦待機室の読み込みに失敗しました</strong><p class="lobbyBootErrorMessage"></p><button type="button" class="lobbyBootRetry" style="padding:9px 16px;border-radius:8px;background:#285b88;color:white;border:1px solid #9bd4ff">再読み込み</button>';
+    document.body.appendChild(panel);
+    panel.querySelector(".lobbyBootRetry").addEventListener("click", () => location.reload());
+  }
+  panel.querySelector(".lobbyBootErrorMessage").textContent = stage + "：" + message;
+}
 
-const authUser = await ensureSignedIn();
+
+const authUser = await ensureSignedIn().catch(error => { showLobbyFailure("ログイン認証", error); throw error; });
 const authUid = authUser?.uid || "";
 console.log("[battle] auth ok", authUid);
 // =====================
@@ -488,7 +506,7 @@ async function loadCards() {
   snap.forEach((d) => (m[d.id] = d.data()));
   cardDefs = m;
 }
-await loadCards();
+await loadCards().catch(error => { showLobbyFailure("カード情報の取得", error); throw error; });
 
 // =====================
 // UI: VS Banner
@@ -754,13 +772,18 @@ async function ensureMyPlayerDoc() {
   });
 }
 
-await ensureMyPlayerDoc();
+await ensureMyPlayerDoc().catch(error => { showLobbyFailure("ルームへの入室", error); throw error; });
 
 // =====================
 // 自分の情報監視
 // =====================
 onSnapshot(myRef, (snap) => {
-  const me = snap.data();
+  if (!snap.exists()) {
+    showLobbyFailure("プレイヤー情報", new Error("参加データが見つかりません。待機室に入り直してください"));
+    readyBtn.disabled = true;
+    return;
+  }
+  const me = snap.data() || {};
   if (isSolo && aiToggle?.checked) {
     statusEl.textContent = me.ready
       ? "✅ 準備OK！CPU戦を開始します…"
@@ -791,9 +814,13 @@ if (isSolo && aiToggle?.checked) {
     ? "準備OK！相手の準備を待っています…"
     : "相手の入室を待っています…";
 
-  renderMyDeck(me.deck, me.exSupport || null);
-  renderDeckAnalysisIfChanged(me.deck || {});
-});
+  try {
+    renderMyDeck(me.deck, me.exSupport || null);
+    renderDeckAnalysisIfChanged(me.deck || {});
+  } catch (error) {
+    showLobbyFailure("デッキ情報の表示", error);
+  }
+}, error => showLobbyFailure("プレイヤー情報の監視", error));
 
 // =====================
 // 参加者一覧監視（両readyでmatch作成→introへ）

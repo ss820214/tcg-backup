@@ -1,3 +1,4 @@
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/deck.js
 // v20260829_home_left_fit1
 // Deck builder screen. Keep room/profile tools outside the card list flow.
@@ -7137,7 +7138,7 @@ async function resetRoomHardish(rid) {
 // =====================
 async function loadCollectionSafe(colName, kindLabel) {
   try {
-    const snap = await getDocs(collection(db, colName));
+    const snap = await getCachedCardCollection(colName, () => getDocs(collection(db, colName)));
     const m = {};
     snap.forEach((d) => {
       const data = d.data() || {};

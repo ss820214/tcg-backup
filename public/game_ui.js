@@ -317,29 +317,62 @@ function updateHandDrawerPosition() {
 
   let actionOrbitEl = null;
   let attackConfirmDock = null;
+  let attackSubmitting = false;
   function updateAttackConfirmDock(st) {
     if (!attackConfirmDock) {
       attackConfirmDock = document.createElement("div");
       attackConfirmDock.id = "battleAttackConfirmDock";
-      attackConfirmDock.innerHTML = `<span class="battleAttackStatus"></span><button type="button" class="battleAttackApply">攻撃決定</button><button type="button" class="battleAttackCancel">戻る</button>`;
+      attackConfirmDock.setAttribute("role", "group");
+      attackConfirmDock.setAttribute("aria-label", "攻撃の確認");
+      attackConfirmDock.innerHTML =
+        '<div class="battleAttackStatus" aria-live="polite"></div>' +
+        '<div class="battleAttackControls">' +
+        '<button type="button" class="battleAttackApply">攻撃決定</button>' +
+        '<button type="button" class="battleAttackCancel">キャンセル</button></div>';
       document.body.appendChild(attackConfirmDock);
-      attackConfirmDock.querySelector(".battleAttackApply").addEventListener("click", () => { if (lastSt) execAttack?.(lastSt); });
-      attackConfirmDock.querySelector(".battleAttackCancel").addEventListener("click", () => { setSelectedTargetId(null); setMode(null); hideActionOrbit(); });
+      attackConfirmDock.querySelector(".battleAttackApply").addEventListener("click", async () => {
+        if (attackSubmitting || !lastSt) return;
+        updateAttackConfirmDock(lastSt);
+        const button = attackConfirmDock.querySelector(".battleAttackApply");
+        if (button.disabled) return;
+        attackSubmitting = true;
+        button.disabled = true;
+        try { await execAttack?.(lastSt); }
+        catch (error) { console.error("[0bato] attack failed", error); }
+        finally { attackSubmitting = false; if (lastSt) updateAttackConfirmDock(lastSt); }
+      });
+      attackConfirmDock.querySelector(".battleAttackCancel").addEventListener("click", () => {
+        if (attackSubmitting) return;
+        setSelectedTargetId?.(null);
+        hideActionOrbit();
+        setMode?.(null);
+        if (lastSt) render(lastSt);
+      });
     }
+
     const su = getSelectedUnit?.(st);
-    const active = getMode?.() === "attack" && !!canControl(st) && su?.owner === getSeat();
+    const active = getMode?.() === "attack" && !!canControl?.(st) && su?.owner === getSeat();
     attackConfirmDock.hidden = !active;
+    attackConfirmDock.style.display = active ? "flex" : "none";
     if (!active) return;
+
     const acts = getActionChoices?.(su, st) || [];
-    const act = acts[getSelectedActionIndex?.() || 0];
+    const act = acts[getSelectedActionIndex?.() || 0] || null;
     const target = getSelectedTarget?.(st);
-    const flags = actFlags?.(act) || {};
-    const needTarget = !!act && !isSelfRange?.(act?.range) && !flags.aoe;
+    const flags = act ? (actFlags?.(act) || {}) : {};
+    const needTarget = !!act && !isSelfRange?.(act.range) && !flags.aoe;
     const mana = normalizeMana?.(st?.mana);
-    const cost = getActionCost?.(su, act) ?? Number(act?.cost ?? 0);
-    const ready = !!act && !su?.fatigue && !isPanic?.(su) && Number(mana?.[getSeat()]?.cur ?? 0) >= cost && (!needTarget || !!target);
-    attackConfirmDock.querySelector(".battleAttackStatus").textContent = `${act?.name || "技を選択"} → ${target ? cardName(target.cardId) : needTarget ? "対象を選択" : "対象不要"}`;
+    const cost = act ? (getActionCost?.(su, act) ?? Number(act.cost ?? 0)) : Infinity;
+    const ready = !!act && !attackSubmitting && !su?.fatigue && !isPanic?.(su) &&
+      Number(mana?.[getSeat()]?.cur ?? 0) >= cost && (!needTarget || !!target);
+
+    const status = attackConfirmDock.querySelector(".battleAttackStatus");
+    status.textContent = act
+      ? "選択技: " + String(act.name || "技") + " ／ " +
+        (target ? "対象: " + cardName(target.cardId) : needTarget ? "盤面の攻撃対象をタップ" : "対象指定不要")
+      : "技を選択してください";
     attackConfirmDock.querySelector(".battleAttackApply").disabled = !ready;
+    attackConfirmDock.querySelector(".battleAttackCancel").disabled = attackSubmitting;
   }
   let actionTargetingKey = "";
 
@@ -1731,10 +1764,8 @@ function updateHandDrawerPosition() {
         render(st);
       });
 
-      footer.appendChild(execBtn);
-      footer.appendChild(cancelBtn);
-      panel.appendChild(footer);
-
+      // Both PC and mobile use the one fixed bottom confirmation dock.
+      // Do not add duplicate submit/cancel buttons inside the action panel.
       actionPickerEl.appendChild(panel);
       return;
     }
@@ -1760,6 +1791,8 @@ function updateHandDrawerPosition() {
 
     renderBoard(st);
     renderHand(st);
+    // Keep mobile and PC confirmation independent of the optional action panel.
+    try { updateAttackConfirmDock(st); } catch (err) { console.error("[0bato] attack dock", err); }
 
     try {
       renderActionPicker?.(st);

@@ -5,7 +5,13 @@
     /* Keep the single cloud save action visible, without duplicate save buttons. */
     #deckPanelActions [data-deck-panel-action="save"],
     #deckLibModeSave,
-    #deckLibUploadNew { display:none !important; }
+    #deckLibUploadNew,
+    #deckLibUploadOverwrite { display:none !important; }
+    #deckLibSavePanel .deckLibSectionHd,
+    #deckLibSavePanel .deckLibRow,
+    #deckLibSavePanel .deckLibSub { display:none !important; }
+    #deckLibSavePanel .deckLibSaveBtns { display:flex !important; }
+    #deckSaveDock .deckSaveRow #btnSave { font-size:16px !important; }
     #deckSaveDock .deckSaveRow #btnSave { display:inline-flex !important; min-height:46px !important; align-items:center; justify-content:center; }
     #deckSaveDock .deckSaveRow #btnSave { width:100% !important; }
     @media (min-width:861px) {
@@ -20,6 +26,8 @@
   `;
   document.head.appendChild(style);
   function update() {
+    const mainSave = document.getElementById("btnSave");
+    if (mainSave && mainSave.textContent.trim() !== "デッキを保存") mainSave.textContent = "デッキを保存";
     const newSave = document.getElementById("deckLibUploadNew");
     if (newSave && newSave.textContent.trim() !== "保存") newSave.textContent = "保存";
     const mode = document.getElementById("deckLibModeSave");

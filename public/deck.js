@@ -6847,13 +6847,41 @@ function keepCardListScroll(run) {
   setTimeout(restore, 0);
 }
 
+// Update only quantity controls after a +/- tap. Full catalog redraws are expensive.
+function refreshDeckQuantityControls() {
+  const total = sumDeck(deckMap);
+  const full = total >= DECK_SIZE;
+  for (const root of [cardListEl, cardSectionsEl]) {
+    if (!root) continue;
+    for (const row of root.querySelectorAll("[data-card-id]")) {
+      const id = row.dataset.cardId;
+      const def = cardDefs[id] || {};
+      if (isExSupport(def, id)) continue;
+      const count = Number(deckMap[id] || 0);
+      const limit = deckLimitForCard(id);
+      const minus = row.querySelector("[data-minus]");
+      const plus = row.querySelector("[data-plus]");
+      const badge = row.querySelector(".count, .cnt");
+      if (minus) minus.disabled = count <= 0;
+      if (plus) plus.disabled = full || limit <= 0 || count >= limit;
+      if (badge) badge.textContent = count + " / " + limit;
+      row.dataset.count = String(count);
+      row.classList.toggle("isMaxed", limit > 0 && count >= limit);
+    }
+  }
+}
+function renderAfterQuantityChange() {
+  // Rebuild only the small selected-deck list, not every card in the catalog.
+  renderDeck();
+  refreshDeckQuantityControls();
+}
 function addToDeck(cardId) {
   const chk = canAdd(cardId);
   if (!chk.ok) return setMsg(chk.reason, false);
   setMsg("", true);
   deckMap[cardId] = Number(deckMap[cardId] || 0) + 1;
   saveLocalDeck();
-  keepCardListScroll(renderAll);
+  renderAfterQuantityChange();
   flashDeckAdd(cardId);
 }
 function removeFromDeck(cardId) {
@@ -6870,7 +6898,7 @@ function removeFromDeck(cardId) {
   }
 
   saveLocalDeck();
-  keepCardListScroll(renderAll);
+  renderAfterQuantityChange();
 }
 function clearDeck() {
   deckMap = {};

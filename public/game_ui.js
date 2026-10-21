@@ -315,6 +315,31 @@ function updateHandDrawerPosition() {
   let quickMenuEl = null;
 
   let actionOrbitEl = null;
+  let attackConfirmDock = null;
+  function updateAttackConfirmDock(st) {
+    if (!attackConfirmDock) {
+      attackConfirmDock = document.createElement("div");
+      attackConfirmDock.id = "battleAttackConfirmDock";
+      attackConfirmDock.innerHTML = `<span class="battleAttackStatus"></span><button type="button" class="battleAttackApply">攻撃決定</button><button type="button" class="battleAttackCancel">戻る</button>`;
+      document.body.appendChild(attackConfirmDock);
+      attackConfirmDock.querySelector(".battleAttackApply").addEventListener("click", () => { if (lastSt) execAttack?.(lastSt); });
+      attackConfirmDock.querySelector(".battleAttackCancel").addEventListener("click", () => { setSelectedTargetId(null); setMode(null); hideActionOrbit(); });
+    }
+    const su = getSelectedUnit?.(st);
+    const active = getMode?.() === "attack" && !!canControl(st) && su?.owner === getSeat();
+    attackConfirmDock.hidden = !active;
+    if (!active) return;
+    const acts = getActionChoices?.(su, st) || [];
+    const act = acts[getSelectedActionIndex?.() || 0];
+    const target = getSelectedTarget?.(st);
+    const flags = actFlags?.(act) || {};
+    const needTarget = !!act && !isSelfRange?.(act?.range) && !flags.aoe;
+    const mana = normalizeMana?.(st?.mana);
+    const cost = getActionCost?.(su, act) ?? Number(act?.cost ?? 0);
+    const ready = !!act && !su?.fatigue && !isPanic?.(su) && Number(mana?.[getSeat()]?.cur ?? 0) >= cost && (!needTarget || !!target);
+    attackConfirmDock.querySelector(".battleAttackStatus").textContent = `${act?.name || "技を選択"} → ${target ? cardName(target.cardId) : needTarget ? "対象を選択" : "対象不要"}`;
+    attackConfirmDock.querySelector(".battleAttackApply").disabled = !ready;
+  }
   let actionTargetingKey = "";
 
   function actionTargetKey(unitId, index) {
@@ -1280,14 +1305,6 @@ function updateHandDrawerPosition() {
       updateHandDrawerOpenState();
     });
   }
-  if (getMode?.() === "evolve") {
-    const cancel = document.createElement("button");
-    cancel.type = "button";
-    cancel.className = "handEvolveCancel";
-    cancel.textContent = "進化をキャンセル";
-    cancel.onclick = (e) => { e.preventDefault(); e.stopPropagation(); setMode(null); };
-    head.querySelector(".handDrawerControls")?.appendChild(cancel);
-  }
   handDrawerEl.appendChild(head);
 
   const stack = document.createElement("div");
@@ -1482,6 +1499,7 @@ function updateHandDrawerPosition() {
     if (!st) return;
 
     const seat = getSeat();
+    updateAttackConfirmDock(st);
     const myTurn = !!canControl(st);
     const mode = getMode();
     const su = getSelectedUnit?.(st) || null;

@@ -20,6 +20,31 @@
     }, true);
   })();
 </script>
+<script id="legacyHomeNavigationFallback20261021">
+/* Works without optional chaining, modules or CSS :has support. */
+(function () {
+  function go(event) {
+    var node = event.target || event.srcElement;
+    while (node && node !== document) {
+      if (node.getAttribute) {
+        var action = node.getAttribute("data-home-action");
+        var dest = action === "play" ? "play.html" :
+          action === "deck" ? "deck.html" :
+          action === "gacha" ? "gacha.html" :
+          action === "user" || action === "profile" ? "profile.html" :
+          action === "workshop" || action === "craft" ? "creator.html" : "";
+        if (dest) {
+          if (event.preventDefault) event.preventDefault();
+          window.location.href = dest;
+          return;
+        }
+      }
+      node = node.parentNode;
+    }
+  }
+  if (document.addEventListener) document.addEventListener("click", go, true);
+})();
+</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>TCG Online - Deck Builder</title>

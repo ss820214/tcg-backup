@@ -87,6 +87,10 @@
       #tcgNetFeedback[data-state="success"] {
         border-color: rgba(125,255,184,.42);
       }
+      /* Success is an informational toast, not an interactive button. */
+      #tcgNetFeedback[data-state="success"] {
+        pointer-events: none !important;
+      }
       .tcgNetSpinner {
         width: 17px;
         height: 17px;

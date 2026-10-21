@@ -632,7 +632,20 @@ function ensureDeckStartStyle() {
       .deckStartTopbar { justify-content:flex-start !important; flex-wrap:nowrap !important; gap:8px !important; }
       .deckHomeBeginnerBtn { padding:7px 11px !important; }
       .deckHomeBeginnerBtn .deckHomeLabel { font-size:13px !important; }
-      .deckStartTopbar .deckStartChip { display:none !important; }
+      .deckStartTopbar .deckStartChip:not(#obHomeVersion) { display:none !important; }
+      .deckStartTopbar #obHomeVersion {
+        display:inline-flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        flex:0 0 auto !important;
+        margin-left:auto !important;
+        min-width:66px !important;
+        width:auto !important;
+        max-width:none !important;
+        visibility:visible !important;
+        opacity:1 !important;
+        white-space:nowrap !important;
+      }
     }
     .deckHomeBeginnerWrap { position:relative; min-width:0; }
     .deckHomeBeginnerBtn { --homeAccent:rgba(126,222,198,.75); width:100%; }
@@ -2359,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.5</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.6</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">

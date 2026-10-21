@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.7</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.8</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">

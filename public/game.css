@@ -5970,3 +5970,71 @@ body {
   }
   #board .quickMenu.isOpen .qmBall[data-mode="attack"]:disabled{opacity:.5!important}
 }
+
+/* Unified attack confirmation: always reachable at viewport bottom on PC and mobile. */
+#battleAttackConfirmDock:not([hidden]){
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+  transform:translateX(-50%)!important;
+  z-index:2147483000!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:min(580px,calc(100vw - 20px))!important;
+  max-width:calc(100vw - 20px)!important;
+  gap:8px!important;
+  padding:10px!important;
+  border-radius:16px!important;
+  border:1px solid rgba(148,206,255,.8)!important;
+  background:rgba(9,19,31,.96)!important;
+  color:#fff!important;
+  box-shadow:0 10px 32px rgba(0,0,0,.7)!important;
+  box-sizing:border-box!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+#battleAttackConfirmDock[hidden]{display:none!important}
+#battleAttackConfirmDock .battleAttackStatus{
+  display:block!important;
+  width:100%!important;
+  font-size:13px!important;
+  line-height:1.4!important;
+  color:#e4f3ff!important;
+  text-align:center!important;
+}
+#battleAttackConfirmDock .battleAttackControls{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  width:100%!important;
+}
+#battleAttackConfirmDock .battleAttackControls button{
+  min-width:0!important;
+  min-height:48px!important;
+  border-radius:12px!important;
+  font-size:15px!important;
+  font-weight:900!important;
+  touch-action:manipulation!important;
+}
+#battleAttackConfirmDock .battleAttackApply{
+  background:#146a4f!important;
+  border:1px solid #69efb5!important;
+}
+#battleAttackConfirmDock .battleAttackCancel{
+  background:#293346!important;
+  border:1px solid #9aa8c3!important;
+}
+#battleAttackConfirmDock .battleAttackApply:disabled{opacity:.48!important}
+@media(max-width:760px){
+  #battleAttackConfirmDock:not([hidden]){
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    width:calc(100vw - 16px)!important;
+    padding:9px!important;
+    gap:6px!important;
+  }
+  #battleAttackConfirmDock .battleAttackControls{gap:8px!important}
+  #battleAttackConfirmDock .battleAttackControls button{min-height:52px!important;font-size:14px!important}
+}

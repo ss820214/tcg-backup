@@ -457,6 +457,7 @@ async function deleteCurrent(){
   if (!confirm(`削除しますか？\n${id}`)) return;
 
   await deleteDoc(doc(db, "cards", id));
+  invalidateCardCatalogCache("cards");
   el.connState.textContent = "Firestore: 削除OK";
 
   selectedId = null;

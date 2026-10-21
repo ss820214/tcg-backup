@@ -6038,3 +6038,94 @@ body {
   #battleAttackConfirmDock .battleAttackControls{gap:8px!important}
   #battleAttackConfirmDock .battleAttackControls button{min-height:52px!important;font-size:14px!important}
 }
+
+
+/* 2026-10-22: readable board status effects, overriding old mobile display:none. */
+#board .cell .unitBox .uIcons:not(:empty){
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  flex-wrap:wrap !important;
+  gap:2px !important;
+  opacity:1 !important;
+  pointer-events:none !important;
+  z-index:18 !important;
+}
+#board .cell .statusChip {
+  --st-bg:#253247;
+  --st-border:#b8c6d8;
+  --st-text:#fff;
+  background:var(--st-bg) !important;
+  border:1.5px solid var(--st-border) !important;
+  color:var(--st-text) !important;
+  text-shadow:0 1px 2px #000 !important;
+  box-shadow:0 1px 0 #000,0 2px 7px rgba(0,0,0,.8) !important;
+  font-weight:900 !important;
+  opacity:1 !important;
+}
+#board .cell .statusChipIcon .statusDoodle {
+  display:inline-grid !important;
+  place-items:center !important;
+  width:100% !important;
+  height:100% !important;
+  font-family:system-ui,sans-serif !important;
+  line-height:1 !important;
+}
+#board .cell .statusChipIcon .statusDoodle > :not(span){display:none !important}
+#board .cell .statusChipIcon .statusDoodle > span{
+  display:block !important;
+  color:inherit !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  font-size:11px !important;
+  font-weight:1000 !important;
+}
+#board .cell .statusBoardLabel{
+  font-size:9px !important;
+  letter-spacing:-.04em !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+}
+#board .cell .statusType-poison{--st-bg:#50257e;--st-border:#e3b4ff}
+#board .cell .statusType-bleed{--st-bg:#922638;--st-border:#ffb6b6}
+#board .cell .statusType-fracture{--st-bg:#994d1c;--st-border:#ffd4a0}
+#board .cell .statusType-smell{--st-bg:#6c5e13;--st-border:#fff29d}
+#board .cell .statusType-blind{--st-bg:#343449;--st-border:#d5d5ff}
+#board .cell .statusType-lostSoul{--st-bg:#553382;--st-border:#cab7ff}
+#board .cell .statusType-brainwash{--st-bg:#91346e;--st-border:#ffc4ec}
+#board .cell .statusType-sludge{--st-bg:#3e6123;--st-border:#cef6a5}
+#board .cell .statusType-rage{--st-bg:#942521;--st-border:#ffb391}
+#board .cell .statusType-seal{--st-bg:#684771;--st-border:#ecd5fb}
+#board .cell .statusType-panic{--st-bg:#991e30;--st-border:#fff;--st-text:#fff}
+#board .cell .statusType-fatigue{--st-bg:#6d4a1e;--st-border:#ffe2a0}
+#board .cell .statusType-armor{--st-bg:#18597a;--st-border:#a8eaff}
+#board .cell .statusType-evade{--st-bg:#196b61;--st-border:#9effe4}
+#board .cell .statusType-aim,#board .cell .statusType-hitUp{--st-bg:#176e58;--st-border:#a5ffe2}
+#board .cell .statusType-power,#board .cell .statusType-powerUp{--st-bg:#23672d;--st-border:#b2ffc0}
+#board .cell .statusType-counter{--st-bg:#18557f;--st-border:#b6e4ff}
+#board .cell .statusType-jinx{--st-bg:#89401d;--st-border:#ffdfaa}
+#board .cell .statusChipMore{--st-bg:#202c3a;--st-border:#fff;--st-text:#fff}
+@media(max-width:760px){
+  #board .cell .unitBox .uIcons:not(:empty){
+    position:absolute !important;
+    top:15px !important;
+    right:1px !important;
+    left:auto !important;
+    width:auto !important;
+    max-width:calc(100% - 2px) !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:1px !important;
+    justify-content:flex-end !important;
+    gap:1px !important;
+  }
+  #board .cell .statusChip{
+    min-width:16px !important;
+    height:17px !important;
+    padding:0 2px !important;
+    border-radius:5px !important;
+  }
+  #board .cell .statusChipIcon{width:12px !important;height:12px !important}
+  #board .cell .statusBoardLabel{font-size:8px !important}
+  #board .cell .statusChipMore{font-size:9px !important}
+}

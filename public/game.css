@@ -5798,3 +5798,96 @@ body {
   #handDrawer .handStack.mdHandCompact .shcArt{height:39%!important;min-height:25px!important}
 }
 @media(prefers-reduced-motion:reduce){#handDrawer .handStack.mdHandCompact .stackHandCard{transition:none!important}}
+
+/* 2026-10-21 hand readability correction: actual portrait cards, not short banners. */
+#handDrawer .handStack.mdHandCompact{
+  display:grid!important;
+  grid-template-columns:repeat(var(--hand-columns,5),minmax(0,176px))!important;
+  justify-content:center!important;
+  align-items:start!important;
+  gap:12px!important;
+  padding:14px 8px 18px!important;
+  perspective:none!important;
+}
+#handDrawer .handStack.mdHandCompact .stackHandCard,
+#handDrawer .handStack.mdHandCompact .stackHandCard:hover{
+  display:flex!important;
+  flex-direction:column!important;
+  position:relative!important;
+  width:100%!important;
+  height:252px!important;
+  min-height:252px!important;
+  max-height:none!important;
+  padding:8px!important;
+  gap:4px!important;
+  overflow:hidden!important;
+  transform:none!important;
+  border-radius:11px!important;
+  border:2px solid var(--accent,rgba(210,224,245,.6))!important;
+  background:linear-gradient(145deg,rgba(50,67,88,.96),rgba(14,22,35,.98) 65%,rgba(6,12,22,.98))!important;
+  box-shadow:inset 1px 1px 1px #ffffff50,inset -2px -2px 4px #0009,3px 4px 0 #060b14,5px 8px 14px #0008!important;
+  box-sizing:border-box!important;
+}
+#handDrawer .handStack.mdHandCompact .stackHandCard:hover{transform:translateY(-3px)!important}
+#handDrawer .handStack.mdHandCompact .stackHandCard.selected,
+#handDrawer .handStack.mdHandCompact .stackHandCard.selected:hover{
+  transform:translateY(-4px)!important;
+  border-color:#9ce0ff!important;
+  box-shadow:inset 1px 1px 2px #ffffff70,3px 4px 0 #060b14,0 0 15px #70c7ff99!important;
+}
+#handDrawer .handStack.mdHandCompact .shcTop{
+  display:flex!important;flex:0 0 auto!important;min-height:24px!important;
+  align-items:center!important;justify-content:space-between!important;
+}
+#handDrawer .handStack.mdHandCompact .shcArt{
+  display:block!important;flex:0 0 78px!important;
+  width:100%!important;height:78px!important;min-height:78px!important;
+  max-height:78px!important;margin:0!important;overflow:hidden!important;
+  border:1px solid #ffffff45!important;border-radius:6px!important;
+}
+#handDrawer .handStack.mdHandCompact .shcBody{
+  display:flex!important;flex-direction:column!important;
+  flex:1 1 auto!important;min-height:0!important;
+  gap:3px!important;padding:2px 1px!important;
+  overflow:hidden!important;
+}
+#handDrawer .handStack.mdHandCompact .shcKind{display:block!important;font-size:9px!important;line-height:1.15!important}
+#handDrawer .handStack.mdHandCompact .shcName{
+  display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  font-size:13px!important;font-weight:900!important;line-height:1.25!important;
+  max-height:34px!important;overflow:hidden!important;overflow-wrap:anywhere!important;
+}
+#handDrawer .handStack.mdHandCompact .shcVitals,
+#handDrawer .handStack.mdHandCompact .shcStats{
+  display:block!important;font-size:11px!important;line-height:1.25!important;
+  color:#d7edff!important;white-space:normal!important;
+}
+#handDrawer .handStack.mdHandCompact .shcType{display:none!important}
+#handDrawer .handStack.mdHandCompact .shcText{
+  display:-webkit-box!important;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+  overflow:hidden!important;white-space:normal!important;overflow-wrap:anywhere!important;
+  font-size:10px!important;line-height:1.35!important;color:#f0f5ff!important;
+  max-height:43px!important;
+}
+#handDrawer .handStack.mdHandCompact .shcStats{margin-top:auto!important}
+#handDrawer .handStack.mdHandCompact .shcPickMarker{pointer-events:none!important}
+@media(max-width:760px){
+  #handDrawer .handStack.mdHandCompact{
+    grid-template-columns:repeat(var(--hand-columns,5),minmax(0,1fr))!important;
+    gap:5px!important;padding:10px 1px 14px!important;
+  }
+  #handDrawer .handStack.mdHandCompact .stackHandCard,
+  #handDrawer .handStack.mdHandCompact .stackHandCard:hover{
+    height:186px!important;min-height:186px!important;
+    padding:3px!important;gap:2px!important;border-width:1px!important;
+  }
+  #handDrawer .handStack.mdHandCompact .shcTop{min-height:19px!important}
+  #handDrawer .handStack.mdHandCompact .shcArt{
+    flex-basis:48px!important;height:48px!important;min-height:48px!important;max-height:48px!important;
+  }
+  #handDrawer .handStack.mdHandCompact .shcKind{font-size:7px!important}
+  #handDrawer .handStack.mdHandCompact .shcName{font-size:9px!important;line-height:1.15!important;max-height:24px!important}
+  #handDrawer .handStack.mdHandCompact .shcVitals,
+  #handDrawer .handStack.mdHandCompact .shcStats{font-size:8px!important}
+  #handDrawer .handStack.mdHandCompact .shcText{font-size:8px!important;line-height:1.2!important;max-height:40px!important;-webkit-line-clamp:4}
+}

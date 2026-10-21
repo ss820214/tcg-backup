@@ -3735,8 +3735,48 @@ function fxOnMove(st) {
   spawnMoveFx(fromCell, toCell);
 }
 
+let lastSummonFxAt = 0;
+let lastEvolveFxAt = 0;
+let battleFxInitialized = false;
+function fxOnSummonEvolve(st) {
+  const summon = st?.lastSummon;
+  const evolve = st?.lastEvolve;
+  const summonAt = Number(summon?.at || 0);
+  const evolveAt = Number(evolve?.at || 0);
+  if (!battleFxInitialized) {
+    battleFxInitialized = true;
+    lastSummonFxAt = summonAt;
+    lastEvolveFxAt = evolveAt;
+    return;
+  }
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    lastSummonFxAt = summonAt;
+    lastEvolveFxAt = evolveAt;
+    return;
+  }
+  const units = Array.isArray(st?.units) ? st.units : [];
+  const playFx = (kind, record, cardId) => {
+    const u = units.find(v => String(v.cardId) === String(cardId) && v.owner === record?.owner && Number(v.hp) > 0);
+    if (!u) return;
+    const cell = cellForModelPos({x:u.x,y:u.y});
+    if (!cell) return;
+    const fx = document.createElement("div");
+    fx.className = kind === "evolve" ? "evolveFx big" : "summonFx";
+    fx.setAttribute("aria-hidden","true");
+    const type = String(cardDefs?.[cardId]?.type || cardDefs?.[cardId]?.attr || "");
+    const names = {"火":"fire","水":"water","草":"grass","風":"wind","雷":"thunder","光":"light","闇":"dark","鋼":"steel","幻":"dream"};
+    if (names[type]) fx.classList.add(names[type]);
+    cell.appendChild(fx);
+    setTimeout(() => fx.remove(), 1200);
+  };
+  if (summonAt && summonAt !== lastSummonFxAt) playFx("summon", summon, summon.cardId);
+  if (evolveAt && evolveAt !== lastEvolveFxAt) playFx("evolve", evolve, evolve.to || evolve.cardId);
+  lastSummonFxAt = summonAt;
+  lastEvolveFxAt = evolveAt;
+}
 function fxOnHit(st) {
   fxOnMove(st);
+  fxOnSummonEvolve(st);
 
   const lh = st?.lastHit;
   if (!lh?.at || lh.at === lastHitAtSeen) return;

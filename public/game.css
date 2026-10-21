@@ -5722,3 +5722,29 @@ body {
 .actionOrbit.isOpen .actionOrbitCard .aocMeta,.actionOrbit.isOpen .actionOrbitCard .aocFx{font-size:12px!important;line-height:1.4!important;white-space:normal!important}
 .actionOrbit.isOpen .actionOrbitCard .aocFx{display:block!important;overflow:visible!important}
 @media(max-width:760px){.actionOrbit.isOpen{top:54px!important;width:calc(100vw - 16px)!important;max-height:72dvh!important;gap:6px!important;padding:8px!important}.actionOrbit.isOpen .actionOrbitCard,.actionOrbit.isOpen .actionOrbitCard:hover{padding:8px!important;min-height:96px!important}.actionOrbit.isOpen .actionOrbitCard .aocName{font-size:13px!important}.actionOrbit.isOpen .actionOrbitCard .aocMeta,.actionOrbit.isOpen .actionOrbitCard .aocFx{font-size:11px!important}}
+
+/* Battle action flow: transparent spinning choice cards, target then fixed confirmation. */
+.actionOrbit.isOpen{top:76px!important;background:rgba(10,19,31,.77)!important;backdrop-filter:blur(5px);border-color:rgba(120,190,250,.35);max-height:34dvh!important;width:min(470px,calc(100vw - 24px))!important}
+.actionOrbit.isOpen .actionOrbitCard{background:rgba(16,26,40,.79)!important;backdrop-filter:blur(4px);animation:attackChoiceSpin .27s ease-out both!important;min-height:82px!important;padding:8px!important}
+.actionOrbit.isOpen .actionOrbitCard.selected{border:2px solid #ffe18c!important;box-shadow:0 0 15px #ffdc6999!important;background:rgba(72,57,28,.84)!important}
+@keyframes attackChoiceSpin{from{opacity:0;transform:rotate(-15deg) scale(.78)}to{opacity:1;transform:rotate(0) scale(1)}}
+.actionOrbit.isTargeting{visibility:hidden!important;pointer-events:none!important}
+#battleAttackConfirmDock{position:fixed;z-index:100300;bottom:14px;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 16px));display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:16px;border:1px solid #90c8ff80;background:rgba(8,17,28,.91);box-shadow:0 10px 32px #000b;color:#fff;box-sizing:border-box}
+#battleAttackConfirmDock[hidden]{display:none!important}
+#battleAttackConfirmDock .battleAttackStatus{flex:1;min-width:0;overflow-wrap:anywhere;font-size:12px;line-height:1.35}
+#battleAttackConfirmDock button{min-height:44px;padding:8px 14px;border-radius:12px;color:#fff;font-weight:800;border:1px solid #9ad7ff88;background:#16604c;white-space:nowrap}
+#battleAttackConfirmDock .battleAttackCancel{background:#263342}
+#battleAttackConfirmDock button:disabled{opacity:.4}
+@media(max-width:760px){.actionOrbit.isOpen{top:54px!important;max-height:34dvh!important}.actionOrbit.isOpen .actionOrbitCard{min-height:76px!important}#battleAttackConfirmDock{bottom:8px;padding:7px;gap:5px}#battleAttackConfirmDock button{padding:7px 9px;font-size:12px}}
+/* Hand cards: smaller, art visible, compact labels. */
+#handDrawer.handDrawer{max-height:78dvh!important}
+#handDrawer .handStack.mdHandCompact{grid-template-columns:repeat(var(--hand-columns,5),minmax(0,1fr))!important;gap:6px!important}
+#handDrawer .handStack.mdHandCompact .stackHandCard{height:clamp(122px,15vw,174px)!important;padding:5px!important}
+#handDrawer .handStack.mdHandCompact .shcArt{display:block!important;position:relative!important;inset:auto!important;height:38%!important;min-height:36px!important;max-height:65px!important;overflow:hidden!important;margin:3px 0!important;border-radius:7px}
+#handDrawer .handStack.mdHandCompact .shcArtSymbol{display:none!important}
+#handDrawer .handStack.mdHandCompact .shcBody{height:auto!important;flex:1!important;padding:0!important;gap:2px!important}
+#handDrawer .handStack.mdHandCompact .shcName{font-size:clamp(9px,.95vw,12px)!important;max-height:30px!important}
+#handDrawer .handStack.mdHandCompact .shcText{display:none!important}
+#handDrawer .handStack.mdHandCompact .shcVitals{font-size:9px!important}
+.handDrawerHead .handEvolveCancel{display:none!important}
+@media(max-width:760px){#handDrawer .handStack.mdHandCompact .stackHandCard{height:116px!important;padding:3px!important}#handDrawer .handStack.mdHandCompact .shcArt{height:34%!important;min-height:28px!important}#handDrawer .handStack.mdHandCompact .shcVitals{font-size:8px!important}}

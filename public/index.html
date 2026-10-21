@@ -2547,6 +2547,29 @@
   body:has(> #deckStart:not(.hide)) > header{visibility:hidden!important;pointer-events:none!important}
   </style>
   <link rel="stylesheet" href="./ux_refinement_20261017.css?v=1">
+
+  <style id="playContrastFix20261022">
+    /* Desktop PLAY button must remain legible over the dark lobby background. */
+    @media (min-width: 761px) {
+      body #roomDrawerToggle,
+      body #roomDrawerToggle.deckReady {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,.75) !important;
+        opacity: 1 !important;
+      }
+      body #roomDrawerToggle:not(.deckReady) {
+        background: rgba(11,27,43,.97) !important;
+        border-color: rgba(171,212,244,.72) !important;
+      }
+      body #roomDrawerToggle:hover,
+      body #roomDrawerToggle:focus-visible {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        border-color: #d7f3ff !important;
+      }
+    }
+  </style>
 </head>
 
   <body>

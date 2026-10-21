@@ -5919,3 +5919,39 @@ body {
 #handDrawer .handStack.mdHandCompact .shcText{font-size:8px!important;line-height:1.2!important;padding:2px 1px!important;padding-right:0!important;max-height:44px!important}
 #handDrawer .handStack.mdHandCompact .shcDetailControl{right:3px!important;bottom:3px!important;min-width:31px!important;min-height:18px!important;padding:1px 3px!important;font-size:8px!important}
 }
+
+/* Fourth long-press command: magnifier directly below the radial commands. */
+.quickMenu .qmBall[data-mode="detail"]{
+  position:absolute!important;
+  left:50%!important;
+  top:46px!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:translateX(-50%) scale(0.9)!important;
+  z-index:12!important;
+  display:grid!important;
+  place-items:center!important;
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  min-height:42px!important;
+  border:1px solid #a4d9ffb8!important;
+  border-radius:50%!important;
+  background:rgba(18,43,62,.95)!important;
+  color:#fff!important;
+  font-size:20px!important;
+  box-shadow:0 5px 14px #000a!important;
+  opacity:1!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+}
+.quickMenu.isOpen .qmBall[data-mode="detail"]{
+  animation:detailQuickPop .24s ease-out both!important;
+}
+@keyframes detailQuickPop{
+  from{opacity:0;transform:translateX(-50%) translateY(-12px) scale(.6)}
+  to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  .quickMenu.isOpen .qmBall[data-mode="detail"]{animation:none!important}
+}

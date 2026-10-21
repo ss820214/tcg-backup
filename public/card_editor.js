@@ -1,3 +1,4 @@
+import { invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/card_editor.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -444,6 +445,7 @@ async function saveCurrent(){
 
   const ref = doc(db, "cards", id);
   await setDoc(ref, data, { merge: true });
+  invalidateCardCatalogCache("cards");
 
   el.connState.textContent = "Firestore: 保存OK";
   markDirty(false);

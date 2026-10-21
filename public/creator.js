@@ -1,3 +1,4 @@
+import { invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/creator.js
 // v20260726_actions_canonical1
 
@@ -409,6 +410,7 @@ async function uploadCardToCloud(card, options = {}) {
     updatedAt: serverTimestamp(),
     ownerUid: state.uid,
   }, { merge: true });
+  invalidateCardCatalogCache(col);
 
   if (options.isOverwrite && options.oldCollection && options.oldCollection !== col) {
     try {

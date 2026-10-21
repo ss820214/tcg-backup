@@ -49,6 +49,107 @@
   <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
   <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
   <script src="./mobile_home_deck_ui_20260926.js?v=20260926_device_switch4" defer></script>
+  <!-- V4 deck editor layout: prevent the adopted-card header, sorting bar and cards overlapping. -->
+  <style id="deckV4LayoutFix">
+    #deckPanel, #deckPanel *, #deckMainPanel, #deckMainPanel * { box-sizing: border-box; }
+    #deckPanel .deckInfoDockHead,
+    #deckPanel .deckInfoBody > .listHead {
+      flex: 0 0 auto !important;
+      min-height: 0 !important;
+      height: auto !important;
+      overflow: visible !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      row-gap: 7px !important;
+    }
+    #deckPanel .deckInfoDockHeadMain { min-width: 0; flex: 1 1 190px; }
+    #deckPanel .deckInfoDockHeadMain .small,
+    #deckPanel .deckInfoBody > .listHead .small {
+      white-space: normal !important;
+      overflow-wrap: anywhere;
+      line-height: 1.5 !important;
+    }
+    #deckPanel .deckInfoBody,
+    #deckPanel #deckList { min-width: 0 !important; }
+    #deckPanel #deckList { overscroll-behavior: contain; }
+    #deckPanel #deckList .cardRow {
+      height: auto !important;
+      min-height: 100px !important;
+      align-items: start !important;
+      overflow: hidden !important;
+    }
+    #deckPanel #deckList .cardRow > div:first-child { min-width: 0 !important; }
+    #deckPanel #deckList .cardRow .sub,
+    #deckPanel #deckList .cardRow .cardMeta {
+      line-height: 1.5 !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+    }
+    #deckPanel #deckList .cardRow .btns,
+    #deckPanel #deckList .cardRow .cardCtrl {
+      min-width: 0 !important;
+      align-self: start !important;
+    }
+    @media (max-width: 1280px) {
+      body #deckPanel {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        position: relative !important;
+        top: auto !important;
+      }
+      body #deckPanel > .bd {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        flex: none !important;
+      }
+      body #deckPanel .deckInfoDock,
+      body #deckPanel .deckInfoBody {
+        flex: none !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      body #deckPanel .deckInfoBody { gap: 12px !important; padding-top: 10px !important; }
+      body #deckPanel #deckList {
+        flex: none !important;
+        height: auto !important;
+        min-height: 160px !important;
+        max-height: min(60vh, 650px) !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding: 8px 6px 12px !important;
+      }
+      body #deckPanel #deckList .cardRow { margin-bottom: 8px; }
+    }
+    @media (max-width: 720px) {
+      body #deckPanel #deckList .cardRow {
+        grid-template-columns: minmax(0, 1fr) minmax(120px, 38%) !important;
+        gap: 8px !important;
+        padding: 10px !important;
+      }
+      body #deckPanel #deckList .cardRow .btns {
+        width: 100% !important;
+        min-width: 0 !important;
+        grid-template-columns: minmax(32px,1fr) minmax(40px,1.4fr) minmax(32px,1fr) !important;
+        grid-template-areas: "minus count plus" "detail detail detail" !important;
+      }
+      body #deckPanel #deckList .cardRow .btns button {
+        min-width: 0 !important;
+        width: 100% !important;
+      }
+      body #deckPanel #deckList .cardRow .name,
+      body #deckPanel #deckList .cardRow .cardName {
+        white-space: normal !important;
+        overflow: visible !important;
+        line-height: 1.4 !important;
+      }
+    }
+  </style>
 </body>
 </html>
 

@@ -1508,6 +1508,8 @@ function updateHandDrawerPosition() {
 
   // ===== Action picker =====
   function renderActionPicker(st) {
+    // Mobile has no visible action picker: confirmation must still render.
+    updateAttackConfirmDock(st);
     if (!actionPickerEl) return;
 
     try {
@@ -1518,7 +1520,6 @@ function updateHandDrawerPosition() {
     if (!st) return;
 
     const seat = getSeat();
-    updateAttackConfirmDock(st);
     const myTurn = !!canControl(st);
     const mode = getMode();
     const su = getSelectedUnit?.(st) || null;
@@ -1762,7 +1763,10 @@ function updateHandDrawerPosition() {
 
     try {
       renderActionPicker?.(st);
-    } catch {}
+    } catch (err) {
+      console.error("[0bato] attack confirmation render failed", err);
+      try { updateAttackConfirmDock(st); } catch (dockErr) { console.error("[0bato] attack confirmation dock failed", dockErr); }
+    }
 
     try {
       renderLog?.(st);

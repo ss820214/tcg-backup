@@ -2736,7 +2736,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261022_v108_restore_ui"></script>
+  <script type="module" src="./deck.js?v=20261022_v109_clear_row"></script>
 
     <script>
       (() => {
@@ -3964,6 +3964,41 @@
   body #deckList .cardRow::before {
     background:var(--typeColor, #65bde5)!important;
     opacity:.85!important;
+  }
+
+  /* V1.0.9: place destructive clear action on its own mobile row. */
+  @media (max-width:900px) {
+    body #deckPanel > .hd {
+      display:grid!important;
+      grid-template-columns:minmax(0,1fr) 44px!important;
+      grid-template-rows:auto auto!important;
+      gap:8px!important;
+      padding:12px!important;
+      padding-right:12px!important;
+      height:auto!important;
+      min-height:96px!important;
+      align-items:center!important;
+    }
+    body #deckPanel > .hd > .panelHdText {
+      grid-column:1!important;grid-row:1!important;min-width:0!important;
+    }
+    body #deckPanel #deckPanelMinBtn {
+      grid-column:2!important;grid-row:1!important;
+      position:static!important;inset:auto!important;transform:none!important;
+      justify-self:end!important;margin:0!important;
+    }
+    body #deckPanel > .hd > .row {
+      grid-column:1 / -1!important;grid-row:2!important;
+      display:flex!important;justify-content:space-between!important;
+      align-items:center!important;gap:10px!important;
+      width:100%!important;min-width:0!important;
+      padding:0!important;margin:0!important;
+    }
+    body #deckPanel #btnClearDeck {
+      position:static!important;inset:auto!important;transform:none!important;
+      margin-left:auto!important;min-width:88px!important;
+      min-height:42px!important;padding:8px 14px!important;
+    }
   }
 </style>
 

@@ -359,7 +359,12 @@
     const strip = document.createElement("div");
     strip.id = "tcgRouteStrip";
     strip.className = "tcg-route-strip";
-    strip.innerHTML = `
+    strip.innerHTML = page === "gacha.html" ? `
+      <div class="tcg-route-title"><span>ガチャ</span></div>
+      <div class="tcg-route-actions">
+        <button class="tcg-route-btn primary" type="button" data-route="./index.html">⌂ ホーム</button>
+      </div>
+    ` : `
       <div class="tcg-route-title">
         <span>${info.title}</span>
         <span class="tcg-route-sub">0BATo navigation</span>

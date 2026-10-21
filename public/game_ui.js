@@ -622,6 +622,10 @@ function updateHandDrawerPosition() {
     el.appendChild(mk("⚔️", "attack"));
     el.appendChild(mk("🏃", "move"));
     el.appendChild(mk("✨", "evolve"));
+    const detailButton = mk("🔍", "detail");
+    detailButton.setAttribute("aria-label", "このカードの詳細を見る");
+    detailButton.title = "カード詳細";
+    el.appendChild(detailButton);
 
     // メニュークリック
     el.addEventListener("click", (ev) => {
@@ -632,6 +636,17 @@ function updateHandDrawerPosition() {
   ev.preventDefault?.();
 
   const modeName = btn.dataset.mode;
+
+  if (modeName === "detail") {
+    const uid = el.dataset.unitId || "";
+    const unit = Array.isArray(lastSt?.units)
+      ? lastSt.units.find((x) => String(x?.id ?? "") === uid)
+      : null;
+    hideQuickMenu();
+    hideActionOrbit();
+    if (unit && lastSt) showUnitDetail(unit, lastSt);
+    return;
+  }
 
   try {
     setMode?.(modeName);
@@ -708,10 +723,12 @@ function updateHandDrawerPosition() {
     const bAttack = el.querySelector('button[data-mode="attack"]');
     const bMove = el.querySelector('button[data-mode="move"]');
     const bEvolve = el.querySelector('button[data-mode="evolve"]');
+    const bDetail = el.querySelector('button[data-mode="detail"]');
 
     if (bAttack) bAttack.disabled = !canAttack;
     if (bMove) bMove.disabled = !canMove;
     if (bEvolve) bEvolve.disabled = !canEvolve;
+    if (bDetail) bDetail.disabled = !u;
 
     // board内座標
     const br = boardEl.getBoundingClientRect();

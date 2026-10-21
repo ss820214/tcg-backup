@@ -1,3 +1,4 @@
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/arcade.js
 // v20260723_starter_series1
 
@@ -149,7 +150,7 @@ function buildDeckArray(map) {
 
 async function loadCollectionSafe(colName, kind = "") {
   try {
-    const snap = await getDocs(collection(db, colName));
+    const snap = await getCachedCardCollection(colName, () => getDocs(collection(db, colName)));
     const list = [];
     snap.forEach((d) => {
       const data = { id: d.id, ...(d.data() || {}) };

@@ -5955,3 +5955,18 @@ body {
 @media(prefers-reduced-motion:reduce){
   .quickMenu.isOpen .qmBall[data-mode="detail"]{animation:none!important}
 }
+
+/* Emergency mobile battle fix: keep long-press attack command visible. */
+@media(max-width:760px){
+  #board .quickMenu.isOpen{display:block!important;visibility:visible!important;opacity:1!important;z-index:100050!important;overflow:visible!important;pointer-events:auto!important}
+  #board .quickMenu.isOpen .qmBall[data-mode="attack"]{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    left:0!important;top:-78px!important;min-width:52px!important;
+    width:56px!important;height:56px!important;border-radius:50%!important;
+    transform:translate(-50%,-50%) scale(1)!important;
+    animation:none!important;pointer-events:auto!important;
+    background:rgba(30,54,76,.97)!important;
+    border:2px solid #b9e6ff!important;box-shadow:0 0 18px #56bdff88!important;
+  }
+  #board .quickMenu.isOpen .qmBall[data-mode="attack"]:disabled{opacity:.5!important}
+}

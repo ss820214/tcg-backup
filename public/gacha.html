@@ -1401,6 +1401,66 @@
         max-height:96px;
       }
     }
+
+    /* Mobile gacha: compact single navigation, no overlapping second header. */
+    body.has-tcg-route-strip .tcg-route-strip{
+      min-height:50px!important;
+      padding:7px 14px!important;
+      flex-wrap:nowrap!important;
+      gap:10px!important;
+    }
+    body.has-tcg-route-strip .tcg-route-title{
+      flex:0 1 auto!important;
+      min-width:0!important;
+      font-size:15px!important;
+      white-space:nowrap!important;
+    }
+    body.has-tcg-route-strip .tcg-route-title::before{
+      height:19px!important;width:5px!important;
+    }
+    body.has-tcg-route-strip .tcg-route-actions{
+      display:flex!important;flex-wrap:nowrap!important;
+      width:auto!important;max-width:none!important;
+      margin-left:auto!important;
+    }
+    body.has-tcg-route-strip .tcg-route-btn{
+      min-height:36px!important;
+      font-size:13px!important;
+      padding:7px 12px!important;
+    }
+    body.has-tcg-route-strip .wrap{padding-top:12px!important}
+    body.has-tcg-route-strip .wrap > header{
+      min-height:0!important;
+      margin:0 0 10px!important;
+      padding:0!important;
+      display:flex!important;
+      align-items:center!important;
+      justify-content:flex-end!important;
+    }
+    body.has-tcg-route-strip .wrap > header .brand,
+    body.has-tcg-route-strip .wrap > header #btnBack{
+      display:none!important;
+    }
+    body.has-tcg-route-strip .wrap > header .topbar{
+      display:flex!important;flex-wrap:wrap!important;
+      justify-content:flex-end!important;
+      gap:6px!important;
+      width:100%!important;
+      min-width:0!important;max-width:none!important;
+    }
+    body.has-tcg-route-strip .wrap > header .topbar .pill{
+      flex:0 1 auto!important;
+      min-height:30px!important;
+      padding:5px 9px!important;
+      font-size:11px!important;
+    }
+    @media(max-width:720px){
+      body.has-tcg-route-strip .wrap > header .topbar .pill b{font-size:11px!important}
+      body.has-tcg-route-strip .wrap > header .topbar .pill .small{font-size:10px!important}
+      body.has-tcg-route-strip .panel{padding:12px!important}
+      body.has-tcg-route-strip .panel h2{font-size:14px!important}
+      body.has-tcg-route-strip .themeName{font-size:16px!important}
+    }
   </style>
   <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1" />
   <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
@@ -1496,7 +1556,7 @@
 <script type="module" src="./gacha.js?v=20260911_simple_gacha1"></script>
   <script src="./player_journey.js?v=20260801_journey1"></script>
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
-  <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
+  <script src="./ui_polish.js?v=20261021_gacha_simple_nav1"></script>
   <script src="./visual_upgrade_20260805.js?v=20260806_deck_controls1"></script>
   <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
 

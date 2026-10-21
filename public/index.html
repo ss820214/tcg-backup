@@ -2736,7 +2736,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261022_deck_fast_effect1"></script>
+  <script type="module" src="./deck.js?v=20261022_v103_layout_cache"></script>
 
     <script>
       (() => {
@@ -3750,7 +3750,7 @@
   <link rel="stylesheet" href="./deck_support_controls_20261013.css?v=20261013_layoutfix1" />
 
 
-<!-- V1.0.2: consolidated deck editor layout overrides. -->
+<!-- V1.0.3: consolidated deck editor layout overrides. -->
 <style id="obDeckLayoutV102">
   /* Keep the deck sections in document flow instead of clipping one another. */
   #deckPanel .deckInfoDockHead,
@@ -3819,6 +3819,55 @@
     #cardList .cardRow .sub{font-size:11px!important}
     #deckPanel #deckList .cardRow{display:flex!important;flex-direction:column!important;gap:9px!important}
     #deckPanel #deckList .cardRow .btns{width:100%!important;max-width:100%!important}
+  }
+
+  /* V1.0.3: compact card metadata; remove inherited stretching and pinned bottoms. */
+  body #cardList .cardRow,
+  body #deckList .cardRow{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(120px,138px)!important;
+    align-items:start!important;align-content:start!important;
+    min-height:0!important;height:auto!important;max-height:none!important;
+    padding:10px 12px!important;gap:8px!important;
+  }
+  body #cardList .cardRow > div:first-child,
+  body #deckList .cardRow > div:first-child{
+    display:flex!important;flex-flow:column nowrap!important;
+    justify-content:flex-start!important;align-items:flex-start!important;
+    align-self:start!important;gap:3px!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    margin:0!important;padding:0!important;
+  }
+  body #cardList .cardRow .sub,
+  body #deckList .cardRow .sub{
+    margin:2px 0 0!important;padding:0!important;
+    display:block!important;white-space:normal!important;
+    line-height:1.65!important;font-size:12px!important;
+    height:auto!important;max-height:none!important;
+    overflow:visible!important;text-overflow:clip!important;
+    word-break:normal!important;overflow-wrap:anywhere!important;
+  }
+  body #cardList .cardRow .sub *,
+  body #deckList .cardRow .sub *{
+    vertical-align:middle!important;
+    line-height:1.4!important;
+  }
+  body #cardList .cardRow .name,
+  body #deckList .cardRow .name{
+    min-height:0!important;height:auto!important;
+    margin:0 0 3px!important;white-space:normal!important;
+    line-height:1.5!important;
+  }
+  body #cardList .cardRow .btns,
+  body #deckList .cardRow .btns{
+    align-self:start!important;align-content:start!important;
+    min-width:0!important;width:100%!important;
+    margin:0!important;
+  }
+  @media(max-width:620px){
+    body #cardList .cardRow,body #deckList .cardRow{
+      grid-template-columns:minmax(0,1fr) minmax(105px,37%)!important;
+    }
   }
 </style>
 

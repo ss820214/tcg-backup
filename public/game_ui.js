@@ -1357,7 +1357,7 @@ function updateHandDrawerPosition() {
     card.innerHTML = `
       <div class="shcFrameGlow"></div>
       <div class="shcTop">
-        <div class="shcCost">${String(def.cost ?? "?")}</div>
+        <div class="shcCost" data-cost="${String(def.cost ?? "?")}">${String(def.cost ?? "?")}</div>
         <div class="shcAttr">${handCardSymbol(def)}</div>
       </div>
       <div class="shcArt">

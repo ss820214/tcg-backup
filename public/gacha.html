@@ -1461,6 +1461,69 @@
       body.has-tcg-route-strip .panel h2{font-size:14px!important}
       body.has-tcg-route-strip .themeName{font-size:16px!important}
     }
+
+    /* Readable lightweight gacha: final cards remain front-facing, no 3D flips. */
+    .overlay .gachaSpinBoard,
+    .overlay .gachaSpinBoard::before,
+    .overlay .gachaSpinBoard::after{animation:none!important}
+    .overlay .gachaSpinSlot{
+      animation:gachaSimpleArrival .55s ease-out var(--drop-delay,0ms) both!important;
+      filter:none!important;
+      will-change:auto!important;
+    }
+    .overlay .gachaSpinCard,
+    .overlay .gachaSpinBoard.ten .gachaSpinCard{
+      animation:none!important;
+      transform:none!important;
+      transform-style:flat!important;
+      filter:none!important;
+      backface-visibility:visible!important;
+    }
+    .overlay .gachaSpinCard::before{filter:none!important;opacity:.2!important}
+    .overlay .spinBack{display:none!important}
+    .overlay .revealCard{
+      animation:gachaResultAppear .38s ease-out var(--delay,0ms) both!important;
+      transform:none!important;
+      transform-style:flat!important;
+      backface-visibility:visible!important;
+      filter:none!important;
+      will-change:auto!important;
+      min-width:0!important;
+      overflow:hidden!important;
+      text-align:left!important;
+    }
+    .overlay .revealCard .name,
+    .overlay .revealCard .id,
+    .overlay .revealCard .rar,
+    .overlay .revealCard .new{
+      transform:none!important;
+      rotate:none!important;
+      backface-visibility:visible!important;
+      writing-mode:horizontal-tb!important;
+      overflow-wrap:anywhere!important;
+      word-break:break-word!important;
+    }
+    .overlay .revealCard .name{font-size:12px!important;line-height:1.35!important;white-space:normal!important}
+    .overlay .revealCard .id{font-size:10px!important;opacity:.72!important;white-space:normal!important}
+    .overlay .reveal .rewards{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important}
+    @keyframes gachaSimpleArrival{
+      from{opacity:0;transform:translate3d(var(--x,0px),-34px,0) scale(.94)}
+      to{opacity:1;transform:translate3d(var(--x,0px),var(--y,0px),0) scale(1)}
+    }
+    @keyframes gachaResultAppear{
+      from{opacity:0;transform:translateY(14px) scale(.97)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+    @media(max-width:720px){
+      .overlay .reveal .rewards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+      .overlay .revealCard{min-height:100px!important;padding:10px!important}
+      .overlay .revealCard .name{font-size:13px!important}
+      .overlay .revealCard .id{font-size:10px!important}
+      .overlay .gachaSpinBoard{min-height:220px!important}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .overlay .gachaSpinSlot,.overlay .revealCard{animation:none!important;opacity:1!important;transform:none!important}
+    }
   </style>
   <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1" />
   <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4" />
@@ -1553,7 +1616,7 @@
     </div>
   </div>
 
-<script type="module" src="./gacha.js?v=20260911_simple_gacha1"></script>
+<script type="module" src="./gacha.js?v=20261021_readable_results2"></script>
   <script src="./player_journey.js?v=20260801_journey1"></script>
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
   <script src="./ui_polish.js?v=20261021_gacha_simple_nav1"></script>

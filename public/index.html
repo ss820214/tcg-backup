@@ -3749,6 +3749,77 @@
 <script src="./mobile_deck_block_final_20260927.js?v=20260930_mobile_deck_stable3" defer></script>
   <link rel="stylesheet" href="./deck_support_controls_20261013.css?v=20261013_layoutfix1" />
 
+
+<!-- V1.0.0: visible release marker and deck layout repair (index-based builder). -->
+<style id="releaseV100DeckRepair">
+  #obReleaseVersion {
+    position:fixed;right:18px;top:112px;z-index:100010;
+    display:block;pointer-events:none;padding:7px 13px;
+    border:1px solid rgba(131,222,245,.6);border-radius:999px;
+    background:rgba(8,20,30,.94);color:#dffaff;
+    font:800 13px/1.2 system-ui,"Noto Sans JP",sans-serif;
+    letter-spacing:.04em;box-shadow:0 4px 18px rgba(0,0,0,.45);
+  }
+  @media(max-width:760px){#obReleaseVersion{top:76px;right:10px;font-size:11px;padding:5px 9px}}
+  #deckPanel .deckInfoDock,#deckPanel .deckInfoBody{min-height:0;min-width:0}
+  #deckPanel .deckInfoDockHead,#deckPanel .deckInfoBody>.listHead{
+    position:relative!important;top:auto!important;
+    flex:0 0 auto!important;min-height:0!important;height:auto!important;
+    margin:0!important;overflow:visible!important;
+    align-items:center!important;flex-wrap:wrap!important;
+    gap:8px!important;padding:10px 12px!important;
+  }
+  #deckPanel .deckInfoDockHeadMain{min-width:0!important;flex:1 1 160px}
+  #deckPanel .deckInfoDockHead span,
+  #deckPanel .deckInfoBody>.listHead .hint {
+    white-space:normal!important;overflow:visible!important;
+    text-overflow:clip!important;line-height:1.5!important;
+    min-width:0!important;overflow-wrap:anywhere!important;
+  }
+  #deckPanel #deckList{
+    min-width:0!important;min-height:220px!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    padding:8px 6px 12px!important;
+    scrollbar-gutter:stable;
+  }
+  #deckPanel #deckList .cardRow{
+    position:relative!important;height:auto!important;
+    min-height:116px!important;max-height:none!important;
+    align-items:flex-start!important;overflow:hidden!important;
+    gap:10px!important;padding:12px!important;
+    flex-shrink:0!important;
+  }
+  #deckPanel #deckList .cardRow>div:first-child{min-width:0!important;flex:1 1 auto!important}
+  #deckPanel #deckList .cardRow .name{max-width:100%!important;white-space:normal!important;line-height:1.45!important}
+  #deckPanel #deckList .cardRow .sub{
+    max-height:none!important;white-space:normal!important;
+    overflow-wrap:anywhere!important;line-height:1.55!important;
+    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:3!important;
+    overflow:hidden!important;
+  }
+  #deckPanel #deckList .cardRow .btns{
+    flex:0 0 clamp(132px,34%,166px)!important;
+    min-width:0!important;max-width:100%!important;
+    align-self:flex-start!important;
+  }
+  @media(max-width:1280px){
+    body #deckPanel{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;position:relative!important;top:auto!important}
+    body #deckPanel>.bd{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;flex:none!important}
+    body #deckPanel .deckInfoDock,body #deckPanel .deckInfoBody{
+      height:auto!important;min-height:0!important;max-height:none!important;
+      flex:none!important;overflow:visible!important;
+    }
+    body #deckPanel #deckList{
+      flex:none!important;height:auto!important;
+      min-height:220px!important;max-height:65vh!important;overflow-y:auto!important;
+    }
+  }
+  @media(max-width:620px){
+    #deckPanel #deckList .cardRow{display:flex!important;flex-direction:column!important;min-height:0!important;gap:9px!important}
+    #deckPanel #deckList .cardRow .btns{flex:0 0 auto!important;width:100%!important;max-width:100%!important}
+  }
+</style>
+<div id="obReleaseVersion" aria-label="ゲームバージョン">V1.0.0</div>
 </body>
 </html>
 

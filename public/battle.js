@@ -961,7 +961,7 @@ onSnapshot(playersRef, async (snap) => {
 
     goToMatchIntro();
   }
-});
+}, error => showLobbyFailure("参加者情報の監視", error));
 
 // 準備トグル
 readyBtn.onclick = async () => {

@@ -215,8 +215,17 @@
     white-space: nowrap !important;
   }
 
-  body.${BODY_CLASS}.${HOME_CLASS} #deckStart .deckStartTopbar .deckStartChip:nth-of-type(n + 3) {
-    display: none !important;
+  /* Keep the release visible on narrow phones without crowding other controls. */
+  body.${BODY_CLASS}.${HOME_CLASS} #deckStart .deckStartTopbar #obHomeVersion {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    min-width: 62px !important;
+    height: 29px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: nowrap !important;
   }
 
   body.${BODY_CLASS}.${HOME_CLASS} #deckStart .deckStartConcept {

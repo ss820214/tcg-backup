@@ -1,4 +1,4 @@
-import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
+import { getCachedCardCollection, invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/deck.js
 // v20260829_home_left_fit1
 // Deck builder screen. Keep room/profile tools outside the card list flow.
@@ -8225,6 +8225,7 @@ function openAdminCardEditor(cardId) {
       if(!patch.name || !Number.isFinite(patch.cost) || (fields.hp&&!Number.isFinite(patch.hp)) || (fields.sp&&!Number.isFinite(patch.sp)))throw Error("数値と名前を確認してください");
       save.disabled=true;status.textContent="保存中…";
       await setDoc(doc(db,source,sourceId),patch,{merge:true});
+      invalidateCardCatalogCache(source);
       Object.assign(d,patch);shade.remove();renderAll();
     } catch(e){status.textContent="保存失敗: "+(e?.message||e);save.disabled=false;}
   };

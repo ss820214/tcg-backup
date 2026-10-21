@@ -1361,7 +1361,7 @@ function updateHandDrawerPosition() {
         <div class="shcAttr">${handCardSymbol(def)}</div>
       </div>
       <div class="shcArt">
-        ${(() => { const url = [def.imageUrl, def.imageURL, def.image, def.img, def.artUrl, def.illustration].find(v => typeof v === "string" && /^(https?:\\/\\/|\\.\\.?\\/|\\/assets\\/|assets\\/)/i.test(v.trim())); return url ? `<img class="shcIllustration" src="${String(url).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" alt="" loading="lazy">` : `<div class="shcArtSymbol">${handCardSymbol(def)}</div>`; })()}
+        ${(() => { const url = [def.imageUrl, def.imageURL, def.image, def.img, def.artUrl, def.illustration].find(v => typeof v === "string" && ["https://","http://","./","../","/assets/","assets/"].some(prefix => v.trim().startsWith(prefix))); return url ? `<img class="shcIllustration" src="${String(url).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" alt="" loading="lazy">` : `<div class="shcArtSymbol">${handCardSymbol(def)}</div>`; })()}
       </div>
       <div class="shcBody">
         <div class="shcKind">${handCardKindLabel(def)}</div>

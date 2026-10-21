@@ -1,3 +1,4 @@
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/game.js
 // v20260725_dark_illusion_gen1
 // ...
@@ -383,7 +384,7 @@ async function loadCards() {
 
   async function loadCardCollection(name, forcedKind = "") {
     try {
-      const snap = await getDocs(collection(db, name));
+      const snap = await getCachedCardCollection(name, () => getDocs(collection(db, name)));
       snap.forEach((d) => {
         const data = d.data() || {};
         m[d.id] = {

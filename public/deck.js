@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.10</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.11</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -2982,7 +2982,7 @@ function openDetail() {
     panel.style.cssText = "width:min(94vw,720px);max-height:86dvh;overflow:auto;background:#101018;color:white;border:1px solid #666;border-radius:18px;box-shadow:0 22px 70px #000a;pointer-events:auto";
     detailDragControls = installDetailDrag(panel);
   }
-  const overlayStyles = {display:"flex",position:"fixed",inset:"0",width:"100vw",height:"100dvh","max-height":"none","max-width":"none","z-index":"2147483000","align-items":"center","justify-content":"center",background:"transparent","pointer-events":"none","backdrop-filter":"none","box-shadow":"none",border:"0","border-radius":"0",padding:"0",overflow:"hidden"};
+  const overlayStyles = {display:"flex",position:"fixed",inset:"0",width:"100vw",height:"100dvh","max-height":"none","max-width":"none","z-index":"2147483000","align-items":"center","justify-content":"center",background:"rgba(0,0,0,.65)","pointer-events":"auto","backdrop-filter":"blur(4px)","box-shadow":"none",border:"0","border-radius":"0",padding:"12px",overflow:"hidden"};
   for (const [key,value] of Object.entries(overlayStyles)) detailWrap.style.setProperty(key,value,"important");
   detailWrap.setAttribute("aria-hidden", "false");
   if (detailEl) detailEl.style.setProperty("display", "block", "important");
@@ -7951,7 +7951,7 @@ function renderDeck() {
     row.querySelector("[data-detail]")?.addEventListener("click", (e) => {
       e.preventDefault?.();
       e.stopPropagation?.();
-      showDeckQuickDetail(cardId);
+      showCardDetail(cardId);
     });
 
     row.querySelector("[data-ex]")?.addEventListener("click", (e) => {

@@ -3602,29 +3602,8 @@
         let attr = localStorage.getItem(K_ATTR) || "all";
         let owned = localStorage.getItem(K_OWNED) || "all";
 
-        const normalize = (text) => String(text || "").normalize("NFKC").toLowerCase();
-        const kindOf = (row) => {
-          const raw = normalize(row.dataset.kind || row.dataset.cardKind || "");
-          if (raw === "support" || raw === "ex_support" || raw === "exsupport" || raw === "ex") return "support";
-          if (raw === "unit" || raw === "character" || raw === "char" || raw === "card") return "unit";
-          const text = normalize(row.textContent);
-          if (text.includes("サポ") || text.includes("support") || text.includes("効果:")) return "support";
-          return "unit";
-        };
-        const attrOf = (row) => String(row.dataset.type || row.dataset.attr || "").trim();
-        const ownedOf = (row) => {
-          if (row.classList.contains("notOwned") || row.querySelector(".ownedBadge.isZero")) return "unowned";
-          const text = normalize(row.textContent);
-          if (text.includes("×0") || text.includes("x0")) return "unowned";
-          return "owned";
-        };
-        const searchOf = (row) => normalize([
-          row.dataset.cardId,
-          row.dataset.search,
-          row.querySelector(".name")?.textContent,
-          row.querySelector(".sub")?.textContent,
-          row.textContent,
-        ].filter(Boolean).join(" "));
+        // V5: the deck module is the only owner of the card-list filter results.
+        // This adapter synchronizes the visible controls and the old typeSelect.
 
         function syncDeckCoreFilters(triggerChange = false) {
           document.body.dataset.kindFilter = kind;
@@ -3661,32 +3640,12 @@
           if (text) text.textContent = info[1];
         }
 
-        function apply() {
-          const q = normalize(searchInput.value).trim();
-          cardList.querySelectorAll(".cardRow").forEach((row) => {
-            const rowKind = kindOf(row);
-            const rowAttr = attrOf(row);
-            const rowOwned = ownedOf(row);
-            row.dataset.kind = rowKind;
-            if (rowAttr) row.dataset.type = rowAttr;
-
-            const okKind = kind === "all" || rowKind === kind;
-            const okAttr = kind === "support" || attr === "all" || rowAttr === attr;
-            const okOwned = owned === "all" || rowOwned === owned;
-            const okSearch = !q || searchOf(row).includes(q);
-            const visible = okKind && okAttr && okOwned && okSearch;
-            row.classList.toggle("isFilteredOut", !visible);
-            row.hidden = !visible;
-          });
-        }
-
         kindTabs.addEventListener("click", (e) => {
           const btn = e.target.closest("[data-kind]");
           if (!btn) return;
           kind = btn.dataset.kind || "all";
           localStorage.setItem(K_KIND, kind);
           setActive(false);
-          apply();
         });
         attrTabs.addEventListener("click", (e) => {
           const ownedBtn = e.target.closest("[data-owned]");
@@ -3694,7 +3653,6 @@
             owned = ownedBtn.dataset.owned || "all";
             localStorage.setItem(K_OWNED, owned);
             setActive(false);
-            apply();
             return;
           }
           const attrBtn = e.target.closest("[data-attr]");
@@ -3702,25 +3660,18 @@
           attr = attrBtn.dataset.attr || "all";
           localStorage.setItem(K_ATTR, attr);
           setActive(true);
-          apply();
         });
-        searchInput.addEventListener("input", apply);
 
         setActive(false);
-        apply();
         window.addEventListener("DOMContentLoaded", () => {
           syncDeckCoreFilters(true);
-          apply();
         }, { once: true });
         window.addEventListener("load", () => {
           syncDeckCoreFilters(true);
-          apply();
         }, { once: true });
         setTimeout(() => {
           syncDeckCoreFilters(true);
-          apply();
         }, 800);
-        new MutationObserver(apply).observe(cardList, { childList: true, subtree: true });
       })();
     </script>
 

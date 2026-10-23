@@ -2740,7 +2740,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261024_v1017_exclusive_deck"></script>
+  <script type="module" src="./deck.js?v=20261024_v1018_nav_shell"></script>
 
     <script>
       (() => {
@@ -4055,6 +4055,13 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
  body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel.isPanelCollapsed > .bd {display:block!important}
  body:has(#obEditorNavV1016[data-view="deck"]) #deckInfoDock.isCollapsed > .deckInfoBody {display:flex!important}
 }
+body.deckMobileStackActive #mobileDeckStackShell > #obEditorNavV1016 {order:0!important;align-self:stretch!important;position:relative!important;display:flex!important;visibility:visible!important;opacity:1!important;width:100%!important;max-width:100%!important;z-index:2147483500!important}
+@media(max-width:940px),(pointer:coarse) {
+ body.deckMobileStackActive #mobileDeckStackShell:has(#obEditorNavV1016[data-view="deck"]) > .libraryPanel {display:none!important;max-height:none!important}
+ body.deckMobileStackActive #mobileDeckStackShell:has(#obEditorNavV1016[data-view="deck"]) > #deckPanel {display:flex!important;max-height:none!important;height:auto!important;overflow:visible!important}
+ body.deckMobileStackActive #mobileDeckStackShell:has(#obEditorNavV1016[data-view="cards"]) > #deckPanel {display:none!important}
+ body.deckMobileStackActive #mobileDeckStackShell:has(#obEditorNavV1016[data-view="cards"]) > .libraryPanel {display:flex!important;max-height:none!important;height:auto!important}
+}
 #obDeckOpenShortcut,#obDeckMobileMinBar {display:none!important}
 </style>
 <script>
@@ -4094,11 +4101,22 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
   });
   document.getElementById("btnDeckTop")?.addEventListener("click",()=>setView("deck"),true);
   // The existing top-right button remains the accessible fallback for mobile.
-  const top=document.getElementById("btnDeckTop");
-  const home=document.getElementById("deckStart");
-  const sync=()=>{const showing=!home||home.classList.contains("hide")||home.getAttribute("aria-hidden")==="true"||getComputedStyle(home).display==="none";nav.style.setProperty("visibility",showing?"visible":"hidden","important");nav.style.setProperty("pointer-events",showing?"auto":"none","important");};
-  if(home)new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:["class","style","aria-hidden"]});
-  sync();
+  // Deck panels are reparented into #mobileDeckStackShell after module startup.
+  // Keep navigation in the SAME host, otherwise the old mobile shell covers it.
+  const positionNav=()=>{
+    const shell=document.getElementById("mobileDeckStackShell");
+    if(shell && nav.parentElement!==shell)shell.insertBefore(nav,shell.firstChild);
+    nav.style.setProperty("display","flex","important");
+    nav.style.setProperty("visibility","visible","important");
+    nav.style.setProperty("opacity","1","important");
+    nav.style.setProperty("pointer-events","auto","important");
+  };
+  positionNav();
+  const rootObserver=new MutationObserver(()=>positionNav());
+  rootObserver.observe(document.body,{childList:true,subtree:false});
+  // The editor may mount its mobile shell later than this inline script.
+  document.addEventListener("tcg:deck-initialized",positionNav,{once:true});
+  window.addEventListener("pageshow",positionNav);
   setView("cards");
 })();
 </script>

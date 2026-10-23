@@ -3969,6 +3969,91 @@
 
 </style>
 
+
+<style id="obDeckMobileControlsV1013">
+/* Visible and touchable collapse/expand controls despite legacy mobile overrides. */
+@media (max-width: 940px), (pointer:coarse) {
+ body .libraryPanel > .hd, body #deckPanel > .hd {position:relative!important;min-height:60px!important;padding-right:65px!important;overflow:visible!important}
+ body .libraryPanel #libraryPanelMinBtn,
+ body #deckPanel #deckPanelMinBtn {
+   display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+   align-items:center!important;justify-content:center!important;
+   position:absolute!important;right:11px!important;top:9px!important;left:auto!important;bottom:auto!important;
+   transform:none!important;margin:0!important;width:43px!important;height:43px!important;min-width:43px!important;
+   z-index:999!important;border-radius:12px!important;background:#18313d!important;border:1px solid #86cfe4!important;
+   color:white!important;font-size:22px!important;font-weight:900!important
+ }
+ body #deckPanel #deckInfoMinBtn, body #deckPanel #deckSaveMinBtn {
+   display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+   min-width:42px!important;min-height:42px!important;position:relative!important;z-index:10!important
+ }
+ body #deckPanel {scroll-margin-top:65px!important}
+ #obDeckOpenShortcut {
+   display:flex!important;align-items:center!important;justify-content:center!important;
+   position:fixed!important;bottom:calc(16px + env(safe-area-inset-bottom, 0px))!important;right:12px!important;
+   z-index:1500!important;min-height:46px!important;min-width:110px!important;padding:9px 13px!important;
+   border-radius:24px!important;background:#113a4a!important;color:#fff!important;border:1px solid #6de5ca!important;
+   box-shadow:0 6px 24px #000a!important;font-size:13px!important;font-weight:800!important
+ }
+}
+@media (min-width:941px) and (pointer:fine) { #obDeckOpenShortcut {display:none!important} }
+/* Attribute chips: tint each attribute, preserve bright selection indication. */
+body #attrTabs [data-attr] {--filterAccent:#8ccdde!important;border-color:color-mix(in srgb,var(--filterAccent) 62%,transparent)!important;color:var(--filterAccent)!important;background:color-mix(in srgb,var(--filterAccent) 13%,#121a23)!important}
+body #attrTabs [data-attr="火"] {--filterAccent:#ff7861!important}
+body #attrTabs [data-attr="水"] {--filterAccent:#62baff!important}
+body #attrTabs [data-attr="雷"] {--filterAccent:#ffe16f!important}
+body #attrTabs [data-attr="草"] {--filterAccent:#88e78e!important}
+body #attrTabs [data-attr="風"] {--filterAccent:#72e7d2!important}
+body #attrTabs [data-attr="鋼"] {--filterAccent:#b7bfca!important}
+body #attrTabs [data-attr="光"] {--filterAccent:#fce6a5!important}
+body #attrTabs [data-attr="闇"] {--filterAccent:#b999eb!important}
+body #attrTabs [data-attr="幻"] {--filterAccent:#e8a8fc!important}
+body #attrTabs [data-attr="呪"] {--filterAccent:#ed91bb!important}
+body #attrTabs [data-attr].active,body #attrTabs [data-attr].isSelected,
+body #attrTabs [data-attr][aria-pressed="true"] {
+ background:color-mix(in srgb,var(--filterAccent) 29%,#121a23)!important;
+ border-color:var(--filterAccent)!important;color:#fff!important;
+ box-shadow:0 0 0 1px var(--filterAccent),0 0 11px color-mix(in srgb,var(--filterAccent) 28%,transparent)!important
+}
+body #ownedTabs [data-owned="owned"] {
+ color:#9cffb3!important;border-color:#42b96d!important;background:#143323!important
+}
+body #ownedTabs [data-owned="unowned"] {
+ color:#ffabab!important;border-color:#d95a69!important;background:#371c26!important
+}
+body #ownedTabs [data-owned="owned"].active, body #ownedTabs [data-owned="owned"][aria-pressed="true"] {
+ background:#215f37!important;color:white!important;box-shadow:0 0 0 1px #74ed91!important
+}
+body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unowned"][aria-pressed="true"] {
+ background:#82303c!important;color:white!important;box-shadow:0 0 0 1px #ff9191!important
+}
+</style>
+<script>
+(() => {
+ const start = () => {
+   if (document.getElementById("obDeckOpenShortcut")) return;
+   const deck = document.getElementById("deckPanel");
+   if (!deck) return;
+   const shortcut = document.createElement("button");
+   shortcut.id = "obDeckOpenShortcut";
+   shortcut.type = "button";
+   shortcut.textContent = "デッキ内容";
+   shortcut.setAttribute("aria-label", "デッキ内容を表示");
+   document.body.appendChild(shortcut);
+   function openDeck() {
+     if (deck.classList.contains("isPanelCollapsed")) document.getElementById("deckPanelMinBtn")?.click();
+     const info = document.getElementById("deckInfoDock");
+     if (info?.classList.contains("isCollapsed")) document.getElementById("deckInfoMinBtn")?.click();
+     deck.scrollIntoView({behavior:"smooth",block:"start"});
+   }
+   shortcut.addEventListener("click",openDeck);
+   document.getElementById("btnDeckTop")?.addEventListener("click",openDeck);
+ };
+ if (document.readyState === "loading") document.addEventListener("DOMContentLoaded",start,{once:true});
+ else start();
+})();
+</script>
+
 </body>
 </html>
 

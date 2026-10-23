@@ -2600,7 +2600,6 @@
     <nav id="obEditorNavV1016" aria-label="デッキ編集の表示切替">
       <button type="button" data-ob-editor-view="cards" aria-pressed="true">カード一覧</button>
       <button type="button" data-ob-editor-view="deck" aria-pressed="false">採用デッキ</button>
-      <button type="button" data-ob-editor-view="owned" aria-pressed="false">所持カード</button>
     </nav>
     <main class="wrap">
       <section class="panel libraryPanel">
@@ -4048,7 +4047,6 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
 #obEditorNavV1016 button[aria-pressed="true"] {background:#246a54!important;border-color:#88f0ba!important;box-shadow:inset 0 0 0 1px #67caa1!important}
 @media(max-width:940px),(pointer:coarse) {
  body:has(#obEditorNavV1016[data-view="cards"]) #deckPanel {display:none!important}
- body:has(#obEditorNavV1016[data-view="owned"]) #deckPanel {display:none!important}
  body:has(#obEditorNavV1016[data-view="deck"]) .libraryPanel {display:none!important}
  body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel {display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;height:auto!important;max-height:none!important;overflow:visible!important}
  body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel > .bd {display:block!important;visibility:visible!important;height:auto!important;max-height:none!important;overflow:visible!important}
@@ -4064,8 +4062,6 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
   const nav=document.getElementById("obEditorNavV1016");
   if(!nav)return;
   const library=document.querySelector(".libraryPanel"),deck=document.getElementById("deckPanel");
-  const owned=document.querySelector('#ownedTabs [data-owned="owned"]');
-  const all=document.querySelector('#ownedTabs [data-owned="all"]');
   const isMobile=()=>matchMedia("(max-width:940px), (pointer:coarse)").matches;
   function setView(view) {
     nav.dataset.view=view;
@@ -4079,7 +4075,7 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
     } else {
       library?.classList.remove("isPanelCollapsed");
       document.getElementById("libraryPanelMinBtn")?.setAttribute("aria-expanded","true");
-      (view==="owned"?owned:all)?.click();
+      // Ownership filtering stays inside the card list; do not reset it when switching tabs.
     }
     if(isMobile()){
       const target=view==="deck"?deck:library;

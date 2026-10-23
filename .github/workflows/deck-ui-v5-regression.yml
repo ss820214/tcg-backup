@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/v5-deck-ui-stability-20261024
+      - fix/v5-deck-clear-home-navigation-20261024
       - deploy/live
     paths:
       - 'public/index.html'

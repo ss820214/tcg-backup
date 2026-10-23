@@ -9089,6 +9089,8 @@ initDeckLibrary({
 });
 setupDeckPanelWorkbench();
 syncDeckPanelActionState();
+// Signals that Firebase card reads, ownership, deck restoration and initial render are done.
+window.dispatchEvent(new Event("tcg:deck-initialized"));
 
 function prettyEffect(eff) {
   if (eff == null) return "";

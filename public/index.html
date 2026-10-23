@@ -2570,6 +2570,27 @@
       }
     }
   </style>
+
+<style id="obMobileHomeRecovery20261024">
+@media(max-width:620px),(pointer:coarse) and (max-width:760px) {
+  body.mobileFitUi.mobileHomeFit {overflow:hidden!important;height:100dvh!important}
+  body.mobileFitUi.mobileHomeFit #deckStart {
+    position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+    max-height:100dvh!important;overflow:hidden!important;z-index:10000!important;
+    box-sizing:border-box!important;
+  }
+  body.mobileFitUi.mobileHomeFit #deckStart .deckStartShell{
+    width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;
+    overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box!important
+  }
+  body.mobileFitUi.mobileHomeFit #deckStart .deckStartDuel,
+  body.mobileFitUi.mobileHomeFit #deckStart .deckStartDuel *{
+    color:#111d21!important;-webkit-text-fill-color:#111d21!important;
+    opacity:1!important;text-shadow:0 1px 1px #ffffff77!important
+  }
+  body.mobileFitUi.mobileHomeFit #deckStart .deckStartPanel {max-width:100%!important;min-width:0!important}
+}
+</style>
 </head>
 
   <body>
@@ -2736,7 +2757,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261023_v1011_detail_modal"></script>
+  <script type="module" src="./deck.js?v=20261024_v1011_mobile_recovery1"></script>
 
     <script>
       (() => {
@@ -3745,7 +3766,7 @@
   <script src="./ui_stability_20260825.js?v=20260826_deckspace1" defer></script>
 
     <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
-    <script src="./mobile_home_deck_ui_20260926.js?v=20261022_v105_release_chip" defer></script>
+    <script src="./mobile_home_deck_ui_20260926.js?v=20261024_phone_mode_restore1" defer></script>
 <script src="./mobile_deck_block_final_20260927.js?v=20260930_mobile_deck_stable3" defer></script>
   <link rel="stylesheet" href="./deck_support_controls_20261013.css?v=20261013_layoutfix1" />
 

@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.20</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.21</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -5492,57 +5492,6 @@ function restoreMobileDeckStackSlots() {
 }
 
 
-// Compact editor tabs share the existing mobile stack; never mount on the home screen.
-function ensureDeckEditorHeaderTabs(shell, library, deck) {
-  if (!shell || !library || !deck) return;
-  let tabs = document.getElementById("obDeckEditorHeaderTabs");
-  if (!tabs) {
-    const style = document.createElement("style");
-    style.id = "obDeckEditorHeaderTabsCSS";
-    style.textContent = [
-      '@media(max-width:860px){',
-      'body.deckMobileStackActive #mobileDeckStackShell #obDeckEditorHeaderTabs{order:-1!important;display:flex!important;position:relative!important;align-items:stretch!important;gap:0!important;width:100%!important;max-width:100%!important;margin:0!important;padding:0 10px!important;box-sizing:border-box!important;background:#101e27!important;border:1px solid #396a73!important;border-radius:13px 13px 0 0!important;z-index:20!important;overflow:visible!important}',
-      '#obDeckEditorHeaderTabs button{display:block!important;flex:0 1 auto!important;min-width:0!important;min-height:48px!important;padding:10px 13px!important;background:transparent!important;color:#b3c9d0!important;border:0!important;border-bottom:3px solid transparent!important;border-radius:0!important;font-size:16px!important;font-weight:900!important;white-space:nowrap!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important}',
-      '#obDeckEditorHeaderTabs button[aria-selected="true"]{color:#fff!important;background:rgba(80,160,163,.14)!important;border-bottom-color:#68dfb7!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell>.libraryPanel>.hd{display:none!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>.libraryPanel{display:none!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="cards"]>#deckPanel{display:none!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>#deckPanel{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important;overflow:visible!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>#deckPanel>.bd{display:block!important;max-height:none!important;height:auto!important;overflow:visible!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>#deckPanel #deckInfoDock{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>#deckPanel #deckInfoDock>.deckInfoBody{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="deck"]>#deckPanel #deckList{display:flex!important;flex-direction:column!important;min-height:150px!important;max-height:65vh!important;overflow-y:auto!important}',
-      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-view="cards"]>.libraryPanel{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important}',
-      '}'
-    ].join("\n");
-    document.head.appendChild(style);
-    tabs = document.createElement("div");
-    tabs.id = "obDeckEditorHeaderTabs";
-    tabs.setAttribute("role", "tablist");
-    tabs.setAttribute("aria-label", "デッキ編集");
-    tabs.innerHTML = '<button type="button" role="tab" data-editor-view="cards" aria-selected="true">カード一覧</button><button type="button" role="tab" data-editor-view="deck" aria-selected="false">デッキ内容</button>';
-    tabs.addEventListener("click", e => {
-      const btn = e.target.closest("button[data-editor-view]");
-      if (!btn) return;
-      e.preventDefault();
-      const view = btn.dataset.editorView;
-      shell.dataset.editorView = view;
-      library.classList.remove("isPanelCollapsed");
-      deck.classList.remove("isPanelCollapsed");
-      if (view === "deck") {
-        const info = document.getElementById("deckInfoDock");
-        info?.classList.remove("isCollapsed");
-        document.getElementById("deckInfoMinBtn")?.setAttribute("aria-expanded","true");
-        document.getElementById("deckPanelMinBtn")?.setAttribute("aria-expanded","true");
-      }
-      tabs.querySelectorAll("button[data-editor-view]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.editorView === view)));
-    });
-  }
-  if (tabs.parentNode !== shell) shell.insertBefore(tabs, shell.firstChild);
-  if (!shell.dataset.editorView) shell.dataset.editorView = "cards";
-  tabs.querySelectorAll("button[data-editor-view]").forEach(b => b.setAttribute("aria-selected",String(b.dataset.editorView === shell.dataset.editorView)));
-}
-
 function enforceMobileDeckStack() {
   const library = document.querySelector(".libraryPanel");
   const deck = document.getElementById("deckPanel");
@@ -5572,7 +5521,6 @@ function enforceMobileDeckStack() {
   if (library.parentNode !== shell) shell.appendChild(library);
   if (deck.parentNode !== shell) shell.appendChild(deck);
   document.body.classList.add("deckMobileStackActive");
-  ensureDeckEditorHeaderTabs(shell, library, deck);
   library.style.removeProperty("transform");
   deck.style.removeProperty("transform");
 }

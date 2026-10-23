@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.18</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.19</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -2938,6 +2938,7 @@ function setupDeckStartScreen(opts = {}) {
       deckStartEl.style.setProperty("display", "none", "important");
       // Remove the overlay synchronously: no delayed timer can block the editor.
       deckStartEl.remove();
+      requestAnimationFrame(() => { const shell = document.getElementById("mobileDeckStackShell"); if(shell) ensureIntegratedEditorTabs(shell, document.querySelector(".libraryPanel"), document.getElementById("deckPanel")); });
       return;
     }
     const path = action === "user" ? "./profile.html" : "./gacha.html";
@@ -5515,6 +5516,70 @@ function restoreMobileDeckStackSlots() {
   document.body.classList.remove("deckMobileStackActive");
 }
 
+
+function ensureIntegratedEditorTabs(shell, library, deck) {
+  if (!shell || !library || !deck) return;
+  let nav = document.getElementById("obEditorTabsIntegrated");
+  if (!nav) {
+    nav = document.createElement("nav");
+    nav.id = "obEditorTabsIntegrated";
+    nav.setAttribute("aria-label", "デッキ編成の画面切替");
+    nav.innerHTML = '<button type="button" data-editor-target="cards" aria-pressed="true">カード一覧</button><button type="button" data-editor-target="deck" aria-pressed="false">採用デッキ</button>';
+    const style = document.createElement("style");
+    style.id = "obEditorTabsIntegratedCSS";
+    style.textContent = [
+      '#obEditorTabsIntegrated{display:flex!important;order:-999!important;width:100%!important;gap:8px!important;padding:8px!important;box-sizing:border-box!important;background:#0a2028!important;border:1px solid #4d8b8e!important;border-radius:12px!important;position:relative!important;z-index:500!important}',
+      '#obEditorTabsIntegrated button{min-height:48px!important;flex:1!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#17313e!important;color:#fff!important;border:1px solid #6ca4a9!important;border-radius:10px!important;font-weight:900!important;font-size:14px!important}',
+      '#obEditorTabsIntegrated button[aria-pressed="true"]{background:#21664f!important;border-color:#83f1b9!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>.libraryPanel{display:none!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="cards"]>#deckPanel{display:none!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>#deckPanel{display:flex!important;max-height:none!important;height:auto!important;overflow:visible!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>#deckPanel>.bd{display:block!important;max-height:none!important;height:auto!important;overflow:visible!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>#deckPanel #deckInfoDock{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>#deckPanel #deckInfoDock>.deckInfoBody{display:flex!important;flex-direction:column!important;max-height:none!important;height:auto!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="deck"]>#deckPanel #deckList{display:flex!important;flex-direction:column!important;min-height:160px!important;max-height:65vh!important;overflow:auto!important}',
+      'body.deckMobileStackActive #mobileDeckStackShell[data-editor-target="cards"]>.libraryPanel{display:flex!important;max-height:none!important;height:auto!important}',
+      'body:not(.deckMobileStackActive) #obEditorTabsIntegrated{display:none!important}'
+    ].join("\n");
+    document.head.appendChild(style);
+    nav.addEventListener("click", e => {
+      const btn = e.target.closest("[data-editor-target]");
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setIntegratedEditorView(btn.dataset.editorTarget);
+    });
+  }
+  if (nav.parentNode !== shell) shell.insertBefore(nav, shell.firstChild);
+  if (!shell.dataset.editorTarget) shell.dataset.editorTarget = "cards";
+  const home = document.getElementById("deckStart");
+  const homeShown = home && home.isConnected && !home.classList.contains("hide") &&
+    home.getAttribute("aria-hidden") !== "true" && getComputedStyle(home).display !== "none";
+  nav.style.setProperty("display", homeShown ? "none" : "flex", "important");
+  nav.querySelectorAll("[data-editor-target]").forEach(btn =>
+    btn.setAttribute("aria-pressed", String(btn.dataset.editorTarget === shell.dataset.editorTarget))
+  );
+}
+function setIntegratedEditorView(target) {
+  const shell = document.getElementById("mobileDeckStackShell");
+  const library = document.querySelector(".libraryPanel");
+  const deck = document.getElementById("deckPanel");
+  if (!shell || !library || !deck) return;
+  const isDeck = target === "deck";
+  shell.dataset.editorTarget = isDeck ? "deck" : "cards";
+  library.style.setProperty("display", isDeck ? "none" : "flex", "important");
+  deck.style.setProperty("display", isDeck ? "flex" : "none", "important");
+  (isDeck ? deck : library).classList.remove("isPanelCollapsed");
+  if (isDeck) {
+    const info = document.getElementById("deckInfoDock");
+    info?.classList.remove("isCollapsed");
+    deck.querySelector(":scope > .bd")?.style.setProperty("display", "block", "important");
+    info?.querySelector(".deckInfoBody")?.style.setProperty("display", "flex", "important");
+  }
+  ensureIntegratedEditorTabs(shell, library, deck);
+  shell.scrollIntoView({block:"start",behavior:"auto"});
+}
+
 function enforceMobileDeckStack() {
   const library = document.querySelector(".libraryPanel");
   const deck = document.getElementById("deckPanel");
@@ -5544,6 +5609,7 @@ function enforceMobileDeckStack() {
   if (library.parentNode !== shell) shell.appendChild(library);
   if (deck.parentNode !== shell) shell.appendChild(deck);
   document.body.classList.add("deckMobileStackActive");
+  ensureIntegratedEditorTabs(shell, library, deck);
   library.style.removeProperty("transform");
   deck.style.removeProperty("transform");
 }

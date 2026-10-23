@@ -22,7 +22,7 @@ assert.match(filterAdapter, /owned === "unowned" \? "missing" : owned/, "owned f
 
 const scripts = [...home.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
 for (const [, attributes, js] of scripts) {
-  if (/\bsrc\s*=/.test(attributes) || /type\s*=\s*["']application\/json/.test(attributes)) continue;
+  if (/\bsrc\s*=/.test(attributes) || /type\s*=\s*["'](?:application\/json|module)/.test(attributes)) continue;
   new Function(js); // Syntax-only compile, no DOM/Firebase execution.
 }
 

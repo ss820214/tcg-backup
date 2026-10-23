@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.13</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.14</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -2742,7 +2742,8 @@ function setupDeckStartScreen(opts = {}) {
     if (!action) return;
     const run = (fn) => runHomeSelectTransition(action, sourceEl, fn);
     if (action === "deck") {
-      run(() => close(0));
+      // Main-menu navigation must not depend on a transition timer.
+      close(0);
       return;
     }
     if (action === "play") {
@@ -2760,7 +2761,8 @@ function setupDeckStartScreen(opts = {}) {
       return;
     }
     if (action === "user") {
-      run(() => navigateWithRouteTransition("./profile.html", "user"));
+      // Navigate directly; avoid a stuck fullscreen animation blocking home buttons.
+      location.assign(new URL("./profile.html", location.href).href);
       return;
     }
     if (action === "login") {
@@ -2771,7 +2773,8 @@ function setupDeckStartScreen(opts = {}) {
       return;
     }
     if (action === "gacha") {
-      run(() => navigateWithRouteTransition("./gacha.html", "gacha"));
+      // Navigate directly; avoid a stuck fullscreen animation blocking home buttons.
+      location.assign(new URL("./gacha.html", location.href).href);
       return;
     }
     if (action === "beginner") {

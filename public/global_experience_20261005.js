@@ -590,6 +590,12 @@
     installFetchTracking();
     installNetworkEvents();
     installInitialLoadFeedback();
+    if (isHomePage()) {
+      const boot = begin("カード情報を読み込み中…", { delay: 260 });
+      window.addEventListener("tcg:deck-initialized", () => {
+        boot.done();
+      }, { once: true });
+    }
     watchHome();
     if (navigator.onLine === false) {
       setState("offline", "オフラインです。接続を確認してください", { retry: () => location.reload() });

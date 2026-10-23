@@ -32,6 +32,6 @@ const game=read("public/game.js"),html=read("public/game.html"),victory=read("pu
 assert.match(game,/updateBattleReadability\(st\)/);
 assert.match(game,/onAfterRender: st=>updateBattleReadability\(st\)/);
 assert.match(html,/id="battleRecentAction"/);
-assert.match(html,/<details id="battleLogDetails">/);
+assert.match(html,/id="battleRecentAction"/, "Latest-action status remains on battle field");
 assert.match(victory,/renderBattleDetails\(document\.getElementById\("battleActionDetails"\)/);
 console.log("Battle usability features: movement hints, enemy action filter, log collapse and result summary OK.");

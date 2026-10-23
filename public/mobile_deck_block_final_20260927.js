@@ -353,6 +353,39 @@
   else boot();
 })();
 
+/* V5: one coalesced structural observer for the legacy mobile layout adapters.
+   Style/class/text changes are deliberately ignored to prevent feedback loops. */
+(function () {
+  "use strict";
+  const subscribers = new Set();
+  const selector = "#cardList, #deckList, #deckPanel, .libraryPanel, .cardRow";
+  let observer = null;
+  let framePending = false;
+  function relevant(node) {
+    if (!node || node.nodeType !== 1) return false;
+    return !!(node.matches?.(selector) || node.closest?.(selector) || node.querySelector?.(selector));
+  }
+  function onMutation(records) {
+    if (!records.some((record) => record.type === "childList" &&
+      [...record.addedNodes, ...record.removedNodes].some(relevant))) return;
+    if (framePending) return;
+    framePending = true;
+    requestAnimationFrame(() => {
+      framePending = false;
+      for (const notify of subscribers) {
+        try { notify(); } catch (error) { console.error("[deck mobile layout] callback failed", error); }
+      }
+    });
+  }
+  window.__tcgDeckObserveV5 = function (notify) {
+    if (typeof notify !== "function") return;
+    subscribers.add(notify);
+    if (observer || !document.body) return;
+    observer = new MutationObserver(onMutation);
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+})();
+
 /* v20260930_mobile_deck_stable2
    Stable mobile-only deck builder layout. Keep game/deck data rendering owned
    by deck.js and only normalize layout, labels, and navigation controls here. */
@@ -763,11 +796,10 @@
     [80, 240, 600, 1200, 2400].forEach(function (delay) {
       setTimeout(applyLayout, delay);
     });
-    observer = new MutationObserver(schedule);
-    observer.observe(document.body, { childList: true, subtree: true });
+    window.__tcgDeckObserveV5(schedule);
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("orientationchange", schedule, { passive: true });
-    document.addEventListener("click", function () { setTimeout(schedule, 30); }, true);
+    document.addEventListener("click", function (event) { if (event.target instanceof Element && event.target.closest(".obNativeDeckTabs, #cardList, #deckList")) return; setTimeout(schedule, 30); }, true);
   }
 
   if (document.readyState === "loading") {
@@ -1212,11 +1244,11 @@
     apply();
     [80, 220, 600, 1200, 2400, 4800].forEach(function (ms) { setTimeout(apply, ms); });
     try {
-      new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true });
+      window.__tcgDeckObserveV5(schedule);
     } catch (e) {}
     addEventListener("resize", schedule, { passive: true });
     addEventListener("orientationchange", schedule, { passive: true });
-    addEventListener("click", function () { setTimeout(apply, 30); }, true);
+    addEventListener("click", function (event) { if (event.target instanceof Element && event.target.closest(".obNativeDeckTabs, #cardList, #deckList")) return; setTimeout(apply, 30); }, true);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
@@ -1520,11 +1552,11 @@
     apply();
     [100, 300, 700, 1300, 2500, 4500, 7000].forEach((ms) => setTimeout(apply, ms));
     try {
-      new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+      window.__tcgDeckObserveV5(schedule);
     } catch (e) {}
     addEventListener("resize", schedule, { passive: true });
     addEventListener("orientationchange", schedule, { passive: true });
-    addEventListener("click", () => setTimeout(apply, 40), true);
+    addEventListener("click", (event) => { if (event.target instanceof Element && event.target.closest(".obNativeDeckTabs, #cardList, #deckList")) return; setTimeout(apply, 40); }, true);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
@@ -1885,16 +1917,11 @@
     applyMobileDeckStack();
     [120, 350, 800, 1600, 3000, 5200].forEach((ms) => setTimeout(applyMobileDeckStack, ms));
     try {
-      new MutationObserver(scheduleApply).observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        characterData: true,
-      });
+      window.__tcgDeckObserveV5(scheduleApply);
     } catch (e) {}
     addEventListener("resize", scheduleApply, { passive: true });
     addEventListener("orientationchange", scheduleApply, { passive: true });
-    addEventListener("click", () => setTimeout(applyMobileDeckStack, 40), true);
+    addEventListener("click", (event) => { if (event.target instanceof Element && event.target.closest(".obNativeDeckTabs, #cardList, #deckList")) return; setTimeout(applyMobileDeckStack, 40); }, true);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
@@ -2025,11 +2052,7 @@
 
   function startObserver() {
     if (!document.body) return;
-    new MutationObserver(scheduleMobileDeckFix).observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
+    window.__tcgDeckObserveV5(scheduleMobileDeckFix);
   }
 
   if (document.readyState === "loading") {
@@ -2512,11 +2535,11 @@
     apply();
     [120, 350, 800, 1600, 3000, 5200].forEach(function (ms) { setTimeout(apply, ms); });
     try {
-      new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+      window.__tcgDeckObserveV5(schedule);
     } catch (e) {}
     addEventListener("resize", schedule, { passive: true });
     addEventListener("orientationchange", schedule, { passive: true });
-    addEventListener("click", function () { setTimeout(apply, 40); }, true);
+    addEventListener("click", function (event) { if (event.target instanceof Element && event.target.closest(".obNativeDeckTabs, #cardList, #deckList")) return; setTimeout(apply, 40); }, true);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

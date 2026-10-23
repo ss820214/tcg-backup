@@ -10,6 +10,7 @@ on:
       - 'public/deck.js'
       - 'public/mobile_deck_block_final_20260927.js'
       - 'tools/deck_ui_v5_regression.mjs'
+      - 'tools/deck_home_navigation_regression_20261024.mjs'
       - '.github/workflows/deck-ui-v5-regression.yml'
   pull_request:
     branches:
@@ -19,6 +20,7 @@ on:
       - 'public/deck.js'
       - 'public/mobile_deck_block_final_20260927.js'
       - 'tools/deck_ui_v5_regression.mjs'
+      - 'tools/deck_home_navigation_regression_20261024.mjs'
 
 permissions:
   contents: read
@@ -35,7 +37,9 @@ jobs:
           node --check public/deck.js
           node --check public/mobile_deck_block_final_20260927.js
           node --check tools/deck_ui_v5_regression.mjs
+          node --check tools/deck_home_navigation_regression_20261024.mjs
       - name: Verify deck and tab stability
         run: |
           node tools/deck_regression_20261008.mjs
           node tools/deck_ui_v5_regression.mjs
+          node tools/deck_home_navigation_regression_20261024.mjs

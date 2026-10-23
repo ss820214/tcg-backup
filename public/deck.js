@@ -2372,7 +2372,7 @@ function ensureDeckStartElement() {
             </nav>
           </div>
           <span class="deckStartChip">DECK 30</span>
-          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.14</span>
+          <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">V1.0.15</span>
         </div>
 
         <aside class="deckStartConcept" aria-label="ゲーム概要">
@@ -2922,6 +2922,27 @@ function setupDeckStartScreen(opts = {}) {
   deckStartEl.addEventListener("click", (e) => {
     if (beginnerWrap && !beginnerWrap.contains(e.target)) setBeginnerOpen(false);
   });
+  // Critical home navigation: intercept before legacy bubble handlers and animations.
+  // Prevent a stale isTransitioning class from dimming the home indefinitely.
+  deckStartEl.addEventListener("click", (e) => {
+    const btn = e.target?.closest?.('[data-home-action="deck"],[data-home-action="user"],[data-home-action="gacha"]');
+    if (!btn || !deckStartEl.contains(btn)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    document.querySelectorAll(".deckStartZoomCard,.tcgRouteOverlay").forEach(el => el.remove());
+    deckStartEl.classList.remove("isTransitioning");
+    const action = btn.dataset.homeAction;
+    if (action === "deck") {
+      deckStartEl.classList.add("hide");
+      deckStartEl.setAttribute("aria-hidden", "true");
+      deckStartEl.style.setProperty("display", "none", "important");
+      // Remove the overlay synchronously: no delayed timer can block the editor.
+      deckStartEl.remove();
+      return;
+    }
+    const path = action === "user" ? "./profile.html" : "./gacha.html";
+    location.assign(new URL(path, location.href).href);
+  }, true);
   deckStartEl.querySelectorAll("[data-home-action]").forEach((btn) => {
     btn.addEventListener("pointerdown", (e) => e.stopPropagation());
     btn.addEventListener("click", (e) => {

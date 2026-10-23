@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261005_experience1";
+  const VERSION = "20261024_experience2";
   const FEEDBACK_STYLE_ID = "tcgGlobalExperienceStyle20261005";
   const HOME_STYLE_ID = "tcgHomeCompletionStyle20261005";
   const root = document.documentElement;
@@ -234,7 +234,7 @@
     clearTimeout(showTimer);
     clearTimeout(longTimer);
     if (root.dataset.tcgNetState === "loading") {
-      setState("success", "準備完了", { autoHide: 700 });
+      hideStatus(); // A finished network request does not mean the entire game is ready.
     }
   }
 
@@ -312,8 +312,9 @@
   }
 
   function installInitialLoadFeedback() {
+    // Browser load is a transport milestone, not proof that Firestore and gameplay are ready.
     if (document.readyState === "complete") return;
-    const token = begin("画面を読み込み中…", { delay: 260 });
+    const token = begin("画面・アセットを読み込み中…", { delay: 260 });
     window.addEventListener("load", () => token.done(), { once: true });
   }
 

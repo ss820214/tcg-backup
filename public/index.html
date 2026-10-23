@@ -4042,7 +4042,7 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
 
 
 <style id="obEditorNavStyleV1016">
-#obEditorNavV1016 {display:flex!important;gap:7px!important;padding:9px 12px!important;align-items:center!important;justify-content:stretch!important;position:sticky!important;top:0!important;z-index:9999!important;background:#0b2028!important;border-block:1px solid #37666e!important}
+#obEditorNavV1016 {display:flex!important;position:relative!important;z-index:2147483500!important;visibility:visible!important;min-height:62px!important;gap:7px!important;padding:9px 12px!important;align-items:center!important;justify-content:stretch!important;position:sticky!important;top:0!important;z-index:9999!important;background:#0b2028!important;border-block:1px solid #37666e!important}
 #obEditorNavV1016 button {display:block!important;flex:1 1 0!important;min-width:0!important;min-height:44px!important;color:#e7f5f5!important;background:#142b36!important;border:1px solid #4e8591!important;border-radius:12px!important;padding:7px 3px!important;font-size:13px!important;font-weight:900!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 #obEditorNavV1016 button[aria-pressed="true"] {background:#246a54!important;border-color:#88f0ba!important;box-shadow:inset 0 0 0 1px #67caa1!important}
 @media(max-width:940px),(pointer:coarse) {
@@ -4064,30 +4064,42 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
   const library=document.querySelector(".libraryPanel"),deck=document.getElementById("deckPanel");
   const isMobile=()=>matchMedia("(max-width:940px), (pointer:coarse)").matches;
   function setView(view) {
-    nav.dataset.view=view;
-    nav.querySelectorAll("[data-ob-editor-view]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.obEditorView===view)));
-    if(view==="deck"){
-      deck?.classList.remove("isPanelCollapsed");
-      document.getElementById("deckInfoDock")?.classList.remove("isCollapsed");
+    const deckView=view==="deck";
+    nav.dataset.view=deckView?"deck":"cards";
+    nav.querySelectorAll("[data-ob-editor-view]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.obEditorView===nav.dataset.view)));
+    if (!isMobile()) {
+      library?.style.removeProperty("display");
+      deck?.style.removeProperty("display");
+      return;
+    }
+    // Inline important beats old mobile CSS/JS layout overrides on these panels.
+    if(library)library.style.setProperty("display",deckView?"none":"flex","important");
+    if(deck)deck.style.setProperty("display",deckView?"flex":"none","important");
+    const visible=deckView?deck:library;
+    visible?.classList.remove("isPanelCollapsed");
+    if(deckView) {
+      const info=document.getElementById("deckInfoDock");
+      const body=deck?.querySelector(":scope > .bd");
+      info?.classList.remove("isCollapsed");
+      body?.style.setProperty("display","block","important");
+      info?.querySelector(".deckInfoBody")?.style.setProperty("display","flex","important");
       document.getElementById("deckPanelMinBtn")?.setAttribute("aria-expanded","true");
       document.getElementById("deckInfoMinBtn")?.setAttribute("aria-expanded","true");
-      if(deck)deck.style.setProperty("display","flex","important");
-    } else {
-      library?.classList.remove("isPanelCollapsed");
-      document.getElementById("libraryPanelMinBtn")?.setAttribute("aria-expanded","true");
-      // Ownership filtering stays inside the card list; do not reset it when switching tabs.
     }
-    if(isMobile()){
-      const target=view==="deck"?deck:library;
-      target?.scrollIntoView({behavior:"auto",block:"start"});
-    }
+    visible?.scrollIntoView({behavior:"auto",block:"start"});
   }
   nav.addEventListener("click",e=>{
     const b=e.target.closest("[data-ob-editor-view]");
     if(b)setView(b.dataset.obEditorView);
   });
   document.getElementById("btnDeckTop")?.addEventListener("click",()=>setView("deck"),true);
-  nav.dataset.view="cards";
+  // The existing top-right button remains the accessible fallback for mobile.
+  const top=document.getElementById("btnDeckTop");
+  const home=document.getElementById("deckStart");
+  const sync=()=>{const showing=!home||home.classList.contains("hide")||home.getAttribute("aria-hidden")==="true"||getComputedStyle(home).display==="none";nav.style.setProperty("visibility",showing?"visible":"hidden","important");nav.style.setProperty("pointer-events",showing?"auto":"none","important");};
+  if(home)new MutationObserver(sync).observe(home,{attributes:true,attributeFilter:["class","style","aria-hidden"]});
+  sync();
+  setView("cards");
 })();
 </script>
 

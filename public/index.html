@@ -3997,6 +3997,7 @@
  }
 }
 @media (min-width:941px) and (pointer:fine) { #obDeckOpenShortcut {display:none!important} }
+body:has(#deckStart:not(.hide):not([aria-hidden="true"])) #obDeckOpenShortcut {display:none!important}
 /* Attribute chips: tint each attribute, preserve bright selection indication. */
 body #attrTabs [data-attr] {--filterAccent:#8ccdde!important;border-color:color-mix(in srgb,var(--filterAccent) 62%,transparent)!important;color:var(--filterAccent)!important;background:color-mix(in srgb,var(--filterAccent) 13%,#121a23)!important}
 body #attrTabs [data-attr="火"] {--filterAccent:#ff7861!important}

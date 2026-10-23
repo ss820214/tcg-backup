@@ -4004,6 +4004,13 @@
   body[data-ob-deck-tab="deck"] #mobileDeckStackShell {height:auto!important;max-height:none!important;overflow:visible!important}
 }
 @media (min-width:941px) and (pointer:fine) {body .obNativeDeckTabs {display:none!important}}
+  /* V5: keep owned filters visible even after compact/mobile layout scripts run. */
+  @media (max-width:940px), (pointer:coarse) {
+    body[data-ob-deck-tab="cards"] #ownedTabs,
+    body[data-ob-deck-tab="cards"] .ownedFilterGroup {display:flex!important;visibility:visible!important;opacity:1!important;flex-wrap:wrap!important;gap:6px!important;position:relative!important;max-width:100%!important;height:auto!important;overflow:visible!important}
+    body[data-ob-deck-tab="cards"] #ownedTabs .ownedFilter {display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+    body[data-ob-deck-tab="cards"] #cardFilters {overflow:visible!important;max-height:none!important}
+  }
 </style>
 <script id="obNativeDeckTabsScriptV1021">
 (()=>{
@@ -4015,8 +4022,9 @@
     if(!small())return;
     const isDeck=view==="deck";
     document.body.dataset.obDeckTab=isDeck?"deck":"cards";
-    library.style.setProperty("display",isDeck?"none":"flex","important");
-    deck.style.setProperty("display",isDeck?"flex":"none","important");
+    // CSS owns panel visibility; inline !important overrides caused stale states on return.
+    library.style.removeProperty("display");
+    deck.style.removeProperty("display");
     const panel=isDeck?deck:library;
     panel.classList.remove("isPanelCollapsed");
     panel.querySelector(":scope > .bd")?.style.setProperty("display","block","important");
@@ -4028,7 +4036,8 @@
     document.querySelectorAll(".obNativeDeckTabs button").forEach(b=>{
       b.setAttribute("aria-selected",String(b.dataset.nativeDeckTab===view));
     });
-    panel.scrollIntoView({block:"start",behavior:"auto"});
+    // Avoid synchronous scroll/layout on a potentially large card list.
+    // Keep the user at the editor tabs instead of forcing a full layout flush.
   }
   document.querySelectorAll(".obNativeDeckTabs").forEach(bar=>bar.addEventListener("click",e=>{
     const button=e.target.closest("button[data-native-deck-tab]");

@@ -77,6 +77,7 @@ jobs:
           node --check public/mobile_deck_block_final_20260927.js
           node --check public/deck_layout_guard.js
           node tools/stability_contracts_20261023.mjs
+          node tools/editor_navigation_5checks_20261024.mjs
 
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0

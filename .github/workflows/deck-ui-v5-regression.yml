@@ -1,0 +1,41 @@
+name: Deck UI V5 stability regression
+
+on:
+  push:
+    branches:
+      - fix/v5-deck-ui-stability-20261024
+      - deploy/live
+    paths:
+      - 'public/index.html'
+      - 'public/deck.js'
+      - 'public/mobile_deck_block_final_20260927.js'
+      - 'tools/deck_ui_v5_regression.mjs'
+      - '.github/workflows/deck-ui-v5-regression.yml'
+  pull_request:
+    branches:
+      - deploy/live
+    paths:
+      - 'public/index.html'
+      - 'public/deck.js'
+      - 'public/mobile_deck_block_final_20260927.js'
+      - 'tools/deck_ui_v5_regression.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Check deck script syntax
+        run: |
+          node --check public/deck.js
+          node --check public/mobile_deck_block_final_20260927.js
+          node --check tools/deck_ui_v5_regression.mjs
+      - name: Verify deck and tab stability
+        run: |
+          node tools/deck_regression_20261008.mjs
+          node tools/deck_ui_v5_regression.mjs

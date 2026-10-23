@@ -50,6 +50,34 @@ jobs:
           node --check public/action_text.js
           node --check public/sfx.js
 
+      - name: Verify CPU and gameplay regressions before publishing
+        run: |
+          node --check public/cpu_ai.js
+          node --check public/cpu_driver.js
+          node --check public/cpu_tactics.js
+          node --check public/battle.js
+          node --check public/support_spatial_rules.js
+          node --check public/opponent_hand_ui.js
+          node --check public/battle_readability.js
+          node --check public/battle_result_details.js
+          node tools/cpu_regression_20261019.mjs
+          node tools/cpu_styles_regression_20261019.mjs
+          node tools/cpu_advanced_regression_20261019.mjs
+          node tools/cpu_evolve_integration_regression_20261019.mjs
+          node tools/cpu_deck_bootstrap_regression_20261020.mjs
+          node tools/cpu_deck_recovery_regression_20261020.mjs
+          node tools/cpu_bootstrap_integration_20261020.mjs
+          node tools/opponent_hand_regression_20261020.mjs
+          node tools/support_spatial_regression_20261019.mjs
+          node tools/battle_readability_regression_20261020.mjs
+
+      - name: Verify health, damage, and deck layout contracts
+        run: |
+          node --check public/mobile_home_deck_ui_20260926.js
+          node --check public/mobile_deck_block_final_20260927.js
+          node --check public/deck_layout_guard.js
+          node tools/stability_contracts_20261023.mjs
+
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

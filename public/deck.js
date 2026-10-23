@@ -4817,10 +4817,10 @@ function ensureDeckPanelLayoutGuardCss() {
   css.textContent = `
     #deckPanel > .hd{
       display:grid !important;
-      grid-template-columns:minmax(128px, 1fr) auto auto 42px !important;
+      grid-template-columns:minmax(128px, 1fr) auto 42px !important;
       grid-template-areas:
-        "title count clear min"
-        "actions actions actions actions" !important;
+        "title count min"
+        "actions actions actions" !important;
       align-items:center !important;
       gap:8px !important;
       min-height:auto !important;
@@ -4931,7 +4931,6 @@ function ensureDeckPanelLayoutGuardCss() {
         grid-template-columns:minmax(0, 1fr) 44px !important;
         grid-template-areas:
           "title min"
-          "clear clear"
           "actions actions" !important;
         gap:7px !important;
         padding:9px 10px !important;
@@ -5089,6 +5088,78 @@ function openDeckLibraryDock(options = {}) {
   setTimeout(() => saveDock.classList.remove("isDeckDockSpotlight"), 900);
 }
 
+// V5: keep destructive actions out of the mobile deck tab header.
+// Move the existing button (preserving its ID and event handlers) into a
+// collapsed maintenance section below the adopted cards, on both deck pages.
+function ensureDeckDangerActions() {
+  const clearBtn = document.getElementById("btnClearDeck");
+  const host = document.querySelector("#deckInfoDock .deckInfoBody") ||
+    document.querySelector("#deckPanel > .bd");
+  if (!clearBtn || !host) return;
+
+  let controls = document.getElementById("deckDangerActions");
+  if (!controls) {
+    controls = document.createElement("details");
+    controls.id = "deckDangerActions";
+    controls.className = "deckDangerActions";
+    controls.innerHTML = `
+      <summary>デッキ操作</summary>
+      <p>編集中のデッキを空にする場合のみ開いてください。保存済みデッキは削除しません。</p>
+    `;
+    host.appendChild(controls);
+  }
+  if (clearBtn.parentElement !== controls) controls.appendChild(clearBtn);
+  clearBtn.textContent = "編集中のカードを全消し";
+
+  if (!document.getElementById("deckDangerActionsCssV5")) {
+    const css = document.createElement("style");
+    css.id = "deckDangerActionsCssV5";
+    css.textContent = `
+      #deckPanel .deckDangerActions {
+        margin-top: 16px !important;
+        padding: 10px 12px !important;
+        border: 1px solid rgba(255,255,255,.15) !important;
+        border-radius: 12px !important;
+        background: rgba(8,15,24,.55) !important;
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+      }
+      #deckPanel .deckDangerActions > summary {
+        cursor: pointer !important;
+        color: rgba(210,225,238,.8) !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        padding: 4px 0 !important;
+      }
+      #deckPanel .deckDangerActions > p {
+        margin: 10px 0 !important;
+        color: rgba(210,225,238,.7) !important;
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+      }
+      #deckPanel .deckDangerActions #btnClearDeck {
+        display: inline-flex !important;
+        grid-area: auto !important;
+        position: static !important;
+        min-width: 0 !important;
+        width: auto !important;
+        max-width: 100% !important;
+        min-height: 44px !important;
+        margin: 4px 0 2px !important;
+        padding: 9px 14px !important;
+        font-size: 13px !important;
+        color: #ffd8dc !important;
+        border: 1px solid rgba(255,115,130,.55) !important;
+        background: rgba(105,25,37,.3) !important;
+        border-radius: 10px !important;
+      }
+    `;
+    document.head.appendChild(css);
+  }
+}
+
 function setupDeckPanelWorkbench() {
   const panel = document.getElementById("deckPanel");
   const headRow = panel?.querySelector(":scope > .hd .row");
@@ -5110,6 +5181,8 @@ function setupDeckPanelWorkbench() {
     const clearBtn = document.getElementById("btnClearDeck");
     headRow.insertBefore(actions, clearBtn || null);
   }
+
+  ensureDeckDangerActions();
 
   if (actions.dataset.layoutVersion !== "20260926_deck_meta2") {
     actions.innerHTML = `
@@ -6929,6 +7002,12 @@ function removeFromDeck(cardId) {
   renderAfterQuantityChange();
 }
 function clearDeck() {
+  if (!sumDeck(deckMap) && !selectedExSupportId) {
+    setMsg("デッキは空です", true);
+    return;
+  }
+  if (!window.confirm("編集中のデッキを全消ししますか？\n保存済みデッキは削除されません。")) return;
+  document.getElementById("deckDangerActions")?.removeAttribute("open");
   deckMap = {};
   selectedExSupportId = "";
   saveSelectedEx("");

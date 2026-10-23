@@ -7995,6 +7995,42 @@ function renderDeck() {
   updatePlayButtons();
 }
 
+// V5: card rows are replaced for filter/deck updates, but the action handler
+// stays attached to the stable list container (one listener instead of N*5).
+async function handleCardListAction(event) {
+  const button = event.target instanceof Element
+    ? event.target.closest("button[data-minus], button[data-plus], button[data-detail], button[data-hide-toggle], button[data-expick]")
+    : null;
+  if (!button || button.disabled || !cardListEl?.contains(button)) return;
+  const cardId = String(button.getAttribute("data-minus") || button.getAttribute("data-plus") ||
+    button.getAttribute("data-detail") || button.getAttribute("data-hide-toggle") ||
+    button.closest("[data-card-id]")?.getAttribute("data-card-id") || "").trim();
+  if (!cardId || !cardDefs[cardId]) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (button.hasAttribute("data-minus")) { removeFromDeck(cardId); return; }
+  if (button.hasAttribute("data-plus")) { addToDeck(cardId); return; }
+  if (button.hasAttribute("data-detail")) { showCardDetail(cardId); return; }
+  if (button.hasAttribute("data-expick")) {
+    if (selectedExSupportId === cardId) clearExSupport();
+    else selectExSupport(cardId);
+    return;
+  }
+  if (!button.hasAttribute("data-hide-toggle") || !isAdminUser()) return;
+  const def = cardDefs[cardId];
+  const nextHidden = !def.hidden;
+  button.disabled = true;
+  try {
+    if (!(await toggleCardHidden(cardId, nextHidden))) return;
+    def.hidden = nextHidden;
+    setMsg(nextHidden ? `非公開にしました: ${def.name || cardId}` : `公開に戻しました: ${def.name || cardId}`, true);
+    renderAll();
+  } finally {
+    if (button.isConnected) button.disabled = false;
+  }
+}
+cardListEl?.addEventListener("click", handleCardListAction);
+
 function renderCardListNewUI() {
   if (!cardListEl) return;
   cardListEl.innerHTML = "";
@@ -8066,52 +8102,6 @@ function renderCardListNewUI() {
       row.style.opacity = "0.55";
       row.style.border = "1px solid rgba(255,80,80,.6)";
     }
-    row.querySelector("[data-minus]")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      removeFromDeck(cardId);
-    });
-
-    row.querySelector("[data-plus]")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      addToDeck(cardId);
-    });
-
-    row.querySelector("[data-detail]")?.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      showCardDetail(cardId);
-    });
-
-    row
-      .querySelector(`[data-hide-toggle="${cardId}"]`)
-      ?.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const nextHidden = !def.hidden;
-        const ok = await toggleCardHidden(cardId, nextHidden);
-        if (!ok) return;
-
-        if (cardDefs[cardId]) {
-          cardDefs[cardId].hidden = nextHidden;
-        }
-
-        setMsg(
-          nextHidden
-            ? `非公開にしました: ${def.name || cardId}`
-            : `公開に戻しました: ${def.name || cardId}`,
-          true,
-        );
-
-        renderAll();
-      });
-
-    row.querySelector("[data-expick]")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (isSelEx) clearExSupport();
-      else selectExSupport(cardId);
-    });
     fragment.appendChild(row);
   }
   cardListEl.appendChild(fragment);

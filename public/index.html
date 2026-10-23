@@ -2597,6 +2597,11 @@
       </div>
     </header>
 
+    <nav id="obEditorNavV1016" aria-label="デッキ編集の表示切替">
+      <button type="button" data-ob-editor-view="cards" aria-pressed="true">カード一覧</button>
+      <button type="button" data-ob-editor-view="deck" aria-pressed="false">採用デッキ</button>
+      <button type="button" data-ob-editor-view="owned" aria-pressed="false">所持カード</button>
+    </nav>
     <main class="wrap">
       <section class="panel libraryPanel">
         <div class="hd">
@@ -2736,7 +2741,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261024_v1015_nav_fade_fix"></script>
+  <script type="module" src="./deck.js?v=20261024_v1016_editor_nav"></script>
 
     <script>
       (() => {
@@ -4034,69 +4039,59 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
  background:#82303c!important;color:white!important;box-shadow:0 0 0 1px #ff9191!important
 }
 </style>
+
+
+
+<style id="obEditorNavStyleV1016">
+#obEditorNavV1016 {display:flex!important;gap:7px!important;padding:9px 12px!important;align-items:center!important;justify-content:stretch!important;position:sticky!important;top:0!important;z-index:9999!important;background:#0b2028!important;border-block:1px solid #37666e!important}
+#obEditorNavV1016 button {display:block!important;flex:1 1 0!important;min-width:0!important;min-height:44px!important;color:#e7f5f5!important;background:#142b36!important;border:1px solid #4e8591!important;border-radius:12px!important;padding:7px 3px!important;font-size:13px!important;font-weight:900!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+#obEditorNavV1016 button[aria-pressed="true"] {background:#246a54!important;border-color:#88f0ba!important;box-shadow:inset 0 0 0 1px #67caa1!important}
+@media(max-width:940px),(pointer:coarse) {
+ body:has(#obEditorNavV1016[data-view="cards"]) #deckPanel {display:none!important}
+ body:has(#obEditorNavV1016[data-view="owned"]) #deckPanel {display:none!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) .libraryPanel {display:none!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel {display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;height:auto!important;max-height:none!important;overflow:visible!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel > .bd {display:block!important;visibility:visible!important;height:auto!important;max-height:none!important;overflow:visible!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckInfoDock,body:has(#obEditorNavV1016[data-view="deck"]) #deckInfoDock .deckInfoBody {display:flex!important;flex-direction:column!important;height:auto!important;max-height:none!important;overflow:visible!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckList {display:flex!important;flex-direction:column!important;min-height:180px!important;max-height:68vh!important;overflow:auto!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckPanel.isPanelCollapsed > .bd {display:block!important}
+ body:has(#obEditorNavV1016[data-view="deck"]) #deckInfoDock.isCollapsed > .deckInfoBody {display:flex!important}
+}
+#obDeckOpenShortcut,#obDeckMobileMinBar {display:none!important}
+</style>
 <script>
 (() => {
- const start = () => {
-   if (document.getElementById("obDeckOpenShortcut")) return;
-   const deck = document.getElementById("deckPanel");
-   if (!deck) return;
-   const shortcut = document.createElement("button");
-   shortcut.id = "obDeckOpenShortcut";
-   shortcut.type = "button";
-   shortcut.textContent = "デッキ内容";
-   shortcut.setAttribute("aria-label", "デッキ内容を表示");
-   document.body.appendChild(shortcut);
-   function openDeck() {
-     if (deck.classList.contains("isPanelCollapsed")) document.getElementById("deckPanelMinBtn")?.click();
-     const info = document.getElementById("deckInfoDock");
-     if (info?.classList.contains("isCollapsed")) document.getElementById("deckInfoMinBtn")?.click();
-     deck.scrollIntoView({behavior:"smooth",block:"start"});
-   }
-   function syncShortcutVisibility() {
-     const home = document.getElementById("deckStart");
-     const shown = !home || home.classList.contains("hide") ||
-       home.getAttribute("aria-hidden") === "true" ||
-       getComputedStyle(home).display === "none" ||
-       home.getBoundingClientRect().height === 0;
-     shortcut.classList.toggle("deckEditorVisible", shown);
-     shortcut.hidden = !shown;
-     shortcut.style.setProperty("display", shown ? "flex" : "none", "important");
-     miniBar.style.setProperty("display", shown ? "flex" : "none", "important");
-   }
-   // Independent mobile min/max controls remain reachable if the panel header scrolls away.
-   const miniBar = document.createElement("div");
-   miniBar.id = "obDeckMobileMinBar";
-   miniBar.innerHTML = '<button type="button" data-panel="library">一覧 −</button><button type="button" data-panel="deck">デッキ −</button>';
-   document.body.appendChild(miniBar);
-   const managed = [
-     {kind:"library",section:document.querySelector(".libraryPanel"),button:document.getElementById("libraryPanelMinBtn"),name:"一覧"},
-     {kind:"deck",section:deck,button:document.getElementById("deckPanelMinBtn"),name:"デッキ"}
-   ];
-   const updateButtons=()=>{
-     managed.forEach(({kind,section,name})=>{
-       const b=miniBar.querySelector('[data-panel="'+kind+'"]');
-       if(b) b.textContent=name+(section?.classList.contains("isPanelCollapsed")?" ＋":" −");
-     });
-   };
-   miniBar.addEventListener("click",e=>{
-     const kind=e.target.closest("button[data-panel]")?.dataset.panel;
-     const item=managed.find(x=>x.kind===kind);
-     if(!item?.button)return;
-     item.button.click();
-     if(!item.section?.classList.contains("isPanelCollapsed")) item.section?.scrollIntoView({behavior:"smooth",block:"start"});
-     updateButtons();
-   });
-   managed.forEach(({section})=>{if(section)new MutationObserver(updateButtons).observe(section,{attributes:true,attributeFilter:["class"]});});
-   updateButtons();
-   shortcut.addEventListener("click",openDeck);
-   document.getElementById("btnDeckTop")?.addEventListener("click",openDeck);
-   syncShortcutVisibility();
-   const home = document.getElementById("deckStart");
-   if (home) new MutationObserver(syncShortcutVisibility).observe(home,{attributes:true,attributeFilter:["class","style","aria-hidden"]});
-   window.addEventListener("pageshow",syncShortcutVisibility);
- };
- if (document.readyState === "loading") document.addEventListener("DOMContentLoaded",start,{once:true});
- else start();
+  const nav=document.getElementById("obEditorNavV1016");
+  if(!nav)return;
+  const library=document.querySelector(".libraryPanel"),deck=document.getElementById("deckPanel");
+  const owned=document.querySelector('#ownedTabs [data-owned="owned"]');
+  const all=document.querySelector('#ownedTabs [data-owned="all"]');
+  const isMobile=()=>matchMedia("(max-width:940px), (pointer:coarse)").matches;
+  function setView(view) {
+    nav.dataset.view=view;
+    nav.querySelectorAll("[data-ob-editor-view]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.obEditorView===view)));
+    if(view==="deck"){
+      deck?.classList.remove("isPanelCollapsed");
+      document.getElementById("deckInfoDock")?.classList.remove("isCollapsed");
+      document.getElementById("deckPanelMinBtn")?.setAttribute("aria-expanded","true");
+      document.getElementById("deckInfoMinBtn")?.setAttribute("aria-expanded","true");
+      if(deck)deck.style.setProperty("display","flex","important");
+    } else {
+      library?.classList.remove("isPanelCollapsed");
+      document.getElementById("libraryPanelMinBtn")?.setAttribute("aria-expanded","true");
+      (view==="owned"?owned:all)?.click();
+    }
+    if(isMobile()){
+      const target=view==="deck"?deck:library;
+      target?.scrollIntoView({behavior:"auto",block:"start"});
+    }
+  }
+  nav.addEventListener("click",e=>{
+    const b=e.target.closest("[data-ob-editor-view]");
+    if(b)setView(b.dataset.obEditorView);
+  });
+  document.getElementById("btnDeckTop")?.addEventListener("click",()=>setView("deck"),true);
+  nav.dataset.view="cards";
 })();
 </script>
 

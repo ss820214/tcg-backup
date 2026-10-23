@@ -2601,7 +2601,11 @@
       <section class="panel libraryPanel">
         <div class="hd">
           <div class="panelHdText">
-            <b>カード一覧</b>
+            <b class="obOriginalPanelTitle">カード一覧</b>
+            <div class="obNativeDeckTabs" role="tablist" aria-label="デッキ編集の切替">
+              <button type="button" role="tab" data-native-deck-tab="cards">カード一覧</button>
+              <button type="button" role="tab" data-native-deck-tab="deck">デッキ内容</button>
+            </div>
             <span class="small">クリックで詳細 / +で追加</span>
           </div>
           <button
@@ -2661,7 +2665,11 @@
       <section class="panel" id="deckPanel">
         <div class="hd">
           <div class="panelHdText">
-            <b>デッキ</b>
+            <b class="obOriginalPanelTitle">デッキ</b>
+            <div class="obNativeDeckTabs" role="tablist" aria-label="デッキ編集の切替">
+              <button type="button" role="tab" data-native-deck-tab="cards">カード一覧</button>
+              <button type="button" role="tab" data-native-deck-tab="deck">デッキ内容</button>
+            </div>
             <span class="small">採用カードと保存を管理</span>
           </div>
           <div class="row" style="justify-content: flex-end">
@@ -2736,7 +2744,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261024_v1020_editor_file_tabs"></script>
+  <script type="module" src="./deck.js?v=20261024_v1021_native_headers"></script>
 
     <script>
       (() => {
@@ -3968,6 +3976,81 @@
 
 
 </style>
+
+
+<style id="obNativeDeckTabsV1021">
+@media (max-width:940px), (pointer:coarse) {
+  body .libraryPanel>.hd,
+  body #deckPanel>.hd {min-height:58px!important;overflow:visible!important;position:relative!important;display:flex!important;align-items:center!important;justify-content:flex-start!important}
+  body .libraryPanel>.hd>.panelHdText,
+  body #deckPanel>.hd>.panelHdText {display:flex!important;flex:1 1 auto!important;min-width:0!important;width:100%!important;max-width:100%!important;padding:0!important;margin:0!important;align-items:center!important}
+  body .libraryPanel>.hd .obOriginalPanelTitle,
+  body #deckPanel>.hd .obOriginalPanelTitle,
+  body .libraryPanel>.hd .panelHdText>.small,
+  body #deckPanel>.hd .panelHdText>.small {display:none!important}
+  body .obNativeDeckTabs {display:flex!important;flex:1 1 auto!important;min-width:0!important;width:100%!important;align-items:stretch!important;gap:0!important;position:relative!important;z-index:100!important}
+  body .obNativeDeckTabs button {display:flex!important;flex:1 1 50%!important;min-width:0!important;min-height:45px!important;align-items:center!important;justify-content:center!important;padding:7px 5px!important;border-radius:9px 9px 0 0!important;background:#172b35!important;color:#c2d3da!important;border:1px solid #446776!important;border-bottom:3px solid transparent!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;font-weight:900!important;font-size:15px!important;white-space:nowrap!important}
+  body .obNativeDeckTabs button[aria-selected="true"] {background:#215742!important;color:#fff!important;border-color:#7de8b0!important;border-bottom-color:#85f4c0!important}
+  body .libraryPanel #libraryPanelMinBtn,
+  body #deckPanel #deckPanelMinBtn {display:none!important}
+  body[data-ob-deck-tab="cards"] #deckPanel {display:none!important}
+  body[data-ob-deck-tab="deck"] .libraryPanel {display:none!important}
+  body[data-ob-deck-tab="deck"] #deckPanel {display:flex!important;flex-direction:column!important;height:auto!important;max-height:none!important;overflow:visible!important}
+  body[data-ob-deck-tab="deck"] #deckPanel>.bd {display:block!important;height:auto!important;max-height:none!important;overflow:visible!important}
+  body[data-ob-deck-tab="deck"] #deckPanel #deckInfoDock {display:flex!important;flex-direction:column!important;height:auto!important;max-height:none!important}
+  body[data-ob-deck-tab="deck"] #deckPanel #deckInfoDock>.deckInfoBody {display:flex!important;flex-direction:column!important;height:auto!important;max-height:none!important}
+  body[data-ob-deck-tab="deck"] #deckPanel #deckList {min-height:150px!important;max-height:65vh!important;overflow-y:auto!important}
+  body[data-ob-deck-tab="cards"] .libraryPanel {display:flex!important;flex-direction:column!important;height:auto!important;max-height:none!important}
+  body[data-ob-deck-tab="deck"] #mobileDeckStackShell {height:auto!important;max-height:none!important;overflow:visible!important}
+}
+@media (min-width:941px) and (pointer:fine) {body .obNativeDeckTabs {display:none!important}}
+</style>
+<script id="obNativeDeckTabsScriptV1021">
+(()=>{
+  const library=document.querySelector(".libraryPanel");
+  const deck=document.getElementById("deckPanel");
+  if(!library||!deck)return;
+  const small=()=>window.matchMedia("(max-width:940px), (pointer:coarse)").matches;
+  function show(view){
+    if(!small())return;
+    const isDeck=view==="deck";
+    document.body.dataset.obDeckTab=isDeck?"deck":"cards";
+    library.style.setProperty("display",isDeck?"none":"flex","important");
+    deck.style.setProperty("display",isDeck?"flex":"none","important");
+    const panel=isDeck?deck:library;
+    panel.classList.remove("isPanelCollapsed");
+    panel.querySelector(":scope > .bd")?.style.setProperty("display","block","important");
+    if(isDeck){
+      const info=document.getElementById("deckInfoDock");
+      info?.classList.remove("isCollapsed");
+      info?.querySelector(".deckInfoBody")?.style.setProperty("display","flex","important");
+    }
+    document.querySelectorAll(".obNativeDeckTabs button").forEach(b=>{
+      b.setAttribute("aria-selected",String(b.dataset.nativeDeckTab===view));
+    });
+    panel.scrollIntoView({block:"start",behavior:"auto"});
+  }
+  document.querySelectorAll(".obNativeDeckTabs").forEach(bar=>bar.addEventListener("click",e=>{
+    const button=e.target.closest("button[data-native-deck-tab]");
+    if(!button)return;
+    e.preventDefault();e.stopPropagation();
+    show(button.dataset.nativeDeckTab);
+  }));
+  document.getElementById("btnDeckTop")?.addEventListener("click",()=>{
+    if(small())show("deck");
+  },true);
+  document.body.dataset.obDeckTab="cards";
+  document.querySelectorAll(".obNativeDeckTabs button").forEach(b=>
+    b.setAttribute("aria-selected",String(b.dataset.nativeDeckTab==="cards")));
+  window.addEventListener("resize",()=>{
+    if(!small()){
+      library.style.removeProperty("display");
+      deck.style.removeProperty("display");
+      document.body.removeAttribute("data-ob-deck-tab");
+    }else if(!document.body.dataset.obDeckTab)show("cards");
+  },{passive:true});
+})();
+</script>
 
 </body>
 </html>

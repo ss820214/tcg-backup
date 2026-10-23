@@ -39,6 +39,8 @@ jobs:
           node --check public/deck_mobile_hotfix_20261006_cardlayout5.js
           node --check public/deck_mobile_hotfix_20261006_skills6.js
           node tools/deck_regression_20261008.mjs
+          node tools/deck_ui_v5_regression.mjs
+          node tools/deck_home_navigation_regression_20261024.mjs
 
       - name: Verify battle runtime syntax before publishing
         run: |

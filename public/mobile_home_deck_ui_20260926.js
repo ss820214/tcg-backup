@@ -28,6 +28,8 @@
   }
 
   function isMobileLike() {
+    // A saved PC override must not force the desktop home layout on a narrow phone.
+    if (window.innerWidth <= 620 && /Android|iPhone|Mobile/i.test(navigator.userAgent || "")) return true;
     if (window.TCG_DEVICE_MODE?.isMobile) return window.TCG_DEVICE_MODE.isMobile();
     const mode = readDeviceOverride();
     if (mode === "pc") return false;

@@ -12,7 +12,7 @@ assert.match(home, /data-native-deck-tab="deck"/);
 assert.match(home, /data-ob-deck-tab/);
 assert.match(home, /data-owned="owned"/);
 assert.match(home, /data-owned="unowned"/);
-const filterStart = home.indexOf('id="indexFilterRepairStyle"');
+const filterStart = home.indexOf('if (!document.getElementById("indexFilterRepairStyle"))');
 const filterEnd = home.indexOf("</script>", filterStart);
 assert.ok(filterStart > 0 && filterEnd > filterStart, "home filter adapter exists");
 const filterAdapter = home.slice(filterStart, filterEnd);

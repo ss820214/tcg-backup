@@ -3998,6 +3998,11 @@
 }
 @media (min-width:941px) and (pointer:fine) { #obDeckOpenShortcut {display:none!important} }
 body:has(#deckStart:not(.hide):not([aria-hidden="true"])) #obDeckOpenShortcut:not(.deckEditorVisible) {display:none!important}
+@media (max-width:940px), (pointer:coarse) {
+ #obDeckMobileMinBar {position:fixed!important;top:calc(182px + env(safe-area-inset-top,0px))!important;right:8px!important;display:flex!important;gap:6px!important;z-index:1600!important;pointer-events:auto!important}
+ #obDeckMobileMinBar button {background:#173444!important;color:white!important;border:1px solid #7bd4e3!important;border-radius:12px!important;min-height:40px!important;padding:6px 10px!important;font-size:12px!important;font-weight:850!important}
+}
+@media (min-width:941px) and (pointer:fine) {#obDeckMobileMinBar {display:none!important}}
 /* Attribute chips: tint each attribute, preserve bright selection indication. */
 body #attrTabs [data-attr] {--filterAccent:#8ccdde!important;border-color:color-mix(in srgb,var(--filterAccent) 62%,transparent)!important;color:var(--filterAccent)!important;background:color-mix(in srgb,var(--filterAccent) 13%,#121a23)!important}
 body #attrTabs [data-attr="火"] {--filterAccent:#ff7861!important}
@@ -4056,7 +4061,33 @@ body #ownedTabs [data-owned="unowned"].active, body #ownedTabs [data-owned="unow
      shortcut.classList.toggle("deckEditorVisible", shown);
      shortcut.hidden = !shown;
      shortcut.style.setProperty("display", shown ? "flex" : "none", "important");
+     miniBar.style.setProperty("display", shown ? "flex" : "none", "important");
    }
+   // Independent mobile min/max controls remain reachable if the panel header scrolls away.
+   const miniBar = document.createElement("div");
+   miniBar.id = "obDeckMobileMinBar";
+   miniBar.innerHTML = '<button type="button" data-panel="library">一覧 −</button><button type="button" data-panel="deck">デッキ −</button>';
+   document.body.appendChild(miniBar);
+   const managed = [
+     {kind:"library",section:document.querySelector(".libraryPanel"),button:document.getElementById("libraryPanelMinBtn"),name:"一覧"},
+     {kind:"deck",section:deck,button:document.getElementById("deckPanelMinBtn"),name:"デッキ"}
+   ];
+   const updateButtons=()=>{
+     managed.forEach(({kind,section,name})=>{
+       const b=miniBar.querySelector('[data-panel="'+kind+'"]');
+       if(b) b.textContent=name+(section?.classList.contains("isPanelCollapsed")?" ＋":" −");
+     });
+   };
+   miniBar.addEventListener("click",e=>{
+     const kind=e.target.closest("button[data-panel]")?.dataset.panel;
+     const item=managed.find(x=>x.kind===kind);
+     if(!item?.button)return;
+     item.button.click();
+     if(!item.section?.classList.contains("isPanelCollapsed")) item.section?.scrollIntoView({behavior:"smooth",block:"start"});
+     updateButtons();
+   });
+   managed.forEach(({section})=>{if(section)new MutationObserver(updateButtons).observe(section,{attributes:true,attributeFilter:["class"]});});
+   updateButtons();
    shortcut.addEventListener("click",openDeck);
    document.getElementById("btnDeckTop")?.addEventListener("click",openDeck);
    syncShortcutVisibility();

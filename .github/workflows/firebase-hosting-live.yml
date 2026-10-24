@@ -52,6 +52,12 @@ jobs:
           node --check public/game_core.js
           node --check public/action_text.js
           node --check public/sfx.js
+          node --check tools/set_firebase_hosting_retention_20261024.mjs
+
+      - name: Limit Firebase Hosting live history to five releases
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TCG_0BATO }}
+        run: node tools/set_firebase_hosting_retention_20261024.mjs
 
       - name: Deploy live site
         uses: FirebaseExtended/action-hosting-deploy@v0

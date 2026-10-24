@@ -2689,7 +2689,7 @@
       <section class="panel" id="deckPanel">
         <div class="hd">
           <div class="panelHdText">
-            <b class="obOriginalPanelTitle">デッキ</b>
+            <span class="obDesktopDeckTitle" aria-hidden="true">デッキ</span>
             <div class="obNativeDeckTabs" role="tablist" aria-label="デッキ編集の切替">
               <button type="button" role="tab" data-native-deck-tab="cards">カード一覧</button>
               <button type="button" role="tab" data-native-deck-tab="deck">デッキ内容</button>
@@ -2768,7 +2768,7 @@
     </main>
 
     <!-- deck.js 読み込み（URL維持） -->
-  <script type="module" src="./deck.js?v=20261024_v1021_native_headers"></script>
+  <script type="module" src="./deck.js?v=20261024_v1022_deck_cleanup"></script>
 
     <script>
       (() => {
@@ -3986,6 +3986,45 @@
     body[data-ob-deck-tab="cards"] #ownedTabs .ownedFilter {display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
     body[data-ob-deck-tab="cards"] #cardFilters {overflow:visible!important;max-height:none!important}
   }
+  /* V1.0.22: one consistent tab header, full-width deck actions, and a drawer that
+     cannot leak into the deck editor while closed. */
+  @media (max-width:940px), (pointer:coarse) {
+    body #deckPanel > .hd .obDesktopDeckTitle { display:none !important; }
+    body #deckPanel > .hd .panelHdText { width:100% !important; min-width:0 !important; }
+    body #deckPanel .deckPanelActions {
+      display:grid !important;
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      width:100% !important;
+      max-width:none !important;
+      gap:10px !important;
+      margin:0 0 10px !important;
+      padding:4px 0 !important;
+      box-sizing:border-box !important;
+    }
+    body #deckPanel .deckPanelActions button {
+      width:100% !important;
+      min-width:0 !important;
+      min-height:48px !important;
+      padding:11px 10px !important;
+      font-size:15px !important;
+      line-height:1.3 !important;
+      white-space:nowrap !important;
+      touch-action:manipulation !important;
+    }
+  }
+  body #roomDrawer:not(.open) { display:none !important; }
+  body #roomDrawer.open {
+    display:flex !important;
+    position:fixed !important;
+    top:0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    left:auto !important;
+    max-height:100dvh !important;
+    overflow-y:auto !important;
+    transform:none !important;
+  }
+  body #roomDrawerOverlay:not(.open) { display:none !important; }
 </style>
 <script id="obNativeDeckTabsScriptV1021">
 (()=>{

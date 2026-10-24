@@ -86,4 +86,10 @@ matches.delete("match:1234");
 players.set("players:1234", 2);
 await assert.rejects(api.requireJoinableRoom("1234"), /満員/);
 
+
+// The obsolete 20-card join URL must redirect without touching Firestore.
+const legacyJoin = fs.readFileSync("public/join.js", "utf8");
+assert.match(legacyJoin, /window\.location\.replace\(home\.href\)/, "legacy entry redirects to the active lobby");
+assert.doesNotMatch(legacyJoin, /(?:setDoc|deleteDoc|updateDoc|runTransaction|resetRoomHardish)\s*\(/, "legacy entry must never mutate room data");
+
 console.log("Room entry regression: collision, missing, active, expired, solo, started, full OK");

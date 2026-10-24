@@ -6,7 +6,8 @@ import { createSign } from "node:crypto";
 const PROJECT_ID = "tcg-0bato";
 const SITE_ID = "tcg-0bato";
 const CHANNEL_NAME = "sites/" + SITE_ID + "/channels/live";
-const KEEP_PREVIOUS_RELEASES = 5;
+// Current active release + four previous releases = five versions kept.
+const KEEP_PREVIOUS_RELEASES = 4;
 const KEY_ENV = "FIREBASE_SERVICE_ACCOUNT_JSON";
 
 const rawCredentials = process.env[KEY_ENV];

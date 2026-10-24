@@ -160,11 +160,9 @@ function sanitizeRoomIdParam(v) {
   return isValidRoomCode4(s) ? s : newRoomCode4();
 }
 
+// Keep ephemeral IDs for legacy editor reads, but don't advertise a nonexistent
+// room in the URL. Only explicit Create / Join actions publish confirmed IDs.
 if (!playerId) playerId = newPlayerId();
-
-params.set("room", roomId);
-params.set("player", playerId);
-history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
 
 // =====================
 // DOM (莠呈鋤)
@@ -2305,7 +2303,7 @@ function ensureDeckStartElement() {
 
   // Home and deck editor share one release label to prevent stale home versions.
   const homeReleaseVersion = (
-    document.getElementById("deckVersionPill")?.textContent || "V1.0.24"
+    document.getElementById("deckVersionPill")?.textContent || "V1.0.25"
   ).trim().toUpperCase();
 
   const homeHtml = `

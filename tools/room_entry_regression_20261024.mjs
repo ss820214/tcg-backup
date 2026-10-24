@@ -5,6 +5,13 @@ import fs from "node:fs";
 const deck = fs.readFileSync("public/deck.js", "utf8");
 assert.doesNotMatch(deck, /resetRoomHardish\(/, "room entry must not delete existing matches");
 assert.doesNotMatch(deck, /touchRoom\(roomId, \{ createdAt:/, "opening the editor must not create a room");
+
+// Opening the home/editor must not place a fake invite code in the browser URL.
+const startup = deck.slice(deck.indexOf("// URL params"), deck.indexOf("// DOM ("));
+assert.ok(startup.includes("let roomId ="), "initial room state is still available internally");
+assert.doesNotMatch(startup, /history\.replaceState|params\.set\("room"|params\.set\("player"/, "home load must not publish an unreserved room ID");
+assert.match(deck, /function updateUrlAndLabels\(\)/, "explicit create/join still publishes the room URL");
+
 const saveBlock = deck.slice(deck.indexOf("async function saveDeckOnly("), deck.indexOf('btnSave?.addEventListener("click"', deck.indexOf("async function saveDeckOnly(")));
 assert.match(saveBlock, /activeRoom = memberSnap\.exists\(\)/, "normal save must only touch a confirmed match participant");
 assert.match(saveBlock, /await saveDeckToUser\(name\)/, "cloud save must remain available outside a match");

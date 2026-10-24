@@ -51,7 +51,7 @@ import {
   getDoc,
   getDocs,
   setDoc,
-  deleteDoc,
+  runTransaction,
   serverTimestamp,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -7249,30 +7249,58 @@ function isExpiredRoomDoc(roomDocData) {
   const ms = exp && typeof exp.toMillis === "function" ? exp.toMillis() : null;
   return !!(ms && ms < Date.now());
 }
-async function touchRoom(rid, extra = {}) {
-  await setDoc(
-    roomRef(rid),
-    {
+// Reserve a truly new code. A random collision must never erase another match.
+async function reserveFreshRoom(extra = {}) {
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const code = newRoomCode4();
+    const reserved = await runTransaction(db, async (tx) => {
+      const ref = roomRef(code);
+      const snap = await tx.get(ref);
+      if (snap.exists()) return false;
+      tx.set(ref, {
+        createdAt: serverTimestamp(),
+        lastActiveAt: serverTimestamp(),
+        expiresAt: expiresAtFromNow(),
+        ...extra,
+      });
+      return true;
+    });
+    if (reserved) return code;
+  }
+  throw new Error("ルーム番号を確保できませんでした。もう一度お試しください。");
+}
+
+// Joining is never allowed to create/reset a room or overwrite its settings.
+function showRoomEntryError(message) {
+  const text = String(message || "ルーム操作に失敗しました。");
+  setMsg(text, false);
+  const note = document.getElementById("roomDeckReadiness");
+  if (note) {
+    note.textContent = text;
+    note.style.borderColor = "rgba(255,115,125,.85)";
+  }
+}
+
+async function requireJoinableRoom(code) {
+  const match = await getDoc(matchRef(code));
+  if (match.exists()) throw new Error("このルームは既に対戦を開始しています。");
+  const players = await getDocs(playersCol(code));
+  if (players.size >= 2) throw new Error("このルームは満員です（2人参加済み）。");
+
+  await runTransaction(db, async (tx) => {
+    const ref = roomRef(code);
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error("ルームが見つかりません。番号を確認してください。");
+    const data = snap.data() || {};
+    if (isExpiredRoomDoc(data)) throw new Error("このルームの有効期限が切れています。");
+    if (data.solo === true || data.mode === "solo") {
+      throw new Error("ソロ用ルームには参加できません。");
+    }
+    tx.update(ref, {
       lastActiveAt: serverTimestamp(),
       expiresAt: expiresAtFromNow(),
-      ...extra,
-    },
-    { merge: true },
-  );
-}
-async function resetRoomHardish(rid) {
-  try {
-    const ps = await getDocs(playersCol(rid));
-    for (const d of ps.docs) await deleteDoc(d.ref);
-  } catch (e) {
-    console.warn("resetRoom: players delete failed", e);
-  }
-  try {
-    await deleteDoc(matchRef(rid));
-  } catch {}
-  try {
-    await deleteDoc(stateRef(rid));
-  } catch {}
+    });
+  });
 }
 
 // =====================
@@ -8489,39 +8517,40 @@ function readJoinCode() {
   return prompt("参加する部屋番号（4桁）を入力", "")?.trim() || "";
 }
 
+let roomEntryInFlight = false;
 async function handleCreateRoom() {
   const total = sumDeck(deckMap);
   if (total !== DECK_SIZE)
     return setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
 
-  const name = askNameIfNeeded();
-
-  roomId = newRoomCode4();
-  playerId = newPlayerId();
-  updateUrlAndLabels();
-
+  if (roomEntryInFlight) return;
+  roomEntryInFlight = true;
   try {
-    const rs = await getDoc(roomRef(roomId));
-    if (rs.exists()) await resetRoomHardish(roomId);
-  } catch {}
+    const name = askNameIfNeeded();
+    const fid = desiredField();
+    const createdRoom = await reserveFreshRoom({
+      desiredField: fid,
+      fieldId: fid,
+      field: { id: fid },
+    });
+    roomId = createdRoom;
+    playerId = newPlayerId();
+    updateUrlAndLabels();
+    await ensurePlayerDoc(roomId, playerId, name);
+    await saveDeckToUser(name);
 
-  const fid = desiredField();
-  await touchRoom(roomId, {
-    createdAt: serverTimestamp(),
-    desiredField: fid,
-    fieldId: fid,
-    field: { id: fid },
-  });
-  await ensurePlayerDoc(roomId, playerId, name);
-  await saveDeckToUser(name);
-
-  saveLocalDeck();
-  saveSelectedEx(selectedExSupportId || "");
-
-  await launchBattleWithTransition(battleUrl(), "battle", {
-    title: "ROOM READY",
-    sub: "ルームを作成しました。対戦フィールドへ移動します。",
-  });
+    saveLocalDeck();
+    saveSelectedEx(selectedExSupportId || "");
+    await launchBattleWithTransition(battleUrl(), "battle", {
+      title: "ROOM READY",
+      sub: "ルームを作成しました。対戦フィールドへ移動します。",
+    });
+  } catch (error) {
+    console.error("[room] create failed", error);
+    showRoomEntryError(error?.message || "ルーム作成に失敗しました。");
+  } finally {
+    roomEntryInFlight = false;
+  }
 }
 
 async function handleJoinRoom() {
@@ -8529,40 +8558,32 @@ async function handleJoinRoom() {
   if (total !== DECK_SIZE)
     return setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
 
-  const name = askNameIfNeeded();
   const code = readJoinCode();
   if (!isValidRoomCode4(code))
-    return setMsg("部屋番号は0000以外の4桁（例: 1234）で入力してね", false);
-
-  roomId = code;
-  playerId = newPlayerId();
-  updateUrlAndLabels();
-
+    return showRoomEntryError("部屋番号は0000以外の4桁（例: 1234）で入力してね");
+  if (roomEntryInFlight) return;
+  roomEntryInFlight = true;
   try {
-    const rs = await getDoc(roomRef(roomId));
-    if (rs.exists()) {
-      const d = rs.data() || {};
-      if (isExpiredRoomDoc(d)) await resetRoomHardish(roomId);
-    }
-  } catch {}
+    await requireJoinableRoom(code);
+    const name = askNameIfNeeded();
+    roomId = code;
+    playerId = newPlayerId();
+    updateUrlAndLabels();
+    await ensurePlayerDoc(roomId, playerId, name);
+    await saveDeckToUser(name);
 
-  const fid = desiredField();
-  await touchRoom(roomId, {
-    createdAt: serverTimestamp(),
-    desiredField: fid,
-    fieldId: fid,
-    field: { id: fid },
-  });
-  await ensurePlayerDoc(roomId, playerId, name);
-  await saveDeckToUser(name);
-
-  saveLocalDeck();
-  saveSelectedEx(selectedExSupportId || "");
-
-  await launchBattleWithTransition(battleUrl(), "join", {
-    title: "JOIN READY",
-    sub: "参加情報を同期しました。対戦フィールドへ移動します。",
-  });
+    saveLocalDeck();
+    saveSelectedEx(selectedExSupportId || "");
+    await launchBattleWithTransition(battleUrl(), "join", {
+      title: "JOIN READY",
+      sub: "参加情報を同期しました。対戦フィールドへ移動します。",
+    });
+  } catch (error) {
+    console.error("[room] join failed", error);
+    showRoomEntryError(error?.message || "ルーム参加に失敗しました。");
+  } finally {
+    roomEntryInFlight = false;
+  }
 }
 
 // 既存ボタンにイベントを付ける
@@ -8618,27 +8639,17 @@ async function handleSoloRoom() {
 
     const name = askNameIfNeeded();
 
-    // 新規ルーム作成
-    roomId = newRoomCode4();
-    playerId = newPlayerId();
-    updateUrlAndLabels();
-
-    // 既存があればリセット
-    try {
-      const rs = await getDoc(roomRef(roomId));
-      if (rs.exists()) await resetRoomHardish(roomId);
-    } catch {}
-
-    // ルーム情報（ソロフラグ）
+    // ソロでも他人の部屋を初期化しない。空き番号を確実に確保する。
     const fid = desiredField();
-    await touchRoom(roomId, {
-      createdAt: serverTimestamp(),
+    roomId = await reserveFreshRoom({
       mode: "solo",
       solo: true,
       desiredField: fid,
       fieldId: fid,
       field: { id: fid },
     });
+    playerId = newPlayerId();
+    updateUrlAndLabels();
 
     // 自分
     await ensurePlayerDoc(roomId, playerId, name);
@@ -9104,7 +9115,7 @@ initTabs();
 injectRoomButtonsNearSettings();
 ensureFieldPicker();
 
-touchRoom(roomId, { createdAt: serverTimestamp() }).catch(() => {});
+// Opening the deck editor must not create or refresh a random battle room.
 
 // =====================
 // Cloud Deck Library init

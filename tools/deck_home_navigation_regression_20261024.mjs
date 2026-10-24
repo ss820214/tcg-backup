@@ -6,6 +6,15 @@ import vm from "node:vm";
 const homeHtml = fs.readFileSync("public/index.html", "utf8");
 const deckJs = fs.readFileSync("public/deck.js", "utf8");
 
+// The mobile home badge must share the version shown by the deck editor.
+const editorVersion = homeHtml.match(/id="deckVersionPill">([vV]\\d+\\.\\d+\\.\\d+)<\\/span>/);
+const homeFallback = deckJs.match(/getElementById\\("deckVersionPill"\\)\\?\\.textContent \\|\\| "([vV]\\d+\\.\\d+\\.\\d+)"/);
+assert.ok(editorVersion && homeFallback, "home and deck version sources are present");
+assert.equal(homeFallback[1].toLowerCase(), editorVersion[1].toLowerCase(),
+  "standalone deck fallback must match the release");
+assert.match(deckJs, /id="obHomeVersion"[^>]*>\\$\\{esc\\(homeReleaseVersion\\)\\}<\\/span>/,
+  "visible home release badge must use the shared version");
+
 const router = homeHtml.match(/<script id="obHomeNavigationGuardV5">([\s\S]*?)<\/script>/);
 assert.ok(router, "early home router installed in HTML head");
 assert.doesNotMatch(homeHtml, /id="directPlayNavigation20261014"/);

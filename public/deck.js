@@ -7282,11 +7282,6 @@ function showRoomEntryError(message) {
 }
 
 async function requireJoinableRoom(code) {
-  const match = await getDoc(matchRef(code));
-  if (match.exists()) throw new Error("このルームは既に対戦を開始しています。");
-  const players = await getDocs(playersCol(code));
-  if (players.size >= 2) throw new Error("このルームは満員です（2人参加済み）。");
-
   await runTransaction(db, async (tx) => {
     const ref = roomRef(code);
     const snap = await tx.get(ref);
@@ -7301,6 +7296,14 @@ async function requireJoinableRoom(code) {
       expiresAt: expiresAtFromNow(),
     });
   });
+
+  // Check whether a match started or the room filled while we were joining.
+  const [match, players] = await Promise.all([
+    getDoc(matchRef(code)),
+    getDocs(playersCol(code)),
+  ]);
+  if (match.exists()) throw new Error("このルームは既に対戦を開始しています。");
+  if (players.size >= 2) throw new Error("このルームは満員です（2人参加済み）。");
 }
 
 // =====================

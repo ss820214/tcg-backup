@@ -5,6 +5,9 @@ import fs from "node:fs";
 const deck = fs.readFileSync("public/deck.js", "utf8");
 assert.doesNotMatch(deck, /resetRoomHardish\(/, "room entry must not delete existing matches");
 assert.doesNotMatch(deck, /touchRoom\(roomId, \{ createdAt:/, "opening the editor must not create a room");
+const saveBlock = deck.slice(deck.indexOf("async function saveDeckOnly("), deck.indexOf('btnSave?.addEventListener("click"', deck.indexOf("async function saveDeckOnly(")));
+assert.match(saveBlock, /activeRoom = memberSnap\.exists\(\)/, "normal save must only touch a confirmed match participant");
+assert.match(saveBlock, /await saveDeckToUser\(name\)/, "cloud save must remain available outside a match");
 
 const start = deck.indexOf("// Reserve a truly new code.");
 const end = deck.indexOf("// =====================\n// Data load", start);

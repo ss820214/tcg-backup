@@ -8470,18 +8470,32 @@ async function saveDeckOnly(rid, pid) {
     );
     if (title) saveDeckTitle(title);
 
-    await setDoc(
-      playerRef(rid, pid),
-      {
-        name,
-        deck: deckMap || {},
-        exSupport: selectedExSupportId || "",
-        deckTitle: title || "",
-        desiredField: desiredField(),
-        updatedAt: serverTimestamp(),
-      },
-      { mergeFields: ["name", "deck", "exSupport", "deckTitle", "desiredField", "updatedAt"] },
-    );
+    // Editing a deck outside a real match must not create orphan players/rooms.
+    // User cloud storage is the canonical destination for ordinary deck saves.
+    let activeRoom = false;
+    try {
+      const roomSnap = await getDoc(roomRef(rid));
+      if (roomSnap.exists() && !isExpiredRoomDoc(roomSnap.data() || {})) {
+        const memberSnap = await getDoc(playerRef(rid, pid));
+        activeRoom = memberSnap.exists();
+      }
+    } catch (error) {
+      console.warn("[deck] room lookup skipped during save", error?.message || error);
+    }
+    if (activeRoom) {
+      await setDoc(
+        playerRef(rid, pid),
+        {
+          name,
+          deck: deckMap || {},
+          exSupport: selectedExSupportId || "",
+          deckTitle: title || "",
+          desiredField: desiredField(),
+          updatedAt: serverTimestamp(),
+        },
+        { mergeFields: ["name", "deck", "exSupport", "deckTitle", "desiredField", "updatedAt"] },
+      );
+    }
 
     if (!(await saveDeckToUser(name))) throw new Error("ユーザーデッキの保存に失敗しました");
     saveLocalDeck();

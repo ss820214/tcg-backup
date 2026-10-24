@@ -12,6 +12,7 @@ on:
       - 'public/mobile_deck_block_final_20260927.js'
       - 'tools/deck_ui_v5_regression.mjs'
       - 'tools/deck_home_navigation_regression_20261024.mjs'
+      - 'tools/room_entry_regression_20261024.mjs'
       - '.github/workflows/deck-ui-v5-regression.yml'
   pull_request:
     branches:
@@ -22,6 +23,7 @@ on:
       - 'public/mobile_deck_block_final_20260927.js'
       - 'tools/deck_ui_v5_regression.mjs'
       - 'tools/deck_home_navigation_regression_20261024.mjs'
+      - 'tools/room_entry_regression_20261024.mjs'
 
 permissions:
   contents: read
@@ -44,3 +46,4 @@ jobs:
           node tools/deck_regression_20261008.mjs
           node tools/deck_ui_v5_regression.mjs
           node tools/deck_home_navigation_regression_20261024.mjs
+          node tools/room_entry_regression_20261024.mjs

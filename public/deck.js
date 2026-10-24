@@ -5184,6 +5184,13 @@ function setupDeckPanelWorkbench() {
 
   ensureDeckDangerActions();
 
+  // Deck tabs and actions are separate rows: the actions must not inherit the
+  // narrow header control area on phones. Keep the existing handlers/buttons.
+  const panelBody = panel.querySelector(":scope > .bd");
+  if (panelBody && actions.parentElement !== panelBody) {
+    panelBody.insertBefore(actions, panelBody.firstChild);
+  }
+
   if (actions.dataset.layoutVersion !== "20260926_deck_meta2") {
     actions.innerHTML = `
       <button type="button" data-deck-panel-action="save">保存</button>

@@ -289,8 +289,6 @@
     document.body.classList.add("deckLayoutGuard");
     document.body.classList.remove("has-tcg-route-strip");
     document.querySelectorAll(".tcg-route-strip,.journeyStrip,#journeyFab,#journeyPanel").forEach((el) => el.remove());
-    const versionPill = document.getElementById("deckVersionPill");
-      if (versionPill) versionPill.textContent = "v20260821 readable-ui1";
   }
 
   function run() {

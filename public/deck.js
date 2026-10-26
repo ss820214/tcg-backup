@@ -39,7 +39,7 @@ import {
   isStarterCardDef,
   YOU_CARD_ID,
   normalizeYouCard,
-} from "./user_store.js?v=20260726_post1";
+} from "./user_store.js?v=20261026_economy_integrity";
 import { initPostBox } from "./post_box.js?v=20261017_asyncfix3";
 
 import { TutorialSystem } from "./tutorial.js?v=20260626";
@@ -2303,7 +2303,7 @@ function ensureDeckStartElement() {
 
   // Home and deck editor share one release label to prevent stale home versions.
   const homeReleaseVersion = (
-    document.getElementById("deckVersionPill")?.textContent || "V1.0.25"
+    document.getElementById("deckVersionPill")?.textContent || "V1.0.26"
   ).trim().toUpperCase();
 
   const homeHtml = `

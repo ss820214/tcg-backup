@@ -20,7 +20,8 @@ assert.match(deck, /data-home-action="beginner"/);
 assert.match(deck, /data-home-action="guide"/);
 assert.match(deck, /data-home-action="rule"/);
 assert.match(deck, /setBeginnerOpen\(beginnerPanel.hidden\)/);
-assert.match(home, /deck\.js\?v=20261017_beginner_overflow_fix9/);
+// Each release changes the cache-busting query. Check the structure, not a 2026-10-17 pin.
+assert.match(home, /deck\.js\?v=\d{8}_[a-z0-9_-]+/i);
 assert.match(playHtml, /id="fieldSelect"/);
 assert.match(playHtml, /id="confirmField"/);
 assert.match(play, /mode!=="join" && fieldPicker/);

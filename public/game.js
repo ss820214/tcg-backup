@@ -18,7 +18,7 @@ import {
   recordMatchResult,
   YOU_CARD_ID,
   normalizeYouCard,
-} from "./user_store.js?v=20260723_starter_series1";
+} from "./user_store.js?v=20261026_economy_integrity";
 
 import { createCpuDriver } from "./cpu_driver.js?v=20261020_cpu_deck_fix1";
 import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix3";

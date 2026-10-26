@@ -608,48 +608,56 @@ export async function getCurrentUserUid() {
 export async function ensureUserProfile(extra = {}) {
   const uid = await getCurrentUserUid();
   const ref = profileRef(uid);
-  const snap = await getDoc(ref);
+
+  // Only profile display names may be supplied by callers. In particular,
+  // never accept gems, ownedCounts, admin status, or growth points via extra.
   const namePatch = {
     ...localPlayerNamePatch(),
     ...namePatchFrom(extra.playerName || extra.displayName || extra.name || ""),
   };
 
-  if (!snap.exists()) {
-    const now = serverTimestamp();
-    const data = {
-      ...profileDefaults(uid, extra),
-      createdAt: now,
-      updatedAt: now,
-      ...namePatch,
-      ...extra,
-    };
-    await setDoc(ref, data, { merge: true });
-    await syncPlayerNameIndex(uid, data.playerName || data.displayName || data.name || "");
-    await claimPendingAdminGrants(uid);
-    return { uid, data };
-  }
+  // Profile startup runs on every screen, sometimes concurrently with a gacha
+  // or battle reward. A stale getDoc + setDoc must NEVER rewrite the economy.
+  // Read and initialize missing legacy fields inside one transaction instead.
+  const data = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
 
-  const data = snap.data() || {};
-  const youPatch = youProfilePatch(uid, data);
-  const patch = {
-    uid,
-    gems: clampInt(data.gems ?? STARTER_GEMS),
-    pity: clampInt(data.pity ?? 0),
-    gachaPity: clampInt(data.gachaPity ?? 0),
-    stats: {
-      matches: clampInt(data.stats?.matches ?? 0),
-      wins: clampInt(data.stats?.wins ?? 0),
-      losses: clampInt(data.stats?.losses ?? 0),
-    },
-    updatedAt: serverTimestamp(),
-    ...youPatch,
-    ...namePatch,
-    ...extra,
-  };
-  await setDoc(ref, patch, { merge: true });
-  await syncPlayerNameIndex(uid, patch.playerName || patch.displayName || patch.name || "");
+    if (!snap.exists()) {
+      const now = serverTimestamp();
+      const created = {
+        ...profileDefaults(uid),
+        ...namePatch,
+        createdAt: now,
+        updatedAt: now,
+      };
+      tx.set(ref, created, { merge: true });
+      return created;
+    }
+
+    const current = snap.data() || {};
+    const patch = {
+      uid,
+      ...youProfilePatch(uid, current),
+      ...namePatch,
+      updatedAt: serverTimestamp(),
+    };
+
+    // Only fill fields that truly do not exist. Never copy an existing
+    // balance, inventory, or stats back into Firestore during page startup.
+    if (current.gems == null) patch.gems = STARTER_GEMS;
+    if (current.pity == null) patch.pity = 0;
+    if (current.gachaPity == null) patch.gachaPity = 0;
+    if (current.stats == null) {
+      patch.stats = { matches: 0, wins: 0, losses: 0 };
+    }
+
+    tx.set(ref, patch, { merge: true });
+    return { ...current, ...patch };
+  });
+
+  await syncPlayerNameIndex(uid, data.playerName || data.displayName || data.name || "");
   await claimPendingAdminGrants(uid);
-  return { uid, data: { ...data, ...patch } };
+  return { uid, data };
 }
 
 export async function claimPendingAdminGrants(uid) {
@@ -893,13 +901,8 @@ export async function ensureStarterOwnedCards(uid, cardDefs = {}) {
     const ownedCounts = ensureYouOwnedCounts(data.ownedCounts || {});
     let changed = false;
 
-    if (data.starterOwnedVersion === "20260702_non_fairy_v1") {
-      for (const cardId of Object.keys(ownedCounts)) {
-        if (isStarterCardId(cardId) || isFairyTaleCardId(cardId)) continue;
-        delete ownedCounts[cardId];
-        changed = true;
-      }
-    }
+    // Legacy starter migrations must never discard cards a player already
+    // owns. Old inventory is preserved; missing starter cards are added below.
 
     for (const [cardId, starterCount] of Object.entries(starter)) {
       const current = clampInt(ownedCounts[cardId] ?? 0);

@@ -1,0 +1,57 @@
+// 0バト / Firestore Rules パッチ（2026-11-04）
+// 目的：任意ユーザーによる管理者配布・運営プレゼントの偽造を禁止する。
+// 重要：このファイルは【部分パッチ】です。Firebaseへこのファイル全体を
+//       ルール全文として貼り付けないでください。
+// 導入：現在の match /decks/{deckId} ブロックを以下に置き換える。
+// 前提：親スコープに signedIn() と isAdmin() が定義されていること。
+// NOTE: profile /users/{uid} の残高の直接書き換えは、これだけでは防げない。
+//       安全な抽選・報酬にはサーバー処理が別途必要。
+
+match /decks/{deckId} {
+  // 既存の公開デッキ検索・プレイヤー名検索との互換性のため維持。
+  // TODO: 後日プライベートデッキの read 制御を整理する。
+  allow read: if true;
+
+  // 通常デッキ: 自分のデッキのみを作成・変更・削除できる。
+  function ownDeck(data) {
+    return signedIn()
+      && data.get('ownerUid', '') == request.auth.uid
+      && data.get('type', '') == ''
+      && data.get('docType', 'deck') == 'deck';
+  }
+
+  // ユーザー名の検索用ドキュメント: 作成・更新できるのは本人のみ。
+  function ownNameIndex(data) {
+    return signedIn()
+      && data.get('type', '') == 'user_name_index'
+      && data.get('ownerUid', '') == request.auth.uid
+      && data.get('targetUid', '') == request.auth.uid;
+  }
+
+  // 配布予約・ログインボーナス: メールで認証済みの管理者のみ。
+  // isAdmin() は管理者 UID + sign_in_provider == 'password' で判定。
+  function adminGrant(data) {
+    return isAdmin()
+      && data.get('type', '') in ['admin_grant', 'operation_gift']
+      && data.get('adminUid', '') == request.auth.uid;
+  }
+
+  function canWriteNew(data) {
+    return ownDeck(data) || ownNameIndex(data) || adminGrant(data);
+  }
+
+  // 更新時は【変更前と変更後の両方】が同じ権限区分であること。
+  // これにより自分のデッキを「admin_grant」に書き換える抜け道を禁止する。
+  function canUpdate(oldData, newData) {
+    return (ownDeck(oldData) && ownDeck(newData))
+      || (ownNameIndex(oldData) && ownNameIndex(newData))
+      || (adminGrant(oldData) && adminGrant(newData)
+          && oldData.get('type', '') == newData.get('type', ''));
+  }
+
+  allow create: if canWriteNew(request.resource.data);
+  allow update: if canUpdate(resource.data, request.resource.data);
+  allow delete: if ownDeck(resource.data)
+    || ownNameIndex(resource.data)
+    || adminGrant(resource.data);
+}

@@ -15,7 +15,13 @@ import {
   browserLocalPersistence,
   signInAnonymously,
   onAuthStateChanged,
+  EmailAuthProvider,
+  linkWithCredential,
+  signInWithEmailAndPassword,
+  inMemoryPersistence,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getAdminSession } from "./auth.js?v=20261103_email_admin1";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
@@ -23,8 +29,6 @@ const firebaseConfig = {
   projectId: "tcg-0bato",
 };
 
-const ADMIN_NAME = "admin0217";
-const ADMIN_PIN = "0745";
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -45,6 +49,11 @@ const el = {
   btnSuggest: $("btnSuggest"),
   btnUseSaved: $("btnUseSaved"),
   btnBack: $("btnBack"),
+  adminEmail: $("adminEmail"),
+  adminPassword: $("adminPassword"),
+  adminMsg: $("adminMsg"),
+  btnAdminLink: $("btnAdminLink"),
+  btnAdminLogin: $("btnAdminLogin"),
 };
 
 let mode = "login";
@@ -56,7 +65,7 @@ function setMessage(msg, kind = "") {
 }
 
 function setBusy(busy) {
-  [el.btnSubmit, el.btnSuggest, el.btnUseSaved, el.tabLogin, el.tabRegister].forEach((b) => {
+  [el.btnSubmit, el.btnSuggest, el.btnUseSaved, el.tabLogin, el.tabRegister, el.btnAdminLink, el.btnAdminLogin].forEach((b) => {
     if (b) b.disabled = !!busy;
   });
 }
@@ -183,7 +192,7 @@ async function ensureAnonSignedIn() {
   return auth.currentUser;
 }
 
-async function writeProfile(uid, name, pin, isAdmin) {
+async function writeProfile(uid, name, pin) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
   const saltB64 = newSaltB64();
@@ -195,7 +204,6 @@ async function writeProfile(uid, name, pin, isAdmin) {
       name,
       salt: saltB64,
       pinHash,
-      isAdmin: !!isAdmin,
       updatedAt: serverTimestamp(),
       ...(snap.exists() ? {} : {
         gems: 2400,
@@ -211,13 +219,6 @@ async function writeProfile(uid, name, pin, isAdmin) {
 async function loginProfile(uid, name, pin) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
-  const isAdmin = name === ADMIN_NAME && pin === ADMIN_PIN;
-
-  if (isAdmin) {
-    await writeProfile(uid, name, pin, true);
-    return { ok: true, mode: snap.exists() ? "admin-login" : "admin-register", isAdmin: true };
-  }
-
   if (!snap.exists()) {
     return {
       ok: false,
@@ -242,25 +243,18 @@ async function loginProfile(uid, name, pin) {
     return { ok: false, reason: "PINが違います。" };
   }
 
-  await setDoc(ref, { name, isAdmin: false, updatedAt: serverTimestamp() }, { merge: true });
-  return { ok: true, mode: "login", isAdmin: false };
+  await setDoc(ref, { name, updatedAt: serverTimestamp() }, { merge: true });
+  return { ok: true, mode: "login", isAdmin: (await getAdminSession()).isAdmin };
 }
 
 async function registerProfile(uid, name, pin) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
-  const isAdmin = name === ADMIN_NAME && pin === ADMIN_PIN;
-
-  if (isAdmin) {
-    await writeProfile(uid, name, pin, true);
-    return { ok: true, mode: snap.exists() ? "admin-overwrite" : "admin-register", isAdmin: true };
-  }
-
   if (snap.exists()) {
     const data = snap.data() || {};
     const hasLogin = !!data.salt && !!data.pinHash && !!data.name;
     if (!hasLogin) {
-      await writeProfile(uid, name, pin, false);
+      await writeProfile(uid, name, pin);
       return { ok: true, mode: "register-upgrade", isAdmin: false };
     }
     return {
@@ -279,7 +273,8 @@ function saveLocalProfile(uid, name, isAdmin) {
   localStorage.setItem("anonUid", uid);
   localStorage.setItem("profileLinked", "1");
   localStorage.setItem("isAdmin", isAdmin ? "1" : "0");
-  if (isAdmin) localStorage.setItem("tcg_admin_ok_v1", "1");
+  // An old localStorage admin flag is not a valid authorization signal.
+  localStorage.removeItem("tcg_admin_ok_v1");
 }
 
 async function runAuth() {
@@ -315,7 +310,107 @@ async function runAuth() {
   }
 }
 
+
+function adminMessage(message, kind = "") {
+  if (!el.adminMsg) return;
+  el.adminMsg.textContent = message;
+  el.adminMsg.className = `message ${kind}`.trim();
+}
+
+function adminCredentials() {
+  const email = String(el.adminEmail?.value || "").trim();
+  const password = String(el.adminPassword?.value || "");
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    throw new Error("管理者メールアドレスを確認してください。");
+  }
+  if (password.length < 12) {
+    throw new Error("管理者パスワードは12文字以上にしてください。");
+  }
+  return { email, password };
+}
+
+function forgetAdminPassword() {
+  if (el.adminPassword) el.adminPassword.value = "";
+}
+
+// Step 1: upgrade the EXISTING anonymous admin account. Linking rather than
+// creating a new Firebase user keeps the UID, inventory, gems, and card edits.
+async function linkAdminEmail() {
+  try {
+    setBusy(true);
+    adminMessage("現在の管理者アカウントを確認中...");
+    const user = await ensureAnonSignedIn();
+    const beforeUid = user.uid;
+    const snap = await getDoc(doc(db, "users", beforeUid));
+    if (!snap.exists() || snap.data()?.isAdmin !== true) {
+      throw new Error("この端末のUIDは既存の管理者ではありません。元の管理者端末から操作してください。");
+    }
+    if (user.providerData?.some((p) => p.providerId === "password")) {
+      throw new Error("このUIDは既にメール連携済みです。メールでログインしてください。");
+    }
+    const { email, password } = adminCredentials();
+    await linkWithCredential(user, EmailAuthProvider.credential(email, password));
+    if (auth.currentUser?.uid !== beforeUid) {
+      throw new Error("UIDが変わりました。管理者設定を確認してください。");
+    }
+    const session = await getAdminSession();
+    if (!session.isAdmin) throw new Error("メール連携後の管理者状態を確認できませんでした。");
+    saveLocalProfile(beforeUid, snap.data()?.name || localStorage.getItem("playerName") || "admin", true);
+    adminMessage(`メール認証の連携成功。UIDを維持できました。\\nUID: ${beforeUid}\\n次はFirebaseルールの管理者UIDをこの値に切り替えてください。`, "ok");
+    refreshSavedView();
+  } catch (e) {
+    adminMessage(`連携できませんでした: ${e?.message || e}\\n既存UIDを失わないよう、ブラウザデータは消さないでください。`, "bad");
+  } finally {
+    forgetAdminPassword();
+    setBusy(false);
+  }
+}
+
+// Probe email login with a separate in-memory Auth instance so an invalid or
+// non-admin email can never replace the current anonymous player's UID.
+async function loginAdminEmail() {
+  let probeAuth = null;
+  try {
+    setBusy(true);
+    adminMessage("管理者メール認証を確認中...");
+    const { email, password } = adminCredentials();
+    const probeName = "0bato-admin-login-probe";
+    const probeApp = getApps().find((a) => a.name === probeName)
+      || initializeApp(firebaseConfig, probeName);
+    probeAuth = getAuth(probeApp);
+    await setPersistence(probeAuth, inMemoryPersistence);
+    const probe = await signInWithEmailAndPassword(probeAuth, email, password);
+    const probeDb = getFirestore(probeApp);
+    const probeSnap = await getDoc(doc(probeDb, "users", probe.user.uid));
+    if (!probeSnap.exists() || probeSnap.data()?.isAdmin !== true) {
+      throw new Error("このメールアカウントには管理者権限がありません。");
+    }
+    const uid = probe.user.uid;
+    await signOut(probeAuth);
+    probeAuth = null;
+
+    // Switching the primary Auth identity happens only after the probe passes.
+    await setPersistence(auth, browserLocalPersistence);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (result.user.uid !== uid) throw new Error("UID確認に失敗しました。");
+    const session = await getAdminSession();
+    if (!session.isAdmin) throw new Error("管理者権限の確認に失敗しました。");
+    saveLocalProfile(uid, probeSnap.data()?.name || "admin", true);
+    refreshSavedView();
+    adminMessage(`管理者ログイン成功。UID: ${uid}\\n画面へ移動します。`, "ok");
+    setTimeout(() => moveNext(uid), 350);
+  } catch (e) {
+    adminMessage(`管理者ログイン失敗: ${e?.message || e}`, "bad");
+  } finally {
+    if (probeAuth?.currentUser) await signOut(probeAuth).catch(() => {});
+    forgetAdminPassword();
+    setBusy(false);
+  }
+}
+
 function wire() {
+  el.btnAdminLink?.addEventListener("click", linkAdminEmail);
+  el.btnAdminLogin?.addEventListener("click", loginAdminEmail);
   el.tabLogin?.addEventListener("click", () => setMode("login"));
   el.tabRegister?.addEventListener("click", () => setMode("register"));
   el.btnSuggest?.addEventListener("click", suggestId);

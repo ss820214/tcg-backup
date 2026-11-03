@@ -28,7 +28,7 @@ for (const stored of ['{}', '{"A":2}']) {
 assert.match(section('function applySnapshotFromLibrary', 'initDeckLibrary({'), /saveLocalDeck\(\);\s*renderAll\(\)/);
 assert.match(deck, /if \(!\(await saveDeckToUser\(name\)\)\) throw/);
 
-const ensureCode = auth.slice(auth.indexOf('export async function ensureSignedIn')).replace('export ', '');
+const ensureCode = auth.slice(auth.indexOf('export async function ensureSignedIn'), auth.indexOf('export async function getAdminSession')).replace('export ', '');
 for (const fails of [false,true]) {
   let unsubscribed = false;
   const context = {auth:{},onAuthStateChanged:(a,cb)=>{queueMicrotask(()=>cb(null));return ()=>{unsubscribed=true;};},

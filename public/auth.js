@@ -5,7 +5,7 @@ import {
   onAuthStateChanged,
   signInAnonymously,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
@@ -29,4 +29,24 @@ export async function ensureSignedIn() {
   if (current) return current;
   const result = await signInAnonymously(auth);
   return result.user;
+}
+
+
+// UI authorization check only: Firestore Security Rules must independently
+// authorize card writes by the owner's exact Firebase Auth UID (or a server-
+// issued custom claim). Never trust a localStorage flag or a PIN in browser JS.
+export async function getAdminSession() {
+  const user = await ensureSignedIn();
+  const linkedEmail = !user.isAnonymous &&
+    user.providerData?.some((provider) => provider.providerId === "password");
+  if (!linkedEmail) return { uid: user.uid, isAdmin: false, linkedEmail: false };
+
+  // A signed-in user can only read their own users/{uid} document under
+  // the existing rules. This read is for displaying/admin UI gating only.
+  const snap = await getDoc(doc(db, "users", user.uid));
+  return {
+    uid: user.uid,
+    isAdmin: snap.exists() && snap.data()?.isAdmin === true,
+    linkedEmail: true,
+  };
 }

@@ -2,7 +2,7 @@
 // v20260726_post1
 // Shared user profile, owned-card, gem, and match-history helpers.
 
-import { db, ensureSignedIn } from "./auth.js?v=20260627_perm1";
+import { db, ensureSignedIn, getAdminSession } from "./auth.js?v=20261103_email_admin1";
 import {
   doc,
   collection,
@@ -156,9 +156,9 @@ function isPermissionError(e) {
 async function assertAdminUid(uid) {
   const actor = String(uid || "").trim();
   if (!actor) throw new Error("admin uid missing");
-  const snap = await getDoc(profileRef(actor));
-  if (!snap.exists() || snap.data()?.isAdmin !== true) {
-    throw new Error("admin permission required");
+  const session = await getAdminSession();
+  if (session.uid !== actor || !session.isAdmin) {
+    throw new Error("admin email authentication required");
   }
   return actor;
 }

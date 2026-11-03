@@ -263,7 +263,7 @@ async function registerProfile(uid, name, pin) {
     };
   }
 
-  await writeProfile(uid, name, pin, false);
+  await writeProfile(uid, name, pin);
   return { ok: true, mode: "register", isAdmin: false };
 }
 
@@ -320,7 +320,7 @@ function adminMessage(message, kind = "") {
 function adminCredentials() {
   const email = String(el.adminEmail?.value || "").trim();
   const password = String(el.adminPassword?.value || "");
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new Error("管理者メールアドレスを確認してください。");
   }
   if (password.length < 12) {
@@ -356,10 +356,10 @@ async function linkAdminEmail() {
     const session = await getAdminSession();
     if (!session.isAdmin) throw new Error("メール連携後の管理者状態を確認できませんでした。");
     saveLocalProfile(beforeUid, snap.data()?.name || localStorage.getItem("playerName") || "admin", true);
-    adminMessage(`メール認証の連携成功。UIDを維持できました。\\nUID: ${beforeUid}\\n次はFirebaseルールの管理者UIDをこの値に切り替えてください。`, "ok");
+    adminMessage(`メール認証の連携成功。UIDを維持できました。\nUID: ${beforeUid}\n次はFirebaseルールの管理者UIDをこの値に切り替えてください。`, "ok");
     refreshSavedView();
   } catch (e) {
-    adminMessage(`連携できませんでした: ${e?.message || e}\\n既存UIDを失わないよう、ブラウザデータは消さないでください。`, "bad");
+    adminMessage(`連携できませんでした: ${e?.message || e}\n既存UIDを失わないよう、ブラウザデータは消さないでください。`, "bad");
   } finally {
     forgetAdminPassword();
     setBusy(false);
@@ -397,7 +397,7 @@ async function loginAdminEmail() {
     if (!session.isAdmin) throw new Error("管理者権限の確認に失敗しました。");
     saveLocalProfile(uid, probeSnap.data()?.name || "admin", true);
     refreshSavedView();
-    adminMessage(`管理者ログイン成功。UID: ${uid}\\n画面へ移動します。`, "ok");
+    adminMessage(`管理者ログイン成功。UID: ${uid}\n画面へ移動します。`, "ok");
     setTimeout(() => moveNext(uid), 350);
   } catch (e) {
     adminMessage(`管理者ログイン失敗: ${e?.message || e}`, "bad");

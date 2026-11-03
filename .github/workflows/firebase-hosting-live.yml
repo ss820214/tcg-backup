@@ -33,6 +33,8 @@ jobs:
         run: |
           node --check public/auth.js
           node --check public/login.js
+          node tools/admin_email_link_regression_20261103.mjs
+          node --check public/login.js
           node --check public/rarity_admin.js
           node --check public/card_editor.js
           node --check public/creator.js

@@ -2,7 +2,7 @@ import { getCachedCardCollection, invalidateCardCatalogCache } from "./card_cata
 ﻿// public/deck.js
 // v20260829_home_left_fit1
 // Deck builder screen. Keep room/profile tools outside the card list flow.
-import { ensureSignedIn } from "./auth.js?v=20260627_user1";
+import { ensureSignedIn, getAdminSession } from "./auth.js?v=20261103_email_admin1";
 import { installDetailDrag } from "./deck_detail_drag.js?v=20261008_drag1";
 
 const qs = new URLSearchParams(location.search);
@@ -3114,16 +3114,10 @@ function saveAdminModePreference(enabled) {
 
 async function loadAdminFlag() {
   try {
+    // Never trust a UID or a role copied from localStorage for admin access.
+    const session = await getAdminSession();
     const uid = getUserDocUid();
-    if (!uid) {
-      currentUserHasAdminPrivilege = false;
-      adminModeEnabled = false;
-      return false;
-    }
-
-    const snap = await getDoc(userRef(uid));
-    const data = snap.exists() ? snap.data() || {} : {};
-    currentUserHasAdminPrivilege = data.isAdmin === true;
+    currentUserHasAdminPrivilege = session.isAdmin === true && session.uid === uid;
     adminModeEnabled =
       currentUserHasAdminPrivilege && loadAdminModePreference();
     return currentUserHasAdminPrivilege;
@@ -3178,7 +3172,7 @@ function updateAdminModeBadge() {
     : "管理: OFF";
   badge.title = hasAdminPrivilege()
     ? "クリックで管理モードのON/OFFを切り替えます"
-    : "users/{uid}.isAdmin が true の時だけ管理モードを使えます";
+    : "Firebaseメール認証済みの管理者のみ管理モードを使えます";
   badge.style.borderColor = isAdminUser()
     ? "rgba(120,210,255,.46)"
     : "rgba(255,120,120,.32)";

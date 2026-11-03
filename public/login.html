@@ -210,6 +210,15 @@
       padding:0 9px;
     }
     #btnBack{grid-column:1/-1}
+    .adminPanel{margin:0 14px 16px;padding:13px;border:1px solid rgba(117,215,255,.24);border-radius:12px;background:rgba(117,215,255,.045)}
+    .adminPanel h2{margin:0;font-size:15px}
+    .adminPanel p{margin:7px 0 10px;color:var(--muted);font-size:12px;line-height:1.6}
+    .adminPanel input{height:44px}
+    .adminActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+    .adminActions button{min-height:44px;border:1px solid rgba(117,215,255,.26);border-radius:10px;background:rgba(117,215,255,.10);color:var(--text);font-weight:850}
+    .adminActions button:disabled{opacity:.5}
+    .adminPanel .message{margin-bottom:0;min-height:20px}
+    @media(max-width:580px){.adminActions{grid-template-columns:1fr}}
     .message{
       min-height:46px;
       margin-top:11px;
@@ -350,6 +359,20 @@
         <div id="msg" class="message">ログイン、または新規登録を選んでください。</div>
       </form>
 
+      <section class="adminPanel" aria-label="管理者メール認証">
+        <h2>管理者メール認証（PIN不要）</h2>
+        <p>初回のみ<strong>これまで管理者として使っていた端末・ブラウザ</strong>で「既存管理者にメールを紐づけ」を実行してください。元のUID、ジェム、カードは維持されます。先にFirebase Authenticationで「メール/パスワード」を有効化してください。</p>
+        <label for="adminEmail">管理者メールアドレス</label>
+        <input id="adminEmail" type="email" inputmode="email" autocomplete="username" placeholder="your-email@example.com" />
+        <label for="adminPassword">管理者パスワード（12文字以上）</label>
+        <input id="adminPassword" type="password" minlength="12" autocomplete="new-password" placeholder="新しい強力なパスワード" />
+        <div class="adminActions">
+          <button id="btnAdminLink" type="button">既存管理者にメールを紐づけ</button>
+          <button id="btnAdminLogin" type="button">メールで管理者ログイン</button>
+        </div>
+        <div id="adminMsg" class="message" role="status">メールやパスワードをChatGPT・GitHubに貼る必要はありません。</div>
+      </section>
+
       <div class="account">
         <div class="accountCell">
           <div class="k">保存済みID</div>
@@ -363,6 +386,6 @@
     </section>
   </main>
 
-  <script type="module" src="./login.js?v=20261007_mobile2"></script>
+  <script type="module" src="./login.js?v=20261103_admin_email1"></script>
 </body>
 </html>

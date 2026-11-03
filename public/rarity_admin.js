@@ -1,7 +1,7 @@
 // public/rarity_admin.js
 // v20260627_rarity1
 
-import { db, ensureSignedIn } from "./auth.js?v=20260627_rarity1";
+import { db, ensureSignedIn, getAdminSession } from "./auth.js?v=20261103_email_admin1";
 import {
   collection,
   doc,
@@ -11,7 +11,7 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const ADMIN_OK_LOCAL = "tcg_admin_ok_v1";
+
 const RARITIES = ["R", "SR", "SSR"];
 
 const $ = (id) => document.getElementById(id);
@@ -19,14 +19,11 @@ const state = {
   cards: [],
   filtered: [],
   busy: false,
+  adminUnlocked: false,
 };
 
 function isAdminUnlocked() {
-  try {
-    return localStorage.getItem(ADMIN_OK_LOCAL) === "1";
-  } catch {
-    return false;
-  }
+  return state.adminUnlocked === true;
 }
 
 function normalizeRarity(v) {
@@ -229,8 +226,11 @@ function wire() {
 
 async function init() {
   wire();
-  $("lock").style.display = isAdminUnlocked() ? "none" : "block";
   await ensureSignedIn();
+  const adminSession = await getAdminSession();
+  state.adminUnlocked = adminSession.isAdmin === true;
+  $("lock").style.display = state.adminUnlocked ? "none" : "block";
+  $("btnBulk").disabled = !state.adminUnlocked;
   await loadCards();
 }
 

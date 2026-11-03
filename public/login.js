@@ -333,6 +333,66 @@ function forgetAdminPassword() {
   if (el.adminPassword) el.adminPassword.value = "";
 }
 
+// Email enumeration protection blocks linkWithCredential(EmailAuthCredential)
+// in some Firebase projects. Google's documented alternative is the
+// Identity Toolkit signUp endpoint with the CURRENT user's ID token.
+// IMPORTANT: never call signUp without idToken (that creates a new UID).
+async function linkAdminEmailWithPrivacyProtection(user, email, password) {
+  if (!user?.uid || !user.isAnonymous) {
+    throw new Error("現在の匿名管理者アカウントから連携してください。");
+  }
+  const originalUid = user.uid;
+  const idToken = await user.getIdToken();
+  if (!idToken) throw new Error("認証トークンを取得できませんでした。");
+
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken, email, password, returnSecureToken: true }),
+      cache: "no-store",
+      credentials: "omit",
+    },
+  );
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const code = String(payload?.error?.message || "UNKNOWN");
+    if (code.startsWith("EMAIL_EXISTS")) {
+      throw new Error("このメールアドレスは既にFirebaseで使用されています。別のメールアドレスを選んでください。");
+    }
+    if (code.startsWith("OPERATION_NOT_ALLOWED")) {
+      throw new Error("Firebase Authenticationで「メール/パスワード」を有効にしてください。");
+    }
+    if (code.startsWith("WEAK_PASSWORD") || code.startsWith("PASSWORD_DOES_NOT_MEET_REQUIREMENTS")) {
+      throw new Error("パスワードがFirebaseの強度条件を満たしていません。より強いパスワードを設定してください。");
+    }
+    throw new Error(`Firebaseメール連携に失敗しました (${code.slice(0, 120)})。`);
+  }
+
+  // A mismatch means a new account was created. Never save or switch IDs.
+  if (payload.localId !== originalUid) {
+    throw new Error("UIDの一致を確認できませんでした。管理者データを保護するためログイン状態を変更していません。");
+  }
+
+  // Synchronize the SDK's current session with the linked email account.
+  // A successful REST response doesn't itself update the SDK's auth state.
+  let signedIn;
+  try {
+    signedIn = await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    throw new Error(
+      "Firebase側の連携は受け付けられましたが、ログイン状態の更新に失敗しました。" +
+      "既存のブラウザデータは削除せず「メールで管理者ログイン」を試してください。" +
+      ` (${String(e?.code || "認証エラー")})`,
+    );
+  }
+  if (signedIn.user?.uid !== originalUid) {
+    throw new Error("メールログイン後のUIDが一致しません。管理者設定を確認してください。");
+  }
+  return signedIn.user;
+}
+
 // Step 1: upgrade the EXISTING anonymous admin account. Linking rather than
 // creating a new Firebase user keeps the UID, inventory, gems, and card edits.
 async function linkAdminEmail() {
@@ -349,7 +409,18 @@ async function linkAdminEmail() {
       throw new Error("このUIDは既にメール連携済みです。メールでログインしてください。");
     }
     const { email, password } = adminCredentials();
-    await linkWithCredential(user, EmailAuthProvider.credential(email, password));
+    try {
+      await linkWithCredential(user, EmailAuthProvider.credential(email, password));
+    } catch (e) {
+      // Preserve email-enumeration protection rather than asking users
+      // to disable it in Firebase Console.
+      if (e?.code === "auth/operation-not-allowed" &&
+          /verify the new email before changing email/i.test(String(e?.message || ""))) {
+        await linkAdminEmailWithPrivacyProtection(user, email, password);
+      } else {
+        throw e;
+      }
+    }
     if (auth.currentUser?.uid !== beforeUid) {
       throw new Error("UIDが変わりました。管理者設定を確認してください。");
     }

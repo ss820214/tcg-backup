@@ -33,4 +33,4 @@ assert.doesNotMatch(rules, /allow write:\s*if\s*signedIn\(\)/);
 assert.match(rules, /allow create: if canWriteNew\(request\.resource\.data\)/);
 assert.match(rules, /allow update: if canUpdate\(resource\.data, request\.resource\.data\)/);
 
-console.log("decks security contract: 14 static source assertions passed (not emulator-tested)");
+console.log("decks security contract: 17 static source assertions passed (not emulator-tested)");

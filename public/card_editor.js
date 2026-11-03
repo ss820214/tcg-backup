@@ -1,29 +1,14 @@
 import { invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/card_editor.js
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { db, getAdminSession } from "./auth.js?v=20261103_email_admin1";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc,
+  collection, doc, setDoc, deleteDoc,
   onSnapshot, getDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // あなたの既存 action_text を利用（プレビューに使う）
 import { actionDetailPartsJa } from "./action_text.js?v=20260722_vital_icons1";
-
-// ====== ここをあなたの Firebase config に差し替え ======
-const firebaseConfig = {
-  apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
-  authDomain: "tcg-0bato.firebaseapp.com",
-  projectId: "tcg-0bato",
-  storageBucket: "tcg-0bato.firebasestorage.app",
-  messagingSenderId: "440001841840",
-  appId: "1:440001841840:web:d77a9bdb80f3d8d8c10975",
-  measurementId: "G-2BS37RDG7F"
-};
-// ======================================================
-
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
 
 const $ = (id) => document.getElementById(id);
 
@@ -65,6 +50,14 @@ let cardsIndex = []; // {id,data}
 let selectedId = null;
 let unsubscribe = null;
 let dirty = false;
+let adminUnlocked = false;
+
+async function requireEditorAdmin() {
+  const session = await getAdminSession();
+  if (!session.isAdmin) throw new Error("管理者メール認証が必要です。ログイン画面から認証してください。");
+  return session;
+}
+
 
 function markDirty(v=true){
   dirty = v;
@@ -434,6 +427,7 @@ async function loadOne(id){
 }
 
 async function saveCurrent(){
+  await requireEditorAdmin();
   const data = getEditorValue();
   const id = normStr(el.cardId.value);
 
@@ -452,6 +446,7 @@ async function saveCurrent(){
 }
 
 async function deleteCurrent(){
+  await requireEditorAdmin();
   const id = normStr(el.cardId.value);
   if (!id) return alert("削除するカードIDがありません");
   if (!confirm(`削除しますか？\n${id}`)) return;
@@ -567,4 +562,23 @@ wire();
 setEditorValue("", defaultCard());
 refreshActionsPreview();
 refreshPreviewPanel();
-startWatch();
+for (const button of [el.btnSave, el.btnDelete, el.btnImport, el.btnNew, el.btnClone, el.btnAddAction]) {
+  if (button) button.disabled = true;
+}
+(async () => {
+  try {
+    adminUnlocked = (await getAdminSession()).isAdmin;
+    if (!adminUnlocked) {
+      el.connState.textContent = "管理者のメールログインが必要です（閲覧のみ）";
+    } else {
+      for (const button of [el.btnSave, el.btnDelete, el.btnImport, el.btnNew, el.btnClone, el.btnAddAction]) {
+        if (button) button.disabled = false;
+      }
+    }
+    startWatch();
+  } catch (error) {
+    el.connState.textContent = "管理者認証の確認に失敗しました";
+    console.warn("[card_editor] admin session check failed", error?.message || error);
+    startWatch();
+  }
+})();

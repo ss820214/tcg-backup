@@ -34,6 +34,9 @@ jobs:
           node --check public/auth.js
           node tools/deck_regression_20261008.mjs
           node tools/ui_regression_20261017.mjs
+          node tools/v120_free_security_regression_20261108.mjs
+          node --check public/play.js
+          node --check public/gacha.js
           node tools/tools_links_regression_20261018.mjs
           node --check public/cpu_ai.js
           node --check public/cpu_driver.js

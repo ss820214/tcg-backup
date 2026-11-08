@@ -1,0 +1,23 @@
+name: Economy authority staging checks (no deploy)
+
+on:
+  push:
+    branches:
+      - security/economy-server-authority-v121
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate staging contract
+        run: |
+          node --check tools/economy_authority_cutover_regression_20261109.mjs
+          node tools/economy_authority_cutover_regression_20261109.mjs
+          node tools/v120_free_security_regression_20261108.mjs
+          node tools/user_economy_regression_20261026.mjs

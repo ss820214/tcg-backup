@@ -1,0 +1,94 @@
+// 0バト v1.2.0 / Firestore Security Rules replacement for match /decks/{deckId}
+// SECURITY CONFIGURATION - NOT automatically deployed with Firebase Hosting.
+//
+// Paste this *single match block* over the existing /decks/{deckId} block
+// inside match /databases/{database}/documents. Keep other match blocks.
+// Requires the existing signedIn() and isAdmin() functions.
+// isAdmin() MUST check exact admin UID and password sign-in provider.
+//
+// Why:
+//   - Unauthenticated users cannot write deck or grant records.
+//   - Owners can read/write their own private decks; public decks are readable.
+//   - Unlisted decks can only be read by ID (not enumerated via listing).
+//   - Only the authenticated administrator can mint grant/gift records.
+//   - Grant recipients may read their grant record even when private.
+//   - Existing deck titles, library queries and gift queries require the
+//     matching read filters added in v1.2.0 clients.
+//
+// WARNING: No general user-economy anti-cheat here! users/{uid} still allows
+// owner-side changes for legacy gacha. A trusted backend is required.
+
+match /decks/{deckId} {
+  function ownDeck(data) {
+    return signedIn()
+      && data.get('ownerUid', '') == request.auth.uid
+      && data.get('type', '') == ''
+      && data.get('docType', 'deck') == 'deck';
+  }
+
+  function ownNameIndex(data) {
+    return signedIn()
+      && data.get('type', '') == 'user_name_index'
+      && data.get('ownerUid', '') == request.auth.uid
+      && data.get('targetUid', '') == request.auth.uid;
+  }
+
+  function adminGrant(data) {
+    return isAdmin()
+      && data.get('type', '') in ['admin_grant', 'operation_gift']
+      && data.get('adminUid', '') == request.auth.uid;
+  }
+
+  function publicRecord(data) {
+    return data.get('visibility', 'private') == 'public';
+  }
+
+  function linkOnlyDeck(data) {
+    return data.get('visibility', 'private') == 'unlisted'
+      && data.get('docType', '') == 'deck'
+      && data.get('type', '') == '';
+  }
+
+  function isOwner(data) {
+    return signedIn()
+      && data.get('ownerUid', '') == request.auth.uid;
+  }
+
+  function isGrantRecipient(data) {
+    return signedIn()
+      && data.get('targetUid', '') == request.auth.uid;
+  }
+
+  // Never use allow read: if true; here; it exposes other players' private decks.
+  allow get: if publicRecord(resource.data)
+    || linkOnlyDeck(resource.data)
+    || isOwner(resource.data)
+    || isGrantRecipient(resource.data)
+    || isAdmin();
+
+  // Firestore rules are not filters: queries must use
+  // where('visibility','==','public') or where('ownerUid','==',uid),
+  // or where('targetUid','==',uid). An unfiltered query is rejected.
+  allow list: if publicRecord(resource.data)
+    || isOwner(resource.data)
+    || isGrantRecipient(resource.data)
+    || isAdmin();
+
+  allow create: if ownDeck(request.resource.data)
+    || ownNameIndex(request.resource.data)
+    || adminGrant(request.resource.data);
+
+  allow update: if (
+      (ownDeck(resource.data) && ownDeck(request.resource.data))
+      || (ownNameIndex(resource.data) && ownNameIndex(request.resource.data))
+      || (
+        adminGrant(resource.data)
+        && adminGrant(request.resource.data)
+        && resource.data.get('type','') == request.resource.data.get('type','')
+      )
+    );
+
+  allow delete: if ownDeck(resource.data)
+    || ownNameIndex(resource.data)
+    || adminGrant(resource.data);
+}

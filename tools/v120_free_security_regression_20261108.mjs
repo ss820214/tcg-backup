@@ -69,4 +69,4 @@ assert.match(rules, /ownDeck\(resource\.data\) && ownDeck\(request\.resource\.da
 assert.match(rules, /adminGrant\(resource\.data\)/);
 assert.doesNotMatch(rules, /allow read:\s*if\s*true/);
 
-console.log("v1.2.0 free-ten-user security regressions: 29 checks passed (rules not emulator-tested)");
+console.log("v1.2.0 free-ten-user security regressions: 31 checks passed (rules not emulator-tested)");

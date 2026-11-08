@@ -1273,7 +1273,7 @@ async function uploadDeck({ overwrite }) {
     const decksCol = collection(db, "decks");
 
     if (visibility === "public") {
-      const sameName = await getDocs(query(decksCol,where("title","==",title),limit(50)));
+      const sameName = await getDocs(query(decksCol,where("title","==",title),where("visibility","==","public"),limit(50)));
       const currentId = overwrite ? getLS(LS_LAST_ID) : "";
       if (sameName.docs.some(d=>d.id!==currentId && d.data()?.visibility==="public")) {
         setNg("同じ名前の公開デッキがあります。別のデッキ名にしてください。");

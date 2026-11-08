@@ -1,0 +1,42 @@
+name: V1.2.0 free-ten-user security regression
+
+on:
+  push:
+    branches:
+      - security/v1.2.0-free-ten-users
+  pull_request:
+    branches:
+      - deploy/live
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secure-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax checks
+        run: |
+          node --check public/play.js
+          node --check public/gacha.js
+          node --check public/deck.js
+          node --check public/deck_library.js
+          node --check public/deck_library_core_20261005.js
+          node --check public/deck_list_core_20261005.js
+          node --check public/user_store.js
+          node --check public/auth.js
+          node --check public/login.js
+      - name: Security and economy invariants
+        run: |
+          node tools/v120_free_security_regression_20261108.mjs
+          node tools/decks_security_contract_20261104.mjs
+          node tools/user_economy_regression_20261026.mjs
+      - name: Existing battle, deck and UI regressions
+        run: |
+          node tools/deck_regression_20261008.mjs
+          node tools/deck_ui_v5_regression.mjs
+          node tools/room_entry_regression_20261024.mjs
+          node tools/ui_regression_20261017.mjs

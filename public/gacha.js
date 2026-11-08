@@ -26,7 +26,7 @@ import {
   ensureStarterOwnedCards,
   isStarterCardDef,
   profileRef,
-} from "./user_store.js?v=20261026_economy_integrity";
+} from "./user_store.js?v=20261108_v120_economy_safety";
 import { FAIRY_TALE_CARD_LIST } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARD_LIST } from "./jewel_cards.js?v=20260829_jewel_gacha1";
 import { STARTER_SUPPORT_CARDS } from "./starter_support_cards.js?v=20260706_starter_support_all1";
@@ -1126,18 +1126,12 @@ btnTen?.addEventListener("click", () => doGacha(10));
 btnUnitBanner?.addEventListener("click", () => setActiveBanner("unit"));
 btnSupportBanner?.addEventListener("click", () => setActiveTheme("mix"));
 
-btnClear?.addEventListener("click", async () => {
-  // 注意：owned の全削除は権限が必要なので、ここでは “pityだけリセット” にする
-  try {
-    await setDoc(
-      userRef,
-      { gachaPity: 0, updatedAt: serverTimestamp() },
-      { merge: true },
-    );
-    toastMsg("gachaPity reset");
-  } catch (e) {
-    toastMsg(String(e?.message ?? e), true);
-  }
+btnClear?.addEventListener("click", () => {
+  // UI-only operation. Never modify currency, the inventory, or the pity
+  // counter when the user merely asks to clear the displayed results.
+  lastResults = [];
+  renderResultsGrid([]);
+  toastMsg("表示をクリアしました（天井カウントは維持）");
 });
 
 // =====================

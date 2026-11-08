@@ -179,7 +179,7 @@ async function queueAdminGrant({
   const grantId = safeId(`admin_grant_${target}_${Date.now()}_${Math.random().toString(16).slice(2)}`);
   const payload = {
     type: "admin_grant",
-    visibility: "public",
+    visibility: "private",
     title: `admin grant ${target.slice(0, 8)}`,
     grantId,
     grantKind,
@@ -768,7 +768,7 @@ export async function createOperationGemGift(adminUid, amount, title = "ログ�
 export async function listOperationGifts(n = 20) {
   const out = [];
   try {
-    const snap = await getDocs(query(collection(db, "decks"), where("type", "==", "operation_gift"), limit(n)));
+    const snap = await getDocs(query(collection(db, "decks"), where("visibility", "==", "public"), where("type", "==", "operation_gift"), limit(n)));
     snap.forEach((d) => {
       const data = d.data() || {};
       if (data.active === false) return;

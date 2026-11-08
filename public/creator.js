@@ -3,7 +3,7 @@ import { invalidateCardCatalogCache } from "./card_catalog_cache.js?v=20261021_r
 // v20260726_actions_canonical1
 
 import { db } from "./auth.js?v=20260627_perm1";
-import { ensureUserProfile } from "./user_store.js?v=20261026_economy_integrity";
+import { ensureUserProfile } from "./user_store.js?v=20261108_v120_economy_safety";
 import { getAdminSession } from "./auth.js?v=20261103_email_admin1";
 import { cardArtImgHtml } from "./card_art.js?v=20260828_jewel_art1";
 import { FAIRY_TALE_CARD_LIST } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";

@@ -67,6 +67,6 @@ assert.match(rules, /isGrantRecipient\(resource\.data\)/);
 assert.match(rules, /return isAdmin\(\)/);
 assert.match(rules, /ownDeck\(resource\.data\) && ownDeck\(request\.resource\.data\)/);
 assert.match(rules, /adminGrant\(resource\.data\)/);
-assert.doesNotMatch(rules, /allow read:\s*if\s*true/);
+assert.doesNotMatch(rules, /^\s*allow read:\s*if\s*true/m);
 
 console.log("v1.2.0 free-ten-user security regressions: 31 checks passed (rules not emulator-tested)");

@@ -25,7 +25,7 @@ assert.match(home, /deck\.js\?v=\d{8}_[a-z0-9_-]+/i);
 assert.match(playHtml, /id="joinCode"/);
 assert.match(playHtml, /id="create"/);
 assert.match(play, /if\(mode==="join"\)\{const r=await getDoc\(roomRef\)/);
-assert.match(play, /if\(mode!=="join"\)await setDoc\(roomRef/);
+assert.match(play, /if\(mode!=="join"\)await runTransaction\(db,async\(tx\)=>/);
 assert.match(play, /field=validField\(r\.data\(\)\?\.desiredField/);
 assert.match(post, /generation !== openGeneration/);
 assert.match(post, /target\.closest\("\[data-post-close\]"\)/);

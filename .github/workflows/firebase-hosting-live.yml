@@ -43,6 +43,9 @@ jobs:
           node --check public/gacha.js
           node tools/user_economy_regression_20261026.mjs
           node tools/decks_security_contract_20261104.mjs
+          node tools/v120_free_security_regression_20261108.mjs
+          node --check public/play.js
+          node --check public/deck_library_core_20261005.js
           node --check public/join.js
           node --check public/deck.js
           node --check public/deck_detail_drag.js

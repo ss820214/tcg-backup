@@ -92,7 +92,7 @@ async function ensureUniquePublicTitle(db, title, excludeId="") {
   const name=String(title||"").trim().normalize("NFKC").toLocaleLowerCase("ja");
   if (!name) throw new Error("公開デッキには名前を付けてください。");
   // Title equality is indexed by Firestore without requiring a composite index.
-  const docs=await getDocs(query(collection(db,"decks"),where("title","==",title),limit(50)));
+  const docs=await getDocs(query(collection(db,"decks"),where("title","==",title),where("visibility","==","public"),limit(50)));
   if(docs.docs.some(d=>d.id!==excludeId&&d.data()?.visibility==="public"))
     throw new Error("同じ名前の公開デッキがすでにあります。別の名前を付けてください。");
 }

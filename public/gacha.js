@@ -1126,18 +1126,12 @@ btnTen?.addEventListener("click", () => doGacha(10));
 btnUnitBanner?.addEventListener("click", () => setActiveBanner("unit"));
 btnSupportBanner?.addEventListener("click", () => setActiveTheme("mix"));
 
-btnClear?.addEventListener("click", async () => {
-  // 注意：owned の全削除は権限が必要なので、ここでは “pityだけリセット” にする
-  try {
-    await setDoc(
-      userRef,
-      { gachaPity: 0, updatedAt: serverTimestamp() },
-      { merge: true },
-    );
-    toastMsg("gachaPity reset");
-  } catch (e) {
-    toastMsg(String(e?.message ?? e), true);
-  }
+btnClear?.addEventListener("click", () => {
+  // UI-only operation. Never modify currency, the inventory, or the pity
+  // counter when the user merely asks to clear the displayed results.
+  lastResults = [];
+  renderResultsGrid([]);
+  toastMsg("表示をクリアしました（天井カウントは維持）");
 });
 
 // =====================

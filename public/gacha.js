@@ -26,7 +26,7 @@ import {
   ensureStarterOwnedCards,
   isStarterCardDef,
   profileRef,
-} from "./user_store.js?v=20261026_economy_integrity";
+} from "./user_store.js?v=20261108_v120_economy_safety";
 import { FAIRY_TALE_CARD_LIST } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARD_LIST } from "./jewel_cards.js?v=20260829_jewel_gacha1";
 import { STARTER_SUPPORT_CARDS } from "./starter_support_cards.js?v=20260706_starter_support_all1";

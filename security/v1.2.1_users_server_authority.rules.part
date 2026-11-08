@@ -1,0 +1,34 @@
+// 0バト v1.2.1: FUTURE CUTOVER ONLY — DO NOT DEPLOY YET.
+// Replace the existing match /users/{uid} only AFTER migrating all currency,
+// gacha, starter-card and battle-reward writes to a trusted backend.
+// Firebase Admin SDK / service account bypasses Firestore Security Rules.
+//
+// IMPORTANT: This snippet protects the profile document, NOT other collections.
+// Check every broader recursive match; Firestore allow rules combine with OR.
+// Assumes signedIn() is defined in the enclosing database scope.
+match /users/{uid} {
+  function isSelf() {
+    return signedIn() && request.auth.uid == uid;
+  }
+
+  // A client cannot change these fields, including by deletion.
+  // Whitelist ordinary profile changes as needed; this initial
+  // conservative contract blocks all client-controlled economy fields.
+  function protectedFieldsUnchanged() {
+    return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+      'uid', 'isAdmin', 'admin', 'role', 'roles',
+      'gems', 'pity', 'gachaPity', 'ownedCounts',
+      'claimedAdminGrants', 'claimedOperationGifts',
+      'stats', 'starterOwnedVersion'
+    ]);
+  }
+
+  allow get: if isSelf();
+  allow list: if false;
+
+  // Account initialization must be performed on a trusted backend.
+  // Do NOT enable this until existing ensureUserProfile() is migrated.
+  allow create: if false;
+  allow update: if isSelf() && protectedFieldsUnchanged();
+  allow delete: if false;
+}

@@ -30,4 +30,4 @@ assert.match(gacha, /tx\.set\(\s*userRef,/);
 assert.match(store, /export async function recordMatchResult\(/);
 assert.match(store, /export async function ensureUserProfile\(/);
 assert.match(v120, /本人のジェム・Growth・所持カードの自由な書き換え/);
-console.log("Economy authority staging contract: 22 assertions passed; not deployed.");
+console.log("Economy authority staging contract: 23 assertions passed; not deployed.");

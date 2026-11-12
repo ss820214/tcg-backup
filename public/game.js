@@ -3,14 +3,14 @@ import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_read
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261113_v6_hand_overlap";
+import { createGameUI } from "./game_ui.js?v=20261113_v6_hand_art_actions";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
 import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
-import { cardArtImgHtml } from "./card_art.js?v=20260828_jewel_art1";
+import { cardArtImgHtml, cardArtDataUri } from "./card_art.js?v=20260828_jewel_art1";
 
 import { ensureSignedIn } from "./auth.js?v=20260627_user1";
 import {
@@ -1028,6 +1028,8 @@ const evolveSys = createEvolveSystem({
   clampUnitStats10,
   cardDefsRef: () => cardDefs,
   cardName,
+  cardArtImgHtml,
+  cardArtDataUri,
   logPush,
   checkWinLocal,
   isPanic,

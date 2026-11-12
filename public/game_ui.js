@@ -1336,6 +1336,7 @@ function updateHandDrawerPosition() {
     <div>
       <b>手札</b>
       <span>${hand.length}枚</span>
+      <small class="handScrollHint">左右スワイプで手札を見る</small>
     </div>
     <div class="handDrawerControls">
       <button class="handEvolveTopBtn" type="button" disabled>進化</button>
@@ -1361,6 +1362,9 @@ function updateHandDrawerPosition() {
 
   const stack = document.createElement("div");
   stack.className = "handStack mdHandCompact";
+  stack.tabIndex = 0;
+  stack.setAttribute("role", "group");
+  stack.setAttribute("aria-label", "手札（左右にスクロール）");
   stack.style.setProperty("--hand-count", String(Math.max(1, hand.length)));
   stack.style.setProperty("--hand-columns", String(Math.max(1, Math.min(6, hand.length))));
 

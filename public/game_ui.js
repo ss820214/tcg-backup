@@ -1336,13 +1336,22 @@ function updateHandDrawerPosition() {
     <div>
       <b>手札</b>
       <span>${hand.length}枚</span>
-      <small class="handScrollHint">左右スワイプで手札を見る</small>
+      <small class="handScrollHint">タップで選択・多いときは横スワイプ</small>
     </div>
     <div class="handDrawerControls">
+      <button class="handQuickDetail" type="button" disabled>詳細</button>
       <button class="handEvolveTopBtn" type="button" disabled>進化</button>
       <div class="handDrawerHint">クリックで選択 / もう一度盤面へ</div>
     </div>
   `;
+  const quickDetail = head.querySelector(".handQuickDetail");
+  if (quickDetail) {
+    quickDetail.disabled = !selectedCid || selectedLocked;
+    quickDetail.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      if (selectedCid && !selectedLocked) showCardDetail(selectedCid);
+    });
+  }
   const topEvolveBtn = head.querySelector(".handEvolveTopBtn");
   const isSelectedSupport = !!selectedDef && isSupportCard(selectedDef);
   const selectedUsable = selectedIndex != null && !selectedLocked && !!selectedDef;
@@ -1359,12 +1368,19 @@ function updateHandDrawerPosition() {
     });
   }
   handDrawerEl.appendChild(head);
+  const quickSummary = document.createElement("div");
+  quickSummary.className = "handQuickSummary";
+  quickSummary.textContent = selectedCid
+    ? `${cardName(selectedCid)}${selectedLocked ? "（伏せ中）" : ""}`
+    : "使いたいカードをタップ";
+  handDrawerEl.appendChild(quickSummary);
 
   const stack = document.createElement("div");
   stack.className = "handStack mdHandCompact";
   stack.tabIndex = 0;
   stack.setAttribute("role", "group");
   stack.setAttribute("aria-label", "手札（左右にスクロール）");
+  stack.style.setProperty("--hand-gaps", String(Math.max(1, hand.length - 1)));
   stack.style.setProperty("--hand-count", String(Math.max(1, hand.length)));
   stack.style.setProperty("--hand-columns", String(Math.max(1, Math.min(6, hand.length))));
 
@@ -1383,6 +1399,8 @@ function updateHandDrawerPosition() {
       "stackHandCard" +
       (isSelected ? " selected" : "") +
       (isLocked ? " locked" : "");
+    card.setAttribute("aria-pressed", String(isSelected));
+    card.dataset.handIndex = String(i);
     card.style.setProperty("--i", String(i));
     card.style.setProperty("--accent", hexToRgba(strong, 0.7));
     card.style.setProperty("--accentSoft", hexToRgba(strong, 0.22));
@@ -1502,7 +1520,8 @@ function updateHandDrawerPosition() {
       e.stopPropagation();
 
       setSelectedHandIndex(i);
-      showCardDetail(cid);
+      // Mobile taps choose immediately; the separate detail button opens the modal.
+      if (!window.matchMedia?.("(max-width: 760px)")?.matches) showCardDetail(cid);
 
       if (isLocked) {
         render(st);
@@ -1540,6 +1559,17 @@ function updateHandDrawerPosition() {
 
   handDrawerEl.appendChild(stack);
   stack.scrollLeft = savedHandScrollLeft;
+  // Keep a tapped edge card fully visible without moving the page or opening a modal.
+  if (window.matchMedia?.("(max-width: 760px)")?.matches && selectedIndex != null) {
+    const picked = stack.children[selectedIndex];
+    if (picked) {
+      const cardRect = picked.getBoundingClientRect();
+      const stackRect = stack.getBoundingClientRect();
+      if (cardRect.right > stackRect.right - 6) stack.scrollLeft += cardRect.right - stackRect.right + 6;
+      else if (cardRect.left < stackRect.left + 6) stack.scrollLeft -= stackRect.left + 6 - cardRect.left;
+      savedHandScrollLeft = stack.scrollLeft;
+    }
+  }
   stack.addEventListener("scroll", () => { savedHandScrollLeft = stack.scrollLeft; }, {passive:true});
 }
 

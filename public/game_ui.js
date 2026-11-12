@@ -38,6 +38,8 @@ export function createGameUI(ctx) {
     // data
     cardDefsRef,
     cardName,
+    cardArtImgHtml,
+    cardArtDataUri,
     shortLabel,
     isSupportCard,
 
@@ -250,21 +252,24 @@ function vitalDeltaText(kind, delta) {
   return `${icon}${n > 0 ? "+" : ""}${n}`;
 }
 
-function handCardPrimaryText(def) {
+function handCardActionLines(def) {
   if (isSupportCard?.(def)) {
     const eff = supportEffectSummary?.(def) || def?.effectText || def?.desc || "";
-    return String(eff).trim() || "効果なし";
+    return [String(eff).trim() || "効果なし"];
   }
   const acts = Array.isArray(def?.actions) ? def.actions : [];
-  const a = acts[0] || null;
-  if (!a) return "技なし";
-  const hp = Number(a.hpDelta ?? a.hp ?? 0);
-  const sp = Number(a.spDelta ?? a.sp ?? 0);
-  const bits = [`${a.name || "技"}`];
-  if (hp) bits.push(vitalDeltaText("HP", hp));
-  if (sp) bits.push(vitalDeltaText("SP", sp));
-  if (a.rate != null) bits.push(`${a.rate}%`);
-  return bits.join(" / ");
+  if (!acts.length) return ["技なし"];
+  return acts.map(a => {
+    const bits = [String(a.name || "技")];
+    const cost = a.cost ?? a.mana;
+    if (cost != null) bits[0] += `[${cost}]`;
+    const hp = Number(a.hpDelta ?? a.hp ?? 0);
+    const sp = Number(a.spDelta ?? a.sp ?? 0);
+    if (hp) bits.push(vitalDeltaText("HP", hp));
+    if (sp) bits.push(vitalDeltaText("SP", sp));
+    if (a.rate != null) bits.push(`${a.rate}%`);
+    return bits.join(" ");
+  });
 }
 
 function updateHandDrawerPosition() {
@@ -1428,6 +1433,9 @@ function updateHandDrawerPosition() {
     card.style.setProperty("--y", isSelected ? "-14px" : "0px");
     card.style.setProperty("--z", String(isSelected ? 200 : 80 + i));
 
+    const directImage = [def.imageUrl, def.imageURL, def.image, def.img, def.artUrl, def.illustrationUrl, def.illustration]
+      .find(v => typeof v === "string" && v.trim());
+    const artDef = directImage ? {...def, imageUrl:directImage.trim()} : def;
     card.innerHTML = `
       <div class="shcFrameGlow"></div>
       <div class="shcTop">
@@ -1435,7 +1443,7 @@ function updateHandDrawerPosition() {
         <div class="shcAttr">${handCardSymbol(def)}</div>
       </div>
       <div class="shcArt">
-        ${(() => { const url = [def.imageUrl, def.imageURL, def.image, def.img, def.artUrl, def.illustration].find(v => typeof v === "string" && ["https://","http://","./","../","/assets/","assets/"].some(prefix => v.trim().startsWith(prefix))); return url ? `<img class="shcIllustration" src="${String(url).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}" alt="" loading="lazy">` : `<div class="shcArtSymbol">${handCardSymbol(def)}</div>`; })()}
+        ${cardArtImgHtml?.(cid, artDef, "shcIllustration") || ""}
       </div>
       <div class="shcBody">
         <div class="shcKind">${handCardKindLabel(def)}</div>
@@ -1446,13 +1454,26 @@ function updateHandDrawerPosition() {
             : `<div class="shcVitals">HP ${def.hp ?? "?"} / SP ${def.sp ?? "?"}</div>`
         }
 
-        <div class="shcText">${handCardPrimaryText(def)}</div>
+        <div class="shcText" aria-label="行動・効果"></div>
 
       </div>
       <span class="shcDetailControl" role="button" tabindex="0" aria-label="カード詳細">詳細</span>
       ${isSelected ? `<div class="shcPickMarker" aria-hidden="true"><span>☝</span></div>` : ""}
       ${isLocked ? `<div class="shcLock">伏せ</div>` : ""}
     `;
+
+    const actionsEl = card.querySelector(".shcText");
+    for (const line of handCardActionLines(def)) {
+      const row = document.createElement("div");
+      row.className = "shcActionRow";
+      row.textContent = line;
+      row.setAttribute("aria-label", line.replace(/\[([^\]]*)\]/, "（$1マナ）"));
+      actionsEl?.appendChild(row);
+    }
+    const illustration = card.querySelector(".shcIllustration");
+    illustration?.addEventListener("error", () => {
+      if (typeof cardArtDataUri === "function") illustration.src = cardArtDataUri(cid, def);
+    }, { once: true });
 
     const detailControl = card.querySelector(".shcDetailControl");
     const openHandDetail = (ev) => { ev.preventDefault(); ev.stopPropagation(); showCardDetail(cid); };

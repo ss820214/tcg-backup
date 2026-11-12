@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261004_visual4";
+  const VERSION = "20261112_v6_home_menu";
   const STYLE_ID = "deckVisualPolishV420261004";
   const BODY_CLASS = "deckVisualPolishV4";
   let scheduled = false;
@@ -250,7 +250,9 @@ body.${BODY_CLASS}.mobileHomeFit #deckStart .deckStartMenu{
 body.${BODY_CLASS}.mobileHomeFit #deckStart .deckHomeBtn{
   isolation:isolate!important;
   position:relative!important;
-  min-height:clamp(72px,9.2dvh,88px)!important;
+  /* The mobile layout owns row height (58px on a 124px menu).
+     A 72px minimum here overflowed those tracks and covered the next row. */
+  min-height:0!important;
   height:auto!important;
   padding:8px 8px 9px!important;
   display:flex!important;

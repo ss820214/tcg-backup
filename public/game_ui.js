@@ -1,3 +1,4 @@
+import {buildHandGuidance} from "./hand_guidance.js?v=20261113_next_step1";
 // public/game_ui.js
 // v20260723_stable_restore1
 // - UI描画だけをここに隔離する
@@ -92,6 +93,9 @@ export function createGameUI(ctx) {
     selectedHandDef,
     selectedHandCardId,
     supportPlan,
+    getSupportSelection,
+    getSupportTargetMode,
+    maxUnitsPerPlayer,
     supportReadyByPlan,
     supportRateText,
     supportTargetText,
@@ -952,7 +956,7 @@ function updateHandDrawerPosition() {
   if (getMode?.() === "evolve") {
     if (!evolveApply) { evolveApply = document.createElement("button"); evolveApply.id = "battleEvolveApply"; evolveApply.type = "button"; document.body.appendChild(evolveApply); }
     const idx = getSelectedHandIndex?.();
-    const canApply = idx != null && !!canSelectedHandEvolve?.(st, idx);
+    const canApply = !!canControl(st) && idx != null && !isHandCardLocked?.(st,idx,getSeat()) && !!canSelectedHandEvolve?.(st, idx);
     evolveApply.textContent = canApply ? "進化を実行" : "進化元を選択";
     evolveApply.disabled = !canApply;
     evolveApply.style.display = "block";
@@ -976,8 +980,9 @@ function updateHandDrawerPosition() {
   if (getMode?.() === "support" && supportDef && isSupportCard(supportDef)) {
     if (!supportApply) { supportApply = document.createElement("button"); supportApply.id = "battleSupportApply"; supportApply.type = "button"; document.body.appendChild(supportApply); }
     const plan = supportPlan?.(supportDef) || { need: "none" };
-    const ready = !!supportReadyByPlan?.(plan);
-    supportApply.textContent = ready ? "サポート発動" : "対象を選択";
+    const supportGuide = handGuidanceFor(st);
+    const ready = !supportGuide.modeDisabled && !!supportReadyByPlan?.(plan);
+    supportApply.textContent = ready ? "サポート発動" : supportGuide.tone === "blocked" ? "使用条件を確認" : "対象を選択";
     supportApply.disabled = !ready;
     supportApply.onclick = async () => {
       if (supportApply.disabled || !supportReadyByPlan?.(plan)) return;
@@ -1239,6 +1244,54 @@ function updateHandDrawerPosition() {
     }
   }
 
+  function selectHandIndex(index) {
+    if (getSelectedHandIndex?.() !== index) resetSupportPicks?.();
+    setSelectedHandIndex(index);
+  }
+
+  function handGuidanceFor(st) {
+    const seat = getSeat();
+    const index = getSelectedHandIndex?.();
+    const cid = index != null ? st?.hands?.[seat]?.[index] : null;
+    const def = cid ? cardDefsRef()?.[cid] : null;
+    const mode = getMode?.();
+    const support = !!def && isSupportCard(def);
+    const plan = support ? supportPlan?.(def) || {need:"none"} : {};
+    const picks = getSupportSelection?.() || {};
+    const units = Array.isArray(st?.units) ? st.units : [];
+    let summonSpace = false;
+    for (let y=0;y<H && !summonSpace;y++) for(let x=0;x<W;x++) {
+      if (inSummonAreaForSeat?.(x,y,seat) && !units.some(u=>u.x===x && u.y===y)) {summonSpace=true;break;}
+    }
+    return buildHandGuidance({
+      hasCard:!!def,canAct:!!canControl(st),winner:!!st?.winner,mode,support,
+      locked:index!=null && !!isHandCardLocked?.(st,index,seat),cost:def?.cost,
+      mana:normalizeMana?.(st?.mana)?.[seat]?.cur ?? st?.mana?.[seat]?.cur ?? st?.mana?.[seat],
+      evolveCandidates:!!def && !support && units.some(u=>canEvolveBaseWithHand?.(st,u,index)),
+      evolveReady:mode==="evolve" && index!=null && !!canSelectedHandEvolve?.(st,index),
+      summonFull:units.filter(u=>u.owner===seat && (Number(u.hp)>0 || u.panic)).length >= (maxUnitsPerPlayer || 5),
+      summonSpace,supportNeed:plan.need,supportCount:plan.count,
+      supportReady:support && !!supportReadyByPlan?.(plan),supportTarget:getSupportTargetMode?.(def),
+      supportFirst:!!picks.firstId,supportPicked:picks.unitIds?.length || 0,
+    });
+  }
+
+  function updateHandBoardGuide(st, guide) {
+    if (!boardEl?.parentElement) return;
+    let el = document.getElementById("handBoardGuide");
+    if (!el) {
+      el = document.createElement("div");el.id="handBoardGuide";
+      el.className="handBoardGuide";el.setAttribute("role","status");
+      el.setAttribute("aria-live","polite");el.setAttribute("aria-atomic","true");
+      boardEl.parentElement.insertBefore(el,boardEl);
+    }
+    el.hidden = !guide.boardVisible;
+    el.dataset.tone = guide.tone;
+    const index=getSelectedHandIndex?.(),cid=st?.hands?.[getSeat()]?.[index];
+    const text=cid ? `${cardName(cid)}：${guide.text}` : guide.text;
+    if (el.textContent!==text) el.textContent=text;
+  }
+
   // ===== Hand =====
   function renderHand(st) {
   if (!handEl) return;
@@ -1256,6 +1309,8 @@ function updateHandDrawerPosition() {
   const selectedCid =
     selectedIndex != null && selectedIndex >= 0 ? hand[selectedIndex] : null;
   const selectedDef = selectedCid ? cardDefs[selectedCid] || {} : null;
+  const guide = handGuidanceFor(st);
+  updateHandBoardGuide(st, guide);
   const selectedLocked =
     selectedIndex != null && typeof isHandCardLocked === "function"
       ? !!isHandCardLocked(st, selectedIndex, seat)
@@ -1359,25 +1414,39 @@ function updateHandDrawerPosition() {
   }
   const topEvolveBtn = head.querySelector(".handEvolveTopBtn");
   const isSelectedSupport = !!selectedDef && isSupportCard(selectedDef);
-  const selectedUsable = selectedIndex != null && !selectedLocked && !!selectedDef;
   if (topEvolveBtn) {
-    topEvolveBtn.textContent = isSelectedSupport ? "使用" : "進化";
-    topEvolveBtn.disabled = !selectedUsable;
-    topEvolveBtn.classList.toggle("ready", selectedUsable);
+    topEvolveBtn.textContent = guide.modeLabel;
+    topEvolveBtn.disabled = guide.modeDisabled;
+    topEvolveBtn.title = guide.modeDisabled ? guide.text : "対象選択へ進みます。このボタンでは実行しません";
+    topEvolveBtn.classList.toggle("ready", !guide.modeDisabled);
     topEvolveBtn.addEventListener("click", (e) => {
       e.preventDefault(); e.stopPropagation();
-      if (!selectedUsable) return;
-      setMode(isSelectedSupport ? "support" : "evolve");
+      if (guide.modeDisabled) return;
+      const nextMode = isSelectedSupport ? "support" : "evolve";
+      if (getMode?.() !== nextMode) setMode(nextMode);
+      else render(st);
       handDrawerOpen = false;
       updateHandDrawerOpenState();
+      if (isSelectedSupport && supportPlan?.(selectedDef)?.need === "search") {
+        if (window.matchMedia?.("(max-width:760px) and (orientation:portrait)")?.matches && !document.body.classList.contains("mobileBattlePopupOpen"))
+          document.querySelector('#mobileBattleNav [data-jump-target="rightPane"]')?.click();
+        actionPickerEl?.scrollIntoView?.({block:"nearest"});
+      }
     });
   }
   handDrawerEl.appendChild(head);
   const quickSummary = document.createElement("div");
   quickSummary.className = "handQuickSummary";
-  quickSummary.textContent = selectedCid
-    ? `${cardName(selectedCid)}${selectedLocked ? "（伏せ中）" : ""}`
-    : "使いたいカードをタップ";
+  const quickText = document.createElement("div");quickText.className="handQuickText";
+  const selectionName = document.createElement("div");selectionName.className="handSelectionName";
+  selectionName.textContent=selectedCid ? cardName(selectedCid) : "カード未選択";
+  const nextStep = document.createElement("div");nextStep.className="handNextStep";
+  nextStep.textContent=guide.text;nextStep.dataset.tone=guide.tone;
+  quickText.append(selectionName,nextStep);quickSummary.appendChild(quickText);
+  const boardGo=document.createElement("button");boardGo.type="button";boardGo.className="handBoardGo";
+  boardGo.textContent="盤面へ";boardGo.hidden=!selectedCid;
+  boardGo.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();handDrawerOpen=false;updateHandDrawerOpenState();});
+  quickSummary.appendChild(boardGo);
   handDrawerEl.appendChild(quickSummary);
 
   const stack = document.createElement("div");
@@ -1493,7 +1562,7 @@ function updateHandDrawerPosition() {
       handHoldTimer = setTimeout(() => {
         handHoldTimer = null;
         handHoldFired = true;
-        setSelectedHandIndex(i);
+        selectHandIndex(i);
         const old = document.getElementById("handLongPressMenu");
         old?.remove();
         const menu = document.createElement("div");
@@ -1523,7 +1592,7 @@ function updateHandDrawerPosition() {
           menu.remove();
           if (action === "detail") { showCardDetail(cid); return; }
           if (action === "close") return;
-          setSelectedHandIndex(i);
+          selectHandIndex(i);
           setMode(action === "evolve" && isSupportCard(def) ? "support" : action);
           render(st);
         });
@@ -1540,7 +1609,7 @@ function updateHandDrawerPosition() {
       e.preventDefault();
       e.stopPropagation();
 
-      setSelectedHandIndex(i);
+      selectHandIndex(i);
       // Mobile taps choose immediately; the separate detail button opens the modal.
       if (!window.matchMedia?.("(max-width: 760px)")?.matches) showCardDetail(cid);
 

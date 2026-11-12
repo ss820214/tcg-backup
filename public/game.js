@@ -3,7 +3,7 @@ import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_read
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261113_v6_hand_art_actions";
+import { createGameUI } from "./game_ui.js?v=20261113_v6_next_step";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
@@ -7436,6 +7436,9 @@ const ui = createGameUI({
   selectedHandDef,
   selectedHandCardId,
   supportPlan,
+  getSupportSelection:()=>({firstId:supportTarget1Id,unitIds:supportTargetIds}),
+  getSupportTargetMode,
+  maxUnitsPerPlayer:MAX_UNITS_PER_PLAYER,
   supportReadyByPlan,
   supportRateText,
   supportTargetText,

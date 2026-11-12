@@ -5894,6 +5894,7 @@ body {
   #handDrawer .handStack.mdHandCompact .stackHandCard.selected,
   #handDrawer .handStack.mdHandCompact .stackHandCard.selected:hover{
     z-index:200!important;transform:translateY(-44px)!important;
+    margin-right:0!important;
   }
 }
 
@@ -5935,6 +5936,25 @@ body {
 #handDrawer .handStack.mdHandCompact .shcActionRow{margin:0 0 1px;white-space:normal}
 #handDrawer .handStack.mdHandCompact .shcDetailControl{display:none!important}
 #handDrawer .handStack.mdHandCompact .shcPickMarker{display:none!important}
+}
+
+/* Keep the next step visible after the hand drawer closes. */
+.handBoardGuide{position:relative;grid-column:1/-1;align-self:center;box-sizing:border-box;width:100%;max-width:640px;margin:5px auto;padding:8px 10px;border:1px solid #77c6c580;border-radius:10px;background:#102b32;color:#e4ffff;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.handBoardGuide[hidden]{display:none!important}
+.handBoardGuide[data-tone="blocked"]{background:#352a16;border-color:#edbb6580;color:#ffe2ac}
+@media(max-width:760px){
+#handDrawer .handQuickSummary{display:flex;gap:6px;align-items:center;white-space:normal;overflow:visible;text-overflow:clip;margin-top:3px}
+#handDrawer .handQuickText{flex:1;min-width:0}
+#handDrawer .handSelectionName{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#handDrawer .handNextStep{font-size:11px;line-height:1.35;color:#aee8e5;margin-top:2px}
+#handDrawer .handNextStep[data-tone="blocked"]{color:#ffdaa0}
+#handDrawer .handBoardGo{flex:none;min-height:44px;padding:5px 8px;border:1px solid #8cd4cc80;border-radius:10px;background:#173e46;color:#dffffb;font-size:12px;font-weight:800;cursor:pointer}
+#handDrawer .handBoardGo[hidden]{display:none}
+#handDrawer .handEvolveTopBtn{min-width:78px!important;font-size:11px!important;white-space:nowrap!important}
+#handDrawer .handStack.mdHandCompact .stackHandCard:not(.selected) .shcTop{left:6px;right:auto;width:36px;padding:0!important;gap:4px}
+#handDrawer .handStack.mdHandCompact .stackHandCard:not(.selected) .shcCost{box-sizing:border-box;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important}
+#handDrawer .handStack.mdHandCompact .stackHandCard:not(.selected) .shcCost::after{font-size:10px!important}
+#handDrawer .handStack.mdHandCompact .stackHandCard:not(.selected) .shcAttr{box-sizing:border-box;width:16px!important;height:16px!important;min-width:16px!important;min-height:16px!important;font-size:10px!important}
 }
 
 /* Fourth long-press command: magnifier directly below the radial commands. */

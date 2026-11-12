@@ -65,6 +65,7 @@ jobs:
           node --check public/game.js
           node --check public/game_ui.js
           node tools/hand_card_content_regression_20261113.mjs
+          node tools/hand_guidance_regression_20261113.mjs
           node --check public/evolve_system.js
           node --check public/support_core.js
           node --check public/game_core.js

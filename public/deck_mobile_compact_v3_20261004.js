@@ -21,6 +21,7 @@
   function installStyle() {
     if (!document.head || !isMobileLike() || !isDeckBuilder()) return;
     let style = document.getElementById(STYLE_ID);
+    if (style) return;
     if (!style) {
       style = document.createElement("style");
       style.id = STYLE_ID;

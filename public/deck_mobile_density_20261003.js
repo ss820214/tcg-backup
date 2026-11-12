@@ -26,6 +26,9 @@
 
   function injectStyle() {
     let style = $(STYLE_ID);
+    // The DOM observers also see stylesheet text nodes. Replacing identical
+    // CSS here re-triggered every UI observer and could starve input tasks.
+    if (style) return;
     if (!style) {
       style = document.createElement("style");
       style.id = STYLE_ID;
@@ -510,12 +513,12 @@
 
     if (home) {
       home.hidden = false;
-      home.textContent = "ホーム";
+      if (home.textContent !== "ホーム") home.textContent = "ホーム";
       home.setAttribute("aria-label", "ホームへ戻る");
     }
     if (deck) {
       deck.hidden = false;
-      deck.textContent = "デッキ";
+      if (deck.textContent !== "デッキ") deck.textContent = "デッキ";
       deck.setAttribute("aria-label", "デッキ画面");
     }
     if (settings) settings.hidden = true;

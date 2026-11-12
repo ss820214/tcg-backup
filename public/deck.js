@@ -10,7 +10,9 @@ const qs = new URLSearchParams(location.search);
 // Profile-linked UID from login.html.
 let linkedUid = qs.get("uid") || localStorage.getItem("uid") || "";
 
-const anonUser = await ensureSignedIn();
+const bootStep = (message, task) => window.TCG_DECK_BOOT
+  ? window.TCG_DECK_BOOT.step(message, task) : task();
+const anonUser = await bootStep("ログイン状態を確認中…", ensureSignedIn);
 const anonUid = anonUser?.uid || "";
 
 const profileUid = linkedUid;
@@ -730,16 +732,28 @@ function ensureDeckStartStyle() {
       opacity:.52; cursor:not-allowed; filter:grayscale(.55);
       transform:none !important;
     }
-    .deckStartUnit {
+    #deckStart .obHomeFloatArt,
+    #deckStart .obHomeFloatEcho {
+      position:absolute; inset:0; pointer-events:none;
+      background:var(--deck-start-mascot, url("./assets/home/home-mascot-base-20260911.png")) center / contain no-repeat;
       animation: obHomeFloat 5.5s ease-in-out infinite;
       will-change: transform;
     }
+    #deckStart .obHomeFloatArt { z-index:2; }
+    #deckStart .obHomeFloatEcho { z-index:1; opacity:.09; animation-delay:.22s; }
     @keyframes obHomeFloat {
       0%,100% { transform:translateY(0); }
       50% { transform:translateY(-11px); }
     }
+    html[data-home-light-motion="true"] #deckStart .obHomeFloatEcho { display:none; }
+    html[data-home-motion-paused="true"] #deckStart .obHomeFloatArt,
+    html[data-home-motion-paused="true"] #deckStart .obHomeFloatEcho,
+    #deckStart.hide .obHomeFloatArt, #deckStart.hide .obHomeFloatEcho {
+      animation-play-state:paused;
+    }
     @media (prefers-reduced-motion:reduce) {
-      .deckStartUnit { animation:none !important; }
+      #deckStart .obHomeFloatArt { animation:none !important; will-change:auto; }
+      #deckStart .obHomeFloatEcho { display:none; }
     }
     .deckHomeBtn::before{
       content:"";
@@ -1554,11 +1568,9 @@ function ensureDeckStartStyle() {
       height:min(500px, 58vh);
       min-width:245px;
       min-height:340px;
-      background:
-        radial-gradient(circle at 50% 74%, rgba(185,255,55,.12), transparent 36%),
-        var(--deck-start-mascot, url("./assets/home/home-mascot-base-20260911.png")) center / contain no-repeat;
+      background:radial-gradient(circle at 50% 74%, rgba(185,255,55,.12), transparent 36%);
       filter:drop-shadow(0 24px 58px rgba(0,0,0,.58)) drop-shadow(0 0 34px rgba(170,120,255,.26));
-      animation:startCardFloat 4.2s ease-in-out infinite;
+      animation:none;
       z-index:3;
     }
     .deckStartUnit::before{
@@ -2287,7 +2299,11 @@ function pickHomeMascotImage() {
 function randomizeHomeMascot() {
   const unit = deckStartEl?.querySelector?.(".deckStartUnit");
   if (!unit) return;
-  unit.style.setProperty("--deck-start-mascot", `url("${pickHomeMascotImage()}")`);
+  const src = pickHomeMascotImage();
+  unit.style.setProperty("--deck-start-mascot", `url("${src}")`);
+  window.TCG_DECK_BOOT?.asset(src);
+  ["deck", "user", "gacha", "arcade", "creator", "room"].forEach(name =>
+    window.TCG_DECK_BOOT?.asset(`./assets/home/menu-${name}.webp`));
 }
 
 function ensureDeckStartElement() {
@@ -2501,6 +2517,8 @@ function ensureDeckStartElement() {
         <div class="deckStartHero">
           <div class="deckStartHeroLines" aria-hidden="true"></div>
           <div class="deckStartUnit" aria-hidden="true">
+            <div class="obHomeFloatEcho"></div>
+            <div class="obHomeFloatArt"></div>
             <div class="deckStartWing left"></div>
             <div class="deckStartWing right"></div>
             <div class="deckStartArm left"></div>
@@ -9098,10 +9116,11 @@ if (deckTitleInput) {
   if (t && !deckTitleInput.value.trim()) deckTitleInput.value = t;
 }
 
-await loadAdminFlag();
+await bootStep("アカウント情報を確認中…", loadAdminFlag);
 updateAdminModeBadge();
-await loadCards();
-await initOwnedCards();
+await bootStep("カードデータを読み込み中…", loadCards);
+await bootStep("所持カードを読み込み中…", initOwnedCards);
+window.TCG_DECK_BOOT?.stage("保存したデッキを復元中…");
 const loadedPendingDeck = consumePendingCloudDeck();
 if (!loadedPendingDeck) {
   let loadedLocalDeck = false;
@@ -9124,6 +9143,7 @@ pruneDeckByOwnership("デッキ調整");
 saveSelectedEx(selectedExSupportId || "");
 saveLocalDeck();
 
+window.TCG_DECK_BOOT?.stage("カード一覧と操作を準備中…");
 renderAll();
 initTabs();
 injectRoomButtonsNearSettings();
@@ -9191,6 +9211,7 @@ initDeckLibrary({
 });
 setupDeckPanelWorkbench();
 syncDeckPanelActionState();
+void window.TCG_DECK_BOOT?.complete();
 
 function prettyEffect(eff) {
   if (eff == null) return "";

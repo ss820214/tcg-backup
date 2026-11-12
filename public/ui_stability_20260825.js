@@ -177,7 +177,8 @@
     const ready = countNum === 30 ? "READY" : "\u7de8\u6210\u4e2d";
     const set = (id, value) => {
       const el = $(id);
-      if (el) el.textContent = value;
+      // This strip is inside the observed panel: unchanged writes schedule us again.
+      if (el && el.textContent !== value) el.textContent = value;
     };
     set("#uiDeckReadyMetric", ready);
     set("#uiDeckCountMetric", `${countNum}/30`);

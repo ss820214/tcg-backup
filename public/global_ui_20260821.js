@@ -145,7 +145,8 @@
     badge.classList.add("deviceModeBadge");
     badge.dataset.mode = state.mobile ? "mobile" : "pc";
     badge.dataset.override = state.mode;
-    badge.textContent = modeLabel(state);
+    const label = modeLabel(state);
+    if (badge.textContent !== label) badge.textContent = label;
     badge.title = "クリックで 自動 → PC固定 → スマホ固定 を切り替え";
 
     if (!badge.dataset.deviceModeBound) {
@@ -246,9 +247,9 @@
   const deckDomReady = () => !!(document.getElementById("cardList") && document.getElementById("deckPanel"));
   if (!pathLooksLikeDeck && !deckDomReady()) return;
 
-  const REFINE = "20261003_refine2";
-  const DENSITY = "20261003_density2";
-  const GUARD = "20261112_v6_home_menu";
+  const REFINE = "20261112_v6_ready3";
+  const DENSITY = "20261112_v6_ready3";
+  const GUARD = "20261112_v6_ready3";
 
   const loadGuard = () => {
     if (document.querySelector(`script[data-deck-runtime-guard="${GUARD}"]`)) return;
@@ -362,7 +363,7 @@
 
 // Global press feedback: a small spark burst at the actual press point.
 (() => {
-  const SPARK = "20261004_spark1";
+  const SPARK = "20261112_v6_ready3";
 
   const load = () => {
     if (!document.body) {

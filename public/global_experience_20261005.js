@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "20261005_experience1";
+  const VERSION = "20261112_v6_ready3";
   const FEEDBACK_STYLE_ID = "tcgGlobalExperienceStyle20261005";
   const HOME_STYLE_ID = "tcgHomeCompletionStyle20261005";
   const root = document.documentElement;
@@ -225,7 +225,8 @@
     longTimer = window.setTimeout(() => {
       if (activeCount > 0 && navigator.onLine !== false) setState("loading", "読み込みに時間がかかっています…");
     }, 8000);
-    return { done: () => end() };
+    let finished = false;
+    return { done: () => { if (!finished) { finished = true; end(); } } };
   }
 
   function end() {
@@ -234,7 +235,9 @@
     clearTimeout(showTimer);
     clearTimeout(longTimer);
     if (root.dataset.tcgNetState === "loading") {
-      setState("success", "準備完了", { autoHide: 700 });
+      // A response can finish before its JSON, app initialization or UI handlers.
+      // Only the deck's explicit boot controller may announce application readiness.
+      hideStatus();
     }
   }
 

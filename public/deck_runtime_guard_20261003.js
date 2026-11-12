@@ -5,7 +5,7 @@
   // Runtime guard -> compact mobile layout -> final visual polish -> kana/gear UX.
   const VERSION = "20261004_guard3_compact1_visual4_kana_gear1_loader";
   const GUARD_SRC = "./deck_runtime_guard_v3_20261003.js?v=20261003_guard3";
-  const COMPACT_SRC = "./deck_mobile_compact_v3_20261004.js?v=20261004_compact1";
+  const COMPACT_SRC = "./deck_mobile_compact_v3_20261004.js?v=20261112_v6_ready3";
   const VISUAL_SRC = "./deck_visual_polish_v4_20261004.js?v=20261112_v6_home_menu";
   const KANA_GEAR_SRC = "./deck_kana_gear_20261004.js?v=20261004_kana_gear1";
 
@@ -19,6 +19,10 @@
     feature.src = KANA_GEAR_SRC;
     feature.async = false;
     feature.dataset.deckKanaGear = "1";
+    feature.addEventListener("load", () => {
+      document.documentElement.dataset.deckRuntimeReady = "true";
+      window.dispatchEvent(new CustomEvent("tcg:deck-runtime-ready"));
+    }, { once:true });
     feature.addEventListener("error", () => {
       console.error("[deck_runtime_guard] kana/gear layer failed to load");
     }, { once:true });

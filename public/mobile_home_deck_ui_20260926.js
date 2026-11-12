@@ -1346,6 +1346,19 @@
       });
     };
     syncMode();
+    // Authentication can finish after the old startup timers. Track only the
+    // home container, so a late-created home and closing it both update layout.
+    let observedHome = null;
+    const homeObserver = new MutationObserver(() => {
+      const home = document.getElementById("deckStart");
+      if (home && home !== observedHome) {
+        observedHome = home;
+        homeObserver.observe(home, { attributes:true, attributeFilter:["class", "hidden", "aria-hidden"] });
+      }
+      scheduleSync();
+    });
+    homeObserver.observe(document.body, { childList:true });
+    window.addEventListener("tcg:deck-ready", scheduleSync);
     window.addEventListener("resize", scheduleSync, { passive: true });
     window.addEventListener("orientationchange", () => setTimeout(syncMode, 160), { passive: true });
     window.addEventListener("tcg:device-mode-change", scheduleSync, { passive: true });

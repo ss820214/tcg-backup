@@ -470,7 +470,7 @@
 
   function normalizeHeaderAndActions() {
     const home = $("btnHome");
-    if (home && home.textContent !== "ホームへ") home.textContent = "ホームへ";
+    if (home && home.textContent !== "ホーム") home.textContent = "ホーム";
 
     const labels = { save: "保存", library: "自分のデッキ", lab: "評価", play: "対戦へ" };
     Object.entries(labels).forEach(([key, label]) => {

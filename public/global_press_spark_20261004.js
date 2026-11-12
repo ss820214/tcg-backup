@@ -200,7 +200,7 @@
 
 // Shared interaction experience: network/load feedback plus the finished home presentation.
 (() => {
-  const EXPERIENCE = "20261005_experience1";
+  const EXPERIENCE = "20261112_v6_ready3";
   const load = () => {
     if (!document.body) {
       requestAnimationFrame(load);

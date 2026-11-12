@@ -202,7 +202,7 @@
     if (!text) return;
     if (/^(?:\u8a73)+\u7d30$/.test(text) || text.indexOf("\u8a73\u8a73\u7d30") !== -1) {
       if ("value" in el && el.value) el.value = JP.detail;
-      else el.textContent = JP.detail;
+      else if (el.textContent !== JP.detail) el.textContent = JP.detail;
       el.setAttribute("aria-label", JP.detail);
     }
   }
@@ -1485,7 +1485,7 @@
       if (key === "+" || key === "＋") el.classList.add("tcgMLastPlus");
       if (key === "-" || key === "－") el.classList.add("tcgMLastMinus");
       if (/^詳?詳細$/.test(key)) {
-        el.textContent = "詳細";
+        if (el.textContent !== "詳細") el.textContent = "詳細";
         el.classList.add("tcgMLastDetail");
       }
       if (/^\d+\s*\/\s*\d+$/.test(key)) el.classList.add("tcgMLastCount");
@@ -1992,7 +1992,7 @@
           controls.add(btn);
         } else if (/詳細|詳詳細/.test(t)) {
           btn.classList.add("tcgMobileDeckRowDetail");
-          btn.textContent = "詳細";
+          if (btn.textContent !== "詳細") btn.textContent = "詳細";
           controls.add(btn);
         }
       });
@@ -2217,7 +2217,7 @@
       else if (isMinusText(t)) add(el, "tcgDbRowMinus");
       else if (isCountText(t)) add(el, "tcgDbRowCount");
       else if (t.indexOf("詳詳細") >= 0 || t.indexOf("詳細") >= 0) {
-        el.textContent = "詳細";
+        if (el.textContent !== "詳細") el.textContent = "詳細";
         add(el, "tcgDbRowDetail");
       }
       if (t.indexOf("保存") >= 0 || t.indexOf("自分のデッキ") >= 0) add(el, "tcgDbDeckActionBtn");

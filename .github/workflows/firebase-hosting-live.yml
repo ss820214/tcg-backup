@@ -31,6 +31,8 @@ jobs:
 
       - name: Verify deck regressions before publishing
         run: |
+          node --check public/deck_boot_20261112.js
+          node tools/deck_boot_readiness_regression_20261112.mjs
           node --check public/auth.js
           node --check public/login.js
           node tools/admin_email_link_regression_20261103.mjs

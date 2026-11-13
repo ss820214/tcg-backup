@@ -6178,16 +6178,10 @@ body {
 #battleAttackConfirmDock .battleAttackStatus{font-size:12px!important;line-height:1.35!important;text-align:left!important}
 #battleAttackConfirmDock .battleAttackControls button{min-height:44px!important;font-size:14px!important}
 body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) + var(--battle-command-bottom,16px) + 12px)!important}
-@media(max-width:760px) and (orientation:portrait){
-  body.battleCommandActive.mobileBattlePopupOpen #leftPane.mobileBattlePopupActive,
-  body.battleCommandActive.mobileBattlePopupOpen #rightPane.mobileBattlePopupActive{
-    bottom:calc(var(--battle-command-height,110px) + var(--battle-command-bottom,76px) + 8px)!important;
-  }
-}
 #board .cell .unitBox{
   position:absolute!important;inset:2px!important;width:auto!important;height:auto!important;
   box-sizing:border-box!important;min-width:0!important;min-height:0!important;
-  display:grid!important;grid-template-rows:minmax(10px,1fr) 30px 18px!important;
+  display:grid!important;grid-template-rows:minmax(0,1fr) 30px 18px!important;
   gap:2px!important;padding:3px 4px 3px 6px!important;
   border:1px solid #64758a99!important;border-radius:7px!important;
   background:linear-gradient(90deg,var(--unit-attr,#7894ad) 0 3px,#101b2a 3px 100%)!important;
@@ -6233,7 +6227,7 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
 #board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:14px minmax(0,1fr) 11px!important}
 #board .cell.canAct .unitBox::after{display:none!important;content:none!important}
 @media(max-width:760px){
-  #board .cell .unitBox{grid-template-rows:minmax(10px,1fr) 26px 14px!important;gap:1px!important;padding:2px 3px 2px 5px!important}
+  #board .cell .unitBox{grid-template-rows:minmax(0,1fr) 26px 14px!important;gap:1px!important;padding:2px 3px 2px 5px!important}
   #board .cell .unitBox .uTop{grid-template-columns:11px minmax(0,1fr) 0px!important;gap:1px!important}
   #board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:11px minmax(0,1fr) 9px!important}
   #board .cell .unitBox .uCost{font-size:8px!important}
@@ -6245,7 +6239,47 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
   #board .cell .unitBox .uStatLabel{font-size:8px!important;line-height:12px!important}
   #board .cell .unitBox .uStatOverlay{font-size:clamp(7px,2vw,10px)!important;line-height:12px!important;letter-spacing:-.03em!important}
   #board .cell .unitBox .uIcons,#board .cell .unitBox .uIcons:not(:empty){height:14px!important;min-height:14px!important;gap:1px!important}
-  #board .cell .unitBox .statusChip{flex-basis:14px!important;min-width:14px!important;width:14px!important;height:14px!important;border-width:1px!important}
+  #board .cell .unitBox .statusChip{flex:0 1 14px!important;min-width:0!important;width:14px!important;height:14px!important;border-width:1px!important;overflow:hidden!important}
   #board .cell .unitBox .statusChipIcon{width:12px!important;height:12px!important}
   #board .cell .unitBox .statusChipIcon .statusDoodle > span{font-size:10px!important}
+}
+
+/* Fit the real recovery-grid cells, including runtime-injected unit styles. */
+#board .cell .unitBox .uTop{grid-template-rows:minmax(0,1fr)!important;height:100%!important;overflow:hidden!important;min-width:0!important}
+#board .cell .unitBox .uCost{box-sizing:border-box!important;min-width:0!important;min-height:0!important;width:100%!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;background:none!important;line-height:1.1!important}
+#board .cell .unitBox .uName{box-sizing:border-box!important;min-width:0!important;min-height:0!important;height:100%!important;max-height:100%!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:ellipsis!important}
+#board .cell .unitBox:not(:has(.uIcons:not(:empty))){grid-template-rows:minmax(0,1fr) 30px 0px!important}
+#board .cell .unitBox .uIcons:empty{display:none!important;min-height:0!important;height:0!important}
+@media(max-width:760px){
+  #board .cell .unitBox:not(:has(.uIcons:not(:empty))){grid-template-rows:minmax(0,1fr) 26px 0px!important}
+}
+@media(max-width:760px) and (orientation:portrait){
+  #centerPane #board{min-height:500px!important}
+  #mobileBattleNav #handDrawerToggle{
+    position:static!important;inset:auto!important;transform:none!important;
+    flex:1!important;width:auto!important;min-width:0!important;max-width:none!important;
+    height:44px!important;min-height:44px!important;margin:0!important;padding:6px!important;
+    border-radius:12px!important;font-size:13px!important;z-index:auto!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+  }
+  #mobileBattleNav button{min-width:0!important}
+  #mobileBattleNav #handDrawerToggle .handDrawerToggleLabel{letter-spacing:0!important}
+  #mobileBattleNav #handDrawerToggle .handDrawerToggleArrow{font-size:10px!important}
+  #handDrawer.handDrawer{bottom:calc(var(--battle-nav-height,150px) + 18px)!important}
+}
+
+/* Utility controls occupy their own row above the board. */
+#battleUtilityBar{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;box-sizing:border-box;width:100%;max-width:1440px;padding:8px 10px;margin:0 auto}
+#battleUtilityBar #deviceModeBadge,#battleUtilityBar #tcgDopagakiToggle{position:static!important;inset:auto!important;transform:none!important;min-width:0!important;min-height:36px!important;margin:0!important;padding:6px 10px!important;font-size:12px!important;line-height:1.2!important;letter-spacing:0!important}
+
+/* Mobile HUD: mana, confirmation, and navigation share one layout container. */
+@media(max-width:760px) and (orientation:portrait){
+  body #mobileBattleNav{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;align-items:center!important}
+  #mobileBattleNav > #battleManaQuick{grid-column:1/-1;order:0;box-sizing:border-box;width:100%!important;min-width:0;margin:0!important;padding:7px 10px!important;gap:8px!important}
+  #mobileBattleNav > #battleAttackConfirmDock:not([hidden]){grid-column:1/-1;order:1;position:static!important;inset:auto!important;transform:none!important;width:100%!important;margin:0!important;box-sizing:border-box!important}
+  #mobileBattleNav > button{order:2}
+  #mobileBattleNav #battleManaQuickValue{font-size:17px!important}
+  body,body.battleCommandActive{padding-bottom:calc(var(--battle-nav-height,150px) + 16px)!important}
+  body.mobileBattlePopupOpen #leftPane.mobileBattlePopupActive,
+  body.mobileBattlePopupOpen #rightPane.mobileBattlePopupActive{bottom:calc(var(--battle-nav-height,150px) + 18px)!important}
 }

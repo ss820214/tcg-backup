@@ -1278,6 +1278,7 @@
   function onTogglePointerDown(e) {
     if (e?.button != null && e.button !== 0) return;
     const btn = e.currentTarget;
+    if (btn.closest("#battleUtilityBar")) { startTechHold(e); return; }
     const rect = btn.getBoundingClientRect();
     toggleDrag = {
       id: e.pointerId,
@@ -1331,7 +1332,8 @@
     btn.type = "button";
     btn.textContent = "\u30c9\u30d1\u30ac\u30ad";
     btn.setAttribute("aria-pressed", "false");
-    restoreTogglePosition(btn);
+    const battleBar = document.getElementById("battleUtilityBar");
+    if (!battleBar) restoreTogglePosition(btn);
     btn.addEventListener("pointerdown", onTogglePointerDown);
     btn.addEventListener("pointermove", onTogglePointerMove);
     btn.addEventListener("pointerup", onTogglePointerEnd);
@@ -1359,7 +1361,7 @@
         text: on ? "DOPA!" : "OFF",
       });
     });
-    document.body.appendChild(btn);
+    (battleBar || document.body).appendChild(btn);
   }
   function bindClickConfetti() {
     document.addEventListener(

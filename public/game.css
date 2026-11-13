@@ -6198,7 +6198,7 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
   grid-row:auto!important;position:static!important;inset:auto!important;width:auto!important;
   margin:0!important;padding:0!important;align-self:start!important;max-height:100%!important;
   font-size:10px!important;line-height:1.15!important;overflow:hidden!important;
-  white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;color:#e9edf4!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;color:#e9edf4!important;
 }
 #board .cell .unitBox .uSelectionMark{font-size:11px;line-height:1.2;color:#fff4b8;font-weight:1000}
 #board .cell .unitBox .uHPWrap{
@@ -6227,7 +6227,7 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
 #board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:14px minmax(0,1fr) 11px!important}
 #board .cell.canAct .unitBox::after{display:none!important;content:none!important}
 @media(max-width:760px){
-  #board .cell .unitBox{grid-template-rows:minmax(0,1fr) 26px 14px!important;gap:1px!important;padding:2px 3px 2px 5px!important}
+  #board .cell .unitBox{grid-template-rows:minmax(20px,1fr) 26px 12px!important;gap:1px!important;padding:0 3px 0 5px!important;inset:1px!important}
   #board .cell .unitBox .uTop{grid-template-columns:11px minmax(0,1fr) 0px!important;gap:1px!important}
   #board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:11px minmax(0,1fr) 9px!important}
   #board .cell .unitBox .uCost{font-size:8px!important}
@@ -6238,16 +6238,16 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
   #board .cell .unitBox .uStatRow{grid-template-columns:12px minmax(0,1fr)!important;gap:1px!important}
   #board .cell .unitBox .uStatLabel{font-size:8px!important;line-height:12px!important}
   #board .cell .unitBox .uStatOverlay{font-size:clamp(7px,2vw,10px)!important;line-height:12px!important;letter-spacing:-.03em!important}
-  #board .cell .unitBox .uIcons,#board .cell .unitBox .uIcons:not(:empty){height:14px!important;min-height:14px!important;gap:1px!important}
-  #board .cell .unitBox .statusChip{flex:0 1 14px!important;min-width:0!important;width:14px!important;height:14px!important;border-width:1px!important;overflow:hidden!important}
-  #board .cell .unitBox .statusChipIcon{width:12px!important;height:12px!important}
+  #board .cell .unitBox .uIcons,#board .cell .unitBox .uIcons:not(:empty){height:12px!important;min-height:12px!important;gap:1px!important}
+  #board .cell .unitBox .statusChip{flex:0 1 14px!important;min-width:0!important;width:14px!important;height:12px!important;border-width:1px!important;overflow:hidden!important}
+  #board .cell .unitBox .statusChipIcon{width:10px!important;height:10px!important}
   #board .cell .unitBox .statusChipIcon .statusDoodle > span{font-size:10px!important}
 }
 
 /* Fit the real recovery-grid cells, including runtime-injected unit styles. */
 #board .cell .unitBox .uTop{grid-template-rows:minmax(0,1fr)!important;height:100%!important;overflow:hidden!important;min-width:0!important}
 #board .cell .unitBox .uCost{box-sizing:border-box!important;min-width:0!important;min-height:0!important;width:100%!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;background:none!important;line-height:1.1!important}
-#board .cell .unitBox .uName{box-sizing:border-box!important;min-width:0!important;min-height:0!important;height:auto!important;max-height:1.15em!important;display:block!important;-webkit-line-clamp:unset;text-overflow:ellipsis!important}
+#board .cell .unitBox .uName{box-sizing:border-box!important;min-width:0!important;min-height:0!important;height:auto!important;max-height:2.3em!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-overflow:ellipsis!important}
 #board .cell .unitBox:not(:has(.uIcons:not(:empty))){grid-template-rows:minmax(0,1fr) 30px 0px!important}
 #board .cell .unitBox .uIcons:empty{display:none!important;min-height:0!important;height:0!important}
 @media(max-width:760px){
@@ -6270,7 +6270,7 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
 
 /* Utility controls occupy their own row above the board. */
 #battleUtilityBar{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;box-sizing:border-box;width:100%;max-width:1440px;padding:8px 10px;margin:0 auto}
-#battleUtilityBar #deviceModeBadge,#battleUtilityBar #tcgDopagakiToggle{position:static!important;inset:auto!important;transform:none!important;min-width:0!important;min-height:36px!important;margin:0!important;padding:6px 10px!important;font-size:12px!important;line-height:1.2!important;letter-spacing:0!important}
+#battleUtilityBar #deviceModeBadge,#battleUtilityBar #tcgDopagakiToggle{position:relative!important;overflow:hidden!important;isolation:isolate;inset:auto!important;transform:none!important;min-width:0!important;min-height:36px!important;margin:0!important;padding:6px 10px!important;font-size:12px!important;line-height:1.2!important;letter-spacing:0!important}
 
 /* Mobile HUD: mana, confirmation, and navigation share one layout container. */
 @media(max-width:760px) and (orientation:portrait){
@@ -6283,3 +6283,7 @@ body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) 
   body.mobileBattlePopupOpen #leftPane.mobileBattlePopupActive,
   body.mobileBattlePopupOpen #rightPane.mobileBattlePopupActive{bottom:calc(var(--battle-nav-height,150px) + 18px)!important}
 }
+
+/* OFF is quiet; positioning also contains the ON button's absolute sparkle. */
+#battleUtilityBar #tcgDopagakiToggle:not(.isOn):not(.isTech):not(.isCharging){background:#1c2a36!important;box-shadow:none!important;text-shadow:none!important;border-color:#64758a!important}
+#battleUtilityBar #tcgDopagakiToggle:not(.isOn):not(.isTech):not(.isCharging)::before{content:none!important;animation:none!important}

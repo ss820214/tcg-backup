@@ -4,7 +4,7 @@ import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_read
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261113_target_fix1";
+import { createGameUI } from "./game_ui.js?v=20261114_name_two1";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";

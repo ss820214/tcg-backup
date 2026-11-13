@@ -1154,7 +1154,7 @@ function updateHandDrawerPosition() {
       // name
       const nm = document.createElement("div");
       nm.className = "uName";
-      nm.textContent = shortLabel(cardName(u.cardId), 6);
+      nm.textContent = cardName(u.cardId);
       top.appendChild(nm);
       const marker=document.createElement("span");marker.className="uSelectionMark";
       marker.textContent=u.id===getSelectedUnitId()?"✓":u.id===getSelectedTargetId()?"◎":"";

@@ -19,7 +19,7 @@ export function buildHandGuidance(s = {}) {
     if (mana < cost) return block(shortage);
     result.modeDisabled = false;
     if (s.mode !== 'support') return {...result, text:`「${result.modeLabel}」から使用準備へ`, tone:'support'};
-    if (need === 'search') return {...result, text:'「カード選択」で探すカードを選び、サポート実行で確定', tone:'support'};
+    if (need === 'search') return {...result, text:'「カード選択」で探すカードを選び、サポート発動で確定', tone:'support'};
     if (s.supportReady) return {...result, text:need === 'none' ? '対象選択は不要。「サポート発動」で確定' : '対象選択済み。「サポート発動」で確定', tone:'support'};
     const target = s.supportTarget === 'ally' ? '味方' : s.supportTarget === 'enemy' ? '敵' : '対象のキャラ';
     let text = `${target}をタップして選択`;

@@ -3,7 +3,7 @@ import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_read
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261113_v6_next_step";
+import { createGameUI } from "./game_ui.js?v=20261113_v6_battle_layout";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
@@ -2699,11 +2699,11 @@ function statusIconsHtml(unit, opts = {}) {
   const items = statusIconItems(unit);
   if (!items.length) return "";
   const compact = opts.compact !== false;
-  const visible = compact ? items.slice(0, 3) : items;
+  const visible = compact ? items.slice(0, Math.max(1, Math.trunc(Number(opts.maxVisible) || 3))) : items;
   const html = visible.map((it) => {
     const title = escapeStatusHtml(it.title || it.text || it.label || it.key);
     const value = compact ? "" : '<span class="statusChipText">' + escapeStatusHtml(it.text) + "</span>";
-    const shortLabel = compact ? '<span class="statusBoardLabel">' + escapeStatusHtml((it.label || it.key || "").slice(0, 2)) + "</span>" : "";
+    const shortLabel = compact && opts.labels !== false ? '<span class="statusBoardLabel">' + escapeStatusHtml((it.label || it.key || "").slice(0, 2)) + "</span>" : "";
     return '<span class="statusChip ' + escapeStatusHtml(it.tone || "neutral") + ' statusType-' + escapeStatusHtml(statusIconClassName(it.key)) + '" title="' + title + '" aria-label="' + title + '">' +
       '<span class="statusChipIcon">' + statusIconSketchHtml(it.key, it.icon) + "</span>" + shortLabel + value +
       "</span>";
@@ -2736,6 +2736,7 @@ function isAttackCancelIgnoredTarget(target) {
       "#handDrawerToggle",
       "#detail",
       "#quickActions",
+      "#battleAttackConfirmDock",
       ".actionOrbit",
       "button",
       "input",
@@ -7226,82 +7227,6 @@ async function executeCpuAttack(actorSeat, attackerId, actionIndex, targetId) {
   });
 
   return didAttack;
-}
-
-// =====================
-// Evolve confirm button (above detail)
-// =====================
-let evolveConfirmBtn = null;
-
-function ensureEvolveConfirmBtn() {
-  if (evolveConfirmBtn) return evolveConfirmBtn;
-
-  const right = document.getElementById("rightPane");
-  if (!right) return null;
-
-  const titles = [...right.querySelectorAll(".paneTitle")];
-  const detailTitle = titles.find((el) => el.textContent?.includes("詳細"));
-  if (!detailTitle) return null;
-
-  const btn = document.createElement("button");
-  btn.id = "evolveConfirmBtn";
-  btn.type = "button";
-  btn.textContent = "進化確定";
-  btn.style.margin = "8px 0 6px";
-  btn.style.width = "100%";
-  btn.style.borderRadius = "12px";
-  btn.style.padding = "10px 12px";
-  btn.style.border = "1px solid #666";
-  btn.style.background = "#2a2a2a";
-  btn.style.color = "#fff";
-  btn.style.cursor = "pointer";
-
-  btn.addEventListener("click", async () => {
-    const st = currentState;
-    if (!st) return;
-    if (!canControl(st)) return;
-    if (mode !== "evolve") return;
-    if (selectedHandIndex == null) return;
-    if (isHandCardLocked(st, selectedHandIndex, seat)) return;
-
-    try {
-      if (!evolveSys.canExec(st, selectedHandIndex)) return;
-      await evolveSys.execEvolveFromHandIndex(selectedHandIndex);
-    } catch (e) {
-      console.warn("[evolve confirm] failed", e);
-    }
-  });
-
-  // 隧ｳ邏ｰ繧ｿ繧､繝医Ν縺ｮ逶ｴ蠕後↓蟾ｮ縺苓ｾｼ繧
-  detailTitle.insertAdjacentElement("afterend", btn);
-  evolveConfirmBtn = btn;
-  return btn;
-}
-
-function updateEvolveConfirmBtn(st) {
-  const btn = ensureEvolveConfirmBtn();
-  if (!btn) return;
-
-  // 陦ｨ遉ｺ譚｡莉ｶ・夐ｲ蛹悶Δ繝ｼ繝・& 閾ｪ蛻・・繧ｿ繝ｼ繝ｳ
-  const show = !!st && mode === "evolve" && canControl(st);
-  btn.style.display = show ? "block" : "none";
-
-  if (!show) return;
-
-  // 謚ｼ縺帙ｋ譚｡莉ｶ・啼volveSys縺ｮ蛻､螳壹↓螳悟・蟋比ｻｻ
-  const ok =
-    selectedHandIndex != null &&
-    !isHandCardLocked(st, selectedHandIndex, seat) &&
-    (() => {
-      try {
-        return evolveSys.canExec(st, selectedHandIndex);
-      } catch {
-        return false;
-      }
-    })();
-
-  btn.disabled = !ok;
-  btn.style.opacity = ok ? "1" : "0.5";
 }
 
 async function execCpuPlan(plan) {

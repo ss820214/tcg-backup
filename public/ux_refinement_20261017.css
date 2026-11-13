@@ -172,55 +172,6 @@ button, [role="button"] { touch-action: manipulation; }
 #dice.diceRolling .diceRollSub,
 #dice.diceReveal .diceRollSub { font-size: 11px !important; }
 
-/* Fix HP/SP clipping caused by the old 27px stat slot on narrow board cards. */
-@media (max-width:760px) {
-  #board .cell .unitBox {
-    grid-template-rows: 14px minmax(0,1fr) minmax(32px,auto) !important;
-    overflow: visible !important;
-    padding: 2px 3px 4px !important;
-  }
-  #board .unitBox .uHPWrap {
-    grid-row: 3 !important;
-    align-self:end !important;
-    display:grid !important;
-    grid-template-rows: 14px 14px !important;
-    gap:2px !important;
-    height:30px !important;
-    min-height:30px !important;
-    max-height:none !important;
-    overflow:visible !important;
-    margin:0 !important;
-    position:relative !important;
-    z-index:10 !important;
-  }
-  #board .unitBox .uStatRow {
-    height:14px !important;
-    min-height:14px !important;
-    max-height:none !important;
-    grid-template-columns: 18px minmax(0,1fr) !important;
-    overflow:visible !important;
-  }
-  #board .unitBox .uStatLabel {
-    font-size:10px !important;
-    line-height:14px !important;
-    white-space:nowrap !important;
-  }
-  #board .unitBox .uStatBar {
-    height:14px !important;
-    min-height:14px !important;
-    overflow:visible !important;
-  }
-  #board .unitBox .uStatOverlay {
-    font-size:10px !important;
-    line-height:14px !important;
-    white-space:nowrap !important;
-    overflow:visible !important;
-  }
-  #board .unitBox .uName {
-    min-height:0 !important;
-    overflow:hidden !important;
-  }
-}
 /* Desktop: use the same comfortable, wide touch-style commands as mobile. */
 @media (min-width:761px) {
   #leftPane .controls {
@@ -247,28 +198,8 @@ button, [role="button"] { touch-action: manipulation; }
   #leftPane #quickActions button {min-height:42px !important;padding:9px 12px !important;font-size:13px !important;}
 }
 
-/* Mobile board card: give buffs/debuffs a real fourth row rather than
-   allowing the old grid to clip them outside the card. */
+/* Mobile support notifications. */
 @media (max-width:760px) {
-  #board .cell .unitBox:has(.uIcons:not(:empty)) {
-    grid-template-rows:14px minmax(0,1fr) 30px minmax(15px,auto) !important;
-  }
-  #board .unitBox .uIcons:not(:empty) {
-    grid-row:4 !important;
-    align-self:end !important;
-    display:flex !important;
-    position:relative !important;
-    z-index:11 !important;
-    min-height:15px !important;
-    max-height:20px !important;
-    overflow:visible !important;
-    margin:0 !important;
-    padding:0 !important;
-    flex-wrap:nowrap !important;
-    gap:1px !important;
-  }
-  #board .unitBox .uIcons:empty { display:none !important; }
-  #board .unitBox .uIcons > * { flex-shrink:0 !important; }
   /* Support notifications must not obscure the playable battlefield. */
   #enemySupportToast {
     position:fixed !important;

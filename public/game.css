@@ -6166,3 +6166,86 @@ body {
   #board .cell .statusBoardLabel{font-size:8px !important}
   #board .cell .statusChipMore{font-size:9px !important}
 }
+
+/* 2026-11-13: one action dock and a quiet, legible battlefield. */
+#battleEvolveApply,#battleEvolveCancel,#battleSupportApply,#battleSupportCancel,#evolveConfirmBtn,#doEvolve{display:none!important}
+#battleAttackConfirmDock:not([hidden]){
+  bottom:var(--battle-command-bottom,16px)!important;
+  z-index:2147483003!important;
+  width:min(580px,calc(100vw - 16px))!important;
+  padding:8px!important;gap:6px!important;
+}
+#battleAttackConfirmDock .battleAttackStatus{font-size:12px!important;line-height:1.35!important;text-align:left!important}
+#battleAttackConfirmDock .battleAttackControls button{min-height:44px!important;font-size:14px!important}
+body.battleCommandActive{padding-bottom:calc(var(--battle-command-height,110px) + var(--battle-command-bottom,16px) + 12px)!important}
+@media(max-width:760px) and (orientation:portrait){
+  body.battleCommandActive.mobileBattlePopupOpen #leftPane.mobileBattlePopupActive,
+  body.battleCommandActive.mobileBattlePopupOpen #rightPane.mobileBattlePopupActive{
+    bottom:calc(var(--battle-command-height,110px) + var(--battle-command-bottom,76px) + 8px)!important;
+  }
+}
+#board .cell .unitBox{
+  position:absolute!important;inset:2px!important;width:auto!important;height:auto!important;
+  box-sizing:border-box!important;min-width:0!important;min-height:0!important;
+  display:grid!important;grid-template-rows:minmax(10px,1fr) 30px 18px!important;
+  gap:2px!important;padding:3px 4px 3px 6px!important;
+  border:1px solid #64758a99!important;border-radius:7px!important;
+  background:linear-gradient(90deg,var(--unit-attr,#7894ad) 0 3px,#101b2a 3px 100%)!important;
+  box-shadow:none!important;outline:none!important;overflow:hidden!important;
+}
+#board .cell .unitBox .uTop{
+  grid-row:1!important;position:relative!important;inset:auto!important;display:grid!important;
+  grid-template-columns:14px minmax(0,1fr) 0px!important;align-items:start!important;
+  gap:2px!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;
+}
+#board .cell .unitBox .uType{display:none!important}
+#board .cell .unitBox .uCost{font-size:10px!important;line-height:1.3!important;opacity:.72}
+#board .cell .unitBox .uName{
+  grid-row:auto!important;position:static!important;inset:auto!important;width:auto!important;
+  margin:0!important;padding:0!important;align-self:start!important;max-height:100%!important;
+  font-size:11px!important;line-height:1.2!important;overflow:hidden!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;color:#e9edf4!important;
+}
+#board .cell .unitBox .uSelectionMark{font-size:11px;line-height:1.2;color:#fff4b8;font-weight:1000}
+#board .cell .unitBox .uHPWrap{
+  grid-row:2!important;position:relative!important;inset:auto!important;margin:0!important;padding:0!important;
+  display:grid!important;grid-template-rows:14px 14px!important;gap:2px!important;
+  width:100%!important;height:30px!important;min-height:30px!important;max-height:30px!important;
+}
+#board .cell .unitBox .uStatRow{display:grid!important;grid-template-columns:17px minmax(0,1fr)!important;gap:2px!important;height:14px!important;min-height:14px!important;width:100%!important;margin:0!important}
+#board .cell .unitBox .uStatBar{height:14px!important;min-width:0!important}
+#board .cell .unitBox .uStatLabel{font-size:9px!important;line-height:14px!important}
+#board .cell .unitBox .uStatOverlay{font-size:11px!important;line-height:14px!important;font-weight:850!important;color:#fff!important}
+#board .cell .unitBox .uIcons,
+#board .cell .unitBox .uIcons:not(:empty){
+  grid-row:3!important;position:relative!important;inset:auto!important;display:flex!important;
+  align-items:center!important;justify-content:flex-start!important;flex-wrap:nowrap!important;
+  width:100%!important;max-width:100%!important;height:18px!important;min-height:18px!important;
+  margin:0!important;padding:0!important;gap:2px!important;overflow:hidden!important;
+  line-height:1!important;white-space:nowrap!important;
+}
+#board .cell .unitBox .statusChip{box-sizing:border-box!important;flex:0 0 18px!important;min-width:18px!important;width:18px!important;height:18px!important;padding:0!important;border-radius:4px!important;box-shadow:none!important;justify-content:center!important}
+#board .cell .unitBox .statusBoardLabel,#board .cell .unitBox .uOwner{display:none!important}
+#board .cell .unitBox .statusChipIcon{width:14px!important;height:14px!important}
+#board .cell .unitBox .statusChipMore{font-size:9px!important}
+#board .cell.selUnit .unitBox{outline:2px solid #fff1b0!important;outline-offset:-1px!important;border-color:#fff1b0!important;box-shadow:0 0 0 2px #fff1b033!important}
+#board .cell.selTarget:not(.selUnit) .unitBox{outline:2px dashed #ffb59d!important;outline-offset:-1px!important}
+#board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:14px minmax(0,1fr) 11px!important}
+#board .cell.canAct .unitBox::after{display:none!important;content:none!important}
+@media(max-width:760px){
+  #board .cell .unitBox{grid-template-rows:minmax(10px,1fr) 26px 14px!important;gap:1px!important;padding:2px 3px 2px 5px!important}
+  #board .cell .unitBox .uTop{grid-template-columns:11px minmax(0,1fr) 0px!important;gap:1px!important}
+  #board .cell.selUnit .uTop,#board .cell.selTarget .uTop{grid-template-columns:11px minmax(0,1fr) 9px!important}
+  #board .cell .unitBox .uCost{font-size:8px!important}
+  #board .cell .unitBox .uName{font-size:9px!important;line-height:1.1!important}
+  #board .cell .unitBox .uSelectionMark{font-size:9px}
+  #board .cell .unitBox .uHPWrap{grid-template-rows:12px 12px!important;gap:2px!important;height:26px!important;min-height:26px!important;max-height:26px!important}
+  #board .cell .unitBox .uStatRow,#board .cell .unitBox .uStatBar{height:12px!important;min-height:12px!important;max-height:12px!important}
+  #board .cell .unitBox .uStatRow{grid-template-columns:12px minmax(0,1fr)!important;gap:1px!important}
+  #board .cell .unitBox .uStatLabel{font-size:8px!important;line-height:12px!important}
+  #board .cell .unitBox .uStatOverlay{font-size:clamp(7px,2vw,10px)!important;line-height:12px!important;letter-spacing:-.03em!important}
+  #board .cell .unitBox .uIcons,#board .cell .unitBox .uIcons:not(:empty){height:14px!important;min-height:14px!important;gap:1px!important}
+  #board .cell .unitBox .statusChip{flex-basis:14px!important;min-width:14px!important;width:14px!important;height:14px!important;border-width:1px!important}
+  #board .cell .unitBox .statusChipIcon{width:12px!important;height:12px!important}
+  #board .cell .unitBox .statusChipIcon .statusDoodle > span{font-size:10px!important}
+}

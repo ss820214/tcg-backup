@@ -1,4 +1,5 @@
-import {buildHandGuidance} from "./hand_guidance.js?v=20261113_next_step1";
+import {battleCommandState,createCommandGate} from "./battle_command_state.js?v=20261113_command1";
+import {buildHandGuidance} from "./hand_guidance.js?v=20261113_command_guide1";
 // public/game_ui.js
 // v20260723_stable_restore1
 // - UI描画だけをここに隔離する
@@ -219,6 +220,7 @@ function updateHandDrawerOpenState() {
   handDrawerToggleEl.classList.toggle("open", handDrawerOpen);
   handDrawerToggleEl.innerHTML = `<span class="handDrawerToggleLabel">手札</span><span class="handDrawerToggleArrow">${handDrawerOpen ? "▼" : "▲"}</span>`;
   handDrawerToggleEl.setAttribute("aria-label", handDrawerOpen ? "手札を閉じる" : "手札を開く");
+  if(lastSt)updateAttackConfirmDock(lastSt);
 }
 
 function handCardKindLabel(def) {
@@ -326,62 +328,87 @@ function updateHandDrawerPosition() {
 
   let actionOrbitEl = null;
   let attackConfirmDock = null;
-  let attackSubmitting = false;
+  const commandGate = createCommandGate(()=>{if(lastSt) updateAttackConfirmDock(lastSt);});
+  function commandStateFor(st) {
+    const mode=getMode?.(),seat=getSeat(),su=getSelectedUnit?.(st),def=selectedHandDef?.(st);
+    const acts=su ? getActionChoices?.(su,st)||[] : [];
+    const act=acts[getSelectedActionIndex?.()||0]||null,target=getSelectedTarget?.(st);
+    const flags=act ? actFlags?.(act)||{} : {};
+    const index=getSelectedHandIndex?.(),plan=def&&isSupportCard(def) ? supportPlan?.(def)||{need:"none"} : {};
+    const guide=['evolve','support'].includes(mode) ? handGuidanceFor(st) : null;
+    return battleCommandState({
+      mode,canControl:!!canControl?.(st),ownUnit:su?.owner===seat,hasCard:!!def,
+      hasAction:!!act,unitBlocked:!!su?.fatigue||!!isPanic?.(su)||!(Number(su?.hp)>0),
+      needsTarget:!!act&&!isSelfRange?.(act.range)&&!flags.aoe,hasTarget:!!target,
+      mana:normalizeMana?.(st?.mana)?.[seat]?.cur,
+      cost:mode==='attack' ? (act ? getActionCost?.(su,act)??Number(act.cost??0) : 0) : def?.cost,
+      actionText:act ? `選択技: ${act.name||"技"}${target ? " ／ 対象: "+cardName(target.cardId) : ""}` : '',
+      handLocked:index!=null&&!!isHandCardLocked?.(st,index,seat),
+      evolutionReady:mode==='evolve'&&index!=null&&!!canSelectedHandEvolve?.(st,index),
+      supportReady:mode==='support'&&!guide?.modeDisabled&&!!supportReadyByPlan?.(plan),
+      searchReady:plan.need!=='search'||!!plan.fixedCardId||!!getSupportSearchCardId?.(),guide:guide?.text,
+    });
+  }
   function updateAttackConfirmDock(st) {
     if (!attackConfirmDock) {
-      attackConfirmDock = document.createElement("div");
-      attackConfirmDock.id = "battleAttackConfirmDock";
-      attackConfirmDock.setAttribute("role", "group");
-      attackConfirmDock.setAttribute("aria-label", "攻撃の確認");
-      attackConfirmDock.innerHTML =
-        '<div class="battleAttackStatus" aria-live="polite"></div>' +
-        '<div class="battleAttackControls">' +
-        '<button type="button" class="battleAttackApply">攻撃決定</button>' +
-        '<button type="button" class="battleAttackCancel">キャンセル</button></div>';
+      attackConfirmDock=document.createElement("div");
+      // Keep the existing ID for compatibility; this is the single shared command dock.
+      attackConfirmDock.id="battleAttackConfirmDock";
+      attackConfirmDock.setAttribute("role","group");
+      attackConfirmDock.setAttribute("aria-label","行動の確認");
+      attackConfirmDock.innerHTML='<div class="battleAttackStatus" aria-live="polite"></div><div class="battleAttackControls"><button type="button" class="battleAttackApply">実行</button><button type="button" class="battleAttackCancel">キャンセル</button></div>';
       document.body.appendChild(attackConfirmDock);
-      attackConfirmDock.querySelector(".battleAttackApply").addEventListener("click", async () => {
-        if (attackSubmitting || !lastSt) return;
-        updateAttackConfirmDock(lastSt);
-        const button = attackConfirmDock.querySelector(".battleAttackApply");
-        if (button.disabled) return;
-        attackSubmitting = true;
-        button.disabled = true;
-        try { await execAttack?.(lastSt); }
-        catch (error) { console.error("[0bato] attack failed", error); }
-        finally { attackSubmitting = false; if (lastSt) updateAttackConfirmDock(lastSt); }
+      attackConfirmDock.querySelector('.battleAttackApply').addEventListener('click',async()=>{
+        if(commandGate.busy||!lastSt)return;
+        const state=lastSt,kind=getMode?.(),index=getSelectedHandIndex?.();
+        if(!commandStateFor(state).ready)return;
+        try {
+          await commandGate.run(async()=>{
+            if(kind==='attack')await execAttack?.(state);
+            else if(kind==='evolve')await execSelectedHandEvolve?.(state,index);
+            else if(kind==='support')await execSupport?.(state);
+          });
+        } catch(error){console.error('[0bato] command failed',error);}
+        finally{if(lastSt)render(lastSt);}
       });
-      attackConfirmDock.querySelector(".battleAttackCancel").addEventListener("click", () => {
-        if (attackSubmitting) return;
-        setSelectedTargetId?.(null);
-        hideActionOrbit();
-        setMode?.(null);
-        if (lastSt) render(lastSt);
+      attackConfirmDock.querySelector('.battleAttackCancel').addEventListener('click',()=>{
+        if(commandGate.busy)return;
+        setSelectedTargetId?.(null);resetSupportPicks?.();hideActionOrbit();setMode?.(null);
+        if(lastSt)render(lastSt);
       });
+      window.addEventListener('resize',()=>{if(lastSt)updateAttackConfirmDock(lastSt);});
+      if(typeof ResizeObserver==='function')new ResizeObserver(()=>{
+        const h=Math.ceil(attackConfirmDock.getBoundingClientRect().height);
+        if(h>0&&document.documentElement.style.getPropertyValue('--battle-command-height')!==`${h}px`)
+          document.documentElement.style.setProperty('--battle-command-height',`${h}px`);
+      }).observe(attackConfirmDock);
     }
-
-    const su = getSelectedUnit?.(st);
-    const active = getMode?.() === "attack" && !!canControl?.(st) && su?.owner === getSeat();
-    attackConfirmDock.hidden = !active;
-    attackConfirmDock.style.display = active ? "flex" : "none";
-    if (!active) return;
-
-    const acts = getActionChoices?.(su, st) || [];
-    const act = acts[getSelectedActionIndex?.() || 0] || null;
-    const target = getSelectedTarget?.(st);
-    const flags = act ? (actFlags?.(act) || {}) : {};
-    const needTarget = !!act && !isSelfRange?.(act.range) && !flags.aoe;
-    const mana = normalizeMana?.(st?.mana);
-    const cost = act ? (getActionCost?.(su, act) ?? Number(act.cost ?? 0)) : Infinity;
-    const ready = !!act && !attackSubmitting && !su?.fatigue && !isPanic?.(su) &&
-      Number(mana?.[getSeat()]?.cur ?? 0) >= cost && (!needTarget || !!target);
-
-    const status = attackConfirmDock.querySelector(".battleAttackStatus");
-    status.textContent = act
-      ? "選択技: " + String(act.name || "技") + " ／ " +
-        (target ? "対象: " + cardName(target.cardId) : needTarget ? "盤面の攻撃対象をタップ" : "対象指定不要")
-      : "技を選択してください";
-    attackConfirmDock.querySelector(".battleAttackApply").disabled = !ready;
-    attackConfirmDock.querySelector(".battleAttackCancel").disabled = attackSubmitting;
+    const model=commandStateFor(st),active=model.visible&&!handDrawerOpen;
+    attackConfirmDock.hidden=!active;
+    attackConfirmDock.style.display=active?'flex':'none';
+    attackConfirmDock.dataset.command=getMode?.()||'';
+    attackConfirmDock.setAttribute('aria-busy',String(commandGate.busy));
+    document.body.classList.toggle('battleCommandActive',active);
+    if(handDrawerToggleEl)handDrawerToggleEl.disabled=commandGate.busy;
+    if(!active)return;
+    let bottom=16;
+    if(window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches) {
+      bottom=76;
+      for(const el of [document.getElementById('mobileBattleNav'),handDrawerToggleEl]) {
+        const rect=el?.getBoundingClientRect();
+        if(rect?.height>0 && rect.top>window.innerHeight/2 && getComputedStyle(el).display!=='none')
+          bottom=Math.max(bottom,Math.ceil(window.innerHeight-rect.top+8));
+      }
+    }
+    if(document.documentElement.style.getPropertyValue('--battle-command-bottom')!==`${bottom}px`)
+      document.documentElement.style.setProperty('--battle-command-bottom',`${bottom}px`);
+    const status=attackConfirmDock.querySelector('.battleAttackStatus');
+    const text=commandGate.busy?'処理中…':model.status;
+    if(status.textContent!==text)status.textContent=text;
+    const apply=attackConfirmDock.querySelector('.battleAttackApply');
+    apply.textContent=commandGate.busy?'処理中…':model.label;
+    apply.disabled=!model.ready||commandGate.busy;
+    attackConfirmDock.querySelector('.battleAttackCancel').disabled=commandGate.busy;
   }
   let actionTargetingKey = "";
 
@@ -945,54 +972,7 @@ function updateHandDrawerPosition() {
     const rangeMap = buildRangeMap(st);
     const supportMap = buildSupportMap(st);
 
-    let evolveCancel = document.getElementById("battleEvolveCancel");
-  if (getMode?.() === "evolve") {
-    if (!evolveCancel) { evolveCancel = document.createElement("button"); evolveCancel.id = "battleEvolveCancel"; evolveCancel.type = "button"; document.body.appendChild(evolveCancel); }
-    evolveCancel.textContent = "キャンセル";
-    evolveCancel.onclick = () => setMode(null);
-    evolveCancel.style.display = "block";
-  } else if (evolveCancel) evolveCancel.style.display = "none";
-  let evolveApply = document.getElementById("battleEvolveApply");
-  if (getMode?.() === "evolve") {
-    if (!evolveApply) { evolveApply = document.createElement("button"); evolveApply.id = "battleEvolveApply"; evolveApply.type = "button"; document.body.appendChild(evolveApply); }
-    const idx = getSelectedHandIndex?.();
-    const canApply = !!canControl(st) && idx != null && !isHandCardLocked?.(st,idx,getSeat()) && !!canSelectedHandEvolve?.(st, idx);
-    evolveApply.textContent = canApply ? "進化を実行" : "進化元を選択";
-    evolveApply.disabled = !canApply;
-    evolveApply.style.display = "block";
-    evolveApply.onclick = async () => {
-      if (evolveApply.disabled || !canSelectedHandEvolve?.(st, getSelectedHandIndex?.())) return;
-      evolveApply.disabled = true;
-      evolveApply.textContent = "進化処理中…";
-      try { await execSelectedHandEvolve?.(st, getSelectedHandIndex?.()); } catch (err) { console.warn("[evolve apply]", err); }
-      finally { if (getMode?.() === "evolve") render(st); }
-    };
-  } else if (evolveApply) evolveApply.style.display = "none";
-  let supportCancel = document.getElementById("battleSupportCancel");
-  const supportDef = selectedHandDef?.(st);
-  if (getMode?.() === "support" && supportDef && isSupportCard(supportDef)) {
-    if (!supportCancel) { supportCancel = document.createElement("button"); supportCancel.id = "battleSupportCancel"; supportCancel.type = "button"; document.body.appendChild(supportCancel); }
-    supportCancel.textContent = "サポートをキャンセル";
-    supportCancel.onclick = () => { resetSupportPicks?.(); setMode(null); };
-    supportCancel.style.display = "block";
-  } else if (supportCancel) supportCancel.style.display = "none";
-  let supportApply = document.getElementById("battleSupportApply");
-  if (getMode?.() === "support" && supportDef && isSupportCard(supportDef)) {
-    if (!supportApply) { supportApply = document.createElement("button"); supportApply.id = "battleSupportApply"; supportApply.type = "button"; document.body.appendChild(supportApply); }
-    const plan = supportPlan?.(supportDef) || { need: "none" };
-    const supportGuide = handGuidanceFor(st);
-    const ready = !supportGuide.modeDisabled && !!supportReadyByPlan?.(plan);
-    supportApply.textContent = ready ? "サポート発動" : supportGuide.tone === "blocked" ? "使用条件を確認" : "対象を選択";
-    supportApply.disabled = !ready;
-    supportApply.onclick = async () => {
-      if (supportApply.disabled || !supportReadyByPlan?.(plan)) return;
-      supportApply.disabled = true;
-      supportApply.textContent = "発動処理中…";
-      try { await execSupport?.(st); } catch (err) { console.warn("[support apply]", err); }
-      finally { if (getMode?.() === "support") render(st); }
-    };
-    supportApply.style.display = "block";
-  } else if (supportApply) supportApply.style.display = "none";
+    // Attack, evolution and support share updateAttackConfirmDock().
   const cells = boardEl.querySelectorAll(".cell");
 
     for (let i = 0; i < cells.length; i++) {
@@ -1138,16 +1118,11 @@ function updateHandDrawerPosition() {
 
       const box = document.createElement("div");
       box.className = "unitBox";
+      box.style.setProperty("--unit-attr",strong);
+      box.dataset.attribute=t;
+      box.title=`${cardName(u.cardId)} / ${t}属性`;
       box.style.borderColor = hexToRgba(strong, 0.45);
       box.style.background = soft;
-
-      // panic badge
-      if (!!u.panic) {
-        const pb = document.createElement("div");
-        pb.className = "panicBadge";
-        pb.textContent = "😱PANIC";
-        box.appendChild(pb);
-      }
 
       // top row
       const top = document.createElement("div");
@@ -1157,20 +1132,18 @@ function updateHandDrawerPosition() {
       cost.className = "uCost";
       cost.textContent = String(def.cost ?? "?");
 
-      const typeEl = document.createElement("div");
-      typeEl.className = "uType";
-      typeEl.style.borderColor = hexToRgba(strong, 0.35);
-      typeEl.textContent = String(t);
-
       top.appendChild(cost);
-      top.appendChild(typeEl);
       box.appendChild(top);
 
       // name
       const nm = document.createElement("div");
       nm.className = "uName";
       nm.textContent = shortLabel(cardName(u.cardId), 6);
-      box.appendChild(nm);
+      top.appendChild(nm);
+      const marker=document.createElement("span");marker.className="uSelectionMark";
+      marker.textContent=u.id===getSelectedUnitId()?"✓":u.id===getSelectedTargetId()?"◎":"";
+      marker.setAttribute("aria-label",u.id===getSelectedUnitId()?"選択中":u.id===getSelectedTargetId()?"対象":"");
+      top.appendChild(marker);
 
       // hp/sp
       const hpWrap = document.createElement("div");
@@ -1218,7 +1191,7 @@ function updateHandDrawerPosition() {
 
       const icons =
         typeof statusIconsHtml === "function"
-          ? statusIconsHtml(u, { compact: true }) || ""
+          ? statusIconsHtml(u, { compact: true, maxVisible: 2, labels: false }) || ""
           : statusIconsText
             ? statusIconsText(u) || ""
             : "";
@@ -1752,11 +1725,9 @@ function updateHandDrawerPosition() {
       const footer = document.createElement("div");
       footer.className = "apFooter";
 
-      const execBtn = document.createElement("button");
-      execBtn.className = "btnExec";
-      execBtn.textContent = "サポート実行";
-      execBtn.disabled = !ready;
-      execBtn.addEventListener("click", () => execSupport?.(st));
+      const confirmHint=document.createElement("div");
+      confirmHint.className="hint";confirmHint.textContent="画面下の「サポート発動」で確定";
+      panel.appendChild(confirmHint);
 
       const cancelBtn = document.createElement("button");
       cancelBtn.className = "btnGhost";
@@ -1768,7 +1739,6 @@ function updateHandDrawerPosition() {
         render(st);
       });
 
-      footer.appendChild(execBtn);
       footer.appendChild(cancelBtn);
       panel.appendChild(footer);
 
@@ -1852,42 +1822,6 @@ function updateHandDrawerPosition() {
         (su.fatigue ? `\n※疲労中：行動できません` : "");
       panel.appendChild(hint);
 
-      const footer = document.createElement("div");
-      footer.className = "apFooter";
-
-      const execBtn = document.createElement("button");
-      execBtn.className = "btnExec";
-      execBtn.textContent = "攻撃決定";
-      execBtn.addEventListener("click", () => execAttack?.(st));
-
-      const mana = normalizeMana?.(st.mana);
-      const cost =
-        typeof getActionCost === "function"
-          ? getActionCost(su, curAct)
-          : Math.max(0, Math.trunc(Number(curAct?.cost ?? 0)));
-      const canPay = !!mana?.[seat] && Number(mana[seat].cur) >= cost;
-
-      const flags =
-        typeof actFlags === "function" ? actFlags(curAct) : { aoe: false };
-      const isSelf =
-        typeof isSelfRange === "function" ? isSelfRange(curAct?.range) : false;
-      const needTarget = !!curAct && !isSelf && !flags.aoe;
-
-      execBtn.disabled =
-        !curAct ||
-        !!su.fatigue ||
-        !!isPanic?.(su) ||
-        !canPay ||
-        (needTarget && !tgt);
-
-      const cancelBtn = document.createElement("button");
-      cancelBtn.className = "btnGhost";
-      cancelBtn.textContent = "対象クリア";
-      cancelBtn.addEventListener("click", () => {
-        setSelectedTargetId(null);
-        render(st);
-      });
-
       // Both PC and mobile use the one fixed bottom confirmation dock.
       // Do not add duplicate submit/cancel buttons inside the action panel.
       actionPickerEl.appendChild(panel);
@@ -1955,6 +1889,7 @@ function updateHandDrawerPosition() {
       } catch {}
     } catch {}
 
+    try { updateAttackConfirmDock(st); } catch(error) { console.error("[0bato] command dock",error); }
     try { onAfterRender?.(st); } catch (err) { console.warn("[ui after render]",err); }
   }
 

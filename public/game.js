@@ -1,9 +1,10 @@
+import {isBattleCommandEvent} from "./battle_input.js?v=20261113_target_fix1";
 import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/game.js
 // v20260725_dark_illusion_gen1
 // ...
 
-import { createGameUI } from "./game_ui.js?v=20261113_v6_battle_layout";
+import { createGameUI } from "./game_ui.js?v=20261113_target_fix1";
 import { createBattleReadability } from "./battle_readability.js?v=20261020c";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
@@ -2725,33 +2726,11 @@ btnQuickAttack?.addEventListener("click", async () => {
   render(currentState);
 });
 
-function isAttackCancelIgnoredTarget(target) {
-  if (!target || typeof target.closest !== "function") return false;
-  return !!target.closest(
-    [
-      "#board",
-      "#actionPicker",
-      "#hand",
-      "#handDrawer",
-      "#handDrawerToggle",
-      "#detail",
-      "#quickActions",
-      "#battleAttackConfirmDock",
-      ".actionOrbit",
-      "button",
-      "input",
-      "select",
-      "textarea",
-      "a",
-    ].join(","),
-  );
-}
-
 document.addEventListener("click", (ev) => {
   if (mode !== "attack") return;
   const st = currentState;
   if (!canControl(st)) return;
-  if (isAttackCancelIgnoredTarget(ev.target)) return;
+  if (isBattleCommandEvent(ev)) return;
   clearCommandSelectionUI({ keepUnit: true });
 });
 

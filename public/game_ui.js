@@ -1,3 +1,4 @@
+import {createLongPressClickGuard} from "./battle_input.js?v=20261113_target_fix1";
 import {battleCommandState,createCommandGate} from "./battle_command_state.js?v=20261113_command1";
 import {buildHandGuidance} from "./hand_guidance.js?v=20261113_command_guide1";
 // public/game_ui.js
@@ -119,6 +120,7 @@ export function createGameUI(ctx) {
   let render = () => {};
 
   const boardEl = dom.boardEl;
+  const longPressClickGuard = createLongPressClickGuard();
   const handEl = dom.handEl;
   const actionPickerEl = dom.actionPickerEl;
   const detailEl = dom.detailEl; // 使うなら
@@ -281,6 +283,13 @@ function handCardActionLines(def) {
 function updateHandDrawerPosition() {
   if (!boardEl || !handDrawerToggleEl || !handDrawerEl) return;
 
+  const nav = document.getElementById("mobileBattleNav");
+  const inMobileNav = nav && window.matchMedia?.("(max-width:760px) and (orientation:portrait)")?.matches;
+  if (inMobileNav) {
+    if (handDrawerToggleEl.parentElement !== nav) nav.appendChild(handDrawerToggleEl);
+  } else if (handDrawerToggleEl.parentElement === nav) {
+    document.body.appendChild(handDrawerToggleEl);
+  }
   const isMobile = window.matchMedia?.("(max-width: 760px)")?.matches;
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
   if (isMobile) {
@@ -376,13 +385,24 @@ function updateHandDrawerPosition() {
         setSelectedTargetId?.(null);resetSupportPicks?.();hideActionOrbit();setMode?.(null);
         if(lastSt)render(lastSt);
       });
-      window.addEventListener('resize',()=>{if(lastSt)updateAttackConfirmDock(lastSt);});
+      window.addEventListener('resize',()=>{updateHandDrawerPosition();if(lastSt)updateAttackConfirmDock(lastSt);});
+      const nav=document.getElementById('mobileBattleNav');
+      if(nav&&typeof ResizeObserver==='function')new ResizeObserver(()=>{
+        const h=Math.ceil(nav.getBoundingClientRect().height);
+        if(h>0)document.documentElement.style.setProperty('--battle-nav-height',`${h}px`);
+      }).observe(nav);
       if(typeof ResizeObserver==='function')new ResizeObserver(()=>{
         const h=Math.ceil(attackConfirmDock.getBoundingClientRect().height);
         if(h>0&&document.documentElement.style.getPropertyValue('--battle-command-height')!==`${h}px`)
           document.documentElement.style.setProperty('--battle-command-height',`${h}px`);
       }).observe(attackConfirmDock);
     }
+    const nav=document.getElementById('mobileBattleNav');
+    const portrait=window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches;
+    if(portrait&&nav&&attackConfirmDock.parentElement!==nav)
+      nav.insertBefore(attackConfirmDock,nav.querySelector('button[data-jump-target]'));
+    else if(!portrait&&attackConfirmDock.parentElement!==document.body)
+      document.body.appendChild(attackConfirmDock);
     const model=commandStateFor(st),active=model.visible&&!handDrawerOpen;
     attackConfirmDock.hidden=!active;
     attackConfirmDock.style.display=active?'flex':'none';
@@ -391,15 +411,7 @@ function updateHandDrawerPosition() {
     document.body.classList.toggle('battleCommandActive',active);
     if(handDrawerToggleEl)handDrawerToggleEl.disabled=commandGate.busy;
     if(!active)return;
-    let bottom=16;
-    if(window.matchMedia?.('(max-width:760px) and (orientation:portrait)')?.matches) {
-      bottom=76;
-      for(const el of [document.getElementById('mobileBattleNav'),handDrawerToggleEl]) {
-        const rect=el?.getBoundingClientRect();
-        if(rect?.height>0 && rect.top>window.innerHeight/2 && getComputedStyle(el).display!=='none')
-          bottom=Math.max(bottom,Math.ceil(window.innerHeight-rect.top+8));
-      }
-    }
+    const bottom=16;
     if(document.documentElement.style.getPropertyValue('--battle-command-bottom')!==`${bottom}px`)
       document.documentElement.style.setProperty('--battle-command-bottom',`${bottom}px`);
     const status=attackConfirmDock.querySelector('.battleAttackStatus');
@@ -843,6 +855,7 @@ function updateHandDrawerPosition() {
 
     let t = null;
     let fired = false;
+    let moved = false;
     let sx = 0,
       sy = 0;
     let pid = null;
@@ -861,16 +874,9 @@ function updateHandDrawerPosition() {
       window.removeEventListener("pointercancel", onWinCancel, true);
     };
 
-    const onWinUp = () => {
-      // 長押し未発火なら通常タップ
-      if (!fired) {
-        hideQuickMenu();
-        try {
-          onCellClickView(vx, vy);
-        } catch {}
-      }
-      cleanupAll();
-    };
+    // Short taps activate from click only, after pointerup has finished.
+    // Redrawing on pointerup can detach the target and retarget the trailing click.
+    const onWinUp = () => cleanupAll();
 
     const onWinCancel = () => cleanupAll();
 
@@ -887,7 +893,9 @@ function updateHandDrawerPosition() {
         // ★前回取りこぼしても復帰
         cleanupAll();
 
+        if (ev.button !== 0 || ev.isPrimary === false) return;
         fired = false;
+        moved = false;
         sx = ev.clientX;
         sy = ev.clientY;
         pid = ev.pointerId;
@@ -905,6 +913,7 @@ function updateHandDrawerPosition() {
         CLEAR();
         t = setTimeout(() => {
           fired = true;
+          longPressClickGuard.consume();
 
           // 選択を合わせる（ここでrenderが走る）
           try {
@@ -926,10 +935,17 @@ function updateHandDrawerPosition() {
     box.addEventListener("pointermove", (ev) => {
       const dx = Math.abs(ev.clientX - sx);
       const dy = Math.abs(ev.clientY - sy);
-      if (dx + dy > 12) CLEAR();
+      if (dx + dy > 12) { moved = true; CLEAR(); }
     });
 
-    box.addEventListener("pointercancel", cleanupAll);
+    box.addEventListener("pointercancel", () => { moved = true; cleanupAll(); });
+    box.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (fired || moved) return;
+      hideQuickMenu();
+      onCellClickView(vx, vy);
+    });
   }
 
   // ===== local =====

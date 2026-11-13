@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>0バト｜対戦</title>
 <link rel="stylesheet" href="./status_icons.css?v=20260831_player_icons1">
-<link rel="stylesheet" href="./game.css?v=20261113_v6_battle_layout">
+<link rel="stylesheet" href="./game.css?v=20261113_target_fix1">
 <link rel="stylesheet" href="./opponent_hand_ui.css?v=20261020a">
 <link rel="stylesheet" href="./battle_readability.css?v=20261020_small_log1">
 <link rel="stylesheet" href="./visual_upgrade_20260805.css?v=20260806_deck_controls1">
@@ -15,6 +15,7 @@
 <div id="enemySupportToast" class="enemySupportToast" aria-hidden="true">
 <div class="enemySupportToastHead"><b id="enemySupportToastTitle">相手がサポートを使用</b><button id="enemySupportToastClose" type="button" aria-label="閉じる">×</button></div>
 <div id="enemySupportToastBody" class="enemySupportToastBody"></div></div>
+<header id="battleUtilityBar" aria-label="表示設定"></header>
 <div id="app">
 <aside id="leftPane">
  <div class="paneTitle">対戦情報</div>
@@ -35,8 +36,8 @@
 </div>
 <nav id="mobileBattleNav" class="mobileBattleNav" aria-label="スマホ用パネル移動"><button type="button" data-jump-target="centerPane">盤面</button><button type="button" data-jump-target="leftPane">操作</button><button type="button" data-jump-target="rightPane">詳細</button></nav>
 <script defer src="./game_board_recovery_20261015.js?v=20261015_board2"></script>
-<script defer src="./game_mobile_tabs_20261015.js?v=20261018_focus_portrait3"></script>
-<script type="module" src="./game.js?v=20261113_v6_battle_layout"></script>
+<script defer src="./game_mobile_tabs_20261015.js?v=20261113_battle_hud1"></script>
+<script type="module" src="./game.js?v=20261113_target_fix1"></script>
     <style>
       /* Hide old join buttons while keeping existing battle UI intact. */
       #joinGameBtn,
@@ -224,7 +225,7 @@
   <script src="./ttcg_command.js?v=20260819_cmd_hidden1"></script>
   <script src="./ui_polish.js?v=20260801_screen_nav_mobile1"></script>
   <script src="./visual_upgrade_20260805.js?v=20260806_deck_controls1"></script>
-  <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
+  <script src="./dopagaki_mode.js?v=20261113_battle_bar1"></script>
 
 
     <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>

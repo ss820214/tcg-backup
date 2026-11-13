@@ -43,11 +43,13 @@ function init(){
   value.textContent=label;
  };
  const position=()=>{
+  if(mobile()){if(meter.parentElement!==nav)nav.prepend(meter);}
+  else if(meter.parentElement!==center)center.append(meter);
   if(!gauge)return;
   if(window.matchMedia("(max-width: 760px) and (orientation: portrait)").matches){if(gauge.parentElement!==gaugeSlot)gaugeSlot.append(gauge)}
   else if(gaugeHome.parentNode&&gauge.previousSibling!==gaugeHome){gaugeHome.after(gauge)}
  };
- const reposition=()=>{const note=document.getElementById("boardRecoveryStatus");if(note&&note.parentNode===center){if(meter.nextElementSibling!==note)meter.after(note);note.classList.add("battleSyncSmall");}};reposition();new MutationObserver(reposition).observe(center,{childList:true});
+ const reposition=()=>{const note=document.getElementById("boardRecoveryStatus");if(note&&note.parentNode===center){if(meter.parentNode===center&&meter.nextElementSibling!==note)meter.after(note);note.classList.add("battleSyncSmall");}};reposition();new MutationObserver(reposition).observe(center,{childList:true});
  update();position();
  if(mana)new MutationObserver(update).observe(mana,{subtree:true,childList:true,characterData:true});
  window.addEventListener("resize",position);

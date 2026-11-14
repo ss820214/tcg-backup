@@ -202,7 +202,7 @@ function ensureDeckStartStyle() {
     }
     #btnHome:active,
     #btnDeckTop:active{ transform:translateY(0) scale(.99); }
-    header .topRight > :not(#btnHome):not(#btnDeckTop):not(#deviceModeBadge){
+    header .topRight > :not(#btnHome):not(#btnDeckTop):not(#deviceModeBadge):not(#tcgDopagakiToggle){
       display:none !important;
     }
     .deckStart{
@@ -2306,6 +2306,22 @@ function randomizeHomeMascot() {
     window.TCG_DECK_BOOT?.asset(`./assets/home/menu-${name}.webp`));
 }
 
+let homeDeckTotal = null;
+function updateHomeDeckStatus(total = homeDeckTotal) {
+  homeDeckTotal = total;
+  const known = Number.isFinite(total);
+  const count = known ? `${total}/30` : "確認中";
+  const hint = !known ? "使用デッキを確認中…"
+    : total === 30 ? "このデッキで対戦できます"
+    : total < 30 ? `あと${30 - total}枚で対戦できます` : "30枚に調整してください";
+  const status = document.getElementById("homeDeckStatusHint");
+  const value = document.getElementById("homeDeckStatusCount");
+  const chip = document.getElementById("homeDeckCountChip");
+  if (status) status.textContent = hint;
+  if (value) value.textContent = count;
+  if (chip) chip.textContent = known ? `DECK ${count}` : "DECK 確認中";
+}
+
 function ensureDeckStartElement() {
   ensureDeckStartStyle();
   deckStartEl = $("deckStart");
@@ -2337,9 +2353,9 @@ function ensureDeckStartElement() {
         <div class="deckStartPass" data-home-action="deck" role="button" tabindex="0">
           <div>
             <b>DECK STATUS</b><br />
-            <span>30枚でルーム作成・参加が有効</span>
+            <span id="homeDeckStatusHint">使用デッキを確認中…</span>
           </div>
-          <div class="deckStartArrow">30</div>
+          <div class="deckStartArrow" id="homeDeckStatusCount">確認中</div>
         </div>
 
         <div class="deckStartMenu">
@@ -2390,7 +2406,7 @@ function ensureDeckStartElement() {
               <button type="button" data-home-action="rule">ルール</button>
             </nav>
           </div>
-          <span class="deckStartChip">DECK 30</span>
+          <span class="deckStartChip" id="homeDeckCountChip">DECK 確認中</span>
           <span class="deckStartChip" id="obHomeVersion" aria-label="ゲームバージョン">${esc(homeReleaseVersion)}</span>
         </div>
 
@@ -2570,6 +2586,7 @@ function ensureDeckStartElement() {
     deckStartEl.removeAttribute("tabindex");
     deckStartEl.setAttribute("aria-label", "ホームメニュー");
     deckStartEl.innerHTML = homeHtml;
+    updateHomeDeckStatus();
     return deckStartEl;
   }
 
@@ -2580,6 +2597,7 @@ function ensureDeckStartElement() {
   deckStartEl.setAttribute("aria-label", "ホームメニュー");
   deckStartEl.innerHTML = homeHtml;
   document.body.prepend(deckStartEl);
+  updateHomeDeckStatus();
   return deckStartEl;
 }
 
@@ -7985,6 +8003,7 @@ function renderDeck() {
   ensureDeckPanelLayoutGuardCss();
   const total = sumDeck(deckMap);
   if (deckCountEl) deckCountEl.textContent = String(total);
+  updateHomeDeckStatus(total);
   const deckPanelEl = document.getElementById("deckPanel");
   if (deckPanelEl) {
     const fill = Math.max(0, Math.min(100, Math.round((total / DECK_SIZE) * 100)));

@@ -107,6 +107,21 @@
         transform:translateX(-50%) translateZ(0);
       }
 
+      header .topRight #${TOGGLE_ID}{
+        display:inline-flex!important;align-items:center;justify-content:center;
+        position:relative!important;inset:auto!important;transform:none!important;
+        min-width:0!important;min-height:36px!important;margin:0!important;
+        padding:6px 10px!important;font-size:12px!important;line-height:1.2!important;
+        flex:0 0 auto!important;
+      }
+      #${TOGGLE_ID}:not(.isOn):not(.isTech):not(.isCharging){
+        background:#1c2a36!important;box-shadow:none!important;text-shadow:none!important;
+        border-color:#64758a!important;
+      }
+      #${TOGGLE_ID}:not(.isOn):not(.isTech):not(.isCharging)::before{
+        content:none!important;animation:none!important;
+      }
+
       #${TOGGLE_ID}::before{
         content:"";
         position:absolute;
@@ -1278,7 +1293,7 @@
   function onTogglePointerDown(e) {
     if (e?.button != null && e.button !== 0) return;
     const btn = e.currentTarget;
-    if (btn.closest("#battleUtilityBar")) { startTechHold(e); return; }
+    if (btn.closest("#battleUtilityBar, header .topRight")) { startTechHold(e); return; }
     const rect = btn.getBoundingClientRect();
     toggleDrag = {
       id: e.pointerId,
@@ -1332,8 +1347,8 @@
     btn.type = "button";
     btn.textContent = "\u30c9\u30d1\u30ac\u30ad";
     btn.setAttribute("aria-pressed", "false");
-    const battleBar = document.getElementById("battleUtilityBar");
-    if (!battleBar) restoreTogglePosition(btn);
+    const toggleHost = document.getElementById("battleUtilityBar") || document.querySelector("header .topRight");
+    if (!toggleHost) restoreTogglePosition(btn);
     btn.addEventListener("pointerdown", onTogglePointerDown);
     btn.addEventListener("pointermove", onTogglePointerMove);
     btn.addEventListener("pointerup", onTogglePointerEnd);
@@ -1361,7 +1376,7 @@
         text: on ? "DOPA!" : "OFF",
       });
     });
-    (battleBar || document.body).appendChild(btn);
+    (toggleHost || document.body).appendChild(btn);
   }
   function bindClickConfetti() {
     document.addEventListener(

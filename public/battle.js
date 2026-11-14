@@ -1,3 +1,7 @@
+import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
+import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
+import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
+import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 // public/battle.js
 // v20260210_fieldpick_fix_keep_all
@@ -502,10 +506,22 @@ function effectText(a) {
 // =====================
 let cardDefs = {};
 async function loadCards() {
-  const snap = await getCachedCardCollection("cards", () => getDocs(collection(db, "cards")));
   const m = {};
-  snap.forEach((d) => (m[d.id] = d.data()));
-  cardDefs = m;
+  for (const name of ["support_cards", "supports", "supportCards", "ex_support_cards", "ex_supports", "exSupportCards", "ex_support", "cards"]) {
+    try {
+      const snap = await getCachedCardCollection(name, () => getDocs(collection(db, name)));
+      snap.forEach(d => {
+        const data = d.data() || {};
+        const kind = name.startsWith("ex") ? "ex_support" : "support";
+        m[d.id] = { ...data, id: data.id || d.id,
+          ...(name === "cards" ? {} : { kind: data.kind || kind, type: data.type || kind }) };
+      });
+    } catch (error) {
+      if (name === "cards") throw error;
+      console.warn("[battle] optional card collection skipped", name, error);
+    }
+  }
+  cardDefs = mergeBattleCardDefinitions(m, STARTER_SUPPORT_CARD_MAP, FAIRY_TALE_CARDS, JEWEL_CARDS);
 }
 await loadCards().catch(error => { showLobbyFailure("カード情報の取得", error); throw error; });
 

@@ -25,7 +25,15 @@ function restore(){
  `;document.head.appendChild(css);
  const indicator=document.createElement("div");indicator.id="boardRecoveryStatus";indicator.setAttribute("role","status");indicator.style.cssText="display:none;margin:8px auto;padding:10px;border:1px solid #a78636;border-radius:9px;color:#ffe7aa;background:#30280d;font-size:13px;width:min(100%,460px)";
  board.insertAdjacentElement("afterend",indicator);
- setTimeout(()=>{if(!board.querySelector(".cell .unitBox")&&!board.querySelector(".cell .uName")&&board.querySelectorAll(".cell").length===35){indicator.style.display="block";indicator.textContent="盤面を表示しています。キャラが表示されない場合は、ルームの同期が完了していない可能性があります。";}},6500);
+ // A synchronized board can legitimately have zero units (opening, defeat, etc.).
+ // Only placeholder cells indicate that the real renderer has not arrived.
+ const syncIndicator=()=>{
+  const pending=!board.querySelector(".cell")&&!!board.querySelector(".recoveryCell");
+  indicator.style.display=pending?"block":"none";
+  indicator.textContent=pending?"対戦データを読み込み中…":"";
+ };
+ new MutationObserver(syncIndicator).observe(board,{childList:true});
+ setTimeout(syncIndicator,6500);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restore,{once:true});else restore();
 })();

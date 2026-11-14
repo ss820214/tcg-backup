@@ -83,3 +83,34 @@ body:has(.vsBanner) .vsBanner .vsCenter .muted{display:none!important}
  body:has(.vsBanner) .vsBanner .readyBadge{margin-top:6px!important}
  body:has(.vsBanner) .page{overflow-x:hidden!important}
 }
+
+/* v1.2.1: one document scroll, with independently collapsible deck panels. */
+html:has(body.lobbyScreen),body.lobbyScreen{height:auto;min-height:100%;overflow-y:auto}
+body.lobbyScreen{min-height:100dvh;padding-top:0!important;padding-bottom:env(safe-area-inset-bottom,0px)}
+body.lobbyScreen #tcgRouteStrip,body.lobbyScreen #deviceModeBadge,body.lobbyScreen #tcgDopagakiToggle{display:none!important}
+body.lobbyScreen .page{overflow:visible!important}
+body.lobbyScreen .mainGrid{align-items:start}
+body.lobbyScreen .panelHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+body.lobbyScreen .lobbyPanelHeading{flex:1;min-width:0}
+body.lobbyScreen h2.panelTitle{margin:0 0 4px;font-size:18px;line-height:1.4}
+body.lobbyScreen .lobbyPanelToggle{flex:0 0 auto;min-height:44px;padding:8px 10px;border:1px solid #8bd6d74d;border-radius:10px;background:#152932;color:#eefaff;font:700 12px/1.3 system-ui;cursor:pointer;white-space:nowrap}
+body.lobbyScreen .lobbyPanelToggle:focus-visible{outline:2px solid #8fe7d1;outline-offset:3px}
+body.lobbyScreen .lobbyPanelContent[hidden]{display:none!important}
+body.lobbyScreen .deckList{max-height:none;overflow:visible;padding-right:0}
+body.lobbyScreen .deckDetail{min-height:0}
+body.lobbyScreen #battleDeckRadar{max-width:100%}
+@media(max-width:760px){
+ body.lobbyScreen .topbar{grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"room room" "status ready"!important;gap:6px!important}
+ body.lobbyScreen .topbar .topStatus{padding:8px!important}
+ body.lobbyScreen .topbar .topActions{padding:0!important}
+ body.lobbyScreen .topbar .statusTitle{font-size:14px}
+ body.lobbyScreen .topbar .statusText{font-size:13px!important}
+ body.lobbyScreen .vsBanner{grid-template-columns:minmax(0,1fr) 30px minmax(0,1fr)!important;gap:4px!important;padding:8px!important}
+ body.lobbyScreen .vsBanner .sideCard{min-height:100px!important;padding:10px!important}
+ body.lobbyScreen .vsBanner .playerName{font-size:16px!important}
+ body.lobbyScreen .vsBanner .youTag{position:static;align-self:flex-start;margin-top:5px;font-size:10px;padding:2px 6px}
+ body.lobbyScreen .vsBanner .vsText{font-size:16px!important}
+ body.lobbyScreen .panelHeader{padding:12px;gap:8px}
+ body.lobbyScreen h2.panelTitle{font-size:16px}
+ body.lobbyScreen .panelSub{font-size:11px;line-height:1.5}
+}

@@ -4,10 +4,10 @@
 <title>0バト｜対戦待機</title>
 <link rel="stylesheet" href="./battle.css?v=20261019_cpu_styles1">
 <link rel="stylesheet" href="./global_ui_20260821.css?v=20260926_device_switch4">
-<link rel="stylesheet" href="./battle_lobby_fix_20261015.css?v=20261015_lobby2">
+<link rel="stylesheet" href="./battle_lobby_fix_20261015.css?v=20261114_v121">
   <link rel="stylesheet" href="./ux_refinement_20261017.css?v=1">
 </head>
-<body>
+<body class="lobbyScreen" data-route-strip="off">
 <div class="page">
 <header class="topbar">
   <div class="room"><div class="roomLabel">ROOM</div><div class="roomId" id="roomId">----</div></div>
@@ -28,8 +28,14 @@
 <div class="sideCard right" id="p2Card"><div class="seatLabel">2P</div><div class="playerName" id="p2Name">---</div><div class="readyBadge" id="p2Ready"></div><div class="youTag" id="p2You"></div></div>
 </section>
 <main class="mainGrid">
-<section class="panel deckPanel"><div class="panelHeader"><div class="panelTitle">デッキ確認</div><div class="panelSub muted">カードを押すと詳細を表示</div></div><div class="deckWrap"><div class="deckLeft"><div class="subTitle">採用カード一覧</div><div id="myDeck" class="deckList"></div></div><div class="deckDetail panelInner"><div class="subTitle">カード詳細</div><div id="deckDetail" class="deckDetailBody muted">カードを選択してください</div></div></div><details class="compatBox"><summary>参加プレイヤー一覧</summary><ul id="players" class="playersList"></ul></details></section>
-<section class="panel evalPanel"><div class="panelHeader"><div class="panelTitle">デッキ評価</div><div class="panelSub muted">レーダー・属性分布</div></div><div class="radarWrap"><canvas id="battleDeckRadar" width="360" height="260"></canvas><div id="battleDeckRadarText" class="muted small"></div></div><div class="attrWrap"><div class="subTitle">属性の分布</div><div id="attrDist" class="attrDist"><div class="muted">デッキ読み込み後に表示</div></div></div></section>
+<section class="panel deckPanel" aria-labelledby="lobbyDeckTitle">
+  <div class="panelHeader"><div class="lobbyPanelHeading"><h2 class="panelTitle" id="lobbyDeckTitle">デッキ確認</h2><div class="panelSub muted">カードを押すと詳細を表示</div></div><button class="lobbyPanelToggle" type="button" aria-controls="lobbyDeckContent" aria-expanded="true" aria-label="デッキ確認を最小化" data-panel-label="デッキ確認">− 最小化</button></div>
+  <div class="lobbyPanelContent" id="lobbyDeckContent"><div class="deckWrap"><div class="deckLeft"><div class="subTitle">採用カード一覧</div><div id="myDeck" class="deckList"></div></div><div class="deckDetail panelInner"><div class="subTitle">カード詳細</div><div id="deckDetail" class="deckDetailBody muted">カードを選択してください</div></div></div><details class="compatBox"><summary>参加プレイヤー一覧</summary><ul id="players" class="playersList"></ul></details></div>
+</section>
+<section class="panel evalPanel" aria-labelledby="lobbyEvalTitle">
+  <div class="panelHeader"><div class="lobbyPanelHeading"><h2 class="panelTitle" id="lobbyEvalTitle">デッキ評価</h2><div class="panelSub muted">レーダー・属性分布</div></div><button class="lobbyPanelToggle" type="button" aria-controls="lobbyEvalContent" aria-expanded="true" aria-label="デッキ評価を最小化" data-panel-label="デッキ評価">− 最小化</button></div>
+  <div class="lobbyPanelContent" id="lobbyEvalContent"><div class="radarWrap"><canvas id="battleDeckRadar" width="360" height="260"></canvas><div id="battleDeckRadarText" class="muted small"></div></div><div class="attrWrap"><div class="subTitle">属性の分布</div><div id="attrDist" class="attrDist"><div class="muted">デッキ読み込み後に表示</div></div></div></div>
+</section>
 </main>
 <section class="cpuStrategyPanel" id="cpuStrategyPanel" hidden aria-labelledby="cpuStrategyTitle">
   <div class="cpuStrategyHeading"><div><h2 id="cpuStrategyTitle">CPUの戦術を選択</h2><p>戦い方に合わせて、CPUの判断が変わります。</p></div><span class="cpuHiddenDeck">相手デッキ：？？？</span></div>
@@ -44,8 +50,9 @@
 <label class="aiSwitch" id="aiToggleRow"><input id="aiToggle" type="checkbox"><span>AI対戦（CPU）</span></label>
 <section class="panel pongPanel"><div class="panelHeader"><div><div class="panelTitle">ピンポン・ボーナス</div><div class="panelSub muted">待機中のミニゲーム</div></div><div class="pongRewardPill" id="pongRewardPill">20 COMBO = +10 Gems</div></div><div class="pongRow"><div class="pong"><div class="wall wallL"></div><div class="wall wallR"></div><div class="pongLane"></div><div class="pongJudgeLine"></div><div class="paddle"></div><div class="ball" id="ball"></div></div><div class="pongControls"><div class="pongStats"><div><span>SCORE</span><b id="pongScore">0</b></div><div><span>COMBO</span><b id="pongCombo">0</b></div><div><span>GEMS</span><b id="pongReward">+0</b></div></div><button id="pingBtn" class="btnGhost">打ち返す</button><button id="pingResetBtn" class="btnGhost">リセット</button><div id="pingStatus" class="muted">スタート！</div></div></div></section>
 </div>
+<script defer src="./lobby_panels.js?v=20261114_v121"></script>
 <script type="module" src="./battle.js?v=20261114_flow1"></script>
-<script src="./ui_polish.js?v=20261015_lobby2"></script>
+<script src="./ui_polish.js?v=20261114_v121"></script>
 <script src="./dopagaki_mode.js?v=20260728_tech1"></script>
 <script src="./global_ui_20260821.js?v=20260926_device_switch4" defer></script>
 </body></html>

@@ -139,27 +139,30 @@ function injectBaseStyles() {
     --radius: 20px;
   }
   *{box-sizing:border-box;}
-  html,body{height:100%;}
+  html,body{height:auto;min-height:100%;}
   body{
     margin:0;
     color:var(--txt);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
     background: radial-gradient(1200px 700px at 20% 15%, rgba(80,140,255,0.18), transparent 55%),
                 radial-gradient(900px 700px at 90% 10%, rgba(120,255,190,0.12), transparent 50%),
                 linear-gradient(180deg, var(--bg1), var(--bg2));
   }
   .wrap{
     position:relative;
-    height:100%;
+    height:auto;
+    min-height:100dvh;
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:center;
     padding:18px;
   }
   .panel{
     position:relative;
-    width:min(980px, 96vw);
+    width:min(980px, 100%);
+    min-width:0;
     border-radius: var(--radius);
     background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
     box-shadow: var(--shadow);
@@ -240,14 +243,14 @@ function injectBaseStyles() {
   .v{ font-size:20px; font-weight:800; margin-top:4px; }
   .mini{ font-size:12px; color: rgba(255,255,255,0.76); margin-top:4px; }
 
-  /* Keep extended stats reachable on narrow screens, without changing layout. */
-  .hero{max-height:calc(100dvh - 54px);overflow-y:auto;overscroll-behavior:contain}
-  #battleActionDetails{font-size:13px;line-height:1.5;max-height:230px;overflow-y:auto}
+  /* The document owns vertical scrolling, including reports and winner deck. */
+  .hero{min-width:0;max-height:none;overflow:visible}
+  #battleActionDetails{font-size:13px;line-height:1.5}
   #battleActionDetails h3{font-size:16px;margin:0 0 8px}
   #battleActionDetails p{font-size:11px;opacity:.8}
   .resultActionTable{border-collapse:collapse;width:100%;font-size:12px}
   .resultActionTable th,.resultActionTable td{border-bottom:1px solid #ffffff22;padding:5px;text-align:left}
-  #battleActionDetails pre{white-space:pre-wrap;font-size:10px;max-height:140px;overflow:auto}
+  #battleActionDetails pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
   .resultReport{
     margin-top:14px;
     padding:14px;
@@ -307,7 +310,8 @@ function injectBaseStyles() {
     display:flex;
     flex-direction:column;
     gap:12px;
-    max-height: calc(100vh - 80px);
+    max-height:none;
+    min-width:0;
   }
   .trophy{
     width:100%;
@@ -414,15 +418,31 @@ function injectBaseStyles() {
   }
   .recipe{
     margin-top:8px;
-    max-height: 160px;
-    overflow:auto;
+    overflow-wrap:anywhere;
     padding:10px;
     border-radius: 14px;
     background: rgba(0,0,0,0.22);
     border: 1px solid rgba(255,255,255,0.10);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     font-size: 12px;
-    white-space: pre;
+    white-space: pre-wrap;
+  }
+
+  body.matchResultScreen #tcgRouteStrip,body.matchResultScreen #deviceModeBadge,body.matchResultScreen #tcgDopagakiToggle{display:none!important;}
+  .badge{flex-wrap:wrap;}
+  @media(max-width:820px){
+    .wrap{padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+    .row{padding:10px;gap:12px;}
+    .hero,.right{padding:12px;}
+    .right .trophy{height:100px;aspect-ratio:auto;flex-shrink:0;}
+    .right .trophy .emoji{font-size:56px;}
+    .reportGrid{gap:6px;}
+    .reportItem{min-width:0;padding:8px;}
+    .reportItem .num{font-size:20px;}
+    .deckHead{flex-wrap:wrap;}
+    .buttons>button{flex:1 1 130px;min-height:44px;}
+    .radarCanvas{max-width:100%;height:auto;aspect-ratio:1;}
+    .deckText{min-width:0;flex-basis:100%;}
   }
 
   canvas.fx{

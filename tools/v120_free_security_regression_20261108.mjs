@@ -15,9 +15,9 @@ const home = read("public/index.html");
 const deck = read("public/deck.js");
 const playHtml = read("public/play.html");
 
-assert.match(home, /id="deckVersionPill">v1\.2\.0/);
-assert.match(deck, /"V1\.2\.0"/);
-assert.match(home, /deck\.js\?v=20261114_flow1/);
+assert.match(home, /id="deckVersionPill">v1\.2\.1/);
+assert.match(deck, /"V1\.2\.1"/);
+assert.match(home, /deck\.js\?v=20261114_v121/);
 
 // Browser defense headers must be included without overriding the existing
 // no-cache rules, and no new billable Firebase products are configured.

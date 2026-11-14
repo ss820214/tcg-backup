@@ -439,7 +439,10 @@ export function stopBattleBgmMp3(){
 }
 
 // ===== Alert BGM (MP3 asset) =====
-// public/alert1.mp3, public/alert2.mp3 をループ再生
+// Pinch 1: REDLINE CIRCUIT (128 BPM); Pinch 2: BLACK CIRCUIT (144 BPM).
+// Version the asset URLs so cached older tracks are re-fetched.
+const ALERT1_TRACK = "./alert1.mp3?v=20261114_redline1";
+const ALERT2_TRACK = "./alert2.mp3?v=20261114_black_circuit1";
 let alert1Audio = null;
 let alert2Audio = null;
 
@@ -449,7 +452,7 @@ export async function startAlert1Mp3(opts = {}){
     const rate   = Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? 1.00)));
 
     if (!alert1Audio){
-      alert1Audio = new Audio("./alert1.mp3");
+      alert1Audio = new Audio(ALERT1_TRACK);
       alert1Audio.loop = true;
       alert1Audio.preload = "auto";
     }
@@ -477,7 +480,7 @@ export async function startAlert2Mp3(opts = {}){
     const rate   = Math.max(0.5, Math.min(2.0, Number(opts.playbackRate ?? 1.00)));
 
     if (!alert2Audio){
-      alert2Audio = new Audio("./alert2.mp3");
+      alert2Audio = new Audio(ALERT2_TRACK);
       alert2Audio.loop = true;
       alert2Audio.preload = "auto";
     }
@@ -535,7 +538,7 @@ async function playByMode(force = false){
   // 先に生成だけはしておく（targetAudioByMode が null を返しうるので）
   if (_bgmMode === "alert2"){
     if (!alert2Audio){
-      alert2Audio = new Audio("./alert2.mp3");
+      alert2Audio = new Audio(ALERT2_TRACK);
       alert2Audio.loop = true;
       alert2Audio.preload = "auto";
     }
@@ -549,7 +552,7 @@ async function playByMode(force = false){
 
   if (_bgmMode === "alert1"){
     if (!alert1Audio){
-      alert1Audio = new Audio("./alert1.mp3");
+      alert1Audio = new Audio(ALERT1_TRACK);
       alert1Audio.loop = true;
       alert1Audio.preload = "auto";
     }

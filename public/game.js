@@ -24,7 +24,7 @@ import {
 import { createCpuDriver } from "./cpu_driver.js?v=20261020_cpu_deck_fix1";
 import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix3";
 
-import { setBgmMode } from "./sfx.js?v=20260919_ratbeat";
+import { setBgmMode } from "./sfx.js?v=20261114_pinch_music1";
 // ===== Support core (Support + EX) =====
 import {
   applySupport,

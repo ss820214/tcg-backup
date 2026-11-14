@@ -7611,6 +7611,7 @@ onSnapshot(
 
       if (
         ls &&
+        normSeat(ls.from) === enemySeat &&
         Number(ls.at) > 0 &&
         Number(ls.at) !== Number(lastEnemySupportToastAt) &&
         normSeat(st.turn) === seat

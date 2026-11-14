@@ -75,3 +75,14 @@ new Function('document','TOGGLE_ID','restoreTogglePosition','onTogglePointerDown
 assert.equal(mounted.id,'tcgDopagakiToggle'); assert.equal(restored,false,'saved floating position must not move toggle over the home button');
 for(const file of ['index.html','deck.js','mobile_deck_ui.js']) assert.match(read(file),/:not\(#deviceModeBadge\):not\(#tcgDopagakiToggle\)/,`${file}: header allows the inline toggle`);
 console.log('PASS: live detail refresh and inline deck toggle mounting');
+
+const toastStart = game.indexOf('const ls = st?.lastSupportRoll;');
+const toastCondition = game.slice(game.indexOf('if (',toastStart)+4,game.indexOf(') {',toastStart));
+const shouldNotify = new Function('ls','seat','st','lastEnemySupportToastAt','normSeat',`const enemySeat=seat==='A'?'B':'A'; return !!(${toastCondition});`);
+const seatNorm = value => ['A','B'].includes(value)?value:null;
+for(const seat of ['A','B']) {
+ const enemy = seat==='A'?'B':'A';
+ assert.equal(shouldNotify({from:seat,at:123},seat,{turn:seat},0,seatNorm),false,'own support is never announced as enemy support');
+ assert.equal(shouldNotify({from:enemy,at:123},seat,{turn:seat},0,seatNorm),true,'opponent support still announces');
+ assert.equal(shouldNotify({from:enemy,at:123},seat,{turn:seat},123,seatNorm),false,'same opponent event is not repeated');
+}

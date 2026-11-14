@@ -1,3 +1,8 @@
+import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
+import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
+import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
+import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
+import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 ﻿// public/victory_screen.js
 // v20260723_starter_series1
 // - FIX: win/lose judgment uses seat/winner (result param is fallback)  [kept]
@@ -103,18 +108,30 @@ const playerRef = (pid) => doc(db, "rooms", roomId, "players", pid);
 // Card defs cache
 // =====================
 let cardDefs = {};
-async function loadCards(){
-  const snap = await getDocs(collection(db, "cards"));
+async function loadCards() {
   const m = {};
-  snap.forEach(d => (m[d.id] = d.data()));
-  cardDefs = m;
+  for (const name of ["support_cards", "supports", "supportCards", "ex_support_cards", "ex_supports", "exSupportCards", "ex_support", "cards"]) {
+    try {
+      const snap = await getCachedCardCollection(name, () => getDocs(collection(db, name)));
+      snap.forEach(d => {
+        const data = d.data() || {};
+        const kind = name.startsWith("ex") ? "ex_support" : "support";
+        m[d.id] = { ...data, id: data.id || d.id,
+          ...(name === "cards" ? {} : { kind: data.kind || kind, type: data.type || kind }) };
+      });
+    } catch (error) {
+      if (name === "cards") throw error;
+      console.warn("[battle] optional card collection skipped", name, error);
+    }
+  }
+  cardDefs = mergeBattleCardDefinitions(m, STARTER_SUPPORT_CARD_MAP, FAIRY_TALE_CARDS, JEWEL_CARDS);
 }
 function cardName(cardId){
   return cardDefs?.[cardId]?.name || cardId || "?";
 }
 function isSupportCardLike(c){
   if (!c) return false;
-  if (String(c.kind || "").toLowerCase() === "support") return true;
+  if (["support", "ex_support", "exsupport"].includes(String(c.kind || "").toLowerCase())) return true;
   const hasEffect = !!c.effect;
   const acts = Array.isArray(c.actions) ? c.actions : [];
   if (hasEffect && acts.length === 0) return true;
@@ -402,11 +419,13 @@ function injectBaseStyles() {
     flex-wrap:wrap;
   }
   .radarCanvas{
-    width: 210px;
-    height: 210px;
+    display:block;
+    width:100%;
+    height:auto;
+    aspect-ratio:9/8;
     border-radius: 14px;
-    background:#fff;
-    border: 1px solid rgba(0,0,0,0.12);
+    background:#0d1825;
+    border: 1px solid rgba(255,255,255,0.12);
     overflow:hidden;
   }
   .deckText{
@@ -416,6 +435,9 @@ function injectBaseStyles() {
     color: rgba(255,255,255,0.80);
     line-height:1.45;
   }
+  .winnerMetrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0;}
+  .winnerMetric{display:flex;justify-content:space-between;gap:6px;border:1px solid #ffffff22;border-radius:9px;padding:6px 8px;background:#ffffff08;}
+  .winnerMetric.isPeak{border-color:#d9c56c;color:#fff1ad;}
   .recipe{
     margin-top:8px;
     overflow-wrap:anywhere;
@@ -441,7 +463,7 @@ function injectBaseStyles() {
     .reportItem .num{font-size:20px;}
     .deckHead{flex-wrap:wrap;}
     .buttons>button{flex:1 1 130px;min-height:44px;}
-    .radarCanvas{max-width:100%;height:auto;aspect-ratio:1;}
+    .radarCanvas{max-width:100%;height:auto;aspect-ratio:9/8;}
     .deckText{min-width:0;flex-basis:100%;}
   }
 
@@ -540,7 +562,7 @@ function mountLayout() {
 
               <div class="deckGrid">
                 <div class="radarWrap">
-                  <canvas id="winnerRadar" class="radarCanvas" width="260" height="260"></canvas>
+                  <canvas id="winnerRadar" class="radarCanvas" width="360" height="320"></canvas>
                   <div class="deckText" id="winnerDeckText">評価を取得中...</div>
                 </div>
                 <div class="recipe" id="winnerRecipe">レシピを取得中...</div>
@@ -853,7 +875,7 @@ function wireButtons(){
 // =====================
 function formatRecipeLine(cardId, cnt){
   const d = cardDefs?.[cardId] || {};
-  const type = d.type ?? "?";
+  const type = isSupportCardLike(d) ? "サポート" : (d.type ?? "?");
   const cost = (d.cost ?? "?");
   const name = cardName(cardId);
   const sup = isSupportCardLike(d) ? "（サポート）" : "";
@@ -922,7 +944,7 @@ async function loadWinnerDeckAndRender(){
     const p = ps.data() || {};
 
     const deckObj = p.deck || {};
-    const exId = p.exCardId || null;
+    const exId = p.exSupport || p.exCardId || null;
 
     const { lines, total } = deckObjToLines(deckObj);
 
@@ -948,18 +970,16 @@ async function loadWinnerDeckAndRender(){
     if (radar && radar.getContext) {
       const res = evaluateDeck(deckObj, cardDefs);
 
-      // drawRadar paints on a white canvas internally.
-      drawRadar(radar, res.scores);
+      // Axis labels need their own space; peak information is shown below.
+      drawRadar(radar, res.scores, { showPeakLabel: false });
 
-      const axes = ["攻撃", "耐久", "安定", "展開", "扱い", "制圧"];
+      const axes = ["攻撃", "耐久", "安定", "展開", "操作", "制圧"];
       const nums = res.scores.map(x=>Math.round(Number(x)||0));
-      const line = axes.map((k,i)=>`${k}:${nums[i]}`).join(" / ");
-
+      const peak = nums.indexOf(Math.max(...nums));
       if (textEl) {
-        textEl.textContent =
-          `${res.note}\n${line}\n` +
-          `${exId ? `EX: ${cardName(exId)}\n` : ""}` +
-          `※勝者デッキの指標です`;
+        textEl.innerHTML = `<div>${escapeHtml(res.note)}</div><div class="winnerMetrics">` +
+          axes.map((axis,i)=>`<span class="winnerMetric${i===peak ? " isPeak" : ""}"><b>${axis}</b><strong>${nums[i]}</strong></span>`).join("") +
+          `</div>${exId ? `<div>EX: ${escapeHtml(cardName(exId))}</div>` : ""}<div>※勝者デッキの指標です</div>`;
       }
     } else {
       if (textEl) textEl.textContent = "（レーダー描画不可: canvas）";

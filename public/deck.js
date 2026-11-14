@@ -2296,10 +2296,11 @@ function pickHomeMascotImage() {
   return HOME_MASCOT_IMAGES[Math.floor(Math.random() * HOME_MASCOT_IMAGES.length)] || HOME_MASCOT_IMAGES[0];
 }
 
+let currentHomeMascotImage = "";
 function randomizeHomeMascot() {
   const unit = deckStartEl?.querySelector?.(".deckStartUnit");
   if (!unit) return;
-  const src = pickHomeMascotImage();
+  const src = currentHomeMascotImage || (currentHomeMascotImage = pickHomeMascotImage());
   unit.style.setProperty("--deck-start-mascot", `url("${src}")`);
   window.TCG_DECK_BOOT?.asset(src);
   ["deck", "user", "gacha", "arcade", "creator", "room"].forEach(name =>
@@ -2765,7 +2766,8 @@ function setupDeckStartScreen(opts = {}) {
   const close = (delay = 520) => {
     deckStartEl.classList.add("hide");
     deckStartEl.setAttribute("aria-hidden", "true");
-    setTimeout(() => deckStartEl?.remove(), delay);
+    const closingHome = deckStartEl;
+    setTimeout(() => closingHome?.remove(), delay);
   };
 
   const triggerExistingButton = (id, fallbackUrl = "") => {
@@ -2980,6 +2982,8 @@ function setupDeckStartScreen(opts = {}) {
     }
   });
 }
+// Existing header and emergency-back handlers share the same in-page home.
+window.showDeckStart = () => setupDeckStartScreen({ force: true });
 setupDeckStartScreen();
 
 function ensureHomeReturnButton() {

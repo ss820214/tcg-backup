@@ -354,7 +354,7 @@
   }
 
   function ensureRouteStrip() {
-    if (isHome || page === "game.html" || $("tcgRouteStrip")) return;
+    if (isHome || page === "game.html" || document.body.dataset.routeStrip === "off" || $("tcgRouteStrip")) return;
     const info = PAGE_INFO[page] || { title: "0BATo", documentTitle: "0BATo" };
     const strip = document.createElement("div");
     strip.id = "tcgRouteStrip";

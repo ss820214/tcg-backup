@@ -1,3 +1,4 @@
+import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
 import {isBattleCommandEvent} from "./battle_input.js?v=20261113_target_fix1";
 import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
 ﻿// public/game.js
@@ -399,7 +400,6 @@ async function loadCards() {
     }
   }
 
-  await loadCardCollection("cards");
   await loadCardCollection("support_cards", "support");
   await loadCardCollection("supports", "support");
   await loadCardCollection("supportCards", "support");
@@ -407,6 +407,8 @@ async function loadCards() {
   await loadCardCollection("ex_supports", "ex_support");
   await loadCardCollection("exSupportCards", "ex_support");
   await loadCardCollection("ex_support", "ex_support");
+  // Match the deck editor: the main collection overrides legacy collections.
+  await loadCardCollection("cards");
   let youCard = null;
   try {
     const profile = await ensureUserProfile();
@@ -414,17 +416,7 @@ async function loadCards() {
   } catch (e) {
     console.warn("[game] YOU card skipped:", e?.message || e);
   }
-  const starterSupportDefs = { ...STARTER_SUPPORT_CARD_MAP };
-  for (const [id, def] of Object.entries(STARTER_SUPPORT_CARD_MAP || {})) {
-    const rawId = String(id || "").trim();
-    if (!rawId) continue;
-    starterSupportDefs[rawId] = def;
-    starterSupportDefs[rawId.toLowerCase()] = def;
-    starterSupportDefs[rawId.toUpperCase()] = def;
-  }
-
-  // Starter support cards are canonical locally, including S/s ID aliases.
-  cardDefs = { ...m, ...starterSupportDefs, ...FAIRY_TALE_CARDS, ...JEWEL_CARDS };
+  cardDefs = mergeBattleCardDefinitions(m, STARTER_SUPPORT_CARD_MAP, FAIRY_TALE_CARDS, JEWEL_CARDS);
   if (youCard) cardDefs[YOU_CARD_ID] = youCard;
 }
 await loadCards();
@@ -1698,11 +1690,11 @@ function setMode(m) {
         : m === "move"
           ? "移動: 自軍を選択 → 移動先をクリック（マナ-1 / ターン中2マスまで）"
           : m === "attack"
-            ? "行動: 攻撃対象をクリックで選択 → 「行動実行」で確定"
+            ? "行動: 攻撃対象をクリックで選択 → 「攻撃決定」で確定"
             : m === "evolve"
-              ? "進化: 進化元を選択 → 手札候補を選択 → 進化実行（疲労中でも可）"
+              ? "進化: 進化元を選択 → 手札候補を選択 → 「進化を実行」（疲労中でも可）"
               : m === "support"
-                ? "サポート: 対象をクリックで選択 → 「サポート実行」で確定"
+                ? "サポート: 対象をクリックで選択 → 「サポート発動」で確定"
                 : "ユニット選択: 移動 / 行動 / 進化 / サポートを選択";
   }
 
@@ -1974,24 +1966,24 @@ function supportHintText(st) {
   parts.push(supportTargetText(def) + " / " + supportRateText(def));
 
   if (plan.need === "unit") {
-    parts.push("手順: 対象ユニットをクリック > サポート実行");
+    parts.push("手順: 対象ユニットをクリック > サポート発動");
     parts.push("対象: " + (supportTarget1Id ? "選択済み" : "未選択"));
   } else if (plan.need === "unit2") {
-    parts.push("手順: ユニット1 > ユニット2 > サポート実行");
+    parts.push("手順: ユニット1 > ユニット2 > サポート発動");
     parts.push("1体目:" + (supportTarget1Id ? "OK" : "未") + " / 2体目:" + (supportTarget2Id ? "OK" : "未"));
   } else if (plan.need === "unitCell") {
-    parts.push("手順: 移動させるユニット > 移動先マス > サポート実行");
+    parts.push("手順: 移動させるユニット > 移動先マス > サポート発動");
     parts.push("ユニット:" + (supportTarget1Id ? "OK" : "未") + " / マス:" + (supportTargetCell ? "OK(" + supportTargetCell.x + "," + supportTargetCell.y + ")" : "未"));
   } else if (plan.need === "units") {
     const cnt = Math.max(1, Number(plan?.count ?? 1) || 1);
-    parts.push("手順: 対象ユニットを" + cnt + "体クリック > サポート実行");
+    parts.push("手順: 対象ユニットを" + cnt + "体クリック > サポート発動");
     parts.push("選択: " + (Array.isArray(supportTargetIds) ? supportTargetIds.length : 0) + "/" + cnt);
   } else if (plan.need === "search") {
     const opts = supportSearchOptions(st, def);
-    parts.push("手順: デッキからカードを選択 → サポート実行");
+    parts.push("手順: デッキからカードを選択 → サポート発動");
     parts.push(plan.fixedCardId ? "対象: " + cardName(plan.fixedCardId) : "候補: " + opts.length + "種類");
   } else {
-    parts.push("手順: サポート実行で発動");
+    parts.push("手順: サポート発動で発動");
   }
 
   return parts.join("\n");
@@ -3411,7 +3403,19 @@ function renderCardPreview(st) {
     '<div class="bcSub">' + chips + '</div>' + statsHtml + '</div></div>' + body;
 }
 
+let detailUnitId = null;
+function refreshUnitDetail(st) {
+  if (!detailUnitId) return;
+  const unit = st.units?.find(u => u.id === detailUnitId);
+  if (unit) showUnitDetail(unit, st);
+  else {
+    detailUnitId = null;
+    if (detailEl) detailEl.textContent = "このユニットは盤面を離れました。";
+  }
+}
+
 function showCardDetail(cardId) {
+  detailUnitId = null;
   const d = cardDefs[cardId];
   if (!d || !detailEl) return;
 
@@ -3473,6 +3477,7 @@ function showCardDetail(cardId) {
 
 function showUnitDetail(u, st = currentState) {
   if (!detailEl) return;
+  detailUnitId = u.id;
 
   const def = cardDefs[u.cardId] || {};
   let html = '<b>' + escapeBattleHtml(cardName(u.cardId)) + '</b> <span class="small">(' +
@@ -3574,7 +3579,7 @@ function updateQuickActions(st) {
     quickMsgEl.textContent = "疲労中: 行動できません（移動はOK）";
   else if (!canPay) quickMsgEl.textContent = "マナ不足: 行動できません";
   else if (mode === "attack")
-    quickMsgEl.textContent = "対象を選んで「行動実行」で確定";
+    quickMsgEl.textContent = "対象を選んで「攻撃決定」で確定";
   else quickMsgEl.textContent = "";
 
   // The duplicate quick command buttons were removed; only show this panel
@@ -7258,7 +7263,7 @@ const ui = createGameUI({
   setTurnUI,
   renderLog,
   fxOnHit,
-  onAfterRender: st=>updateBattleReadability(st),
+  onAfterRender: st=>{ updateBattleReadability(st); refreshUnitDetail(st); },
 
   actFlags,
   isSelfRange,

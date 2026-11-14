@@ -82,7 +82,7 @@ body.mobileDeckUi #mobileDeckNav{display:none !important}
     justify-content: flex-end !important;
   }
 
-  body.mobileDeckUi header .topRight > :not(#btnHome):not(#btnDeckTop):not(#deviceModeBadge) {
+  body.mobileDeckUi header .topRight > :not(#btnHome):not(#btnDeckTop):not(#deviceModeBadge):not(#tcgDopagakiToggle) {
     display: none !important;
   }
 

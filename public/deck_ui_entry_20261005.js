@@ -21,8 +21,8 @@
     ["ui-polish", "./ui_polish.js?v=20260801_screen_nav_mobile1"],
     ["visual-upgrade", "./visual_upgrade_20260805.js?v=20260808_deck_flow2"],
     ["deck-layout-guard", "./deck_layout_guard.js?v=20260821_readable_ui1"],
-    ["dopagaki", "./dopagaki_mode.js?v=20260912_dopa_tools_fix1"],
-    ["mobile-deck-ui", "./mobile_deck_ui.js?v=20260906_curse_nav1"],
+    ["dopagaki", "./dopagaki_mode.js?v=20261114_flow1"],
+    ["mobile-deck-ui", "./mobile_deck_ui.js?v=20261114_flow1"],
     ["ui-stability", "./ui_stability_20260825.js?v=20260826_deckspace1"],
     ["mobile-home-deck", "./mobile_home_deck_ui_20260926.js?v=20261005_ui_entry3"],
   ];

@@ -15,9 +15,9 @@ const home = read("public/index.html");
 const deck = read("public/deck.js");
 const playHtml = read("public/play.html");
 
-assert.match(home, /id="deckVersionPill">v1\.2\.1/);
-assert.match(deck, /"V1\.2\.1"/);
-assert.match(home, /deck\.js\?v=20261114_home_result2/);
+assert.match(home, /id="deckVersionPill">v1\.2\.2/);
+assert.match(deck, /"V1\.2\.2"/);
+assert.match(home, /deck\.js\?v=20261116_v122/);
 
 // Browser defense headers must be included without overriding the existing
 // no-cache rules, and no new billable Firebase products are configured.
@@ -50,12 +50,12 @@ assert.match(store, /where\("visibility", "==", "public"\), where\("type", "==",
 assert.match(lib, /where\("title","==",title\),where\("visibility","==","public"\)/);
 assert.match(libCore, /where\("title","==",title\),where\("visibility","==","public"\)/);
 
-// Legacy room entry must use a Firestore transaction to reserve the code.
-assert.match(play, /if\(mode!=="join"\)await runTransaction\(db,async\(tx\)=>/);
-assert.match(play, /const existing=await tx\.get\(roomRef\)/);
-assert.match(play, /if\(existing\.exists\(\)\)throw Error/);
-assert.match(play, /tx\.set\(roomRef,/);
-assert.match(playHtml, /play\.js\?v=20261108_v120_room_atomic/);
+// All entry points use one atomic capacity reservation; validated behavior is covered by v1.2.2 integration tests.
+assert.match(play, /rooms.enter/);
+assert.match(playHtml, /play\.js\?v=20261116_v122/);
+const roomService=read("public/room_session.js");
+assert.match(roomService,/runTransaction/);
+assert.match(roomService,/next.length>2/);
 
 // Rules preserve owners' access and only reveal publicly listed decks,
 // link-only decks by ID, and the recipient's private grant.

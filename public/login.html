@@ -346,7 +346,7 @@
 
         <label for="pin">PIN</label>
         <input id="pin" maxlength="8" inputmode="numeric" autocomplete="current-password" pattern="[0-9]*" placeholder="4〜8桁" />
-        <div class="hint">この端末の匿名UIDにプレイヤープロフィールを紐づけます。</div>
+        <div class="hint">ID・PINだけでは機種変更・別ブラウザへの引き継ぎはできません。下のメール連携を設定すると、同じデータで再開できます。</div>
 
         <button id="btnSubmit" class="primary" type="submit">ログインする</button>
 
@@ -359,7 +359,7 @@
         <div id="msg" class="message">ログイン、または新規登録を選んでください。</div>
       </form>
 
-      <section class="adminPanel" aria-label="管理者メール認証">
+      <section class="panel" aria-label="メールでデータ引き継ぎ"><h2>メールでデータ引き継ぎ</h2><p>今のカード・ジェム・デッキを別端末でも使うには、元の端末でメールを連携してね。ID・PINはこの端末の確認用です。連携前にブラウザのデータを削除しないでください。</p><label for="playerEmail">メールアドレス</label><input id="playerEmail" type="email" autocomplete="email" placeholder="you@example.com"><label for="playerPassword">パスワード（12文字以上）</label><input id="playerPassword" type="password" autocomplete="current-password" minlength="12"><div class="subActions"><button id="btnPlayerLink" type="button">今のデータにメールを連携</button><button id="btnPlayerLogin" type="button">メールで再開（別端末）</button></div><p id="playerEmailMsg" role="status" aria-live="polite"></p></section><section class="adminPanel" aria-label="管理者メール認証">
         <h2>管理者メール認証（PIN不要）</h2>
         <p>初回のみ<strong>これまで管理者として使っていた端末・ブラウザ</strong>で「既存管理者にメールを紐づけ」を実行してください。元のUID、ジェム、カードは維持されます。先にFirebase Authenticationで「メール/パスワード」を有効化してください。</p>
         <label for="adminEmail">管理者メールアドレス</label>
@@ -386,6 +386,6 @@
     </section>
   </main>
 
-  <script type="module" src="./login.js?v=20261103_admin_email_privacy2"></script>
+  <script type="module" src="./login.js?v=20261116_v122"></script>
 </body>
 </html>

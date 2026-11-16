@@ -41,7 +41,7 @@ import {
   isStarterCardDef,
   YOU_CARD_ID,
   normalizeYouCard,
-} from "./user_store.js?v=20261108_v120_economy_safety";
+} from "./user_store.js?v=20261116_v122";
 import { initPostBox } from "./post_box.js?v=20261017_asyncfix3";
 
 import { TutorialSystem } from "./tutorial.js?v=20260626";
@@ -2336,7 +2336,7 @@ function ensureDeckStartElement() {
 
   // Home and deck editor share one release label to prevent stale home versions.
   const homeReleaseVersion = (
-    document.getElementById("deckVersionPill")?.textContent || "V1.2.1"
+    document.getElementById("deckVersionPill")?.textContent || "V1.2.2"
   ).trim().toUpperCase();
 
   const homeHtml = `
@@ -8573,72 +8573,13 @@ function readJoinCode() {
 }
 
 let roomEntryInFlight = false;
-async function handleCreateRoom() {
-  const total = sumDeck(deckMap);
-  if (total !== DECK_SIZE)
-    return setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
-
-  if (roomEntryInFlight) return;
-  roomEntryInFlight = true;
-  try {
-    const name = askNameIfNeeded();
-    const fid = desiredField();
-    const createdRoom = await reserveFreshRoom({
-      desiredField: fid,
-      fieldId: fid,
-      field: { id: fid },
-    });
-    roomId = createdRoom;
-    playerId = newPlayerId();
-    updateUrlAndLabels();
-    await ensurePlayerDoc(roomId, playerId, name);
-    await saveDeckToUser(name);
-
-    saveLocalDeck();
-    saveSelectedEx(selectedExSupportId || "");
-    await launchBattleWithTransition(battleUrl(), "battle", {
-      title: "ROOM READY",
-      sub: "ルームを作成しました。対戦フィールドへ移動します。",
-    });
-  } catch (error) {
-    console.error("[room] create failed", error);
-    showRoomEntryError(error?.message || "ルーム作成に失敗しました。");
-  } finally {
-    roomEntryInFlight = false;
-  }
-}
-
-async function handleJoinRoom() {
-  const total = sumDeck(deckMap);
-  if (total !== DECK_SIZE)
-    return setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
-
-  const code = readJoinCode();
-  if (!isValidRoomCode4(code))
-    return showRoomEntryError("部屋番号は0000以外の4桁（例: 1234）で入力してね");
-  if (roomEntryInFlight) return;
-  roomEntryInFlight = true;
-  try {
-    await requireJoinableRoom(code);
-    const name = askNameIfNeeded();
-    roomId = code;
-    playerId = newPlayerId();
-    updateUrlAndLabels();
-    await ensurePlayerDoc(roomId, playerId, name);
-    await saveDeckToUser(name);
-
-    saveLocalDeck();
-    saveSelectedEx(selectedExSupportId || "");
-    await launchBattleWithTransition(battleUrl(), "join", {
-      title: "JOIN READY",
-      sub: "参加情報を同期しました。対戦フィールドへ移動します。",
-    });
-  } catch (error) {
-    console.error("[room] join failed", error);
-    showRoomEntryError(error?.message || "ルーム参加に失敗しました。");
-  } finally {
-    roomEntryInFlight = false;
-  }
+async function handleCreateRoom(){openCanonicalPlay('create');}
+async function handleJoinRoom(){openCanonicalPlay('join');}
+function openCanonicalPlay(entry){
+ saveLocalDeck();saveSelectedEx(selectedExSupportId||'');
+ const next=new URL('./play.html',location.href);next.searchParams.set('entry',entry);
+ if(entry==='join'){const code=readJoinCode();if(code)next.searchParams.set('code',code);}
+ location.assign(next.href);
 }
 
 // 既存ボタンにイベントを付ける
@@ -8673,65 +8614,7 @@ async function ensureCpuPlayerDoc(rid) {
 
 let soloStartInFlight = false;
 
-async function handleSoloRoom() {
-  if (soloStartInFlight) return;
-
-  try {
-    const total = sumDeck(deckMap);
-    if (total !== DECK_SIZE) {
-      setMsg(`${DECK_SIZE}枚ちょうどにしてください`, false);
-      updateRoomDeckReadiness(total);
-      document.getElementById("roomDeckReadiness")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-
-    soloStartInFlight = true;
-    if (btnSolo) {
-      btnSolo.disabled = true;
-      btnSolo.dataset.prevText = btnSolo.textContent || "";
-      btnSolo.textContent = "準備中...";
-    }
-
-    const name = askNameIfNeeded();
-
-    // ソロでも他人の部屋を初期化しない。空き番号を確実に確保する。
-    const fid = desiredField();
-    roomId = await reserveFreshRoom({
-      mode: "solo",
-      solo: true,
-      desiredField: fid,
-      fieldId: fid,
-      field: { id: fid },
-    });
-    playerId = newPlayerId();
-    updateUrlAndLabels();
-
-    // 自分
-    await ensurePlayerDoc(roomId, playerId, name);
-    await saveDeckToUser(name);
-
-    // CPU
-    await ensureCpuPlayerDoc(roomId);
-
-    saveLocalDeck();
-    saveSelectedEx(selectedExSupportId || "");
-
-    await launchBattleWithTransition(battleUrl({ solo: "1", mode: "solo" }), "solo", {
-      solo: true,
-      title: "SOLO READY",
-      sub: "CPUとデッキを同期しました。ソロバトルへ移動します。",
-    });
-  } catch (err) {
-    console.error("handleSoloRoom failed:", err);
-    soloStartInFlight = false;
-    if (btnSolo) {
-      btnSolo.disabled = false;
-      btnSolo.textContent = btnSolo.dataset.prevText || "ソロで開始";
-    }
-    setMsg("ソロ開始に失敗しました。Consoleの赤いエラーを貼ってください。", false);
-    alert("ソロ開始に失敗しました。\nコンソールの赤いエラーを貼ってください。");
-  }
-}
+async function handleSoloRoom(){openCanonicalPlay('solo');}
 
 // index.html fallback から呼べるように公開
 if (!window.__tcg_solo_bound) {

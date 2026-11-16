@@ -1,7 +1,7 @@
+import {db,ensureSignedIn} from "./auth.js?v=20260627_user1";
 // public/match_intro.js
 // v20260724_vs_profile1
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
@@ -19,17 +19,10 @@ let seat = (params.get("seat") || "").toUpperCase(); // A/B (optional)
 let seatAPlayerId = null;
 let seatBPlayerId = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBAJV-VyGb9Wujnlmcihuqrh3Z9ejiH87c",
-  authDomain: "tcg-0bato.firebaseapp.com",
-  projectId: "tcg-0bato", // ★ここだけ直す（.firebaseapp.com 付けない）
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+await ensureSignedIn();
 
 const matchRef  = doc(db, "rooms", roomId, "game", "match");
-const stateRef  = doc(db, "rooms", roomId, "state", "main");
+const stateRef  = doc(db, "rooms", roomId, "game", "state");
 const playersRef = collection(db, "rooms", roomId, "players");
 const playerRef = (pid) => doc(db, "rooms", roomId, "players", pid);
 

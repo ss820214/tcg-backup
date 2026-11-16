@@ -23,7 +23,8 @@ import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { computeInfil } from "./game_state.js?v=20260228_5";
 import { renderBattleDetails } from "./battle_result_details.js?v=20261020a";
 import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20261116_radar_stable1";
-import { db } from "./auth.js?v=20260627_perm1";
+import { db,ensureSignedIn } from "./auth.js?v=20260627_user1";
+await ensureSignedIn();
 import { recordMatchResult } from "./user_store.js?v=20260723_starter_series1";
 
 // Firebase (same style as game.js)
@@ -940,11 +941,11 @@ async function loadWinnerDeckAndRender(){
     if (!winnerPid) throw new Error("winnerPid missing");
 
     const ps = await getDoc(playerRef(winnerPid));
-    if (!ps.exists()) throw new Error("winner player missing");
+    if (!ps.exists() && !m.decks?.[winner]) throw new Error("winner player missing");
     const p = ps.data() || {};
 
-    const deckObj = p.deck || {};
-    const exId = p.exSupport || p.exCardId || null;
+    const deckObj = m.decks?.[winner] || p.deck || {};
+    const exId = m.exSupport?.[winner] ?? (p.exSupport || p.exCardId || null);
 
     const { lines, total } = deckObjToLines(deckObj);
 

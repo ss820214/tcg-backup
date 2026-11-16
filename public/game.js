@@ -16,7 +16,7 @@ import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
 import { cardArtImgHtml, cardArtDataUri } from "./card_art.js?v=20260828_jewel_art1";
 
-import { ensureSignedIn } from "./auth.js?v=20260627_user1";
+import { auth,ensureSignedIn } from "./auth.js?v=20260627_user1";
 import {
   ensureUserProfile,
   recordMatchResult,
@@ -379,7 +379,7 @@ if (!roomId || !playerId) {
 const matchRef = doc(db, "rooms", roomId, "game", "match");
 const stateRef = doc(db, "rooms", roomId, "game", "state");
 const playerRef = (pid) => doc(db, "rooms", roomId, "players", pid);
-const battleConnection=createBattleConnection({refresh:async()=>{
+const battleConnection=createBattleConnection({identity:()=>auth.currentUser?.uid===authUid,refresh:async()=>{
  const snapshot=await getDocFromServer(stateRef);
  if(snapshot.exists())render(snapshot.data());
  return snapshot;

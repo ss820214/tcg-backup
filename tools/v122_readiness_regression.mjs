@@ -52,10 +52,11 @@ anon.getIdToken=async()=>'existing-token';await assert.rejects(fallback.link('pl
 function element(){return{hidden:false,style:{},children:[],setAttribute(){},append(...xs){this.children.push(...xs)},addEventListener(){},remove(){}};}
 const doc={...element(),hidden:false,body:{prepend(){}},createElement:element,addEventListener(){},removeEventListener(){}};
 const listeners={},win={navigator:{onLine:true},addEventListener:(k,v)=>listeners[k]=v,removeEventListener(){}};
-let fail=false,refreshes=0;
-const connection=createBattleConnection({doc,win,refresh:async()=>{refreshes++;if(fail)throw Error('offline');return{exists:()=>true,metadata:{fromCache:false}};}});
+let fail=false,refreshes=0,identity=true;
+const connection=createBattleConnection({doc,win,identity:()=>identity,refresh:async()=>{refreshes++;if(fail)throw Error('offline');return{exists:()=>true,metadata:{fromCache:false}};}});
 assert.equal(connection.canAct(),false);connection.observe({exists:()=>true,metadata:{fromCache:true}});assert.equal(connection.canAct(),false);
 connection.observe({exists:()=>true,metadata:{fromCache:false}});assert.equal(connection.canAct(),true);
+identity=false;assert.equal(connection.canAct(),false);identity=true;
 win.navigator.onLine=false;listeners.offline();assert.equal(connection.canAct(),false);
 win.navigator.onLine=true;await Promise.all([connection.reconnect(),connection.reconnect()]);assert.equal(refreshes,1);assert.equal(connection.canAct(),true);
 fail=true;await connection.reconnect();assert.equal(connection.canAct(),false);connection.dispose();

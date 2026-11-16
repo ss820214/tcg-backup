@@ -1,3 +1,4 @@
+import {createRoomService,rememberMatch,forgetMatch} from "./room_session.js?v=20261116_v122";
 import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
@@ -48,6 +49,7 @@ import {
   updateDoc, // ← 使わなくなるなら消してOK
   setDoc, // ★追加
   getDoc,
+  Timestamp,
   query,
   where,
   limit,
@@ -741,52 +743,11 @@ function renderMyDeck(deckObj, exCardId) {
 // =====================
 // 参加処理（維持）
 // =====================
+const roomService=createRoomService({db,doc,collection,getDocs,runTransaction,serverTimestamp,Timestamp});
 async function ensureMyPlayerDoc() {
-  const localDeck = loadLocalDeckFallback();
-  const localEx = loadLocalExFallback();
-
-  const pSnap = await getDocs(playersRef);
-  const ids = pSnap.docs.map((d) => d.id);
-  const alreadyIn = ids.includes(playerId);
-  const count = ids.length;
-
-  if (action === "join" && count >= 2 && !alreadyIn) {
-    alert("このルームは満員です（2人参加済み）");
-    throw new Error("room full");
-  }
-
-  await runTransaction(db, async (tx) => {
-    const meSnap = await tx.get(myRef);
-
-    if (!meSnap.exists()) {
-      tx.set(myRef, {
-        name: autoName(playerId),
-        ready: false,
-        deck: Object.keys(localDeck).length ? localDeck : {},
-        exSupport: localEx || "",
-        desiredField: myDesiredField(),
-        joinedAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      return;
-    }
-
-    const me = meSnap.data() || {};
-    const deck = safeObj(me.deck);
-    const hasDeck = Object.keys(deck).some((k) => Number(deck[k] || 0) > 0);
-
-    const patch = { updatedAt: serverTimestamp() };
-
-    const normalizedDesired = normalizeFieldId(me.desiredField, { fallback: "" });
-    if (!normalizedDesired) patch.desiredField = myDesiredField();
-    else if (normalizedDesired !== String(me.desiredField || "").trim().toLowerCase()) {
-      patch.desiredField = normalizedDesired;
-    }
-    if (!hasDeck && Object.keys(localDeck).length) patch.deck = localDeck;
-    if (!me.exSupport && localEx) patch.exSupport = localEx;
-
-    tx.set(myRef, patch, { merge: true });
-  });
+ const session=await roomService.enter({code:roomId,uid:authUid,playerId,mode:'join',field:myDesiredField(),profile:{name:autoName(playerId),deck:loadLocalDeckFallback(),exSupport:loadLocalExFallback(),desiredField:myDesiredField()}});
+ if(session.player!==playerId){const next=new URL(location.href);next.searchParams.set('player',session.player);location.replace(next.href);throw Error('参加情報を復元しています。');}
+ rememberMatch({...session,uid:authUid});
 }
 
 await ensureMyPlayerDoc().catch(error => { showLobbyFailure("ルームへの入室", error); throw error; });
@@ -919,11 +880,15 @@ onSnapshot(playersRef, async (snap) => {
   if (readyCount >= 2 && !alreadyMoved) {
     alreadyMoved = true;
 
-    await runTransaction(db, async (tx) => {
+    try { await runTransaction(db, async (tx) => {
       const m = await tx.get(matchRef);
+      const roomSnap=await tx.get(doc(db,'rooms',roomId));
       if (m.exists()) return;
+      const roomData=roomSnap.data()||{};
+      if(!roomSnap.exists()||roomData.status==='closed')throw Error('ルームは終了しています。');
 
-      const ids = players.map((p) => p.id).sort();
+      const ids = [...(roomData.memberIds||players.map(p=>p.id))].sort();
+      if(ids.length!==2)throw Error('対戦者2人の参加を確認しています。');
       const seatA = ids[0];
       const seatB = ids[1];
 
@@ -935,6 +900,7 @@ onSnapshot(playersRef, async (snap) => {
 
       const aData = aSnap.exists() ? aSnap.data() || {} : {};
       const bData = bSnap.exists() ? bSnap.data() || {} : {};
+      if(!aSnap.exists()||!bSnap.exists()||!aData.ready||!bData.ready)throw Error('両者の準備完了を待っています。');
 
       // A failed CPU-deck bootstrap must never silently create an empty match.
       if (isSolo) {
@@ -973,10 +939,14 @@ onSnapshot(playersRef, async (snap) => {
         ...(isSolo ? {cpuStyle: Object.hasOwn(CPU_STYLES, (seatA === CPU_ID ? aData : bData).cpuStyle)
           ? (seatA === CPU_ID ? aData : bData).cpuStyle : selectedCpuStyle()} : {}),
         startedAt: serverTimestamp(),
+        decks:{A:aData.deck||{},B:bData.deck||{}},
+        exSupport:{A:aData.exSupport||'',B:bData.exSupport||''},
+        participantUids:{A:aData.uid||'',B:bData.uid||''},
       });
     });
 
     goToMatchIntro();
+    } catch(error){alreadyMoved=false;readyNote.textContent=error?.message||'開始できませんでした。準備を押し直してください。';}
   }
 }, error => showLobbyFailure("参加者情報の監視", error));
 
@@ -985,8 +955,10 @@ readyBtn.onclick = async () => {
   ensureAudio();
   beep(880, 60, 0.04);
 
+  const roomNow=await getDoc(doc(db,'rooms',roomId));
+  if(!roomNow.exists()||roomNow.data()?.status==='closed'){readyNote.textContent='ルームが終了しています。対戦準備へ戻ってください。';readyBtn.disabled=true;return;}
   const me = await getDoc(myRef);
-  if (!me.exists()) return;
+  if (!me.exists()||me.data()?.uid!==authUid) return;
 
   // READY is the barrier: the CPU deck must be fully written and playable.
   // Merely saving cpuStyle on a bare "cpu" document is not sufficient.
@@ -1146,3 +1118,15 @@ if (pingBtn) pingBtn.onclick = () => {
   }
 };
 if (pingResetBtn) pingResetBtn.onclick = resetPong;
+
+const leaveLobby=document.getElementById('leaveLobby');
+leaveLobby?.addEventListener('click',async()=>{
+ leaveLobby.disabled=true;
+ try{await roomService.leave({code:roomId,playerId,uid:authUid});forgetMatch(authUid);location.assign('./play.html');}
+ catch(error){readyNote.textContent=error?.message||'退出できませんでした。';leaveLobby.disabled=false;}
+});
+onSnapshot(doc(db,'rooms',roomId),snap=>{
+ if(snap.exists()&&snap.data()?.status==='closed'){
+  readyBtn.disabled=true;statusEl.textContent='ホストが退出しました。対戦準備から新しいルームへ入り直してください。';forgetMatch(authUid);
+ }
+});

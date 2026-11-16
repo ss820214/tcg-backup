@@ -1,3 +1,4 @@
+import {createAccountTransfer} from "./account_transfer.js?v=20261116_v122";
 // public/login.js
 // v20260627_login1
 
@@ -54,6 +55,7 @@ const el = {
   adminMsg: $("adminMsg"),
   btnAdminLink: $("btnAdminLink"),
   btnAdminLogin: $("btnAdminLogin"),
+  btnPlayerLink: $("btnPlayerLink"),btnPlayerLogin:$("btnPlayerLogin"),
 };
 
 let mode = "login";
@@ -65,7 +67,7 @@ function setMessage(msg, kind = "") {
 }
 
 function setBusy(busy) {
-  [el.btnSubmit, el.btnSuggest, el.btnUseSaved, el.tabLogin, el.tabRegister, el.btnAdminLink, el.btnAdminLogin].forEach((b) => {
+  [el.btnSubmit, el.btnSuggest, el.btnUseSaved, el.tabLogin, el.tabRegister, el.btnAdminLink, el.btnAdminLogin, el.btnPlayerLink, el.btnPlayerLogin].forEach((b) => {
     if (b) b.disabled = !!busy;
   });
 }
@@ -89,8 +91,8 @@ function setMode(next) {
   if (el.btnSubmit) el.btnSubmit.textContent = mode === "register" ? "IDを登録する" : "ログインする";
   setMessage(
     mode === "register"
-      ? "新しいプレイヤーIDをこの端末に登録します。既にIDがある場合はログインを使ってください。"
-      : "登録済みのプレイヤーIDとPINで入ります。未登録IDは自動作成しません。",
+      ? "新しいプレイヤーIDをこの端末に登録します。引き継ぎたい場合は下のメール連携も設定してください。"
+      : "ID・PINはこの端末のプロフィール確認用です。別端末では下の「メールで再開」を使ってください。",
   );
 }
 
@@ -479,7 +481,37 @@ async function loginAdminEmail() {
   }
 }
 
+const playerTransfer=createAccountTransfer({
+ auth,ensureUser:ensureAnonSignedIn,credential:EmailAuthProvider.credential,linkWithCredential,
+ apiKey:firebaseConfig.apiKey,storage:localStorage,
+ profileFor:async uid=>{const snap=await getDoc(doc(db,'users',uid));if(!snap.exists())throw Error('引き継ぎ元のプレイヤーデータがありません。まずプロフィールを登録してください。');return snap.data();},
+ signIn:async(email,password)=>(await signInWithEmailAndPassword(auth,email,password)).user,
+ probe:async(email,password)=>{
+  const name='0bato-player-login-probe',app=getApps().find(a=>a.name===name)||initializeApp(firebaseConfig,name),test=getAuth(app);
+  await setPersistence(test,inMemoryPersistence);
+  try{const result=await signInWithEmailAndPassword(test,email,password),profile=await getDoc(doc(getFirestore(app),'users',result.user.uid));
+   if(!profile.exists())throw Error('このメールのプレイヤーデータがありません。');
+   if(profile.data()?.isAdmin===true)throw Error('管理者は管理者メール認証から再開してください。');
+   return{uid:result.user.uid};
+  }finally{if(test.currentUser)await signOut(test);}
+ }
+});
+async function playerEmailAction(action){
+ setBusy(true);const status=$('playerEmailMsg'),password=$('playerPassword');
+ status.textContent=action==='link'?'現在のデータにメールを連携中…':'メール認証とデータを確認中…';
+ try{
+  if(action==='link'){const user=await ensureAnonSignedIn(),profile=await getDoc(doc(db,'users',user.uid));if(!profile.exists())throw Error('先にプロフィールを登録するか、一度デッキ画面を開いてください。');if(profile.data()?.isAdmin)throw Error('管理者は管理者用メール連携を使ってください。');}
+  const result=await playerTransfer[action]($('playerEmail').value,password.value,async()=>confirm('メールのアカウントへ表示を切り替えます。現在のアカウントのクラウドデータは残ります。未保存の編集中デッキもこの端末に控えを残します。切り替えますか？'));
+  if(!result){status.textContent='切り替えを取り消しました。';return;}
+  saveLocalProfile(result.uid,result.profile.name||'player',false);refreshSavedView();
+  status.textContent=action==='link'?'連携しました。カード・ジェム・デッキのUIDを維持しています。別端末ではメールとパスワードで再開できます。':'再開できました。保存済みデータを読み込みます。';
+  if(action==='login')setTimeout(()=>moveNext(result.uid),350);
+ }catch(error){const code=String(error?.code||'');status.textContent=code.startsWith('auth/')?'メール認証に失敗しました。メール・パスワード・通信状態を確認してください。元のブラウザデータは削除しないでください。':String(error?.message||error);}
+ finally{password.value='';setBusy(false);}
+}
 function wire() {
+  el.btnPlayerLink?.addEventListener("click",()=>playerEmailAction("link"));
+  el.btnPlayerLogin?.addEventListener("click",()=>playerEmailAction("login"));
   el.btnAdminLink?.addEventListener("click", linkAdminEmail);
   el.btnAdminLogin?.addEventListener("click", loginAdminEmail);
   el.tabLogin?.addEventListener("click", () => setMode("login"));

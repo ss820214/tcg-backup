@@ -1,3 +1,5 @@
+import {createBattleConnection} from "./battle_connection.js?v=20261116_v122";
+import {rememberMatch} from "./room_session.js?v=20261116_v122";
 import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
 import {isBattleCommandEvent} from "./battle_input.js?v=20261113_target_fix1";
 import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
@@ -20,7 +22,7 @@ import {
   recordMatchResult,
   YOU_CARD_ID,
   normalizeYouCard,
-} from "./user_store.js?v=20261108_v120_economy_safety";
+} from "./user_store.js?v=20261116_v122";
 
 import { createCpuDriver } from "./cpu_driver.js?v=20261020_cpu_deck_fix1";
 import { inspectCpuDeck, expandCpuDeck, needsCpuOpeningRepair } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix3";
@@ -40,6 +42,7 @@ import {
   doc,
   collection,
   getDoc,
+  getDocFromServer,
   getDocs,
   onSnapshot,
   runTransaction,
@@ -376,6 +379,13 @@ if (!roomId || !playerId) {
 const matchRef = doc(db, "rooms", roomId, "game", "match");
 const stateRef = doc(db, "rooms", roomId, "game", "state");
 const playerRef = (pid) => doc(db, "rooms", roomId, "players", pid);
+const battleConnection=createBattleConnection({refresh:async()=>{
+ const snapshot=await getDocFromServer(stateRef);
+ if(snapshot.exists())render(snapshot.data());
+ return snapshot;
+}});
+rememberMatch({room:roomId,player:playerId,field:fieldIdFromUrl,solo:isSoloMode,started:true,uid:authUid});
+
 
 // =====================
 // Load card defs
@@ -804,6 +814,8 @@ async function resolveSeat() {
     alert("matchがありません。battleで両者準備OKになったか確認してください。");
     throw new Error("match missing");
   }
+  const member=await getDoc(playerRef(playerId));
+  if(!member.exists()||member.data()?.uid!==authUid)throw Error('この対戦の参加者を確認できません。元の端末・アカウントで再開してください。');
   const m = ms.data();
   // Match metadata is authoritative. Intermediate transitions may lose URL flags.
   if (m.seatA === "cpu" || m.seatB === "cpu") isSoloMode = true;
@@ -823,7 +835,11 @@ async function resolveSeat() {
   opponentSeat = seat === "A" ? "B" : "A";
   if (youEl) youEl.textContent = seat;
 }
-await resolveSeat();
+await resolveSeat().catch(error=>{
+ battleConnection.fail(error);
+ const back=document.createElement('a');back.href='./play.html';back.textContent='対戦準備へ戻る';back.style.color='#bdf5e6';document.getElementById('battleConnection')?.append(back);
+ throw error;
+});
 
 // =====================
 // CPU 蛻晄悄蛹厄ｼ育援蛛ｴ縺靴PU縺ｮ縺ｨ縺阪・縺ｿ・・// =====================
@@ -1538,7 +1554,7 @@ let supportTargetCell = null;
 let supportSearchCardId = "";
 
 function canControl(st) {
-  return st && normSeat(st.turn) === seat && !st.winner;
+  return battleConnection.canAct() && st && normSeat(st.turn) === seat && !st.winner;
 }
 
 function getSelectedUnit(st) {
@@ -7544,7 +7560,10 @@ async function recordCurrentPlayerMatchHistory(st, winnerSeat) {
 // =====================
 onSnapshot(
   stateRef,
+  {includeMetadataChanges:true},
   async (snap) => {
+    battleConnection.observe(snap);
+    if(!snap.exists())return;
     const st = snap.data() || {};
 
     st.units = Array.isArray(st.units) ? st.units : [];
@@ -7648,7 +7667,7 @@ onSnapshot(
 
     // CPUはソロモードのみ動かす。
     try {
-      if (cpuDriver && cpuSeat && isSoloMode) {
+      if (battleConnection.canAct() && cpuDriver && cpuSeat && isSoloMode) {
         void cpuDriver.tick(st, {
           cpuSeat,
           execCpuPlan,
@@ -7695,6 +7714,7 @@ onSnapshot(
     }
   },
   (err) => {
+    battleConnection.fail(err);
     console.error("[onSnapshot] error", err);
     if (logEl) logEl.textContent = String(err?.message ?? err);
   },

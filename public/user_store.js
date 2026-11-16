@@ -1,3 +1,4 @@
+import {validateStoredMatchResult} from "./match_result_validation.js?v=20261116_v122";
 // public/user_store.js
 // v20260726_post1
 // Shared user profile, owned-card, gem, and match-history helpers.
@@ -1322,7 +1323,9 @@ export async function recordMatchResult({
   endedAtMs = 0,
   durationMs = 0,
 } = {}) {
-  const actualUid = uid || await getCurrentUserUid();
+  const actualUid = await getCurrentUserUid();
+  if(uid&&uid!==actualUid)return {skipped:true,reason:"identity mismatch"};
+  if(!/^\d{4}$/.test(roomId)||!playerId)return {skipped:true,reason:"missing match"};
   const normalized = String(result || "").toLowerCase();
   if (normalized !== "win" && normalized !== "lose") {
     return { uid: actualUid, skipped: true, reason: "unknown result" };
@@ -1335,7 +1338,14 @@ export async function recordMatchResult({
   const histRef = doc(historyCol(actualUid), `match_${histIdBase}`);
 
   return runTransaction(db, async (tx) => {
-    const [profileSnap, histSnap] = await Promise.all([tx.get(ref), tx.get(histRef)]);
+    const [profileSnap, histSnap, matchSnap, stateSnap, playerSnap] = await Promise.all([
+      tx.get(ref),tx.get(histRef),tx.get(doc(db,'rooms',roomId,'game','match')),
+      tx.get(doc(db,'rooms',roomId,'game','state')),tx.get(doc(db,'rooms',roomId,'players',playerId))
+    ]);
+    const stored=validateStoredMatchResult({uid:actualUid,playerId,seat,winner,result:normalized,
+      match:matchSnap.data(),state:stateSnap.data(),player:playerSnap.data()});
+    if(!stored)return{uid:actualUid,skipped:true,reason:'unverified match result',reward:0};
+    turnSeq=stored.turnSeq;kills=stored.kills;infil=stored.infil;
     if (histSnap.exists()) {
       return { uid: actualUid, alreadyRecorded: true, reward: 0 };
     }

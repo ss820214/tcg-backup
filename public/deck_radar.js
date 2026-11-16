@@ -30,6 +30,9 @@ const TYPE_PROFILE = {
   "幻": { atk: 52, dur: 48, stab: 50, exp: 86, use: 62, ctl: 100 },
   "呪": { atk: 36, dur: 38, stab: 58, exp: 46, use: 62, ctl: 96 },
 };
+// Firestore and a locally edited deck may enumerate the same cards differently.
+// Equal attribute counts always use this fixed order, never object insertion order.
+const TYPE_ORDER = Object.keys(TYPE_PROFILE);
 
 // サポートカード用プロファイル
 const SUPPORT_PROFILE = { atk: 35, dur: 55, stab: 88, exp: 76, use: 88, ctl: 58 };
@@ -206,7 +209,7 @@ function getActionStats(a){
 // deckObj: {cardId: count}
 // cardDefs: {cardId: {type,cost,hp,sp,actions...}}
 export function evaluateDeck(deckObj, cardDefs){
-  const ids = Object.keys(deckObj || {}).filter(id => Number(deckObj[id]) > 0);
+  const ids = Object.keys(deckObj || {}).filter(id => Number(deckObj[id]) > 0).sort();
   const total = ids.reduce((s,id)=>s+Number(deckObj[id]||0),0);
   if (!total) {
     return { total:0, scores: [0,0,0,0,0,0], note:"デッキが空です" };
@@ -279,7 +282,12 @@ export function evaluateDeck(deckObj, cardDefs){
     ctl /(total*DIV),
   ];
 
-  const topType = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+  const typeRank = type => {
+    const index = TYPE_ORDER.indexOf(type);
+    return index < 0 ? TYPE_ORDER.length : index;
+  };
+  const topType = Object.entries(typeCounts)
+    .sort((a,b)=>b[1]-a[1] || typeRank(a[0])-typeRank(b[0]))[0];
   const topRatio = topType && unitCount ? topType[1] / unitCount : 0;
   const concentration = clamp((topRatio - 0.28) / 0.44, 0, 1);
   if (topType && TYPE_PROFILE[topType[0]] && concentration > 0) {
@@ -438,8 +446,10 @@ export function drawRadar(canvas, scores, opts={}){
 
   const { line, blue } = getThemeColors();
 
-  const cx = W*0.50, cy = H*0.52;
-  const R = Math.min(W, H) * 0.34;
+  const peakBand = opts.showPeakLabel === true ? 44 : 0;
+  const cx = W / 2, cy = peakBand + (H - peakBand) / 2;
+  // Reserve room for all six label pills and, if requested, a separate peak row.
+  const R = Math.max(0, Math.min((W - 128) / 2, (H - peakBand - 112) / 2));
   const peakIndex = (Array.isArray(scores) ? scores : []).reduce((best, value, index) => {
     return Number(value || 0) > Number(scores?.[best] || 0) ? index : best;
   }, 0);
@@ -546,7 +556,7 @@ export function drawRadar(canvas, scores, opts={}){
   ctx.restore();
 
   // ピーク軸名（不要なら opts.showPeakLabel=false）
-  if (opts.showPeakLabel !== false){
+  if (opts.showPeakLabel === true){
     drawPeakChip(ctx, AXIS_SHORT[peak.i] || AXES[peak.i], peak.v, W * 0.5, 8);
   }
 }
@@ -557,7 +567,7 @@ export function renderDeckRadar(canvasId, textId, deckObj, cardDefs){
   if (!canvas) return;
 
   const res = evaluateDeck(deckObj, cardDefs);
-  drawRadar(canvas, res.scores, { showPeakLabel: true });
+  drawRadar(canvas, res.scores, { showPeakLabel: false });
 
   if (textEl) {
     textEl.classList.toggle("deckRadarSummary", !!res.total);

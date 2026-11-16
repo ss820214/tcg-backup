@@ -56,7 +56,7 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-import { renderDeckRadar } from "./deck_radar.js?v=20260914_radar_readable1";
+import { renderDeckRadar } from "./deck_radar.js?v=20261116_radar_stable1";
 import { inspectCpuDeck, chooseCpuDeck } from "./cpu_deck_guard.js?v=20261020_cpu_deck_fix1";
 import { grantGems } from "./user_store.js?v=20260730_user_support30";
 

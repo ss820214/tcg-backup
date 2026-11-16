@@ -22,7 +22,7 @@ import { JEWEL_CARDS } from "./jewel_cards.js?v=20260828_jewel_art1";
 
 import { computeInfil } from "./game_state.js?v=20260228_5";
 import { renderBattleDetails } from "./battle_result_details.js?v=20261020a";
-import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20260801_radar_clamp1";
+import { evaluateDeck, drawRadar } from "./deck_radar.js?v=20261116_radar_stable1";
 import { db } from "./auth.js?v=20260627_perm1";
 import { recordMatchResult } from "./user_store.js?v=20260723_starter_series1";
 

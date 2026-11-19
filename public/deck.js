@@ -2290,6 +2290,7 @@ const HOME_MASCOT_IMAGES = [
   "./assets/home/home-mascot-metabo-20260911.png",
   "./assets/home/home-mascot-tokiori-20260911.png",
   "./assets/home/home-mascot-mask-20260911.png",
+  "./assets/home/home-mascot-wanwan-20261119.png",
 ];
 
 function pickHomeMascotImage() {

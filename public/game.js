@@ -3988,7 +3988,7 @@ function getPinchLevel(st) {
   } catch {}
   const ei = Math.trunc(Number(now?.[enemy] ?? 0) || 0);
 
-  const danger = Math.max(ek, ei);
+  const danger = gameMode==='invasion'?ei:Math.max(ek, ei);
   if (danger >= 2) return 2;
   if (danger >= 1) return 1;
   return 0;
@@ -4506,7 +4506,7 @@ function setTurnUI(st) {
     const oppKill = seat === "A" ? kb : ka;
     const oppInfil = seat === "A" ? ib : ia;
 
-    const danger = Math.max(oppKill, oppInfil);
+    const danger = gameMode==='invasion'?oppInfil:Math.max(oppKill, oppInfil);
 
     // 萓具ｼ・繧ｫ繧ｦ繝ｳ繝亥叙繧峨ｌ縺溪・pinch1 / 2繧ｫ繧ｦ繝ｳ繝遺・pinch2
     if (danger >= 2) {

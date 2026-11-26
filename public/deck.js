@@ -2337,7 +2337,7 @@ function ensureDeckStartElement() {
 
   // Home and deck editor share one release label to prevent stale home versions.
   const homeReleaseVersion = (
-    document.getElementById("deckVersionPill")?.textContent || "V1.2.2"
+    document.getElementById("deckVersionPill")?.textContent || "V1.3.0"
   ).trim().toUpperCase();
 
   const homeHtml = `

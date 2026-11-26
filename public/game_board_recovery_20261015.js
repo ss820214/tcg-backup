@@ -5,7 +5,7 @@ function restore(){
  const init=()=>{
   if(board.querySelectorAll(":scope > .cell").length)return;
   const frag=document.createDocumentFragment();
-  for(let y=0;y<7;y++)for(let x=0;x<5;x++){const cell=document.createElement("div");cell.className="recoveryCell";cell.dataset.x=String(x);cell.dataset.y=String(y);frag.appendChild(cell);}
+  const invasion=document.body.dataset.gameMode==='invasion';for(let y=0;y<(invasion?9:7);y++)for(let x=0;x<(invasion?9:5);x++){const cell=document.createElement("div");cell.className="recoveryCell";cell.dataset.x=String(x);cell.dataset.y=String(y);frag.appendChild(cell);}
   board.appendChild(frag);
  };
  setTimeout(()=>{if(!board.querySelector(".cell"))init();},5000);

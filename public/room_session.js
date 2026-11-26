@@ -9,7 +9,7 @@ export function createRoomService(api) {
  const {db,doc,collection,getDocs,runTransaction,serverTimestamp,Timestamp}=api;
  const roomRef=code=>doc(db,'rooms',code), memberRef=(code,id)=>doc(db,'rooms',code,'players',id), matchRef=code=>doc(db,'rooms',code,'game','match');
  const expires=()=>Timestamp.fromMillis(Date.now()+30*60000);
- async function enter({code,uid,playerId,profile={},mode='join',field='grass'}) {
+ async function enter({code,uid,playerId,profile={},mode='join',field='grass',gameMode='default'}) {
   if(!validRoomCode(code)||!uid||!playerId||playerId==='cpu')throw Error('参加情報を確認できません。対戦準備から入り直してください。');
   const creating=mode==='create'||mode==='solo';
   const legacy=(await getDocs(collection(db,'rooms',code,'players'))).docs.map(d=>({id:d.id,...d.data()}));
@@ -37,12 +37,12 @@ export function createRoomService(api) {
    if(next.length>2)throw Error('このルームは満員です（2人参加済み）。');
    const nextOwners={...owners,[id]:uid,...(mode==='solo'?{cpu:uid}:{})};
    const patch={memberIds:next,memberOwners:nextOwners,lastActiveAt:serverTimestamp(),expiresAt:expires()};
-   if(creating)tx.set(roomRef(code),{...patch,status:'waiting',ownerUid:uid,createdAt:serverTimestamp(),desiredField:field,fieldId:field,field:{id:field},mode:mode==='solo'?'solo':'versus',solo:mode==='solo'});
+   if(creating)tx.set(roomRef(code),{...patch,status:'waiting',ownerUid:uid,createdAt:serverTimestamp(),desiredField:field,fieldId:field,field:{id:field},mode:mode==='solo'?'solo':'versus',solo:mode==='solo',...(gameMode==='invasion'?{gameMode:'invasion'}:{})});
    else tx.update(roomRef(code),patch);
    // Re-entry preserves the match's chosen deck and READY state.
    if(!own)tx.set(memberRef(code,id),{...profile,uid,ready:false,joinedAt:serverTimestamp(),updatedAt:serverTimestamp()});
    if(mode==='solo')tx.set(memberRef(code,'cpu'),{name:'CPU',isCpu:true,uid,deck:profile.deck||{},exSupport:'',ready:true,desiredField:field,updatedAt:serverTimestamp()});
-   return{room:code,player:id,field:creating?field:(data.fieldId||data.desiredField||field),solo:creating?mode==='solo':data.solo===true,started:match.exists()};
+   return{room:code,player:id,field:creating?field:(data.fieldId||data.desiredField||field),solo:creating?mode==='solo':data.solo===true,started:match.exists(),gameMode:(creating?gameMode:(match.data()?.gameMode||data.gameMode))==='invasion'?'invasion':'default'};
   });
  }
  async function leave({code,playerId,uid}) {

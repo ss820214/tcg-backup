@@ -15,7 +15,7 @@
 //   * drawbacks: if playable => ALWAYS applied regardless of hit/fail
 
 import {
-  drawCards,
+  W as boardW, H as boardH, drawCards,
   clearStatuses,
   normalizeStatusKey,
   isTaimanDamageAllowed,
@@ -820,8 +820,8 @@ function aliveUnits(units) {
 }
 
 function boardSizeFromUnits(units, eff) {
-  const W = Math.max(1, asInt(eff?.W, 5));
-  const H = Math.max(1, asInt(eff?.H, 7));
+  const W = Math.max(1, asInt(eff?.W, boardW));
+  const H = Math.max(1, asInt(eff?.H, boardH));
   return { W, H };
 }
 
@@ -1326,12 +1326,12 @@ export function applySupport({
     const c=targetCell;
     const x=Number(c?.x),y=Number(c?.y);
     if (!Number.isInteger(x) || !Number.isInteger(y) ||
-      !validSpatialMove({from:t1,to:{x,y},effect:effForRules,units,W:5,H:7})) {
+      !validSpatialMove({from:t1,to:{x,y},effect:effForRules,units,W:boardW,H:boardH})) {
       return {ok:false,reason:"移動先が射程外・盤外・使用中"};
     }
   }
   if (res.chosen && typeForRules === "swapPos" &&
-    !validSpatialSwap({first:t1,second:t2,effect:effForRules,W:5,H:7})) {
+    !validSpatialSwap({first:t1,second:t2,effect:effForRules,W:boardW,H:boardH})) {
     return {ok:false,reason:"位置入れ替えの距離または対象が不正"};
   }
 
@@ -1938,7 +1938,7 @@ export function applySupport({
       );
     }
   } else if (type === "swapPos") {
-    if (!validSpatialSwap({first:t1,second:t2,effect:eff,W:5,H:7})) {
+    if (!validSpatialSwap({first:t1,second:t2,effect:eff,W:boardW,H:boardH})) {
       logLines.push(`[${seat}] サポート不発：対象2体が必要`);
       return {
         ok: true,
@@ -1979,8 +1979,8 @@ export function applySupport({
     }
     const x = asInt(c.x, -1);
     const y = asInt(c.y, -1);
-    const W = asInt(eff.W, 5);
-    const H = asInt(eff.H, 7);
+    const W = asInt(eff.W, boardW);
+    const H = asInt(eff.H, boardH);
 
     if (x < 0 || x >= W || y < 0 || y >= H) {
       logLines.push(`[${seat}] サポート不発：盤外`);
@@ -1996,7 +1996,7 @@ export function applySupport({
         lastSupportRoll,
       };
     }
-    if (!validSpatialMove({from:t1,to:{x,y},effect:eff,units,W:5,H:7})) {
+    if (!validSpatialMove({from:t1,to:{x,y},effect:eff,units,W:boardW,H:boardH})) {
       logLines.push(`[${seat}] サポート不発：移動範囲外または使用中`);
       return {ok:false,reason:"移動先が不正"};
     }
@@ -2757,8 +2757,8 @@ export function applyExSupport({
 
     const x = asInt(c.x, -1);
     const y = asInt(c.y, -1);
-    const W = asInt(eff.W, 5);
-    const H = asInt(eff.H, 7);
+    const W = asInt(eff.W, boardW);
+    const H = asInt(eff.H, boardH);
 
     if (x < 0 || x >= W || y < 0 || y >= H) {
       logLines.push(`[${seat}] EX不発：盤外`);

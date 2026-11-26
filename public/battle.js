@@ -227,6 +227,10 @@ const cpuRef = doc(db, "rooms", roomId, "players", CPU_ID);
 const playersRef = collection(db, "rooms", roomId, "players");
 const myRef = doc(db, "rooms", roomId, "players", playerId);
 const matchRef = doc(db, "rooms", roomId, "game", "match");
+let lobbyGameMode="default";
+try {const r=await getDoc(doc(db,"rooms",roomId));lobbyGameMode=r.data()?.gameMode==="invasion"?"invasion":"default";}catch(e){console.warn("[mode]",e)}
+roomIdEl.insertAdjacentText("afterend"," / "+lobbyGameMode.toUpperCase());
+if(lobbyGameMode==="invasion"&&isSolo){const opt=cpuStyleInputs.find(i=>i.value==="infiltration");if(opt)opt.checked=true;updateCpuStylePanel(false);}
 
 // =====================
 // Field pick helpers（A/B希望 → matchで確定）
@@ -331,6 +335,7 @@ function goToMatchIntro() {
   const url = new URL("./match_intro.html?v=20260727_room_field_fix1", location.href);
   url.searchParams.set("room", roomId);
   url.searchParams.set("player", playerId);
+  url.searchParams.set("gameMode",lobbyGameMode);
   url.searchParams.set("field", normalizeFieldId(selectedFieldId || fieldIdParam, { fallback: "grass" }));
 
   // ソロ時は URL を人間がいじらなくて済むように solo=1 を引き回す
@@ -936,6 +941,7 @@ onSnapshot(playersRef, async (snap) => {
         diceB,
         field: finalField,
         fieldRule: "dice_if_diff",
+        ...(roomData.gameMode==="invasion"?{gameMode:"invasion"}:{}),
         ...(isSolo ? {cpuStyle: Object.hasOwn(CPU_STYLES, (seatA === CPU_ID ? aData : bData).cpuStyle)
           ? (seatA === CPU_ID ? aData : bData).cpuStyle : selectedCpuStyle()} : {}),
         startedAt: serverTimestamp(),

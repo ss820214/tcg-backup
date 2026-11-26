@@ -1,3 +1,4 @@
+import {normalizeGameMode,fenceBlocks,fenceEdges,goalDistance,validateFence,scoreInvasion,invasionWinner} from "./invasion_rules.js?v=1";
 import {createBattleConnection} from "./battle_connection.js?v=20261116_v122";
 import {rememberMatch} from "./room_session.js?v=20261116_v122";
 import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
@@ -61,6 +62,7 @@ import { createEvolveSystem } from "./evolve_system.js?v=20261016_autoexit1";
 import {
   W,
   H,
+  configureBoard,
   DRAW_PER_TURN,
   summonArea,
   computeInfil,
@@ -802,6 +804,7 @@ function actRangeLabel(act, unitOwner) {
 // =====================
 // Seat
 // =====================
+let gameMode="default",fenceTool="",fenceBusy=false;
 let seat = null;
 let opponentSeat = null;
 let seatAPlayerId = null;
@@ -817,6 +820,10 @@ async function resolveSeat() {
   const member=await getDoc(playerRef(playerId));
   if(!member.exists()||member.data()?.uid!==authUid)throw Error('この対戦の参加者を確認できません。元の端末・アカウントで再開してください。');
   const m = ms.data();
+  gameMode=normalizeGameMode(m.gameMode);
+  configureBoard(gameMode);
+  document.body.dataset.gameMode=gameMode;
+  rememberMatch({room:roomId,player:playerId,field:fieldIdFromUrl,solo:m.seatA==='cpu'||m.seatB==='cpu',started:true,uid:authUid,gameMode});
   // Match metadata is authoritative. Intermediate transitions may lose URL flags.
   if (m.seatA === "cpu" || m.seatB === "cpu") isSoloMode = true;
   if (isSoloMode && ["aggressive","balanced","defensive","infiltration"].includes(m.cpuStyle)) {
@@ -1060,6 +1067,7 @@ function ensureInfilObj(s) {
 
 // 現在の侵入数（累積しない）
 function calcInfilNow(s) {
+  if(gameMode==='invasion')return {A:Number(s?.infil?.A||0),B:Number(s?.infil?.B||0)};
   const units = Array.isArray(s?.units) ? s.units : [];
   const alive = units.filter((u) => u && Number(u.hp) > 0 && !u.panic);
 
@@ -1075,6 +1083,7 @@ function calcInfilNow(s) {
 // 譌｢蟄・checkWin 縺後≠繧九↑繧牙ｰ企㍾縺励▽縺､縲∵怙菴朱剞・・ills/infil・峨〒繧ょ享閠・ｒ霑斐○繧九ｈ縺・↓
 function checkWinLocal(s) {
   if (!s) return null;
+  if(gameMode==='invasion')return invasionWinner(s);
 
   const killsA = Math.trunc(Number(s?.kills?.A ?? 0) || 0);
   const killsB = Math.trunc(Number(s?.kills?.B ?? 0) || 0);
@@ -1244,6 +1253,7 @@ async function ensureStateInitialized() {
     tx.set(stateRef, {
       turn: "A",
       turnSeq: 1,
+      ...(gameMode==='invasion'?{gameMode:'invasion',fences:[],fencePlacedTurn:{A:0,B:0}}:{}),
 
       fieldId: fieldIdFromUrl,
       field: { id: fieldIdFromUrl },
@@ -1687,6 +1697,7 @@ function resetSupportPicks() {
   supportSearchCardId = "";
 }
 function setMode(m) {
+  fenceTool='';
   mode = m;
 
   if (m !== "support") resetSupportPicks();
@@ -4445,8 +4456,8 @@ function setTurnUI(st) {
   // 譁ｰUI
   renderScoreMeter(killMeterA, ka, WIN_KILL_COUNT);
   renderScoreMeter(killMeterB, kb, WIN_KILL_COUNT);
-  if (killTextA) killTextA.textContent = ka + "/" + WIN_KILL_COUNT;
-  if (killTextB) killTextB.textContent = kb + "/" + WIN_KILL_COUNT;
+  if (killTextA) killTextA.textContent = gameMode==="invasion"?String(ka):ka + "/" + WIN_KILL_COUNT;
+  if (killTextB) killTextB.textContent = gameMode==="invasion"?String(kb):kb + "/" + WIN_KILL_COUNT;
 
   // ===== INFIL・井ｻ翫％縺ｮ迸ｬ髢難ｼ・====
   let now = { A: 0, B: 0 };
@@ -4591,6 +4602,7 @@ function shouldCancelByUnitClick(u, st) {
 function onCellClick(x, y) {
   const st = currentState;
   if (!st) return;
+  if(gameMode==='invasion'&&fenceTool){void handleFenceCell(x,y);return;}
 
   const handDef = selectedHandDef(st);
   const isSupp = !!handDef && isSupportCard(handDef);
@@ -4842,6 +4854,7 @@ function onCellClick(x, y) {
     const dx = Math.abs(x - su.x);
     const dy = Math.abs(y - su.y);
     if (dx + dy !== 1) return;
+    if(gameMode==='invasion'&&fenceBlocks(st.fences,su,{x,y}))return;
 
     // 遘ｻ蜍募・縺檎ｩｺ
     if (!isEmptyCell(st, x, y)) return;
@@ -4879,6 +4892,8 @@ function onCellClick(x, y) {
       const dx2 = Math.abs(toSnap.x - me.x);
       const dy2 = Math.abs(toSnap.y - me.y);
       if (dx2 + dy2 !== 1) return;
+      if(gameMode==='invasion'&&fenceBlocks(s.fences,me,toSnap))return;
+      if(normalizeMana(s.mana)[seat].cur<1)return;
 
       if (unitAt(s, toSnap.x, toSnap.y)) return;
 
@@ -4988,6 +5003,7 @@ function onCellClick(x, y) {
         );
       }
       for (const ln of bleedLogLines) logPush(s, ln);
+      if(scoreInvasion(s,me))logPush(s,'['+seat+'] 侵入成功：'+cardName(me.cardId));
 
       const w = checkWinLocal(s);
       if (w) {
@@ -6705,7 +6721,7 @@ function listCpuLegalMoves(st, u) {
   const moves=[];
   for (const [dx,dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
     const x=u.x+dx, y=u.y+dy;
-    if(x>=0 && x<W && y>=0 && y<H && !unitAt(st,x,y)) moves.push({to:{x,y}});
+    if(x>=0 && x<W && y>=0 && y<H && !unitAt(st,x,y) && !(gameMode==='invasion'&&fenceBlocks(st.fences,u,{x,y}))) moves.push({to:{x,y}});
   }
   return moves;
 }
@@ -6912,6 +6928,7 @@ async function executeCpuMove(actorSeat, unitId, toSnap) {
     if (txTo.x < 0 || txTo.x >= W || txTo.y < 0 || txTo.y >= H) return;
     if (Math.abs(txTo.x - me.x) + Math.abs(txTo.y - me.y) !== 1) return;
     if (unitAt(s, txTo.x, txTo.y)) return;
+    if(gameMode==='invasion'&&fenceBlocks(s.fences,me,txTo))return;
 
     const mana = normalizeMana(s.mana);
     if (mana?.[actor]?.cur < 1) return;
@@ -6979,6 +6996,7 @@ async function executeCpuMove(actorSeat, unitId, toSnap) {
       countKillIfNeeded(me, killer, s.kills, bleedLogLines, "bleed");
     }
     for (const ln of bleedLogLines) logPush(s, ln);
+    if(scoreInvasion(s,me))logPush(s,'['+actor+'] 侵入成功：'+cardName(me.cardId));
 
     const w = checkWinLocal(s);
     if (w) {
@@ -7273,13 +7291,63 @@ exBtnEl && exBtnEl.addEventListener("click", () => execEx());
 
 // =====================
 // UI install (split step-1)
+const fencePanel=document.getElementById("invasionTools"),fenceStatus=document.getElementById("invasionFenceStatus");
+function fenceMessage(text){if(fenceStatus)fenceStatus.textContent=text;}
+if(gameMode==="invasion"&&fencePanel){
+ fencePanel.hidden=false;
+ for(const button of fencePanel.querySelectorAll("[data-fence-tool]"))button.addEventListener("click",()=>{
+  fenceTool=fenceTool===button.dataset.fenceTool?"":button.dataset.fenceTool;
+  fenceMessage(fenceTool==="h"?"横柵：画面上の左上マスを選択":fenceTool==="v"?"縦柵：画面上の左上マスを選択":fenceTool==="damage"?"破壊：柵に接するマスを選択（隣接する自軍1体・1マナ）":"柵操作を解除");
+  render(currentState);
+ });
+}
+async function handleFenceCell(x,y){
+ if(fenceBusy||!canControl(currentState))return;
+ const tool=fenceTool; fenceBusy=true;
+ try{
+  const result=await runTransaction(db,async tx=>{
+   const snap=await tx.get(stateRef);if(!snap.exists())return "対戦がありません";
+   const s=snap.data();if(s.gameMode!=="invasion"||!canControl(s))return "自分のターンに操作してください";
+   const fs=Array.isArray(s.fences)?s.fences:[];
+   const mana=normalizeMana(s.mana);
+   if(tool==="damage"){
+    const f=fs.find(w=>w.hp>0&&fenceEdges(w).some(edge=>edge.some(p=>p.x===x&&p.y===y)));
+    if(!f)return "柵に接するマスを選んでください";
+    const near=(s.units||[]).some(u=>u.owner===seat&&isAlive(u)&&fenceEdges(f).some(edge=>edge.some(p=>p.x===u.x&&p.y===u.y)));
+    if(!near||mana[seat].cur<1)return "隣接する自軍と1マナが必要";
+    s.mana=spendManaMut(s.mana,seat,1);f.hp-=10;s.fences=fs.filter(w=>w.hp>0);
+    logPush(s,"["+seat+"] 柵に10ダメージ");
+   }else{
+    const f={id:uid(),owner:seat,x,y:seat==="B"?y-1:y,orientation:tool,hp:20};
+    const error=validateFence(s,seat,f);if(error)return error;
+    if(mana[seat].cur<2)return "設置には2マナが必要";
+    s.mana=spendManaMut(s.mana,seat,2);s.fences=[...fs,f];s.fencePlacedTurn={...s.fencePlacedTurn,[seat]:s.turnSeq};logPush(s,"["+seat+"] 柵を設置");
+   }
+   tx.set(stateRef,s,{merge:true});return "";
+  });
+  fenceMessage(result||"柵操作完了");if(!result)fenceTool="";
+ }catch(error){fenceMessage(error?.message||"柵操作失敗");}finally{fenceBusy=false;if(currentState)render(currentState);}
+}
+function renderFences(st){
+ if(gameMode!=="invasion"||!boardEl)return;
+ for(const el of boardEl.querySelectorAll(".invasionFence"))el.remove();
+ for(const f of st?.fences||[]){if(f.hp<=0)continue;for(const edge of fenceEdges(f)){
+  const [a,b]=edge.map(p=>toViewXY(p.x,p.y));
+  const origin=a.x===b.x?(a.y<b.y?a:b):(a.x<b.x?a:b);
+  const cell=boardEl.querySelector('.cell[data-x="'+origin.x+'"][data-y="'+origin.y+'"]');if(!cell)continue;
+  const el=document.createElement("span");el.className="invasionFence "+(a.x===b.x?"fenceH":"fenceV");el.dataset.owner=f.owner;el.textContent=String(f.hp);el.title="柵 HP "+f.hp;cell.append(el);
+ }}
+ const count=seat0=>(st?.fences||[]).filter(f=>f.owner===seat0&&f.hp>0).length;
+ const info=document.getElementById("invasionFenceCount");if(info)info.textContent="柵 A "+count("A")+"/3 · B "+count("B")+"/3";
+ if(fencePanel)for(const b of fencePanel.querySelectorAll("[data-fence-tool]")){b.disabled=!canControl(st)||fenceBusy;b.setAttribute("aria-pressed",String(fenceTool===b.dataset.fenceTool));}
+}
 // =====================
 const ui = createGameUI({
   // left pane / log / fx
   setTurnUI,
   renderLog,
   fxOnHit,
-  onAfterRender: st=>{ updateBattleReadability(st); refreshUnitDetail(st); },
+  onAfterRender: st=>{ updateBattleReadability(st); refreshUnitDetail(st); renderFences(st); },
 
   actFlags,
   isSelfRange,
@@ -7705,7 +7773,7 @@ onSnapshot(
             listLegalSummons: listCpuLegalSummons,
             listLegalEvolves: listCpuLegalEvolves,
             listLegalSupports: listCpuLegalSupports,
-            goalProgress: (_state, unit, to) => cpuSeat === "B" ? to.y - unit.y : unit.y - to.y,
+            goalProgress: (_state, unit, to) => gameMode==="invasion" ? goalDistance(_state.fences,unit,cpuSeat)-goalDistance(_state.fences,to,cpuSeat) : cpuSeat === "B" ? to.y - unit.y : unit.y - to.y,
           },
         });
       }

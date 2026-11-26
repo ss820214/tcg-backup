@@ -3,6 +3,7 @@ import {doc,collection,getDoc,getDocFromServer,getDocs,setDoc,runTransaction,ser
 import {createRoomService,rememberMatch,readRememberedMatch,forgetMatch} from './room_session.js?v=20261116_v122';
 import {PRACTICE_DECK,validDeckMap} from './starter_practice.js?v=20261116_v122';
 const $=id=>document.getElementById(id),KEY='tcg_deck_local_v20260202_30',TITLE='tcg_deck_title_v20260204',NAME='tcg_player_name_v20260202_30',FIELD='tcg_desired_field_v20260702',EX='tcg_ex_support_v20260202_30';
+import {normalizeGameMode} from './invasion_rules.js?v=1';
 const rooms=createRoomService({db,doc,collection,getDocs,runTransaction,serverTimestamp,Timestamp});
 let deck={},busy=false,user=null;
 const msg=text=>{$('message').textContent=text;};
@@ -34,7 +35,7 @@ const fieldNames={grass:'草原',danger:'危険地帯',swamp:'沼地'},validFiel
 function go(session){
  rememberMatch({...session,uid:user.uid});
  const url=new URL(session.started?'./game.html':'./battle.html',location.href);
- for(const key of ['room','player','field'])url.searchParams.set(key,session[key]);
+ for(const key of ['room','player','field','gameMode'])url.searchParams.set(key,session[key]);
  if(session.solo){url.searchParams.set('solo','1');url.searchParams.set('mode','solo')}
  location.assign(url.href);
 }
@@ -49,7 +50,7 @@ async function start(mode){
   const profile={name,deck,exSupport:localStorage.getItem(EX)||'',deckTitle:localStorage.getItem(TITLE)||'',desiredField:field};
   let session;
   for(let attempt=0;attempt<24;attempt++){
-   try{session=await rooms.enter({code,uid:user.uid,playerId,profile,mode,field});break;}
+   try{session=await rooms.enter({code,uid:user.uid,playerId,profile,mode,field,gameMode:normalizeGameMode(document.querySelector('input[name="gameMode"]:checked')?.value)});break;}
    catch(error){if(mode==='join'||!String(error.message).includes('重複')||attempt===23)throw error;code=String(Math.floor(1000+Math.random()*9000));}
   }
   // Room entry has already committed. Optional profile saving must never strand a seat.
@@ -64,7 +65,7 @@ async function refreshResume(){
  const [r,p,m,s]=await Promise.all([getDocFromServer(doc(db,'rooms',saved.room)),getDocFromServer(doc(db,'rooms',saved.room,'players',saved.player)),getDocFromServer(doc(db,'rooms',saved.room,'game','match')),getDocFromServer(doc(db,'rooms',saved.room,'game','state'))]);
  if(!r.exists()||r.data()?.status==='closed'||!p.exists()||p.data()?.uid!==user.uid||s.data()?.winner){forgetMatch(user.uid);return;}
  $('resumePanel').hidden=false;$('resumeLabel').textContent='ルーム '+saved.room+(m.exists()?'：進行中の対戦':'：待機中');
- $('resumeMatch').onclick=()=>go({...saved,started:m.exists()});
+ $('resumeMatch').onclick=()=>go({...saved,gameMode:normalizeGameMode(m.data()?.gameMode||r.data()?.gameMode),started:m.exists()});
  }catch(error){console.warn('[play] resume lookup unavailable',error?.code);}
 }
 void refreshResume();

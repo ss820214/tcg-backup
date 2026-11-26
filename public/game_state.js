@@ -2,8 +2,10 @@
 // v1.7.2 (buff/shield helpers)
 
 
-export const W = 5;
-export const H = 7;
+import {boardDimensions,fenceBlocks,invasionWinner} from "./invasion_rules.js?v=1";
+export let W = 5;
+export let H = 7;
+export function configureBoard(mode){({W,H}=boardDimensions(mode));}
 
 export const MAX_KILLS_WIN = 3;
 export const MAX_INFIL_WIN = 3;
@@ -46,6 +48,7 @@ export function isAlive(u){
 }
 
 export function computeInfil(st){
+  if(st.gameMode==='invasion')return {infilA:st.infil?.A||0,infilB:st.infil?.B||0};
   const units = st.units || [];
   const infilA = units.filter(u => u.owner==="A" && enemyBaseArea("A", u.y) && isAlive(u)).length;
   const infilB = units.filter(u => u.owner==="B" && enemyBaseArea("B", u.y) && isAlive(u)).length;
@@ -53,6 +56,7 @@ export function computeInfil(st){
 }
 
 export function checkWin(st){
+  if(st.gameMode==='invasion')return invasionWinner(st);
   if ((st.kills?.A ?? 0) >= MAX_KILLS_WIN) return "A";
   if ((st.kills?.B ?? 0) >= MAX_KILLS_WIN) return "B";
   const { infilA, infilB } = computeInfil(st);
@@ -357,6 +361,7 @@ export function applyKnockback(st, attackerUnit, targetUnit, dist){
     const ny = y + sy;
 
     if (nx < 0 || nx >= W || ny < 0 || ny >= H) break;
+    if(st.gameMode==='invasion'&&(fenceBlocks(st.fences,{x,y},{x:nx,y:ny})||(sx&&sy&&(fenceBlocks(st.fences,{x,y},{x:nx,y})||fenceBlocks(st.fences,{x:nx,y},{x:nx,y:ny})||fenceBlocks(st.fences,{x,y},{x,y:ny})||fenceBlocks(st.fences,{x,y:ny},{x:nx,y:ny})))))break;
 
     // ✅ 盤面に「誰か」いたら止まる（panic含む）
     if (_unitAt(st.units, nx, ny, targetUnit)) break;

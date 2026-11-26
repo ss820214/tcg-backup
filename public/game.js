@@ -1,6 +1,6 @@
 import {normalizeGameMode,fenceBlocks,fenceEdges,goalDistance,validateFence,scoreInvasion,invasionWinner} from "./invasion_rules.js?v=1";
 import {createBattleConnection} from "./battle_connection.js?v=20261116_v122";
-import {rememberMatch} from "./room_session.js?v=20261116_v122";
+import {rememberMatch} from "./room_session.js?v=20261126_invasion1";
 import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
 import {isBattleCommandEvent} from "./battle_input.js?v=20261113_target_fix1";
 import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_readfix1";
@@ -9,7 +9,7 @@ import { getCachedCardCollection } from "./card_catalog_cache.js?v=20261021_read
 // ...
 
 import { createGameUI } from "./game_ui.js?v=20261114_name_two1";
-import { createBattleReadability } from "./battle_readability.js?v=20261020c";
+import { createBattleReadability } from "./battle_readability.js?v=20261126_invasion1";
 import { createOpponentHandView } from "./opponent_hand_ui.js?v=20261020a";
 import { spatialEffect, validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";
@@ -35,7 +35,7 @@ import {
   isSupportCard,
   resolveSupportEffect,
   applyExSupport,
-} from "./support_core.js?v=20261019_spatial1";
+} from "./support_core.js?v=20261126_invasion1";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
@@ -102,7 +102,7 @@ import {
   blocksAssist,
   isAssistAction,
   normalizeStatusKey,
-} from "./game_state.js?v=20260904_status_rules1";
+} from "./game_state.js?v=20261126_invasion1";
 
 // ===== Field system =====
 import {
@@ -1253,7 +1253,7 @@ async function ensureStateInitialized() {
     tx.set(stateRef, {
       turn: "A",
       turnSeq: 1,
-      ...(gameMode==='invasion'?{gameMode:'invasion',fences:[],fencePlacedTurn:{A:0,B:0}}:{}),
+      ...(gameMode==='invasion'?{gameMode:'invasion',boardW:9,boardH:9,fences:[],fencePlacedTurn:{A:0,B:0}}:{}),
 
       fieldId: fieldIdFromUrl,
       field: { id: fieldIdFromUrl },
@@ -5003,7 +5003,7 @@ function onCellClick(x, y) {
         );
       }
       for (const ln of bleedLogLines) logPush(s, ln);
-      if(scoreInvasion(s,me))logPush(s,'['+seat+'] 侵入成功：'+cardName(me.cardId));
+      if(prev.y!==me.y&&scoreInvasion(s,me))logPush(s,'['+seat+'] 侵入成功：'+cardName(me.cardId));
 
       const w = checkWinLocal(s);
       if (w) {
@@ -6996,7 +6996,7 @@ async function executeCpuMove(actorSeat, unitId, toSnap) {
       countKillIfNeeded(me, killer, s.kills, bleedLogLines, "bleed");
     }
     for (const ln of bleedLogLines) logPush(s, ln);
-    if(scoreInvasion(s,me))logPush(s,'['+actor+'] 侵入成功：'+cardName(me.cardId));
+    if(from.y!==me.y&&scoreInvasion(s,me))logPush(s,'['+actor+'] 侵入成功：'+cardName(me.cardId));
 
     const w = checkWinLocal(s);
     if (w) {

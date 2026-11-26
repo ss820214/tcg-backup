@@ -1,0 +1,13 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+const source=await readFile(new URL("../public/invasion_rules.js",import.meta.url),"utf8");
+const r=await import("data:text/javascript;base64,"+Buffer.from(source).toString("base64"));
+const state=()=>({gameMode:"invasion",turnSeq:1,fences:[],units:[],infil:{A:0,B:0}});
+const fence={x:2,y:3,orientation:"h",owner:"A",hp:20};
+test("mode dimensions",()=>{assert.deepEqual(r.boardDimensions("default"),{W:5,H:7});assert.deepEqual(r.boardDimensions("invasion"),{W:9,H:9})});
+test("fence blocks two edges not parallel travel",()=>{assert.equal(r.validateFence(state(),"A",fence),"");assert.equal(r.fenceBlocks([fence],{x:2,y:3},{x:2,y:4}),true);assert.equal(r.fenceBlocks([fence],{x:3,y:3},{x:3,y:4}),true);assert.equal(r.fenceBlocks([fence],{x:2,y:3},{x:3,y:3}),false);assert.equal(r.goalDistance([fence],{x:2,y:4},"A"),5)});
+test("overlap turn and count cap",()=>{const s=state();s.fences=[fence];assert.notEqual(r.validateFence(s,"B",fence),"");s.fencePlacedTurn={A:1};assert.notEqual(r.validateFence(s,"A",{x:4,y:4,orientation:"h"}),"");s.fencePlacedTurn={};s.fences=[fence,{...fence,x:4},{...fence,x:6}];assert.notEqual(r.validateFence(s,"A",{x:0,y:1,orientation:"h"}),"")});
+test("three distinct units score once and kills do not win",()=>{const s=state();s.kills={A:99,B:99};assert.equal(r.invasionWinner(s),null);for(let i=0;i<3;i++){const u={id:"a"+i,owner:"A",x:i,y:0,hp:10};s.units.push(u);assert.equal(r.scoreInvasion(s,u),true);assert.equal(r.scoreInvasion(s,u),false)}assert.equal(r.invasionWinner(s),"A");assert.equal(s.units.length,0)});
+test("dead, panicked and non-goal units cannot score",()=>{const s=state();for(const u of [{id:"1",owner:"A",x:0,y:0,hp:0},{id:"2",owner:"A",x:0,y:0,hp:10,panic:true},{id:"3",owner:"A",x:0,y:1,hp:10}]){s.units.push(u);assert.equal(r.scoreInvasion(s,u),false)}assert.equal(r.invasionWinner(s),null)});
+test("B scores at opposite board edge",()=>{const s=state(),u={id:"b",owner:"B",x:0,y:8,hp:10};s.units.push(u);assert.equal(r.scoreInvasion(s,u),true);assert.equal(s.infil.B,1)});

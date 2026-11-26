@@ -21,7 +21,7 @@ import {
   isTaimanDamageAllowed,
   blocksAssist,
   isAssistStatusKey,
-} from "./game_state.js?v=20260904_status_rules1";
+} from "./game_state.js?v=20261126_invasion1";
 import { normalizeMana, spendMana } from "./game_core.js?v=20260627_mana1";
 import { validSpatialMove, validSpatialSwap } from "./support_spatial_rules.js?v=20261019a";
 

@@ -1,6 +1,6 @@
 import {ensureSignedIn,db} from './auth.js?v=20260627_user1';
 import {doc,collection,getDoc,getDocFromServer,getDocs,setDoc,runTransaction,serverTimestamp,Timestamp} from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-import {createRoomService,rememberMatch,readRememberedMatch,forgetMatch} from './room_session.js?v=20261116_v122';
+import {createRoomService,rememberMatch,readRememberedMatch,forgetMatch} from './room_session.js?v=20261126_invasion1';
 import {PRACTICE_DECK,validDeckMap} from './starter_practice.js?v=20261116_v122';
 const $=id=>document.getElementById(id),KEY='tcg_deck_local_v20260202_30',TITLE='tcg_deck_title_v20260204',NAME='tcg_player_name_v20260202_30',FIELD='tcg_desired_field_v20260702',EX='tcg_ex_support_v20260202_30';
 import {normalizeGameMode} from './invasion_rules.js?v=1';

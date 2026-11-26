@@ -1,4 +1,4 @@
-import {createRoomService,rememberMatch,forgetMatch} from "./room_session.js?v=20261116_v122";
+import {createRoomService,rememberMatch,forgetMatch} from "./room_session.js?v=20261126_invasion1";
 import { mergeBattleCardDefinitions } from "./battle_card_catalog.js?v=20261114_flow1";
 import { STARTER_SUPPORT_CARD_MAP } from "./starter_support_cards.js?v=20260706_starter_support_all1";
 import { FAIRY_TALE_CARDS } from "./fairy_tale_cards.js?v=20260726_fairy_rate_down1";

@@ -1,15 +1,16 @@
+import {fenceBlocks,boardDimensions} from './invasion_rules.js?v=1';
 // Presentation only: prediction marks, enemy-action toast, and movement ghosts.
 // No Firestore writes, no card reveals, no modifications to battle rules.
-export function predictMoveCells(state, unit, seat, W=5, H=7) {
+export function predictMoveCells(state, unit, seat, W=boardDimensions(state?.gameMode).W, H=boardDimensions(state?.gameMode).H) {
   if (!state || !unit || state.turn!==seat || unit.owner!==seat ||
       !(Number(unit.hp)>0) || unit.panic) return [];
   const seq=Number(state.turnSeq??1);
   const used=Number(unit.moveTurnSeq)===seq?Number(unit.moveUsed??0):0;
   if (used>=2 || Number(state.mana?.[seat]?.cur??0)<1) return [];
-  const occupied=new Set((state.units||[]).filter(u=>u&&Number(u.hp)>0).map(u=>u.x+","+u.y));
+  const occupied=new Set((state.units||[]).filter(u=>u&&(Number(u.hp)>0||u.panic)).map(u=>u.x+","+u.y));
   return [[1,0],[-1,0],[0,1],[0,-1]]
     .map(([dx,dy])=>({x:Number(unit.x)+dx,y:Number(unit.y)+dy}))
-    .filter(p=>p.x>=0&&p.x<W&&p.y>=0&&p.y<H&&!occupied.has(p.x+","+p.y));
+    .filter(p=>p.x>=0&&p.x<W&&p.y>=0&&p.y<H&&!occupied.has(p.x+","+p.y)&&!(state.gameMode==="invasion"&&fenceBlocks(state.fences,unit,p)));
 }
 export function latestEnemyAction(previous,current,seat) {
   if (!previous || !current || !seat) return null;

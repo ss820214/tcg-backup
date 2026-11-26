@@ -61,3 +61,29 @@ win.navigator.onLine=false;listeners.offline();assert.equal(connection.canAct(),
 win.navigator.onLine=true;await Promise.all([connection.reconnect(),connection.reconnect()]);assert.equal(refreshes,1);assert.equal(connection.canAct(),true);
 fail=true;await connection.reconnect();assert.equal(connection.canAct(),false);connection.dispose();
 console.log('PASS v1.2.2: concurrent admission, re-entry, closed/expired/solo/started/full rooms, exit, practice deck, result identity, transfer safety and cached/offline/reconnect controls');
+
+// v1.3.0: run INVASION tests in the existing deployment gate as well.
+const invasion = await import('../public/invasion_rules.js');
+const hostInv=await rooms.enter({...args('invHost','invHost','6789'),mode:'create',gameMode:'invasion'});
+assert.equal(hostInv.gameMode,'invasion');
+assert.equal(docs.get('rooms/6789').gameMode,'invasion');
+const guestInv=await rooms.enter({...args('invGuest','invGuest','6789'),mode:'join',gameMode:'default'});
+assert.equal(guestInv.gameMode,'invasion');
+assert.equal(resumed.gameMode,'default');
+assert.deepEqual(invasion.boardDimensions('invasion'),{W:9,H:9});
+assert.deepEqual(invasion.boardDimensions('default'),{W:5,H:7});
+const inv={gameMode:'invasion',turnSeq:1,fences:[],units:[],infil:{A:0,B:0},kills:{A:99,B:99}};
+const f={x:2,y:3,orientation:'h',owner:'A',hp:20};
+assert.equal(invasion.validateFence(inv,'A',f),'');
+inv.fences=[f];
+assert.equal(invasion.fenceBlocks(inv.fences,{x:2,y:3},{x:2,y:4}),true);
+assert.equal(invasion.fenceBlocks(inv.fences,{x:3,y:3},{x:3,y:4}),true);
+assert.equal(invasion.goalDistance(inv.fences,{x:2,y:4},'A'),5);
+assert.notEqual(invasion.validateFence(inv,'B',f),'');
+inv.fences=[f,{...f,x:4},{...f,x:6}];
+assert.notEqual(invasion.validateFence(inv,'A',{x:0,y:1,orientation:'h'}),'');
+assert.equal(invasion.invasionWinner(inv),null);
+for(let i=0;i<3;i++){const u={id:'inv'+i,owner:'A',x:i,y:0,hp:10};inv.units.push(u);assert.equal(invasion.scoreInvasion(inv,u),true);assert.equal(invasion.scoreInvasion(inv,u),false);}
+assert.equal(invasion.invasionWinner(inv),'A');
+assert.equal(inv.units.length,0);
+console.log('PASS v1.3.0: mode persistence, guest synchronization, fence and invasion scoring');

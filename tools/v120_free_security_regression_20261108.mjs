@@ -15,9 +15,9 @@ const home = read("public/index.html");
 const deck = read("public/deck.js");
 const playHtml = read("public/play.html");
 
-assert.match(home, /id="deckVersionPill">v1\.2\.2/);
-assert.match(deck, /"V1\.2\.2"/);
-assert.match(home, /deck\.js\?v=20261116_v122/);
+assert.match(home, /id="deckVersionPill">v1\.3\.0/);
+assert.match(deck, /"V1\.3\.0"/);
+assert.match(home, /deck\.js\?v=20261126_v130/);
 
 // Browser defense headers must be included without overriding the existing
 // no-cache rules, and no new billable Firebase products are configured.
@@ -52,7 +52,7 @@ assert.match(libCore, /where\("title","==",title\),where\("visibility","==","pub
 
 // All entry points use one atomic capacity reservation; validated behavior is covered by v1.2.2 integration tests.
 assert.match(play, /rooms.enter/);
-assert.match(playHtml, /play\.js\?v=20261116_v122/);
+assert.match(playHtml, /play\.js\?v=20261126_invasion1/);
 const roomService=read("public/room_session.js");
 assert.match(roomService,/runTransaction/);
 assert.match(roomService,/next.length>2/);

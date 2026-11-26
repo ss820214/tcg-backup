@@ -64,7 +64,7 @@ const detail = new Function('detailEl', 'showUnitDetail', `${detailSource}; retu
 detail.select('qa-unit'); detail.refreshUnitDetail({units:[{id:'qa-unit', hp:50, sp:10}]});
 assert.equal(renderedDetail.hp,50,'open unit detail follows damage snapshots');
 detail.refreshUnitDetail({units:[]}); assert.match(detailEl.textContent,/盤面を離れました/);
-assert.match(game,/onAfterRender: st=>\{ updateBattleReadability\(st\); refreshUnitDetail\(st\); \}/);
+assert.match(game,/onAfterRender: st=>\{ updateBattleReadability\(st\); refreshUnitDetail\(st\); renderFences\(st\); \}/);
 
 const dopa = read('dopagaki_mode.js');
 const toggleSource = dopa.slice(dopa.indexOf('  function createToggle()'), dopa.indexOf('  function bindClickConfetti()'));

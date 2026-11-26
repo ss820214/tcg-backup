@@ -35,6 +35,6 @@ for(const page of ['battle.html','match_intro.html','victory.html']){
  new Function('document','page','isHome','$',`${route};ensureRouteStrip();`)(document,page,false,()=>null);
  assert.equal(mounted,false,`${page}: no injected navigation over the screen`);
 }
-assert.match(read('index.html'),/id="deckVersionPill">v1\.2\.2/);
-assert.match(read('deck.js'),/\|\| "V1\.2\.2"/);
-console.log('PASS: independent lobby panels, collapse/restore, re-entry, blocked storage, route opt-out, v1.2.2 labels');
+assert.match(read('index.html'),/id="deckVersionPill">v1\.3\.0/);
+assert.match(read('deck.js'),/\|\| "V1\.3\.0"/);
+console.log('PASS: independent lobby panels, collapse/restore, re-entry, blocked storage, route opt-out, v1.3.0 labels');
